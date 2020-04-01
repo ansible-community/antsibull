@@ -15,6 +15,7 @@ import semantic_version as semver
 
 
 CHUNKSIZE = 4096
+GALAXY_SERVER_URL = 'https://galaxy.ansible.com/'
 
 
 class NoSuchCollection(Exception):
@@ -25,7 +26,7 @@ class DownloadFailure(Exception):
 
 
 class GalaxyClient:
-    def __init__(self, galaxy_server, aio_session):
+    def __init__(self, aio_session, galaxy_server=GALAXY_SERVER_URL):
         self.galaxy_server = galaxy_server
         self.aio_session = aio_session
         self.params = {'format': 'json'}
@@ -102,7 +103,7 @@ class GalaxyClient:
 
 
 class CollectionDownloader:
-    def __init__(self, galaxy_server, aio_session, download_dir):
+    def __init__(self, aio_session, download_dir, galaxy_server=GALAXY_SERVER_URL):
         self.galaxy_client = GalaxyClient(galaxy_server, aio_session)
         self.download_dir = download_dir
 

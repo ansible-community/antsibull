@@ -22,11 +22,12 @@ def parse_pieces_file(pieces_file=None):
     if pieces_file is None:
         contents = pkgutil.get_data('ansible_infra.data', 'acd.in')
     else:
-        with open(pieces_file, 'r') as f:
+        with open(pieces_file, 'rb') as f:
             contents = f.read()
 
+    contents = contents.decode('utf-8')
     # One collection per line, ignoring comments and empty lines
-    collections = [c.strip() for line in f.readlines()
+    collections = [c.strip() for line in contents.split('\n')
                    if (c := line.strip()) and not c.startswith('#')]
     return collections
 

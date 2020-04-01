@@ -1,4 +1,4 @@
-#amazon.aws
+amazon.aws
 ansible.netcommon
 ansible.posix
 ansible.windows
@@ -29,7 +29,7 @@ community.vmware
 #community.windows
 containers.podman
 cyberark.bizdev
-#dellemc_networking.os10
+dellemc_networking.os10
 #dellemc_networking.os6
 #dellemc_networking.os9
 f5networks.f5_modules
