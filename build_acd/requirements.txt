@@ -1,0 +1,8 @@
+aiohttp
+jinja2
+semantic_version
+sh
+
+# Testing
+pytest-asyncio
+asynctest

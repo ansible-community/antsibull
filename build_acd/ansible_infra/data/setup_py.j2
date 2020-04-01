@@ -1,0 +1,53 @@
+#!/usr/bin/python -tt
+
+from setuptools import setup
+
+
+__version__ = '{{ version }}'
+__author__ = 'Ansible, Inc.'
+
+
+setup(
+    name='ansible',
+    version=__version__,
+    description='Radically simple IT automation',
+    author=__author__,
+    author_email='info@ansible.com',
+    url='https://ansible.com/',
+    project_urls={
+        'Bug Tracker': 'https://github.com/ansible/ansible/issues',
+        'CI: Shippable': 'https://app.shippable.com/github/ansible/ansible',
+        'Code of Conduct': 'https://docs.ansible.com/ansible/latest/community/code_of_conduct.html',
+        'Documentation': 'https://docs.ansible.com/ansible/',
+        'Mailing lists': 'https://docs.ansible.com/ansible/latest/community/communication.html#mailing-list-information',
+        'Source Code': 'https://github.com/ansible/ansible',
+    },
+    license='GPLv3+',
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
+    packages=['ansible_collections'],
+    include_package_data=True,
+    install_requires=['ansible-base>={{ version }}<={{ version.next_minor() }}'],
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Natural Language :: English',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Topic :: System :: Installation/Setup',
+        'Topic :: System :: Systems Administration',
+        'Topic :: Utilities',
+    ],
+    data_files=[],
+    # Installing as zip files would break due to references to __file__
+    zip_safe=False
+)
