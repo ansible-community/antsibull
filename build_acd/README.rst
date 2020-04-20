@@ -2,6 +2,7 @@
 Here's some steps to test the build process:
 
 ::
+
     python3.8 -m pip install -r build-acd-requirements.txt --user
     mkdir built
     python3.8 build-acd.py new-acd 2.10.0 --dest-dir built
@@ -16,12 +17,12 @@ Here's some steps to test the build process:
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-acd' localhost
 
-  I have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
-  should be able to upgrade your ansible install like::
+I have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
+should be able to upgrade your ansible install like::
 
     python3.8 -m pip install --user --upgrade -i https://toshio.fedorapeople.org/ansible/acd/ ansible
 
-  And it will pull in both ansible and ansible-base.
+And it will pull in both ansible and ansible-base.
 
-  For offline install, one way to get that would be to download the two tarballs that are there
-  and pip install them as files.
+For offline install, one way to get that would be to download the two tarballs that are there
+and pip install them as files.
