@@ -15,6 +15,7 @@ cisco.meraki
 cisco.mso
 cisco.nxos
 cisco.ucs
+chocolatey.chocolatey
 community.aws
 community.azure
 community.crypto
