@@ -1,3 +1,15 @@
+********
+Overview
+********
+
+This is **work in progress**.
+
+For more information see `Ansible Collections Overview <https://github.com/ansible-collections/overview/blob/master/README.rst>`_.
+
+Feedback welcome via GitHub issues in this repo.
+
+Building ACD
+=============
 
 Here's some steps to test the build process:
 
@@ -17,12 +29,15 @@ Here's some steps to test the build process:
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-acd' localhost
 
-I have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
+Using a pre-release build
+=========================
+
+We have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
 should be able to upgrade your ansible install like::
 
     python3.8 -m pip install --user --upgrade -i https://toshio.fedorapeople.org/ansible/acd/ ansible
 
-And it will pull in both ansible and ansible-base.
+And it will pull in both the ``ansible`` and ``ansible-base`` Python packages .
 
 For offline install, one way to get that would be to download the two tarballs that are there
 and pip install them as files.
