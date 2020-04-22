@@ -9,7 +9,7 @@ For more information see `Ansible Collections Overview <https://github.com/ansib
 Feedback welcome via GitHub issues in this repo.
 
 Building ACD
-=============
+============
 
 Here's some steps to test the build process:
 
@@ -28,6 +28,7 @@ Here's some steps to test the build process:
     python -m pip install --user built/ansible-2.10.0.tar.gz
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-acd' localhost
+
 
 Using a pre-release build
 =========================
