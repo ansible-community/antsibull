@@ -35,7 +35,7 @@ Using a pre-release build
 We have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
 should be able to upgrade your ansible install like::
 
-    python3.8 -m pip install --user --upgrade -i https://toshio.fedorapeople.org/ansible/acd/ ansible
+    python3.8 -m pip install --user --upgrade --extra-index-url https://toshio.fedorapeople.org/ansible/acd/ ansible
 
 And it will pull in both the ``ansible`` and ``ansible-base`` Python packages .
 
