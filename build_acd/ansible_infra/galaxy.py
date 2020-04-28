@@ -104,7 +104,7 @@ class GalaxyClient:
 
 class CollectionDownloader:
     def __init__(self, aio_session, download_dir, galaxy_server=GALAXY_SERVER_URL):
-        self.galaxy_client = GalaxyClient(galaxy_server, aio_session)
+        self.galaxy_client = GalaxyClient(aio_session, galaxy_server)
         self.download_dir = download_dir
 
     async def _get_latest_matching_version(self, collection, version_spec):
