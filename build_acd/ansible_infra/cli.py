@@ -7,7 +7,7 @@
 import argparse
 import os.path
 
-import semantic_version as semver
+import packaging.version as pypiver
 
 from .new_acd import new_acd_command
 from .build_collection import build_collection_command
@@ -30,7 +30,7 @@ class InvalidArgumentError(Exception):
 
 def parse_args(program_name, args):
     common_parser = argparse.ArgumentParser(add_help=False)
-    common_parser.add_argument('acd_version', type=semver.Version,
+    common_parser.add_argument('acd_version', type=pypiver.Version,
                                help='The X.Y.Z version of ACD that this will be for')
     common_parser.add_argument('--dest-dir', default='.',
                                help='Directory to write the output to')

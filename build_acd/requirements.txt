@@ -1,6 +1,7 @@
 aiofiles
 aiohttp
 jinja2
+packaging
 semantic_version
 sh
 
