@@ -6,6 +6,7 @@ arista.eos
 awx.awx
 azure.azcollection
 check_point.mgmt
+chocolatey.chocolatey
 cisco.aci
 cisco.asa
 cisco.intersight
@@ -15,7 +16,6 @@ cisco.meraki
 cisco.mso
 cisco.nxos
 cisco.ucs
-chocolatey.chocolatey
 community.aws
 community.azure
 community.crypto

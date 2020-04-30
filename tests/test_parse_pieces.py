@@ -1,6 +1,6 @@
 import pytest
 
-from ansible_infra import cli
+from ansible_infra.cli import build_ansible
 
 PIECES = """
 community.general

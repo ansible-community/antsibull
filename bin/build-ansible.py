@@ -7,6 +7,6 @@ if __name__ == '__main__':
         print('Needs Python 3.8 or later')
         sys.exit(1)
 
-    from ansible_infra.cli import main
+    from ansible_infra.cli.build_ansible import main
 
     sys.exit(main(sys.argv))
