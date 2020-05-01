@@ -1,6 +1,6 @@
 import pytest
 
-from ansible_infra.cli import build_ansible
+from ansibulled import dependency_files as df
 
 PIECES = """
 community.general
@@ -19,4 +19,4 @@ def test_parse_pieces(tmp_path):
     pieces_filename = tmp_path / 'pieces.in'
     with open(pieces_filename, 'w') as f:
         f.write(PIECES)
-    assert cli.parse_pieces(pieces_filename) == PARSED_PIECES
+    assert df.parse_pieces_file(pieces_filename) == PARSED_PIECES

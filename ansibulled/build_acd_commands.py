@@ -69,11 +69,11 @@ async def install_collections_together(version, download_dir, ansible_collection
 
 
 def copy_boilerplate_files(package_dir):
-    gpl_license = pkgutil.get_data('ansible_infra.data', 'gplv3.txt')
+    gpl_license = pkgutil.get_data('ansibulled.data', 'gplv3.txt')
     with open(os.path.join(package_dir, 'COPYING'), 'wb') as f:
         f.write(gpl_license)
 
-    readme = pkgutil.get_data('ansible_infra.data', 'acd-readme.txt')
+    readme = pkgutil.get_data('ansibulled.data', 'acd-readme.txt')
     with open(os.path.join(package_dir, 'README'), 'wb') as f:
         f.write(readme)
 
@@ -89,7 +89,7 @@ def write_manifest(package_dir):
 def write_setup(acd_version, collection_deps, package_dir):
     setup_filename = os.path.join(package_dir, 'setup.py')
 
-    setup_tmpl = Template(pkgutil.get_data('ansible_infra.data', 'acd-setup_py.j2').decode('utf-8'))
+    setup_tmpl = Template(pkgutil.get_data('ansibulled.data', 'acd-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(version=acd_version, collection_deps=collection_deps)
 
     with open(setup_filename, 'w') as f:
@@ -187,7 +187,7 @@ async def install_collections_separately(version, tmp_dir):
 
 
 async def write_collection_readme(collection_name, package_dir):
-    readme_tmpl = Template(pkgutil.get_data('ansible_infra.data',
+    readme_tmpl = Template(pkgutil.get_data('ansibulled.data',
                                             'collection-readme.j2').decode('utf-8'))
     readme_contents = readme_tmpl.render(collection_name=collection_name)
 
@@ -199,7 +199,7 @@ async def write_collection_readme(collection_name, package_dir):
 async def write_collection_setup(name, version, package_dir):
     setup_filename = os.path.join(package_dir, 'setup.py')
 
-    setup_tmpl = Template(pkgutil.get_data('ansible_infra.data',
+    setup_tmpl = Template(pkgutil.get_data('ansibulled.data',
                                            'collection-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(version=version, name=name)
 

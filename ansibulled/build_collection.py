@@ -20,7 +20,7 @@ def build_collection_command(args):
 
         sh.ansible_galaxy('collection', 'init', 'community.acd', '--init-path', working_dir)
         # Copy the README.md file
-        readme = pkgutil.get_data('ansible_infra.data', 'README_md.txt')
+        readme = pkgutil.get_data('ansibulled.data', 'README_md.txt')
         with open(os.path.join(collection_dir, 'README.md'), 'wb') as f:
             f.write(readme)
 
@@ -31,7 +31,7 @@ def build_collection_command(args):
         # Template the galaxy.yml file
         dep_string = json.dumps(deps)
         dep_string.replace(', ', ',\n    ')
-        galaxy_yml = pkgutil.get_data('ansible_infra.data', 'galaxy_yml.j2').decode('utf-8')
+        galaxy_yml = pkgutil.get_data('ansibulled.data', 'galaxy_yml.j2').decode('utf-8')
         galaxy_yml_tmpl = Template(galaxy_yml)
         galaxy_yml_contents = galaxy_yml_tmpl.render(version=args.acd_version,
                                                      dependencies=dep_string)

@@ -20,7 +20,7 @@ class InvalidFileFormat(Exception):
 
 def parse_pieces_file(pieces_file=None):
     if pieces_file is None:
-        contents = pkgutil.get_data('ansible_infra.data', 'acd.in')
+        contents = pkgutil.get_data('ansibulled.data', 'acd.in')
     else:
         with open(pieces_file, 'rb') as f:
             contents = f.read()
