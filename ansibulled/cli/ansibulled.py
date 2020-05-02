@@ -6,6 +6,7 @@
 
 import argparse
 import os.path
+import sys
 
 import packaging.version as pypiver
 
@@ -134,7 +135,7 @@ def parse_args(program_name, args):
     return args
 
 
-def main(args):
+def run(args):
     program_name = os.path.basename(args[0])
     try:
         args = parse_args(program_name, args[1:])
@@ -143,3 +144,11 @@ def main(args):
         return 2
 
     return ARGS_MAP[args.command](args)
+
+
+def main():
+    if sys.version_info < (3, 8):
+        print('Needs Python 3.8 or later')
+        sys.exit(1)
+
+    return run(sys.argv)
