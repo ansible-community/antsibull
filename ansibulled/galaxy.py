@@ -21,6 +21,7 @@ GALAXY_SERVER_URL = 'https://galaxy.ansible.com/'
 class NoSuchCollection(Exception):
     pass
 
+
 class DownloadFailure(Exception):
     pass
 

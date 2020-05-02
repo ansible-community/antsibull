@@ -119,6 +119,7 @@ def build_single_command(args):
     if not str(args.acd_version).startswith(build_acd_version):
         print(f'{args.build_file} is for version {build_acd_version} but we need'
               ' {args.acd_version.major}.{arg.acd_version.minor}')
+        return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, 'collections')
@@ -251,7 +252,8 @@ def build_multiple_command(args):
 
     if not str(args.acd_version).startswith(build_acd_version):
         print(f'{args.build_file} is for version {build_acd_version} but we need'
-              f' {args.acd_version.major}.{arg.acd_version.minor}')
+              f' {args.acd_version.major}.{args.acd_version.minor}')
+        return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, 'collections')

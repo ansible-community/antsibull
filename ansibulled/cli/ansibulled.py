@@ -29,6 +29,54 @@ class InvalidArgumentError(Exception):
     pass
 
 
+def _normalize_common_options(args):
+    if args.command is None:
+        raise InvalidArgumentError('Please specify a subcommand to run')
+
+    if not os.path.isdir(args.dest_dir):
+        raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
+
+
+def _normalize_new_release_options(args):
+    if args.command == 'new-acd':
+        if args.pieces_file is not None:
+            if not os.path.isfile(args.pieces_file):
+                raise InvalidArgumentError(f'The pieces file, {args.pieces_file} must already'
+                                           ' exist. It should contains one namespace.collection'
+                                           ' per line')
+
+        if args.build_file is None:
+            basename = DEFAULT_FILE_BASE
+            if args.pieces_file:
+                basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
+            args.build_file = f'{basename}-{args.acd_version.major}.{args.acd_version.minor}.build'
+
+
+def _normalize_release_build_options(args):
+    if args.command in ('build-single', 'build-multiple'):
+        if args.build_file is None:
+            args.build_file = (DEFAULT_FILE_BASE
+                               + f'-{args.acd_version.major}.{args.acd_version.minor}.build')
+
+        if not os.path.isfile(args.build_file):
+            raise InvalidArgumentError(f'The build file, {args.build_file} must already exist.'
+                                       ' It should contains one namespace.collection per line')
+
+        if args.deps_file is None:
+            major_minor = f'-{args.acd_version.major}.{args.acd_version.minor}'
+            basename = os.path.basename(os.path.splitext(args.build_file)[0])
+            if basename.endswith(major_minor):
+                basename = basename[:-len(major_minor)]
+
+            args.deps_file = f'{basename}-{args.acd_version}.deps'
+
+
+def _normalize_collection_build_options(args):
+    if args.command == 'build-collection':
+        if args.deps_file is None:
+            args.deps_file = DEFAULT_FILE_BASE + f'{args.acd_version}.deps'
+
+
 def parse_args(program_name, args):
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument('acd_version', type=pypiver.Version,
@@ -80,57 +128,10 @@ def parse_args(program_name, args):
     # Validation and coercion
     #
 
-    #
-    # Common options
-    #
-    if args.command is None:
-        raise InvalidArgumentError('Please specify a subcommand to run')
-
-    if not os.path.isdir(args.dest_dir):
-        raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
-
-    #
-    # New major release options
-    #
-    if args.command == 'new-acd':
-        if args.pieces_file is not None:
-            if not os.path.isfile(args.pieces_file):
-                raise InvalidArgumentError(f'The pieces file, {args.pieces_file} must already'
-                                           ' exist. It should contains one namespace.collection'
-                                           ' per line')
-
-        if args.build_file is None:
-            basename = DEFAULT_FILE_BASE
-            if args.pieces_file:
-                basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
-            args.build_file = f'{basename}-{args.acd_version.major}.{args.acd_version.minor}.build'
-
-    #
-    # Release build options
-    #
-    if args.command in ('build-single', 'build-multiple'):
-        if args.build_file is None:
-            args.build_file = (DEFAULT_FILE_BASE
-                               + f'-{args.acd_version.major}.{args.acd_version.minor}.build')
-
-        if not os.path.isfile(args.build_file):
-            raise InvalidArgumentError(f'The build file, {args.build_file} must already exist.'
-                                       ' It should contains one namespace.collection per line')
-
-        if args.deps_file is None:
-            major_minor = f'-{args.acd_version.major}.{args.acd_version.minor}'
-            basename = os.path.basename(os.path.splitext(args.build_file)[0])
-            if basename.endswith(major_minor):
-                basename = basename[:-len(major_minor)]
-
-            args.deps_file = f'{basename}-{args.acd_version}.deps'
-
-    #
-    # Collection build options
-    #
-    if args.command == 'build-collection':
-        if args.deps_file is None:
-            args.deps_file = DEFAULT_FILE_BASE + f'{args.acd_version}.deps'
+    _normalize_common_options(args)
+    _normalize_new_release_options(args)
+    _normalize_release_build_options(args)
+    _normalize_collection_build_options(args)
 
     return args
 
