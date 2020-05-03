@@ -95,7 +95,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage building ACD')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
-                                       help='for help use build-acd.py SUBCOMMANDS -h')
+                                       help='for help use ansibulled SUBCOMMANDS -h')
 
     new_parser = subparsers.add_parser('new-acd', parents=[common_parser],
                                        description='Generate a new build description from the'

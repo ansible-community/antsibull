@@ -24,16 +24,16 @@ Here's some steps to test the build process:
     python3.8 -m pip install -r requirements.txt --user
 
     # Generate the list of compatible versions.  Intended to be run when we feature freeze
-    python3.8 build-acd.py new-acd 2.10.0 --dest-dir ansible-build-data/2.10
+    python3.8 ansibulled new-acd 2.10.0 --dest-dir ansible-build-data/2.10
 
     # Create an ansible release using one of the following:
     # Single tarball for ansible with a dep on the ansible-base package
-    python3.8 build-acd.py build-single 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    python3.8 ansibulled build-single 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
     # One tarball per collection plus the ansible package which deps on all of them and ansible-base
-    python3.8 build-acd.py build-multiple 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    python3.8 ansibulled build-multiple 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
 
     # Create a collection that can be installed to pull in all of the collections
-    python3.8 build-acd.py build-collection 2.10.0 --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    python3.8 ansibulled build-collection 2.10.0 --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
 
     # Record the files used to build:
     cd ansible-build-data/2.10
