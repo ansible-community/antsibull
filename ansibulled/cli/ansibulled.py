@@ -7,6 +7,7 @@
 import argparse
 import os.path
 import sys
+from typing import List
 
 import packaging.version as pypiver
 
@@ -77,7 +78,7 @@ def _normalize_collection_build_options(args):
             args.deps_file = DEFAULT_FILE_BASE + f'{args.acd_version}.deps'
 
 
-def parse_args(program_name, args):
+def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument('acd_version', type=pypiver.Version,
                                help='The X.Y.Z version of ACD that this will be for')
@@ -122,24 +123,24 @@ def parse_args(program_name, args):
                                    help='File which contains the list of collections and'
                                    ' versions which were included in this version of ACD')
 
-    args = parser.parse_args(args)
+    parsed_args: argparse.Namespace = parser.parse_args(args)
 
     #
     # Validation and coercion
     #
 
-    _normalize_common_options(args)
-    _normalize_new_release_options(args)
-    _normalize_release_build_options(args)
-    _normalize_collection_build_options(args)
+    _normalize_common_options(parsed_args)
+    _normalize_new_release_options(parsed_args)
+    _normalize_release_build_options(parsed_args)
+    _normalize_collection_build_options(parsed_args)
 
-    return args
+    return parsed_args
 
 
-def run(args):
+def run(args: List[str]) -> int:
     program_name = os.path.basename(args[0])
     try:
-        args = parse_args(program_name, args[1:])
+        args: argparse.Namespace = parse_args(program_name, args[1:])
     except InvalidArgumentError as e:
         print(e)
         return 2
@@ -147,9 +148,9 @@ def run(args):
     return ARGS_MAP[args.command](args)
 
 
-def main():
+def main() -> int:
     if sys.version_info < (3, 8):
         print('Needs Python 3.8 or later')
-        sys.exit(1)
+        return 1
 
     return run(sys.argv)
