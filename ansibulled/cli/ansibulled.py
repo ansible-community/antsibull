@@ -123,18 +123,18 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    help='File which contains the list of collections and'
                                    ' versions which were included in this version of ACD')
 
-    parsed_args: argparse.Namespace = parser.parse_args(args)
+    args: argparse.Namespace = parser.parse_args(args)
 
     #
     # Validation and coercion
     #
 
-    _normalize_common_options(parsed_args)
-    _normalize_new_release_options(parsed_args)
-    _normalize_release_build_options(parsed_args)
-    _normalize_collection_build_options(parsed_args)
+    _normalize_common_options(args)
+    _normalize_new_release_options(args)
+    _normalize_release_build_options(args)
+    _normalize_collection_build_options(args)
 
-    return parsed_args
+    return args
 
 
 def run(args: List[str]) -> int:
