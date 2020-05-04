@@ -2,6 +2,7 @@
     "__root__": {
         "arista.eos.eos": {
             "doc": {
+                "aliases": [],
                 "author": [
                     "Ansible Networking Team"
                 ],

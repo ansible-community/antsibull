@@ -2,6 +2,7 @@
     "__root__": {
         "community.general.jsonfile": {
             "doc": {
+                "aliases": [],
                 "author": [
                     "Ansible Core (@ansible-core)"
                 ],

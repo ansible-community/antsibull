@@ -7,7 +7,9 @@
 Return Ansible-specific information, like current release or list of documentable plugins.
 """
 
-from typing import Tuple
+from typing import Tuple, FrozenSet
+
+from ..constants import DOCUMENTABLE_PLUGINS
 
 try:
     from ansible import constants as C
@@ -23,16 +25,13 @@ except ImportError:
     HAS_ANSIBLE_RELEASE = False
 
 
-def get_documentable_plugins() -> Tuple[str, ...]:
+def get_documentable_plugins() -> FrozenSet[str]:
     """
     Retrieve plugin types that can be documented. Does not include 'module'.
     """
     if HAS_ANSIBLE_CONSTANTS:
-        return C.DOCUMENTABLE_PLUGINS
-    return (
-        'become', 'cache', 'callback', 'cliconf', 'connection', 'httpapi', 'inventory',
-        'lookup', 'netconf', 'shell', 'vars', 'module', 'strategy',
-    )
+        return frozenset(C.DOCUMENTABLE_PLUGINS)
+    return DOCUMENTABLE_PLUGINS
 
 
 def get_ansible_release() -> Tuple[str, str]:

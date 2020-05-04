@@ -2,6 +2,7 @@
     "__root__": {
         "amazon.aws.aws_resource_actions": {
             "doc": {
+                "aliases": [],
                 "author": [],
                 "deprecated": {},
                 "description": [
