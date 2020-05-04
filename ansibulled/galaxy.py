@@ -9,9 +9,16 @@ Functions to work with Galaxy
 
 import hashlib
 import os.path
+import typing
+from functools import partial
 from urllib.parse import urljoin
 
+import aiofiles
 import semantic_version as semver
+
+# The type checker can handle finding aiohttp.client but flake8 cannot :-(
+if typing.TYPE_CHECKING:
+    import aiohttp.client
 
 
 CHUNKSIZE = 4096
@@ -89,13 +96,15 @@ class GalaxyClient:
                 raise NoSuchCollection(f'No collection found at: {release_url}')
 
             with open(download_filename, 'wb') as f:
-                while chunk := await response.content.read(CHUNKSIZE):
+                # TODO: PY3.8: while chunk := await response.content.read(CHUNKSIZE):
+                for chunk in iter(partial(await response.content.read(CHUNKSIZE), '')):
                     f.write(chunk)
 
         # Verify the download
         hasher = hashlib.sha256()
-        with open(download_filename, 'rb') as f:
-            while chunk := f.read(CHUNKSIZE):
+        async with aiofiles.open(download_filename, 'rb') as f:
+            # TODO: PY3.8: while chunk := await f.read(CHUNKSIZE):
+            for chunk in iter(partial(await f.read(CHUNKSIZE), '')):
                 hasher.update(chunk)
         if hasher.hexdigest() != sha256sum:
             raise DownloadFailure(f'{release_url} failed to download correctly.  Failed checksum:\n'
@@ -104,7 +113,9 @@ class GalaxyClient:
 
 
 class CollectionDownloader:
-    def __init__(self, aio_session, download_dir, galaxy_server=GALAXY_SERVER_URL):
+    def __init__(self, aio_session: "aiohttp.client.ClientSession",
+                 download_dir: str,
+                 galaxy_server: str = GALAXY_SERVER_URL):
         self.galaxy_client = GalaxyClient(aio_session, galaxy_server)
         self.download_dir = download_dir
 
@@ -120,7 +131,8 @@ class CollectionDownloader:
         # No matching versions were found
         return None
 
-    async def retrieve(self, collection, version_spec, dest_dir):
+    async def retrieve(self, collection: str,
+                       version_spec: str, dest_dir: str) -> typing.Optional[str]:
         version = await self._get_latest_matching_version(collection, version_spec)
         await self.galaxy_client.get_release(collection, version, dest_dir)
         return version
