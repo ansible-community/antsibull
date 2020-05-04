@@ -17,6 +17,7 @@ import aiohttp
 import sh
 from jinja2 import Template
 
+from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DepsFile
 from .galaxy import CollectionDownloader
 
@@ -25,15 +26,11 @@ from .galaxy import CollectionDownloader
 # Common code
 #
 
-class CollectionFormatError(Exception):
-    pass
-
-
 async def download_collections(deps, download_dir):
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
+        downloader = CollectionDownloader(aio_session, download_dir)
         for collection_name, version_spec in deps.items():
-            downloader = CollectionDownloader(aio_session, download_dir)
             requestors[collection_name] = asyncio.create_task(
                 downloader.download_latest_matching(collection_name, version_spec))
 
@@ -52,26 +49,6 @@ async def download_collections(deps, download_dir):
 #
 # Single sdist for ansible
 #
-
-async def install_collections_together(version, download_dir, ansible_collections_dir):
-    loop = asyncio.get_running_loop()
-
-    installers = []
-    collection_tarballs = ((p, f) for f in os.listdir(download_dir)
-                           if os.path.isfile(p := os.path.join(download_dir, f)))
-    for pathname, filename in collection_tarballs:
-        namespace, collection, _dummy = filename.split('-', 2)
-        collection_dir = os.path.join(ansible_collections_dir, namespace, collection)
-        # Note: mkdir -p equivalent is okay because we created package_dir ourselves as a directory
-        # that only we can access
-        os.makedirs(collection_dir, mode=0o700, exist_ok=False)
-
-        # If the choice of install tools for galaxy is ever settled upon, we can switch from tar to
-        # using that
-        installers.append(loop.run_in_executor(None, sh.tar, '-xf', pathname, '-C', collection_dir))
-
-    await asyncio.gather(*installers)
-
 
 def copy_boilerplate_files(package_dir):
     gpl_license = pkgutil.get_data('antsibull.data', 'gplv3.txt')
@@ -163,11 +140,11 @@ def build_single_command(args):
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
 
-        asyncio.run(install_collections_together(args.acd_version, download_dir,
-                                                 ansible_collections_dir))
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
+        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
         write_python_build_files(args.acd_version, '', package_dir, args.debian)
         if args.debian:
-            print('Including debian packaging files')
             write_debian_directory(args.acd_version, package_dir)
         make_dist(package_dir, args.dest_dir)
 
@@ -180,45 +157,6 @@ def build_single_command(args):
 #
 # Code to make one sdist per collection
 #
-
-
-async def install_collections_separately(version, tmp_dir):
-    loop = asyncio.get_running_loop()
-    collection_tarballs = ((p, f) for f in os.listdir(tmp_dir)
-                           if os.path.isfile(p := os.path.join(tmp_dir, f)))
-
-    installers = []
-    collection_dirs = []
-    for pathname, filename in collection_tarballs:
-        namespace, collection, version_ext = filename.split('-', 2)
-        for ext in ('.tar.gz',):
-            # Note: If galaxy allows other archive formats, add their extensions here
-            ext_start = version_ext.find(ext)
-            if ext_start != -1:
-                version = version_ext[:ext_start]
-                break
-        else:
-            raise CollectionFormatError('Collection filename was in an unexpected'
-                                        f' format: {filename}')
-
-        package_dir = os.path.join(tmp_dir, f'ansible-collections-{namespace}.'
-                                   f'{collection}-{version}')
-        os.mkdir(package_dir, mode=0o700)
-        collection_dirs.append(package_dir)
-
-        collection_dir = os.path.join(package_dir, 'ansible_collections', namespace, collection)
-        # Note: this is okay because we created package_dir ourselves as a directory
-        # that only we can access
-        os.makedirs(collection_dir, mode=0o700, exist_ok=False)
-
-        # If the choice of install tools for galaxy is ever settled upon, we can switch from tar to
-        # using that
-        installers.append(loop.run_in_executor(None, sh.tar, '-xf', pathname,
-                                               '-C', collection_dir))
-
-    await asyncio.gather(*installers)
-
-    return collection_dirs
 
 
 async def write_collection_readme(collection_name, package_dir):
@@ -294,8 +232,9 @@ def build_multiple_command(args):
         os.mkdir(download_dir, mode=0o700)
 
         included_versions = asyncio.run(download_collections(deps, download_dir))
-        collection_dirs = asyncio.run(install_collections_separately(args.acd_version,
-                                                                     download_dir))
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
+        collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
         asyncio.run(make_collection_dists(args.dest_dir, collection_dirs))
 
         # Create the ansible package that deps on the collections we just wrote

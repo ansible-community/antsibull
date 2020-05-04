@@ -5,30 +5,17 @@
 
 import asyncio
 import os
-from urllib.parse import urljoin
 
 import aiohttp
 import semantic_version as semver
 
+from .ansible_base import AnsibleBasePyPiClient
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
 
 
-PYPI_SERVER_URL = 'https://test.pypi.org/'
-
-
 def display_exception(loop, context):
     print(context.get('exception'))
-
-
-async def get_ansible_base_version(aio_session, pypi_server_url=PYPI_SERVER_URL):
-    # Retrieve the ansible-base package info from pypi
-    query_url = urljoin(pypi_server_url, 'pypi/ansible-base/json')
-    async with aio_session.get(query_url) as response:
-        pkg_info = await response.json()
-
-    # Calculate the newest version of the package
-    return [pkg_info['info']['version']]
 
 
 async def get_version_info(collections):
@@ -37,7 +24,8 @@ async def get_version_info(collections):
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        requestors['_ansible_base'] = asyncio.create_task(get_ansible_base_version(aio_session))
+        pypi_client = AnsibleBasePyPiClient(aio_session)
+        requestors['_ansible_base'] = asyncio.create_task(pypi_client.get_versions())
         galaxy_client = GalaxyClient(aio_session)
 
         for collection in collections:

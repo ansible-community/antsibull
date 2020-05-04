@@ -1,0 +1,10 @@
+The documentation for the @{ plugin_type }@ plugin, @{ plugin_name }@,  was malformed.
+
+The errors were:
+
+{% for error in nonfatal_errors %}
+* @{ error }@
+
+{% endfor %}
+
+File a bug with the `@{ collection }@ collection <https://galaxy.ansible.com/@{collection | replace(".", "/", 1)}@>`_ in order to have it corrected.

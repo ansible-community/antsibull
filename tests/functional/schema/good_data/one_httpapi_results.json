@@ -2,6 +2,7 @@
     "__root__": {
         "ansible.netcommon.restconf": {
             "doc": {
+                "aliases": [],
                 "author": [
                     "Ansible Networking Team"
                 ],

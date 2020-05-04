@@ -2,6 +2,7 @@
     "__root__": {
         "free": {
             "doc": {
+                "aliases": [],
                 "author": [
                     "Ansible Core Team"
                 ],

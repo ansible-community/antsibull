@@ -19,6 +19,7 @@ packages = [
 antsibull-build = "antsibull.cli.antsibull_build:main"
 antsibull-changelog = "antsibull.cli.antsibull_changelog:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
+antsibull-docs = "antsibull.cli.antsibull_docs:main"
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
@@ -32,6 +33,10 @@ docutils = "*"
 rstcheck = "^3"
 PyYAML = "*"
 pydantic = "*"
+asyncio-pool = "*"
+perky = "*"
+# Current twiggy head to get dict_config
+twiggy = {git = "https://github.com/wearpants/twiggy", rev = "d4c5b57abc551a44a6ee7ca01f5622cc3b277456"}
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"

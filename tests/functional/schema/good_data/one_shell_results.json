@@ -2,6 +2,7 @@
     "__root__": {
         "sh": {
             "doc": {
+                "aliases": [],
                 "author": [],
                 "deprecated": {},
                 "description": [

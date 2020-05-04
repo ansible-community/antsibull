@@ -26,32 +26,5 @@
             "supported_by": "community"
         },
         "return": null
-    },
-    "community.general.ce": {
-        "doc": {
-            "description": [
-                "This ce plugin provides low level abstraction apis for sending and receiving netconf commands from Huawei Cloudengine network devices."
-            ],
-            "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/community/general/plugins/netconf/ce.py",
-            "netconf": "ce",
-            "options": {
-                "ncclient_device_handler": {
-                    "default": "huawei",
-                    "description": [
-                        "Specifies the ncclient device handler name for Huawei Cloudengine. To identify the ncclient device handler name refer ncclient library documentation."
-                    ],
-                    "type": "str"
-                }
-            },
-            "short_description": "Use ce netconf plugin to run netconf commands on Huawei Cloudengine platform"
-        },
-        "examples": null,
-        "metadata": {
-            "status": [
-                "preview"
-            ],
-            "supported_by": "community"
-        },
-        "return": null
     }
 }

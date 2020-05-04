@@ -336,6 +336,7 @@ class DocSchema(BaseModel):
     description: t.List[str]
     name: str
     short_description: str
+    aliases: t.List[str] = []
     author: t.List[str] = []
     deprecated: DeprecationSchema = p.Field({})
     extends_documentation_fragment: t.List[str] = []
