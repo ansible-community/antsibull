@@ -4,6 +4,8 @@
 # Copyright: Ansible Project, 2020
 
 """
+Persist collection infornation used to build Ansible.
+
 Build dependency files list the dependencies of an ACD release along with the
 versions that are compatible with that release.
 
@@ -11,8 +13,11 @@ When we initially build an ACD major release, we'll use certain versions of coll
 We don't want to install backwards incompatible collections until the next major ACD release.
 """
 
-import pkgutil
-from typing import Dict, NamedTuple, Optional
+from typing import TYPE_CHECKING, Dict, List, Mapping, NamedTuple, Optional
+
+if TYPE_CHECKING:
+    from packaging.version import Version as PyPiVersion
+    from semantic_version import Version as SemVersion
 
 
 class DependencyFileData(NamedTuple):
@@ -25,7 +30,7 @@ class InvalidFileFormat(Exception):
     pass
 
 
-def parse_pieces_file(pieces_file):
+def parse_pieces_file(pieces_file: str) -> List[str]:
     with open(pieces_file, 'rb') as f:
         contents = f.read()
 
@@ -89,21 +94,28 @@ class DepsFile:
     ansible base version, not an exact dependency on that precise version.
     """
 
-    def __init__(self, deps_file: str):
+    def __init__(self, deps_file: str) -> None:
         """
         Create a :mod:`DepsFile`.
 
         :arg deps_file: filename of the `DepsFile`.
         """
-        self.filename = deps_file
+        self.filename: str = deps_file
 
     def parse(self) -> DependencyFileData:
         """Parse the deps from a dependency file."""
         return _parse_name_version_spec_file(self.filename)
 
     def write(self, acd_version: str, ansible_base_version: str,
-              included_versions: Dict[str, str]):
-        """Write a list of all the dependent collections included in this ACD release."""
+              included_versions: Mapping[str, str]) -> None:
+        """
+        Write a list of all the dependent collections included in this ACD release.
+
+        :arg acd_version: The version of Ansible that is being recorded.
+        :arg ansible_base_version: The version of Ansible base that will be depended on.
+        :arg included_versions: Dictionary mapping collection names to the version range in this
+            version of Ansible.
+        """
         records = []
         for dep, version in included_versions.items():
             records.append(f'{dep}: {version}')
@@ -117,19 +129,24 @@ class DepsFile:
 
 
 class BuildFile:
-    def __init__(self, build_file):
-        self.filename = build_file
+    def __init__(self, build_file: str) -> None:
+        self.filename: str = build_file
 
-    def parse(self):
-        """
-        Parse the build from a dependency file
-        """
+    def parse(self) -> DependencyFileData:
+        """Parse the build from a dependency file."""
         return _parse_name_version_spec_file(self.filename)
 
-    def write(self, acd_version, ansible_base_version, dependencies):
+    def write(self, acd_version: 'PyPiVersion', ansible_base_version: str,
+              dependencies: Mapping[str, 'SemVersion']) -> None:
         """
-        Write a build dependency file
+        Write a build dependency file.
 
+        A build dependency file records the collections that went into a given Ansible release along
+        with the exact version of the collection that was included.
+
+        :arg acd_version: The version of Ansible that is being recorded.
+        :arg ansible_base_version: The version of Ansible base that will be depended on.
+        :arg dependencies: Dictionary with keys of collection names and values of versions.
         """
         records = []
         for dep, version in dependencies.items():
