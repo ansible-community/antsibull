@@ -33,5 +33,5 @@ jobs:
       - name: Test with pytest and upload coverage stats
         run: |
           poetry run python -m pytest --cov-branch --cov ansibulled -vv tests
-          poetry run coverage xml
+          poetry run coverage xml -i
           poetry run codecov --token=${{ secrets.CODECOV_TOKEN }}
