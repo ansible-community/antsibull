@@ -6,32 +6,32 @@ name: Python testing
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Need to separate out 3.8-only code before this works
-        #python-version: [3.5, 3.6, 3.7, 3.8]
-        python-version: [3.8]
+        # Need to separate out 3.8-only code as we add tests for files which
+        # have 3.8 syntax in them
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry install
-    - name: Test with pytest and upload coverage stats
-      run: |
-        poetry run python -m pytest --cov-branch --cov ansibulled -vv tests
-        poetry run coverage xml
-        poetry run codecov --token=${{ secrets.CODECOV_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry install
+      - name: Test with pytest and upload coverage stats
+        run: |
+          poetry run python -m pytest --cov-branch --cov ansibulled -vv tests
+          poetry run coverage xml
+          poetry run codecov --token=${{ secrets.CODECOV_TOKEN }}
