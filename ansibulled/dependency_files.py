@@ -25,12 +25,9 @@ class InvalidFileFormat(Exception):
     pass
 
 
-def parse_pieces_file(pieces_file=None):
-    if pieces_file is None:
-        contents = pkgutil.get_data('ansibulled.data', 'acd.in')
-    else:
-        with open(pieces_file, 'rb') as f:
-            contents = f.read()
+def parse_pieces_file(pieces_file):
+    with open(pieces_file, 'rb') as f:
+        contents = f.read()
 
     contents = contents.decode('utf-8')
     # One collection per line, ignoring comments and empty lines

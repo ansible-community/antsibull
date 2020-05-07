@@ -30,7 +30,7 @@ class InvalidArgumentError(Exception):
     """A problem parsing or validating a command line argument."""
 
 
-def _normalize_common_options(args: argparse.Namespace):
+def _normalize_common_options(args: argparse.Namespace) -> None:
     if args.command is None:
         raise InvalidArgumentError('Please specify a subcommand to run')
 
@@ -39,24 +39,24 @@ def _normalize_common_options(args: argparse.Namespace):
         raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
 
 
-def _normalize_new_release_options(args: argparse.Namespace):
+def _normalize_new_release_options(args: argparse.Namespace) -> None:
     if args.command != 'new-acd':
         return
 
-    if args.pieces_file is not None:
-        if not os.path.isfile(args.pieces_file):
-            raise InvalidArgumentError(f'The pieces file, {args.pieces_file}, must already'
-                                       ' exist. It should contains one namespace.collection'
-                                       ' per line')
+    if args.pieces_file is None:
+        args.pieces_file = os.path.join(args.dest_dir, DEFAULT_PIECES_FILE)
+
+    if not os.path.isfile(args.pieces_file):
+        raise InvalidArgumentError(f'The pieces file, {args.pieces_file}, must already'
+                                   ' exist. It should contain one namespace.collection'
+                                   ' per line')
 
     if args.build_file is None:
-        basename = DEFAULT_FILE_BASE
-        if args.pieces_file:
-            basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
+        basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
         args.build_file = f'{basename}-{args.acd_version.major}.{args.acd_version.minor}.build'
 
 
-def _normalize_release_build_options(args: argparse.Namespace):
+def _normalize_release_build_options(args: argparse.Namespace) -> None:
     if args.command not in ('build-single', 'build-multiple'):
         return
 
@@ -78,7 +78,7 @@ def _normalize_release_build_options(args: argparse.Namespace):
         args.deps_file = f'{basename}-{args.acd_version}.deps'
 
 
-def _normalize_collection_build_options(args: argparse.Namespace):
+def _normalize_collection_build_options(args: argparse.Namespace) -> None:
     if args.command != 'build-collection':
         return
 
@@ -103,10 +103,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     build_parser = argparse.ArgumentParser(add_help=False)
     build_parser.add_argument('--build-file', default=None,
-                              help='File containing the list of collections with version ranges')
+                              help='File containing the list of collections with version ranges.'
+                              ' The default is to look for $DEFAULT_FILE_BASE-X.Y.build inside'
+                              ' of --dest-dir')
     build_parser.add_argument('--deps-file', default=None,
                               help='File which will be written containing the list of collections'
-                              ' at versions which were included in this version of ACD')
+                              ' at versions which were included in this version of ACD. The'
+                              ' default is to place $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into'
+                              ' --dest-dir')
 
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage building ACD')
@@ -118,10 +122,12 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        ' latest available versions of ansible-base and the'
                                        ' included collections')
     new_parser.add_argument('--pieces-file', default=None,
-                            help='File containing a list of collections to include')
+                            help='File containing a list of collections to include.  The'
+                            f' default is to look for {DEFAULT_PIECES_FILE} inside of --dest-dir')
     new_parser.add_argument('--build-file', default=None,
                             help='File which will be written which contains the list'
-                            ' of collections with version ranges')
+                            ' of collections with version ranges.  The default is to'
+                            ' place $BASENAME_OF_PIECES_FILE-X.Y.build into --dest-dir')
 
     subparsers.add_parser('build-single',
                           parents=[common_parser, build_parser],
@@ -137,7 +143,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                               ' install ACD')
     collection_parser.add_argument('--deps-file', default=None,
                                    help='File which contains the list of collections and'
-                                   ' versions which were included in this version of ACD')
+                                   ' versions which were included in this version of ACD'
+                                   f' The default is to look for {DEFAULT_FILE_BASE}-X.Y.Z.deps'
+                                   ' inside of --dest-dir')
 
     args: argparse.Namespace = parser.parse_args(args)
 
