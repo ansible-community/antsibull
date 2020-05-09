@@ -2,47 +2,78 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-
-"""
-Functions to work with Galaxy
-"""
+"""Functions to work with Galaxy."""
 
 import hashlib
 import os.path
-import typing
-from functools import partial
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Union
 from urllib.parse import urljoin
 
 import aiofiles
 import semantic_version as semver
 
 # The type checker can handle finding aiohttp.client but flake8 cannot :-(
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     import aiohttp.client
 
 
+#: Number of bytes to read or write in one chunk
 CHUNKSIZE = 4096
+#: URL to galaxy.
 GALAXY_SERVER_URL = 'https://galaxy.ansible.com/'
 
 
 class NoSuchCollection(Exception):
-    pass
+    """Collection name does not map to a collection on Galaxy."""
+
+
+class NoSuchVersion(Exception):
+    """Version does not match with any versions of a collection on Galaxy."""
 
 
 class DownloadFailure(Exception):
-    pass
+    """Failure downloading a collection from Galaxy."""
+
+
+class DownloadResults(NamedTuple):
+    """Results of downloading a collection."""
+
+    #: :obj:`semantic_version.Version` of the exact version of the collection that was downloaded.
+    version: semver.Version
+    #: Location on the filesystem of the downloaded collection.
+    download_path: str
 
 
 class GalaxyClient:
-    def __init__(self, aio_session, galaxy_server=GALAXY_SERVER_URL):
+    """Class for querying the Galaxy REST API."""
+
+    def __init__(self, aio_session: 'aiohttp.client.ClientSession',
+                 galaxy_server: str = GALAXY_SERVER_URL) -> None:
+        """
+        Create a GalaxyClient object to query the Galaxy Server.
+
+        :arg aio_session: :obj:`aiohttp.ClientSession` with which to perform all
+            requests to galaxy.
+        :kwarg galaxy_server: URL to the galaxy server.
+        """
         self.galaxy_server = galaxy_server
         self.aio_session = aio_session
         self.params = {'format': 'json'}
 
-    async def _get_galaxy_versions(self, galaxy_url):
-        async with self.aio_session.get(galaxy_url, params=self.params) as response:
+    async def _get_galaxy_versions(self, versions_url: str) -> List[str]:
+        """
+        Retrieve the complete list of versions for a collection from a galaxy endpoint.
+
+        This internal function retrieves versions for collections from a Galaxy endpoint.  If the
+        information is paged, it continues to retrieve linked pages until all of the information has
+        been returned.
+
+        :arg version_url: url to the page to retrieve.
+        :returns: List of the all the versions of the collection.
+        """
+        async with self.aio_session.get(versions_url, params=self.params) as response:
             if response.status == 404:
-                raise NoSuchCollection(f'No collection found at: {galaxy_url}')
+                raise NoSuchCollection(f'No collection found at: {versions_url}')
             collection_info = await response.json()
 
         versions = []
@@ -54,13 +85,32 @@ class GalaxyClient:
 
         return versions
 
-    async def get_versions(self, collection):
+    async def get_versions(self, collection: str) -> List[str]:
+        """
+        Retrieve all versions of a collection on Galaxy.
+
+        :arg collection: Name of the collection to get version info for.
+        :returns: List of all the versions of this collection on galaxy.
+        """
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server, f'api/v2/collections/{collection}/versions/')
         retval = await self._get_galaxy_versions(galaxy_url)
         return retval
 
-    async def get_info(self, collection):
+    async def get_info(self, collection: str) -> Dict[str, Any]:
+        """
+        Retrieve information about the collection on Galaxy.
+
+        :arg collection: Namespace.collection to retrieve information about.
+        :returns: Dictionary of information about the collection.
+
+        Please see the Galaxy REST API documentation for information on the structure of the
+        returned data.
+
+        .. seealso::
+            An example return value from the
+            `Galaxy REST API <https://galaxy.ansible.com/api/v2/collections/community/general/>`_
+        """
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server, f'api/v2/collections/{collection}/')
 
@@ -71,7 +121,23 @@ class GalaxyClient:
 
         return collection_info
 
-    async def get_release_info(self, collection, version):
+    async def get_release_info(self, collection: str,
+                               version: Union[str, semver.Version]) -> Dict[str, Any]:
+        """
+        Retrive information about a specific version of a collection.
+
+        :arg collection: Namespace.collection string naming the collection.
+        :arg version: Version of the collection.
+        :returns: Dictionary of information about the release.
+
+        Please see the Galaxy REST API documentation for information on the structure of the
+        returned data.
+
+        .. seealso::
+            An example return value from the
+            `Galaxy REST API
+            <https://galaxy.ansible.com/api/v2/collections/community/general/versions/0.1.1>`_
+        """
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server,
                              f'api/v2/collections/{collection}/versions/{version}/')
@@ -83,12 +149,39 @@ class GalaxyClient:
 
         return collection_info
 
-    async def get_release(self, collection, version, dest_dir):
+
+class CollectionDownloader(GalaxyClient):
+    """Manage downloading collections from Galaxy."""
+
+    def __init__(self, aio_session: 'aiohttp.client.ClientSession',
+                 download_dir: str,
+                 galaxy_server: str = GALAXY_SERVER_URL) -> None:
+        """
+        Create an object to download collections from galaxy.
+
+        :arg aio_session: :obj:`aiohttp.ClientSession` with which to perform all
+            requests to galaxy.
+        :arg download_dir: Directory to download into.
+        :kwarg galaxy_server: URL to the galaxy server.
+        """
+        super().__init__(aio_session, galaxy_server)
+        self.download_dir = download_dir
+
+    async def download(self, collection: str, version: Union[str, semver.Version]) -> str:
+        """
+        Download a collection.
+
+        Downloads the collection at the specified version.
+
+        :arg collection: Namespace.collection identifying the collection.
+        :arg version: Version of the collection to download.
+        :returns: The full path to the downloaded collection.
+        """
         collection = collection.replace('.', '/')
         release_info = await self.get_release_info(collection, version)
         release_url = release_info['download_url']
 
-        download_filename = os.path.join(dest_dir, release_info['artifact']['filename'])
+        download_filename = os.path.join(self.download_dir, release_info['artifact']['filename'])
         sha256sum = release_info['artifact']['sha256']
 
         async with self.aio_session.get(release_url) as response:
@@ -97,30 +190,40 @@ class GalaxyClient:
 
             with open(download_filename, 'wb') as f:
                 # TODO: PY3.8: while chunk := await response.content.read(CHUNKSIZE):
-                for chunk in iter(partial(await response.content.read(CHUNKSIZE), '')):
+                chunk = await response.content.read(CHUNKSIZE)
+                while chunk:
                     f.write(chunk)
+                    chunk = await response.content.read(CHUNKSIZE)
 
         # Verify the download
         hasher = hashlib.sha256()
         async with aiofiles.open(download_filename, 'rb') as f:
             # TODO: PY3.8: while chunk := await f.read(CHUNKSIZE):
-            for chunk in iter(partial(await f.read(CHUNKSIZE), '')):
+            chunk = await f.read(CHUNKSIZE)
+            while chunk:
                 hasher.update(chunk)
+                chunk = await f.read(CHUNKSIZE)
         if hasher.hexdigest() != sha256sum:
             raise DownloadFailure(f'{release_url} failed to download correctly.  Failed checksum:\n'
                                   f'Expected: {sha256sum}\n'
                                   f'Actual:   {hasher.hexdigest()}')
 
+        return download_filename
 
-class CollectionDownloader:
-    def __init__(self, aio_session: "aiohttp.client.ClientSession",
-                 download_dir: str,
-                 galaxy_server: str = GALAXY_SERVER_URL):
-        self.galaxy_client = GalaxyClient(aio_session, galaxy_server)
-        self.download_dir = download_dir
+    async def _get_latest_matching_version(self, collection: str,
+                                           version_spec: str) -> semver.Version:
+        """
+        Get the latest version of a collection that matches a specification.
 
-    async def _get_latest_matching_version(self, collection, version_spec):
-        versions = await self.galaxy_client.get_versions(collection)
+        :arg collection: Namespace.collection identifying a collection.
+        :arg version_spec: String specifying the allowable versions.
+        :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
+            the specification.
+
+        .. seealso:: For the format of the version_spec, see the documentation
+            of :obj:`semantic_version.SimpleSpec`
+        """
+        versions = await self.get_versions(collection)
         versions = [semver.Version(v) for v in versions]
         versions.sort(reverse=True)
 
@@ -129,10 +232,21 @@ class CollectionDownloader:
             return version
 
         # No matching versions were found
-        return None
+        raise NoSuchVersion(f'{version_spec} did not match with any version of {collection}.')
 
-    async def retrieve(self, collection: str,
-                       version_spec: str, dest_dir: str) -> typing.Optional[str]:
+    async def download_latest_matching(self, collection: str,
+                                       version_spec: str) -> DownloadResults:
+        """
+        Download the latest version of a collection that matches a specification.
+
+        :arg collection: Namespace.collection identifying a collection.
+        :arg version_spec: String specifying the allowable versions.
+        :returns: :obj:`DownloadResults` with version and download path for the collection we
+            downloaded.
+
+        .. seealso:: For the format of the version_spec, see the documentation
+            of :obj:`semantic_version.SimpleSpec`
+        """
         version = await self._get_latest_matching_version(collection, version_spec)
-        await self.galaxy_client.get_release(collection, version, dest_dir)
-        return version
+        download_path = await self.download(collection, version)
+        return DownloadResults(version=version, download_path=download_path)
