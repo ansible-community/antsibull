@@ -34,12 +34,16 @@ async def download_collections(deps, download_dir):
         for collection_name, version_spec in deps.items():
             downloader = CollectionDownloader(aio_session, download_dir)
             requestors[collection_name] = asyncio.create_task(
-                downloader.retrieve(collection_name, version_spec, download_dir))
+                downloader.download_latest_matching(collection_name, version_spec))
 
         included_versions = {}
         responses = await asyncio.gather(*requestors.values())
-        for idx, collection_name in enumerate(requestors):
-            included_versions[collection_name] = responses[idx]
+
+    # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
+    # used requestors.values() to generate responses, requestors and responses therefor have
+    # a matching order.
+    for collection_name, results in zip(requestors, responses):
+        included_versions[collection_name] = results.version
 
     return included_versions
 
