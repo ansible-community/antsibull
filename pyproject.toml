@@ -27,6 +27,8 @@ jinja2 = "^2.11.2"
 packaging = "^20.3"
 semantic_version = "^2.8.5"
 sh = "^1.13.1"
+docutils = "^0.16"
+rstcheck = "^3.3.1"
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"
