@@ -52,7 +52,8 @@ def add_release(config, changes, plugins, fragments, version, codename, date):
     Version = semantic_version.Version if config.is_collection else packaging.version.Version
     Version(version)
 
-    LOGGER.info('release version %s is a %s version', version, 'release' if is_release_version(config, version) else 'pre-release')
+    LOGGER.info('release version %s is a %s version', version,
+                'release' if is_release_version(config, version) else 'pre-release')
 
     # filter out plugins which were not added in this release
     plugins = list(filter(lambda p: any([
@@ -88,7 +89,8 @@ class ChangesBase(object):
         self.data = self.empty()
         self.known_plugins = set()
         self.ancestor = None
-        self.Version = semantic_version.Version if self.config.is_collection else packaging.version.Version
+        self.Version = (semantic_version.Version if self.config.is_collection
+                        else packaging.version.Version)
 
     @staticmethod
     def empty():
@@ -234,7 +236,8 @@ class ChangesMetadata(ChangesBase):
 
         for version, config in self.releases.items():
             for plugin_type, plugin_names in config.get('plugins', {}).items():
-                self.known_plugins |= set('%s/%s' % (plugin_type, plugin_name) for plugin_name in plugin_names)
+                self.known_plugins |= set(
+                    '%s/%s' % (plugin_type, plugin_name) for plugin_name in plugin_names)
 
             module_names = config.get('modules', [])
 
@@ -252,8 +255,12 @@ class ChangesMetadata(ChangesBase):
             if 'fragments' not in config:
                 continue
 
-            invalid_fragments = set(fragment for fragment in config['fragments'] if fragment not in valid_fragments)
-            config['fragments'] = [fragment for fragment in config['fragments'] if fragment not in invalid_fragments]
+            invalid_fragments = set(
+                fragment for fragment in config['fragments']
+                if fragment not in valid_fragments)
+            config['fragments'] = [
+                fragment for fragment in config['fragments']
+                if fragment not in invalid_fragments]
             self.known_fragments -= set(config['fragments'])
 
     def prune_plugins(self, plugins):
@@ -267,15 +274,25 @@ class ChangesMetadata(ChangesBase):
 
         for version, config in self.releases.items():
             if 'modules' in config:
-                invalid_modules = set(module for module in config['modules'] if module not in valid_plugins['module'])
-                config['modules'] = [module for module in config['modules'] if module not in invalid_modules]
-                self.known_plugins -= set('module/%s' % module for module in invalid_modules)
+                invalid_modules = set(
+                    module for module in config['modules']
+                    if module not in valid_plugins['module'])
+                config['modules'] = [
+                    module for module in config['modules']
+                    if module not in invalid_modules]
+                self.known_plugins -= set(
+                    'module/%s' % module for module in invalid_modules)
 
             if 'plugins' in config:
                 for plugin_type in config['plugins']:
-                    invalid_plugins = set(plugin for plugin in config['plugins'][plugin_type] if plugin not in valid_plugins[plugin_type])
-                    config['plugins'][plugin_type] = [plugin for plugin in config['plugins'][plugin_type] if plugin not in invalid_plugins]
-                    self.known_plugins -= set('%s/%s' % (plugin_type, plugin) for plugin in invalid_plugins)
+                    invalid_plugins = set(
+                        plugin for plugin in config['plugins'][plugin_type]
+                        if plugin not in valid_plugins[plugin_type])
+                    config['plugins'][plugin_type] = [
+                        plugin for plugin in config['plugins'][plugin_type]
+                        if plugin not in invalid_plugins]
+                    self.known_plugins -= set(
+                        '%s/%s' % (plugin_type, plugin) for plugin in invalid_plugins)
 
     def sort(self):
         """Sort change metadata in place."""
@@ -313,7 +330,8 @@ class ChangesMetadata(ChangesBase):
         :rtype: PluginResolver
         """
         if plugins is None:
-            plugins = load_plugins(paths=self.paths, version=self.latest_version, force_reload=False)
+            plugins = load_plugins(paths=self.paths, version=self.latest_version,
+                                   force_reload=False)
         return SimplePluginResolver(plugins)
 
     def get_fragment_resolver(self, fragments=None):
@@ -379,7 +397,8 @@ class ChangesData(ChangesBase):
 
         for version, config in self.releases.items():
             for plugin_type, plugins in config.get('plugins', {}).items():
-                self.known_plugins |= set('%s/%s' % (plugin_type, plugin['name']) for plugin in plugins)
+                self.known_plugins |= set(
+                    '%s/%s' % (plugin_type, plugin['name']) for plugin in plugins)
 
             modules = config.get('modules', [])
 
@@ -396,15 +415,26 @@ class ChangesData(ChangesBase):
 
         for version, config in self.releases.items():
             if 'modules' in config:
-                invalid_module_names = set(module['name'] for module in config['modules'] if module['name'] not in valid_plugins['module'])
-                config['modules'] = [module for module in config['modules'] if module['name'] not in invalid_module_names]
-                self.known_plugins -= set('module/%s' % module_name for module_name in invalid_module_names)
+                invalid_module_names = set(
+                    module['name'] for module in config['modules']
+                    if module['name'] not in valid_plugins['module'])
+                config['modules'] = [
+                    module for module in config['modules']
+                    if module['name'] not in invalid_module_names]
+                self.known_plugins -= set(
+                    'module/%s' % module_name for module_name in invalid_module_names)
 
             if 'plugins' in config:
                 for plugin_type in config['plugins']:
-                    invalid_plugin_names = set(plugin['name'] for plugin in config['plugins'][plugin_type] if plugin['name'] not in valid_plugins[plugin_type])
-                    config['plugins'][plugin_type] = [plugin for plugin in config['plugins'][plugin_type] if plugin['name'] not in invalid_plugin_names]
-                    self.known_plugins -= set('%s/%s' % (plugin_type, plugin_name) for plugin_name in invalid_plugin_names)
+                    invalid_plugin_names = set(
+                        plugin['name'] for plugin in config['plugins'][plugin_type]
+                        if plugin['name'] not in valid_plugins[plugin_type])
+                    config['plugins'][plugin_type] = [
+                        plugin for plugin in config['plugins'][plugin_type]
+                        if plugin['name'] not in invalid_plugin_names]
+                    self.known_plugins -= set(
+                        '%s/%s' % (plugin_type, plugin_name)
+                        for plugin_name in invalid_plugin_names)
 
     def sort(self):
         """Sort change metadata in place."""
@@ -416,7 +446,8 @@ class ChangesData(ChangesBase):
 
             if 'plugins' in config:
                 for plugin_type in config['plugins']:
-                    config['plugins'][plugin_type] = sorted(config['plugins'][plugin_type], key=lambda plugin: plugin['name'])
+                    config['plugins'][plugin_type] = sorted(
+                        config['plugins'][plugin_type], key=lambda plugin: plugin['name'])
 
             if 'fragments' in config:
                 config['fragments'] = sorted(config['fragments'])
@@ -432,8 +463,9 @@ class ChangesData(ChangesBase):
         :type fragment: ChangelogFragment
         :type version: str
         """
-        if 'fragments' in self.releases[version] and fragment.name in self.releases[version]['fragments']:
-            return False
+        if 'fragments' in self.releases[version]:
+            if fragment.name in self.releases[version]['fragments']:
+                return False
 
         if 'changes' not in self.releases[version]:
             self.releases[version]['changes'] = dict()

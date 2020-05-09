@@ -57,14 +57,16 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
                 tried_links = set()
                 while os.path.islink(filename):
                     if filename in tried_links:
-                        raise Exception('Found infinite symbolic link loop involving "{0}"'.format(filename))
+                        raise Exception(
+                            'Found infinite symbolic link loop involving "{0}"'.format(filename))
                     tried_links.add(filename)
                     filename = os.path.join(os.path.dirname(filename), os.readlink(filename))
                 # Determine relative path
                 if collection_name:
-                    path = os.path.relpath(filename, os.path.join(paths.base_dir, 'plugins', 'modules'))
+                    rel_to = os.path.join(paths.base_dir, 'plugins', 'modules')
                 else:
-                    path = os.path.relpath(filename, os.path.join(paths.base_dir, 'lib', 'ansible', 'modules'))
+                    rel_to = os.path.join(paths.base_dir, 'lib', 'ansible', 'modules')
+                path = os.path.relpath(filename, rel_to)
                 path = os.path.split(path)[0]
                 # Extract namespace from relative path
                 namespace = []
@@ -99,7 +101,8 @@ def load_plugins(paths, version, force_reload):
             plugins_data = yaml.safe_load(plugin_cache_fd)
 
             if version != plugins_data['version']:
-                LOGGER.info('version %s does not match plugin cache version %s', version, plugins_data['version'])
+                LOGGER.info('version %s does not match plugin cache version %s',
+                            version, plugins_data['version'])
                 plugins_data = {}
 
     if not plugins_data:
@@ -114,7 +117,8 @@ def load_plugins(paths, version, force_reload):
             collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
 
         for plugin_type in C.DOCUMENTABLE_PLUGINS:
-            plugins_data['plugins'][plugin_type] = load_plugin_metadata(paths, plugin_type, collection_name)
+            plugins_data['plugins'][plugin_type] = load_plugin_metadata(
+                paths, plugin_type, collection_name)
 
         # remove empty namespaces from plugins
         for section in plugins_data['plugins'].values():

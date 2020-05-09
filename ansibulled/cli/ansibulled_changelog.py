@@ -97,7 +97,8 @@ def main():
 
     lint_changelog_parser = subparsers.add_parser('lint-changelog',
                                                   parents=[common],
-                                                  help='check changelog.yaml file for syntax errors')
+                                                  help='check changelog.yaml file '
+                                                       'for syntax errors')
     lint_changelog_parser.set_defaults(func=command_lint_changelog)
     lint_changelog_parser.add_argument('changelog_yaml_path',
                                        metavar='/path/to/changelog.yaml',
@@ -228,7 +229,8 @@ def command_generate(args):
         print('Cannot create changelog when not at least one release has been added.')
         sys.exit(2)
     if reload_plugins:
-        plugins = load_plugins(paths=paths, version=changes.latest_version, force_reload=reload_plugins)
+        plugins = load_plugins(paths=paths, version=changes.latest_version,
+                               force_reload=reload_plugins)
     else:
         plugins = None
     fragments = load_fragments(paths, config)
@@ -256,7 +258,9 @@ def command_lint_changelog(args):
     """
     errors = lint_changelog_yaml(args.changelog_yaml_path)
 
-    messages = sorted(set('%s:%d:%d: %s' % (error[0], error[1], error[2], error[3]) for error in errors))
+    messages = sorted(set(
+        '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])
+        for error in errors))
 
     for message in messages:
         print(message)
@@ -275,7 +279,9 @@ def lint_fragments(config, fragments, exceptions):
     for fragment in fragments:
         errors += linter.lint(fragment)
 
-    messages = sorted(set('%s:%d:%d: %s' % (os.path.relpath(error[0]), error[1], error[2], error[3]) for error in errors))
+    messages = sorted(set(
+        '%s:%d:%d: %s' % (os.path.relpath(error[0]), error[1], error[2], error[3])
+        for error in errors))
 
     for message in messages:
         print(message)

@@ -67,7 +67,7 @@ class PathsConfig(object):
                 if os.path.exists(galaxy_path):
                     # We are in a collection and assume ansible-doc is available in $PATH
                     return PathsConfig(base_dir, galaxy_path, 'ansible-doc')
-                if os.path.exists(os.path.join(base_dir, 'lib')) and os.path.exists(os.path.join(base_dir, 'lib', 'ansible')):
+                if os.path.exists(os.path.join(base_dir, 'lib', 'ansible')):
                     # We are in a checkout of ansible/ansible
                     return PathsConfig(base_dir, None, os.path.join(base_dir, 'bin', 'ansible-doc'))
             previous, base_dir = base_dir, os.path.dirname(base_dir)
@@ -89,19 +89,26 @@ class ChangelogConfig(object):
         self.prelude_name = self.config.get('prelude_section_name', 'release_summary')
         self.prelude_title = self.config.get('prelude_section_title', 'Release Summary')
         self.new_plugins_after_name = self.config.get('new_plugins_after_name', '')  # not used
-        self.release_tag_re = self.config.get('release_tag_re', r'((?:[\d.ab]|rc)+)')  # only relevant for ansible-base
-        self.pre_release_tag_re = self.config.get('pre_release_tag_re', r'(?P<pre_release>\.\d+(?:[ab]|rc)+\d*)$')  # only relevant for ansible-base
         self.changes_file = self.config.get('changes_file', '.changes.yaml')
         self.changes_format = self.config.get('changes_format', 'classic')
         self.keep_fragments = self.config.get('keep_fragments', self.changes_format == 'classic')
-        self.changelog_filename_template = self.config.get('changelog_filename_template', 'CHANGELOG-v%s.rst')
-        self.changelog_filename_version_depth = self.config.get('changelog_filename_version_depth', 2)
+        self.changelog_filename_template = self.config.get(
+            'changelog_filename_template', 'CHANGELOG-v%s.rst')
+        self.changelog_filename_version_depth = self.config.get(
+            'changelog_filename_version_depth', 2)
         self.mention_ancestor = self.config.get('mention_ancestor', True)
+
+        # The following are only relevant for ansible-base:
+        self.release_tag_re = self.config.get(
+            'release_tag_re', r'((?:[\d.ab]|rc)+)')
+        self.pre_release_tag_re = self.config.get(
+            'pre_release_tag_re', r'(?P<pre_release>\.\d+(?:[ab]|rc)+\d*)$')
 
         if self.changes_format not in ('classic', 'combined'):
             raise ValueError('changes_format must be one of "classic" and "combined"')
         if self.changes_format == 'classic' and not self.keep_fragments:
-            raise ValueError('changes_format == "classic" cannot be combined with keep_fragments == False')
+            raise ValueError('changes_format == "classic" cannot be '
+                             'combined with keep_fragments == False')
 
         self.sections = collections.OrderedDict([(self.prelude_name, self.prelude_title)])
 

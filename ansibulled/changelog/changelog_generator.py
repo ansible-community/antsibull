@@ -36,8 +36,10 @@ def generate_changelog(paths, config, changes, plugins=None, fragments=None, fla
             changes.prune_fragments(fragments)
         changes.save()
 
-    major_minor_version = '.'.join(changes.latest_version.split('.')[:config.changelog_filename_version_depth])
-    changelog_path = os.path.join(paths.changelog_dir, config.changelog_filename_template % major_minor_version)
+    major_minor_version = '.'.join(
+        changes.latest_version.split('.')[:config.changelog_filename_version_depth])
+    changelog_path = os.path.join(
+        paths.changelog_dir, config.changelog_filename_template % major_minor_version)
 
     generator = ChangelogGenerator(config, changes, plugins, fragments, flatmap)
     rst = generator.generate()
@@ -65,7 +67,8 @@ class ChangelogGenerator(object):
         self.plugin_resolver = changes.get_plugin_resolver(plugins)
         self.fragment_resolver = changes.get_fragment_resolver(fragments)
 
-    def generate_to(self, builder, start_level=0, squash=False, after_version=None, until_version=None):
+    def generate_to(self, builder, start_level=0, squash=False,
+                    after_version=None, until_version=None):
         """Generate the changelog.
         :type builder: RstBuilder
         :type start_level: int
@@ -74,7 +77,8 @@ class ChangelogGenerator(object):
         entry_version = until_version or self.changes.latest_version
         entry_fragment = None
 
-        Version = semantic_version.Version if self.config.is_collection else packaging.version.Version
+        Version = (semantic_version.Version if self.config.is_collection
+                   else packaging.version.Version)
 
         for version in sorted(self.changes.releases, reverse=True, key=Version):
             if after_version is not None:
@@ -87,10 +91,12 @@ class ChangelogGenerator(object):
 
             if not squash:
                 if is_release_version(self.config, version):
-                    entry_version = version  # next version is a release, it needs its own entry
+                    # next version is a release, it needs its own entry
+                    entry_version = version
                     entry_fragment = None
                 elif not is_release_version(self.config, entry_version):
-                    entry_version = version  # current version is a pre-release, next version needs its own entry
+                    # current version is a pre-release, next version needs its own entry
+                    entry_version = version
                     entry_fragment = None
 
             if entry_version not in release_entries:
@@ -108,7 +114,8 @@ class ChangelogGenerator(object):
                 for section, lines in fragment.content.items():
                     if section == self.config.prelude_name:
                         if entry_fragment:
-                            LOGGER.info('skipping prelude in version %s due to newer prelude in version %s',
+                            LOGGER.info('skipping prelude in version %s due to newer '
+                                        'prelude in version %s',
                                         version, entry_version)
                             continue
 
@@ -135,10 +142,12 @@ class ChangelogGenerator(object):
             combined_fragments = release['changes']
 
             for section_name in self.config.sections:
-                self._add_section(builder, combined_fragments, section_name, start_level=start_level)
+                self._add_section(builder, combined_fragments, section_name,
+                                  start_level=start_level)
 
             self._add_plugins(builder, release['plugins'], start_level=start_level)
-            self._add_modules(builder, release['modules'], flatmap=self.flatmap, start_level=start_level)
+            self._add_modules(builder, release['modules'], flatmap=self.flatmap,
+                              start_level=start_level)
 
     def generate(self):
         """Generate the changelog.
@@ -146,7 +155,8 @@ class ChangelogGenerator(object):
         """
         latest_version = self.changes.latest_version
         codename = self.changes.releases[latest_version].get('codename')
-        major_minor_version = '.'.join(latest_version.split('.')[:self.config.changelog_filename_version_depth])
+        major_minor_version = '.'.join(
+            latest_version.split('.')[:self.config.changelog_filename_version_depth])
 
         builder = RstBuilder()
         title = self.config.title or 'Ansible'
@@ -157,7 +167,9 @@ class ChangelogGenerator(object):
         builder.add_raw_rst('.. contents:: Topics\n')
 
         if self.changes.ancestor and self.config.mention_ancestor:
-            builder.add_raw_rst('This changelog describes changes after version {0}.\n'.format(self.changes.ancestor))
+            builder.add_raw_rst(
+                'This changelog describes changes after version {0}.\n'
+                .format(self.changes.ancestor))
         else:
             builder.add_raw_rst('')
 
@@ -216,7 +228,9 @@ class ChangelogGenerator(object):
         if self.config.changes_format != 'classic':
             module_names = [module['name'] for module in module_names]
 
-        modules = dict((module['name'], module) for module in self.plugin_resolver.resolve('module', module_names))
+        modules = dict(
+            (module['name'], module)
+            for module in self.plugin_resolver.resolve('module', module_names))
         previous_section = None
 
         modules_by_namespace = collections.defaultdict(list)

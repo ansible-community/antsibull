@@ -23,7 +23,8 @@ def check_version(errors, version, message, path):
     try:
         return semantic_version.Version(version)
     except Exception as e:
-        errors.append((path, 0, 0, '{0}: error while parse version "{1}": {2}'.format(message, version, e)))
+        errors.append((path, 0, 0,
+                       '{0}: error while parse version "{1}": {2}'.format(message, version, e)))
 
 
 def format_yaml_path(yaml_path):
@@ -43,7 +44,8 @@ def verify_type(errors, value, allowed_types, yaml_path, path, allow_none=False)
     if len(allowed_types) == 1:
         allowed_types_str = '{0}'.format(str(allowed_types[0]))
     else:
-        allowed_types_str = 'one of {0}'.format(', '.join([str(allowed_type) for allowed_type in allowed_types]))
+        allowed_types_str = 'one of {0}'.format(
+            ', '.join([str(allowed_type) for allowed_type in allowed_types]))
     if allow_none:
         allowed_types_str = 'null or {0}'.format(allowed_types_str)
     errors.append((path, 0, 0, '{0} is expected to be {1}, but got {2!r}'.format(
@@ -65,7 +67,8 @@ def verify_plugin(errors, plugin, yaml_path, path, is_module):
         verify_type(errors, plugin.get('description'), str, yaml_path + ['description'], path)
         namespace = plugin.get('namespace')
         if is_module:
-            if verify_type(errors, namespace, str, yaml_path + ['namespace'], path, allow_none=True):
+            if verify_type(errors, namespace, str, yaml_path + ['namespace'],
+                           path, allow_none=True):
                 if ' ' in namespace or '/' in namespace or '\\' in namespace:
                     errors.append((path, 0, 0, '{0} must not contain spaces or slashes'.format(
                         format_yaml_path(yaml_path + ['namespace'])
@@ -102,40 +105,58 @@ def lint_changelog_yaml(path):
             version = check_version(errors, version_str, 'Invalid release version', path=path)
             if version is not None and ancestor is not None:
                 if version <= ancestor:
-                    errors.append((path, 0, 0, 'release version "{0}" must come after ancestor version "{1}"'.format(version_str, ancestor_str)))
+                    errors.append((path, 0, 0,
+                                   'release version "{0}" must come after ancestor '
+                                   'version "{1}"'.format(version_str, ancestor_str)))
 
             # Check release information
             if verify_type(errors, entry, Mapping, ['releases', version_str], path=path):
                 codename = entry.get('codename')
-                verify_type(errors, codename, str, ['releases', version_str, 'codename'], path=path, allow_none=True)
+                verify_type(errors, codename, str,
+                            ['releases', version_str, 'codename'], path=path, allow_none=True)
 
                 changes = entry.get('changes')
-                if verify_type(errors, changes, Mapping, ['releases', version_str, 'changes'], path=path, allow_none=True) and changes:
+                if verify_type(errors, changes, Mapping,
+                               ['releases', version_str, 'changes'],
+                               path=path, allow_none=True) and changes:
                     if changes is not None:
                         fragment = ChangelogFragment.from_dict(changes, path)
                         errors += fragment_linter.lint(fragment)
 
                 modules = entry.get('modules')
-                if verify_type(errors, modules, list, ['releases', version_str, 'modules'], path=path, allow_none=True) and modules:
+                if verify_type(errors, modules, list,
+                               ['releases', version_str, 'modules'],
+                               path=path, allow_none=True) and modules:
                     for i, plugin in enumerate(modules):
-                        verify_plugin(errors, plugin, ['releases', version_str, 'modules', i], path=path, is_module=True)
+                        verify_plugin(errors, plugin,
+                                      ['releases', version_str, 'modules', i],
+                                      path=path, is_module=True)
 
                 plugins = entry.get('plugins')
-                if verify_type(errors, plugins, dict, ['releases', version_str, 'plugins'], path=path, allow_none=True) and plugins:
+                if verify_type(errors, plugins, dict,
+                               ['releases', version_str, 'plugins'],
+                               path=path, allow_none=True) and plugins:
                     for k, v in plugins.items():
-                        if verify_type(errors, k, str, ['releases', version_str, 'plugins'], path=path):
+                        if verify_type(errors, k, str,
+                                       ['releases', version_str, 'plugins'], path=path):
                             if k not in C.DOCUMENTABLE_PLUGINS or k == 'module':
-                                errors.append((path, 0, 0, 'Unknown plugin type "{0}" in {1}'.format(
-                                    k,
-                                    format_yaml_path(['releases', version_str, 'plugins']),
-                                )))
-                        if verify_type(errors, v, list, ['releases', version_str, 'plugins', k], path=path):
+                                errors.append((path, 0, 0,
+                                               'Unknown plugin type "{0}" in {1}'.format(
+                                                k, format_yaml_path(
+                                                    ['releases', version_str, 'plugins']))))
+                        if verify_type(errors, v, list,
+                                       ['releases', version_str, 'plugins', k], path=path):
                             for i, plugin in enumerate(v):
-                                verify_plugin(errors, plugin, ['releases', version_str, 'modules', k, i], path=path, is_module=False)
+                                verify_plugin(errors, plugin,
+                                              ['releases', version_str, 'modules', k, i],
+                                              path=path, is_module=False)
 
                 fragments = entry.get('fragments')
-                if verify_type(errors, fragments, list, ['releases', version_str, 'fragments'], path=path, allow_none=True) and fragments:
+                if verify_type(errors, fragments, list,
+                               ['releases', version_str, 'fragments'],
+                               path=path, allow_none=True) and fragments:
                     for i, fragment in enumerate(fragments):
-                        verify_type(errors, fragment, str, ['releases', version_str, 'fragments', i], path=path)
+                        verify_type(errors, fragment, str,
+                                    ['releases', version_str, 'fragments', i], path=path)
 
     return errors
