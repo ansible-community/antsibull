@@ -37,3 +37,7 @@ flake8 = {version = "^3.8.0-alpha.2", allow-prereleases = true}
 codecov = "^2.0.22"
 pyre-check = "^0.0.46"
 pylint = "^2.5.2"
+
+[tool.dephell.main]
+from = {format = "poetry", path = "pyproject.toml"}
+to = {format = "setuppy", path = "setup.py"}
