@@ -80,6 +80,60 @@ def verify_plugin(errors, plugin, yaml_path, path, is_module):
                 )))
 
 
+def lint_plugins(errors, path, version_str, plugins):
+    for k, v in plugins.items():
+        if verify_type(errors, k, str,
+                       ['releases', version_str, 'plugins'], path=path):
+            if k not in C.DOCUMENTABLE_PLUGINS or k == 'module':
+                errors.append((path, 0, 0,
+                               'Unknown plugin type "{0}" in {1}'.format(
+                                k, format_yaml_path(
+                                    ['releases', version_str, 'plugins']))))
+        if verify_type(errors, v, list,
+                       ['releases', version_str, 'plugins', k], path=path):
+            for i, plugin in enumerate(v):
+                verify_plugin(errors, plugin,
+                              ['releases', version_str, 'modules', k, i],
+                              path=path, is_module=False)
+
+
+def lint_releases_entry(errors, path, fragment_linter, version_str, entry):
+    codename = entry.get('codename')
+    verify_type(errors, codename, str,
+                ['releases', version_str, 'codename'], path=path, allow_none=True)
+
+    changes = entry.get('changes')
+    if verify_type(errors, changes, Mapping,
+                   ['releases', version_str, 'changes'],
+                   path=path, allow_none=True) and changes:
+        if changes is not None:
+            fragment = ChangelogFragment.from_dict(changes, path)
+            errors += fragment_linter.lint(fragment)
+
+    modules = entry.get('modules')
+    if verify_type(errors, modules, list,
+                   ['releases', version_str, 'modules'],
+                   path=path, allow_none=True) and modules:
+        for i, plugin in enumerate(modules):
+            verify_plugin(errors, plugin,
+                          ['releases', version_str, 'modules', i],
+                          path=path, is_module=True)
+
+    plugins = entry.get('plugins')
+    if verify_type(errors, plugins, dict,
+                   ['releases', version_str, 'plugins'],
+                   path=path, allow_none=True) and plugins:
+        lint_plugins(errors, path, version_str, plugins)
+
+    fragments = entry.get('fragments')
+    if verify_type(errors, fragments, list,
+                   ['releases', version_str, 'fragments'],
+                   path=path, allow_none=True) and fragments:
+        for i, fragment in enumerate(fragments):
+            verify_type(errors, fragment, str,
+                        ['releases', version_str, 'fragments', i], path=path)
+
+
 def lint_changelog_yaml(path):
     errors = []
 
@@ -111,52 +165,6 @@ def lint_changelog_yaml(path):
 
             # Check release information
             if verify_type(errors, entry, Mapping, ['releases', version_str], path=path):
-                codename = entry.get('codename')
-                verify_type(errors, codename, str,
-                            ['releases', version_str, 'codename'], path=path, allow_none=True)
-
-                changes = entry.get('changes')
-                if verify_type(errors, changes, Mapping,
-                               ['releases', version_str, 'changes'],
-                               path=path, allow_none=True) and changes:
-                    if changes is not None:
-                        fragment = ChangelogFragment.from_dict(changes, path)
-                        errors += fragment_linter.lint(fragment)
-
-                modules = entry.get('modules')
-                if verify_type(errors, modules, list,
-                               ['releases', version_str, 'modules'],
-                               path=path, allow_none=True) and modules:
-                    for i, plugin in enumerate(modules):
-                        verify_plugin(errors, plugin,
-                                      ['releases', version_str, 'modules', i],
-                                      path=path, is_module=True)
-
-                plugins = entry.get('plugins')
-                if verify_type(errors, plugins, dict,
-                               ['releases', version_str, 'plugins'],
-                               path=path, allow_none=True) and plugins:
-                    for k, v in plugins.items():
-                        if verify_type(errors, k, str,
-                                       ['releases', version_str, 'plugins'], path=path):
-                            if k not in C.DOCUMENTABLE_PLUGINS or k == 'module':
-                                errors.append((path, 0, 0,
-                                               'Unknown plugin type "{0}" in {1}'.format(
-                                                k, format_yaml_path(
-                                                    ['releases', version_str, 'plugins']))))
-                        if verify_type(errors, v, list,
-                                       ['releases', version_str, 'plugins', k], path=path):
-                            for i, plugin in enumerate(v):
-                                verify_plugin(errors, plugin,
-                                              ['releases', version_str, 'modules', k, i],
-                                              path=path, is_module=False)
-
-                fragments = entry.get('fragments')
-                if verify_type(errors, fragments, list,
-                               ['releases', version_str, 'fragments'],
-                               path=path, allow_none=True) and fragments:
-                    for i, fragment in enumerate(fragments):
-                        verify_type(errors, fragment, str,
-                                    ['releases', version_str, 'fragments', i], path=path)
+                lint_releases_entry(errors, path, fragment_linter, version_str, entry)
 
     return errors

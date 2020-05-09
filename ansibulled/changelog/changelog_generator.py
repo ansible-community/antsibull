@@ -67,19 +67,11 @@ class ChangelogGenerator(object):
         self.plugin_resolver = changes.get_plugin_resolver(plugins)
         self.fragment_resolver = changes.get_fragment_resolver(fragments)
 
-    def generate_to(self, builder, start_level=0, squash=False,
-                    after_version=None, until_version=None):
-        """Generate the changelog.
-        :type builder: RstBuilder
-        :type start_level: int
-        """
-        release_entries = collections.OrderedDict()
-        entry_version = until_version or self.changes.latest_version
-        entry_fragment = None
-
+    def _collect_versions(self, after_version=None, until_version=None):
         Version = (semantic_version.Version if self.config.is_collection
                    else packaging.version.Version)
 
+        result = []
         for version in sorted(self.changes.releases, reverse=True, key=Version):
             if after_version is not None:
                 if Version(version) <= Version(after_version):
@@ -87,6 +79,37 @@ class ChangelogGenerator(object):
             if until_version is not None:
                 if Version(version) > Version(until_version):
                     continue
+            result.append(version)
+        return result
+
+    @staticmethod
+    def _get_entry_config(release_entries, entry_version):
+        if entry_version not in release_entries:
+            release_entries[entry_version] = dict(
+                modules=[],
+                plugins={},
+            )
+            release_entries[entry_version]['changes'] = dict()
+
+        return release_entries[entry_version]
+
+    @staticmethod
+    def _update_modules_plugins(entry_config, release):
+        entry_config['modules'] += release.get('modules', [])
+
+        for plugin_type, plugins in release.get('plugins', {}).items():
+            if plugin_type not in entry_config['plugins']:
+                entry_config['plugins'][plugin_type] = []
+
+            entry_config['plugins'][plugin_type] += plugins
+
+    def _collect(self, squash=False, after_version=None, until_version=None):
+        release_entries = collections.OrderedDict()
+        entry_version = until_version or self.changes.latest_version
+        entry_fragment = None
+
+        for version in self._collect_versions(
+                after_version=after_version, until_version=until_version):
             release = self.changes.releases[version]
 
             if not squash:
@@ -99,14 +122,7 @@ class ChangelogGenerator(object):
                     entry_version = version
                     entry_fragment = None
 
-            if entry_version not in release_entries:
-                release_entries[entry_version] = dict(
-                    modules=[],
-                    plugins={},
-                )
-                release_entries[entry_version]['changes'] = dict()
-
-            entry_config = release_entries[entry_version]
+            entry_config = self._get_entry_config(release_entries, entry_version)
 
             dest_changes = entry_config['changes']
 
@@ -127,13 +143,18 @@ class ChangelogGenerator(object):
                     else:
                         dest_changes[section] = list(lines)
 
-            entry_config['modules'] += release.get('modules', [])
+            self._update_modules_plugins(entry_config, release)
 
-            for plugin_type, plugins in release.get('plugins', {}).items():
-                if plugin_type not in entry_config['plugins']:
-                    entry_config['plugins'][plugin_type] = []
+        return release_entries, entry_version, entry_fragment
 
-                entry_config['plugins'][plugin_type] += plugins
+    def generate_to(self, builder, start_level=0, squash=False,
+                    after_version=None, until_version=None):
+        """Generate the changelog.
+        :type builder: RstBuilder
+        :type start_level: int
+        """
+        release_entries, entry_version, entry_fragment = self._collect(
+            squash=squash, after_version=after_version, until_version=until_version)
 
         for version, release in release_entries.items():
             if not squash:

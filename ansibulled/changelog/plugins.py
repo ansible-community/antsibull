@@ -22,6 +22,46 @@ from ansible.module_utils._text import to_text
 from .utils import LOGGER, load_galaxy_metadata
 
 
+def jsondoc_to_metadata(paths, collection_name, plugin_type, name, data):
+    namespace = None
+    if collection_name and name.startswith(collection_name + '.'):
+        name = name[len(collection_name) + 1:]
+    docs = data.get('doc') or dict()
+    if plugin_type == 'module':
+        filename = docs.get('filename')
+        if filename:
+            # Follow links
+            tried_links = set()
+            while os.path.islink(filename):
+                if filename in tried_links:
+                    raise Exception(
+                        'Found infinite symbolic link loop involving "{0}"'.format(filename))
+                tried_links.add(filename)
+                filename = os.path.join(os.path.dirname(filename), os.readlink(filename))
+            # Determine relative path
+            if collection_name:
+                rel_to = os.path.join(paths.base_dir, 'plugins', 'modules')
+            else:
+                rel_to = os.path.join(paths.base_dir, 'lib', 'ansible', 'modules')
+            path = os.path.relpath(filename, rel_to)
+            path = os.path.split(path)[0]
+            # Extract namespace from relative path
+            namespace = []
+            while True:
+                (path, last), prev = os.path.split(path), path
+                if path == prev:
+                    break
+                if last not in ('', '.', '..'):
+                    namespace.insert(0, last)
+            namespace = '.'.join(namespace)
+    return {
+        'description': docs.get('short_description'),
+        'name': name,
+        'namespace': namespace,
+        'version_added': docs.get('version_added'),
+    }
+
+
 def load_plugin_metadata(paths, plugin_type, collection_name):
     command = [paths.ansible_doc_path, '--json', '-t', plugin_type, '--list']
     if collection_name:
@@ -46,43 +86,7 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
     plugins_data = json.loads(to_text(output))
 
     for name, data in plugins_data.items():
-        namespace = None
-        if collection_name and name.startswith(collection_name + '.'):
-            name = name[len(collection_name) + 1:]
-        docs = data.get('doc') or dict()
-        if plugin_type == 'module':
-            filename = docs.get('filename')
-            if filename:
-                # Follow links
-                tried_links = set()
-                while os.path.islink(filename):
-                    if filename in tried_links:
-                        raise Exception(
-                            'Found infinite symbolic link loop involving "{0}"'.format(filename))
-                    tried_links.add(filename)
-                    filename = os.path.join(os.path.dirname(filename), os.readlink(filename))
-                # Determine relative path
-                if collection_name:
-                    rel_to = os.path.join(paths.base_dir, 'plugins', 'modules')
-                else:
-                    rel_to = os.path.join(paths.base_dir, 'lib', 'ansible', 'modules')
-                path = os.path.relpath(filename, rel_to)
-                path = os.path.split(path)[0]
-                # Extract namespace from relative path
-                namespace = []
-                while True:
-                    (path, last), prev = os.path.split(path), path
-                    if path == prev:
-                        break
-                    if last not in ('', '.', '..'):
-                        namespace.insert(0, last)
-                namespace = '.'.join(namespace)
-        result[name] = {
-            'description': docs.get('short_description'),
-            'name': name,
-            'namespace': namespace,
-            'version_added': docs.get('version_added'),
-        }
+        result[name] = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
     return result
 
 
