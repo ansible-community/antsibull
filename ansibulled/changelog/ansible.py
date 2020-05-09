@@ -15,10 +15,8 @@ except ImportError:
 
 try:
     from ansible import release as ansible_release
-    ansible_release_import_error = None
-except ImportError as e:
+except ImportError:
     ansible_release = None
-    ansible_release_import_error = e
 
 
 def get_documentable_plugins():
@@ -38,5 +36,5 @@ def get_ansible_release():
     :rtype (str, str): version and codename
     """
     if ansible_release is None:
-        raise ansible_release_import_error
+        raise ValueError('Cannot import ansible.release')
     return ansible_release.__version__, ansible_release.__codename__

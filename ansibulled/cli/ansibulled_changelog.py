@@ -194,9 +194,8 @@ def command_release(args):
             # Both version and codename are required for Ansible (Base)
             try:
                 version, codename = get_ansible_release()
-            except ImportError as e:
+            except ValueError as e:
                 LOGGER.error('Cannot import ansible.release to determine version and codename')
-                LOGGER.info('Exception: {0}'.format(str(e)))
                 sys.exit(3)
 
         elif not version:
