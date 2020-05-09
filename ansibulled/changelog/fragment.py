@@ -15,14 +15,10 @@ import docutils.utils
 import rstcheck
 import yaml
 
-from ansible.module_utils import six
-
 try:
     from collections.abc import Mapping
 except ImportError:
     from collections import Mapping
-
-from ansible.module_utils.six import string_types
 
 
 def load_fragments(paths, config, fragment_paths=None, exceptions=None):
@@ -123,7 +119,7 @@ class ChangelogFragmentLinter(object):
         :type section: str
         """
         if section == self.config.prelude_name:
-            if not isinstance(lines, string_types):
+            if not isinstance(lines, str):
                 errors.append((fragment.path, 0, 0,
                                'section "%s" must be type str '
                                'not %s' % (section, type(lines).__name__)))
@@ -145,7 +141,7 @@ class ChangelogFragmentLinter(object):
         """
         if isinstance(lines, list):
             for line in lines:
-                if not isinstance(line, string_types):
+                if not isinstance(line, str):
                     errors.append((fragment.path, 0, 0,
                                    'section "%s" list items must be type str '
                                    'not %s' % (section, type(line).__name__)))
@@ -155,7 +151,7 @@ class ChangelogFragmentLinter(object):
                     line, filename=fragment.path,
                     report_level=docutils.utils.Reporter.WARNING_LEVEL)
                 errors += [(fragment.path, 0, 0, result[1]) for result in results]
-        elif isinstance(lines, string_types):
+        elif isinstance(lines, str):
             results = rstcheck.check(
                 lines, filename=fragment.path,
                 report_level=docutils.utils.Reporter.WARNING_LEVEL)
@@ -180,8 +176,7 @@ class ChangelogFragmentLinter(object):
         return errors
 
 
-@six.add_metaclass(abc.ABCMeta)
-class FragmentResolver(object):
+class FragmentResolver(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resolve(self, release):
         """Return a list of ChangelogFragment objects from the given fragment names

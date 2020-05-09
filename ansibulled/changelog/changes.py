@@ -16,8 +16,6 @@ import packaging.version
 import semantic_version
 import yaml
 
-from ansible.module_utils import six
-
 from .fragment import load_fragments, ChangelogFragment, FragmentResolver, SimpleFragmentResolver
 from .plugins import load_plugins, PluginResolver, SimplePluginResolver
 from .utils import LOGGER, is_release_version
@@ -80,8 +78,7 @@ def add_release(config, changes, plugins, fragments, version, codename, date):
             fragment.remove()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ChangesBase(object):
+class ChangesBase(object, metaclass=abc.ABCMeta):
     """Read, write and manage change metadata."""
     def __init__(self, config, path):
         self.config = config

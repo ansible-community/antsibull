@@ -16,8 +16,6 @@ import subprocess
 import yaml
 
 from ansible import constants as C
-from ansible.module_utils import six
-from ansible.module_utils._text import to_text
 
 from .utils import LOGGER, load_galaxy_metadata
 
@@ -67,7 +65,7 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
     if collection_name:
         command.append(collection_name)
     output = subprocess.check_output(command)
-    plugins_list = json.loads(to_text(output))
+    plugins_list = json.loads(output.decode('utf-8'))
 
     if not collection_name:
         # Filter out FQCNs
@@ -83,7 +81,7 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
     command = [paths.ansible_doc_path, '--json', '-t', plugin_type]
     command.extend(sorted(plugins_list.keys()))
     output = subprocess.check_output(command)
-    plugins_data = json.loads(to_text(output))
+    plugins_data = json.loads(output.decode('utf-8'))
 
     for name, data in plugins_data.items():
         result[name] = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
@@ -168,8 +166,7 @@ class PluginDescription(object):
         return plugins
 
 
-@six.add_metaclass(abc.ABCMeta)
-class PluginResolver(object):
+class PluginResolver(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resolve(self, plugin_type, plugin_names):
         """Return a list of PluginDescription objects from the given data.

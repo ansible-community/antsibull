@@ -18,8 +18,6 @@ try:
 except ImportError:
     argcomplete = None
 
-from ansible.module_utils._text import to_native
-
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
@@ -160,7 +158,7 @@ def command_init(args):
         print('Created fragments directory "{0}"'.format(fragments_dir))
     except Exception as e:
         LOGGER.error('Cannot create fragments directory "{0}"'.format(fragments_dir))
-        LOGGER.info('Exception: {0}'.format(to_native(e)))
+        LOGGER.info('Exception: {0}'.format(str(e)))
         sys.exit(3)
 
     try:
@@ -168,7 +166,7 @@ def command_init(args):
         print('Created config file "{0}"'.format(paths.config_path))
     except Exception as e:
         LOGGER.error('Cannot create config file "{0}"'.format(paths.config_path))
-        LOGGER.info('Exception: {0}'.format(to_native(e)))
+        LOGGER.info('Exception: {0}'.format(str(e)))
         sys.exit(3)
 
 

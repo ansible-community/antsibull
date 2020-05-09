@@ -14,8 +14,6 @@ import os
 import packaging.version
 import semantic_version
 
-from ansible.module_utils._text import to_bytes
-
 from .rst import RstBuilder
 from .utils import LOGGER, is_release_version
 
@@ -45,7 +43,7 @@ def generate_changelog(paths, config, changes, plugins=None, fragments=None, fla
     rst = generator.generate()
 
     with open(changelog_path, 'wb') as changelog_fd:
-        changelog_fd.write(to_bytes(rst))
+        changelog_fd.write(rst.encode('utf-8'))
 
 
 class ChangelogGenerator(object):
