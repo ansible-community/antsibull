@@ -13,8 +13,7 @@ from collections.abc import Mapping
 import semantic_version
 import yaml
 
-from ansible import constants as C
-
+from .ansible import get_documentable_plugins
 from .config import ChangelogConfig
 from .fragment import ChangelogFragment, ChangelogFragmentLinter
 
@@ -84,7 +83,7 @@ def lint_plugins(errors, path, version_str, plugins):
     for k, v in plugins.items():
         if verify_type(errors, k, str,
                        ['releases', version_str, 'plugins'], path=path):
-            if k not in C.DOCUMENTABLE_PLUGINS or k == 'module':
+            if k not in get_documentable_plugins() or k == 'module':
                 errors.append((path, 0, 0,
                                'Unknown plugin type "{0}" in {1}'.format(
                                 k, format_yaml_path(

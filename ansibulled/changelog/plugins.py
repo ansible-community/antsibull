@@ -15,8 +15,7 @@ import subprocess
 
 import yaml
 
-from ansible import constants as C
-
+from .ansible import get_documentable_plugins
 from .utils import LOGGER, load_galaxy_metadata
 
 
@@ -118,7 +117,7 @@ def load_plugins(paths, version, force_reload):
             galaxy = load_galaxy_metadata(paths)
             collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
 
-        for plugin_type in C.DOCUMENTABLE_PLUGINS:
+        for plugin_type in get_documentable_plugins():
             plugins_data['plugins'][plugin_type] = load_plugin_metadata(
                 paths, plugin_type, collection_name)
 

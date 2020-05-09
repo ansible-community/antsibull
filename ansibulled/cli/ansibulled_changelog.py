@@ -18,6 +18,7 @@ try:
 except ImportError:
     argcomplete = None
 
+from ..changelog.ansible import get_ansible_release
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
@@ -191,10 +192,12 @@ def command_release(args):
     if not version or not codename:
         if not config.is_collection:
             # Both version and codename are required for Ansible (Base)
-            import ansible.release
-
-            version = version or ansible.release.__version__
-            codename = codename or ansible.release.__codename__
+            try:
+                version, codename = get_ansible_release()
+            except ImportError as e:
+                LOGGER.error('Cannot import ansible.release to determine version and codename')
+                LOGGER.info('Exception: {0}'.format(str(e)))
+                sys.exit(3)
 
         elif not version:
             # Codename is not required for collections, only version is
