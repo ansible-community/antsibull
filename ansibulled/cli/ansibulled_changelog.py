@@ -20,13 +20,13 @@ except ImportError:
 
 from ansible.module_utils._text import to_native
 
-from ansibulled.changelog.changelog_generator import generate_changelog
-from ansibulled.changelog.changes import load_changes, add_release
-from ansibulled.changelog.config import PathsConfig, ChangelogConfig
-from ansibulled.changelog.fragment import load_fragments, ChangelogFragmentLinter
-from ansibulled.changelog.lint import lint_changelog_yaml
-from ansibulled.changelog.plugins import load_plugins
-from ansibulled.changelog.utils import LOGGER, makedirs, load_galaxy_metadata
+from ..changelog.changelog_generator import generate_changelog
+from ..changelog.changes import load_changes, add_release
+from ..changelog.config import PathsConfig, ChangelogConfig
+from ..changelog.fragment import load_fragments, ChangelogFragmentLinter
+from ..changelog.lint import lint_changelog_yaml
+from ..changelog.plugins import load_plugins
+from ..changelog.utils import LOGGER, makedirs, load_galaxy_metadata
 
 
 def set_paths(force=None):
