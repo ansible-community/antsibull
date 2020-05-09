@@ -14,7 +14,7 @@ import os
 import sys
 
 try:
-    import argcomplete
+    import argcomplete  # pyre-ignore
 except ImportError:
     argcomplete = None
 
