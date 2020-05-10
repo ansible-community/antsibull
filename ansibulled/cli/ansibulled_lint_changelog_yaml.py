@@ -4,9 +4,6 @@
 # Copyright: Ansible Project, 2020
 """Entrypoint to the ansibulled-changelog script."""
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
-
 import argparse
 import logging
 import sys

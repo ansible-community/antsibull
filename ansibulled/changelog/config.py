@@ -4,8 +4,6 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
 import collections
 import os
@@ -13,7 +11,7 @@ import os
 import yaml
 
 
-class PathsConfig(object):
+class PathsConfig:
     """Configuration for paths."""
 
     @staticmethod
@@ -75,7 +73,7 @@ class PathsConfig(object):
                 raise ValueError()
 
 
-class ChangelogConfig(object):
+class ChangelogConfig:
     """Configuration for changelogs."""
     def __init__(self, is_collection, config):
         """

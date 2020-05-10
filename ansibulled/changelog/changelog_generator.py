@@ -4,9 +4,6 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
-
 
 import collections
 import os
@@ -46,7 +43,7 @@ def generate_changelog(paths, config, changes, plugins=None, fragments=None, fla
         changelog_fd.write(rst.encode('utf-8'))
 
 
-class ChangelogGenerator(object):
+class ChangelogGenerator:
     """Changelog generator."""
     def __init__(self, config, changes, plugins=None, fragments=None, flatmap=True):
         """

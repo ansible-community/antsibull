@@ -4,9 +4,6 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
-
 
 import abc
 import json
@@ -135,7 +132,7 @@ def load_plugins(paths, version, force_reload):
     return plugins
 
 
-class PluginDescription(object):
+class PluginDescription:
     """Plugin description."""
     def __init__(self, plugin_type, name, namespace, description, version_added):
         self.type = plugin_type

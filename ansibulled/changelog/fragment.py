@@ -4,9 +4,6 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
-
 
 import abc
 import os
@@ -48,7 +45,7 @@ def load_fragments(paths, config, fragment_paths=None, exceptions=None):
     return fragments
 
 
-class ChangelogFragment(object):
+class ChangelogFragment:
     """Changelog fragment loader."""
     def __init__(self, content, path):
         """
@@ -104,7 +101,7 @@ class ChangelogFragment(object):
         return result
 
 
-class ChangelogFragmentLinter(object):
+class ChangelogFragmentLinter:
     """Linter for ChangelogFragments."""
     def __init__(self, config):
         """
