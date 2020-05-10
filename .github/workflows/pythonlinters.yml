@@ -35,7 +35,7 @@ jobs:
 
       - name: Lint with pyre
         run: |
-          poetry run pyre --source-directory ansibulled --search-path $(poetry run python -c 'from distutils.sysconfig import get_python_lib;print(get_python_lib())')
+          poetry run pyre --source-directory ansibulled --search-path $(poetry run python -c 'from distutils.sysconfig import get_python_lib;print(get_python_lib())') --search-path stubs/
         if: always()
 
       # note: pylint is run informationally, never to fail the build

@@ -10,7 +10,7 @@ Return Ansible-specific information, like current release or list of documentabl
 from typing import Tuple
 
 try:
-    from ansible import constants as C  # pyre-ignore
+    from ansible import constants as C
     HAS_ANSIBLE_CONSTANTS = True
 except ImportError:
     HAS_ANSIBLE_CONSTANTS = False
