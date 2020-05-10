@@ -25,7 +25,7 @@ from ..changelog.config import PathsConfig, ChangelogConfig
 from ..changelog.fragment import load_fragments, ChangelogFragmentLinter
 from ..changelog.lint import lint_changelog_yaml
 from ..changelog.plugins import load_plugins
-from ..changelog.utils import LOGGER, makedirs, load_galaxy_metadata
+from ..changelog.utils import LOGGER, load_galaxy_metadata
 
 
 def set_paths(force=None):
@@ -155,7 +155,7 @@ def command_init(args):
 
     fragments_dir = os.path.join(paths.changelog_dir, config.notes_dir)
     try:
-        makedirs(fragments_dir)
+        os.makedirs(fragments_dir, exist_ok=True)
         print('Created fragments directory "{0}"'.format(fragments_dir))
     except Exception as e:
         LOGGER.error('Cannot create fragments directory "{0}"'.format(fragments_dir))

@@ -19,22 +19,6 @@ import yaml
 LOGGER = logging.getLogger('changelog')
 
 
-def makedirs(path):
-    """Make sure directory and parents exists and are directories.
-    :type path: str
-    """
-    if os.path.exists(path):
-        if not os.path.isdir(path):
-            raise Exception('Path {0} already exists and is not a folder.'.format(path))
-        return
-    try:
-        os.makedirs(path)
-    except Exception:
-        if os.path.isdir(path):
-            return
-        raise
-
-
 def load_galaxy_metadata(paths):
     """Load galaxy.yml metadata.
     :type paths: PathsConfig
