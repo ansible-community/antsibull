@@ -14,7 +14,7 @@ import sys
 from typing import Any
 
 try:
-    import argcomplete  # pyre-ignore
+    import argcomplete
     HAS_ARGCOMPLETE = True
 except ImportError:
     HAS_ARGCOMPLETE = False

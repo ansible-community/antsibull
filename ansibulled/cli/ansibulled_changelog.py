@@ -16,7 +16,7 @@ import sys
 from typing import cast, Any, List, Optional, Tuple, Union
 
 try:
-    import argcomplete  # pyre-ignore
+    import argcomplete
     HAS_ARGCOMPLETE = True
 except ImportError:
     HAS_ARGCOMPLETE = False
