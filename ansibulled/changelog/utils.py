@@ -9,7 +9,6 @@ __metaclass__ = type
 
 
 import logging
-import os
 import re
 
 import semantic_version
