@@ -45,16 +45,17 @@ class FragmentResolver(metaclass=abc.ABCMeta):
 class PluginResolver(metaclass=abc.ABCMeta):
     # pylint: disable=too-few-public-methods
     """
-    Given a plugin type and list of plugin names, return a list of plugin information.
+    Allows to resolve a release section to a plugin description database.
     """
 
     @abc.abstractmethod
-    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+    def resolve(self, release: dict) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Return a list of plugin descriptions from the given data.
+        Return a dictionary of plugin types mapping to lists of plugin descriptions
+        for the given release.
 
-        :arg plugin_type: The plugin type
-        :arg plugin_names: A list of plugin names
+        :arg release: A release description
+        :return: A map of plugin types to lists of plugin descriptions
         """
 
 
@@ -232,7 +233,7 @@ class ChangesBase(metaclass=abc.ABCMeta):
         """
 
 
-class SimpleFragmentResolver(FragmentResolver):
+class LegacyFragmentResolver(FragmentResolver):
     # pylint: disable=too-few-public-methods
     """
     Given a list of changelog fragments, allows to resolve from a list of fragment names.
@@ -259,7 +260,7 @@ class SimpleFragmentResolver(FragmentResolver):
         return [self.fragments[fragment] for fragment in fragment_names]
 
 
-class SimplePluginResolver(PluginResolver):
+class LegacyPluginResolver(PluginResolver):
     # pylint: disable=too-few-public-methods
     """
     Provides a plugin resolved based on a list of ``PluginDescription`` objects.
@@ -289,20 +290,23 @@ class SimplePluginResolver(PluginResolver):
 
             self.plugins[plugin.type][plugin.name] = self.resolve_plugin(plugin)
 
-    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+    def resolve(self, release: dict) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Return a list of plugin descriptions from the given data.
+        Return a dictionary of plugin types mapping to lists of plugin descriptions
+        for the given release.
 
-        :arg plugin_type: The plugin type
-        :arg plugin_names: A list of plugin names
+        :arg release: A release description
+        :return: A map of plugin types to lists of plugin descriptions
         """
-        if plugin_type not in self.plugins:
-            return []
-        return [
-            self.plugins[plugin_type][plugin_name]
-            for plugin_name in plugin_names
-            if plugin_name in self.plugins[plugin_type]
-        ]
+        result = dict()
+        if 'modules' in release:
+            result['module'] = [self.plugins['module'][module_name]
+                                for module_name in release['modules']]
+        if 'plugins' in release:
+            for plugin_type, plugin_names in release['plugins'].items():
+                result[plugin_type] = [self.plugins[plugin_type][plugin_name]
+                                       for plugin_name in plugin_names]
+        return result
 
 
 class ChangesMetadata(ChangesBase):
@@ -429,7 +433,7 @@ class ChangesMetadata(ChangesBase):
         if plugins is None:
             plugins = load_plugins(paths=self.paths, version=self.latest_version,
                                    force_reload=False)
-        return SimplePluginResolver(plugins)
+        return LegacyPluginResolver(plugins)
 
     def get_fragment_resolver(
             self, fragments: Optional[List[ChangelogFragment]] = None) -> FragmentResolver:
@@ -440,7 +444,7 @@ class ChangesMetadata(ChangesBase):
         """
         if fragments is None:
             fragments = load_fragments(paths=self.paths, config=self.config)
-        return SimpleFragmentResolver(fragments)
+        return LegacyFragmentResolver(fragments)
 
 
 class ChangesDataFragmentResolver(FragmentResolver):
@@ -468,38 +472,20 @@ class ChangesDataPluginResolver(PluginResolver):
     A ``PluginResolver`` class for modern ``ChangesData`` objects.
     """
 
-    changes: 'ChangesData'
-    plugins: Dict[str, Dict[str, dict]]
+    def resolve(self, release: dict) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Return a dictionary of plugin types mapping to lists of plugin descriptions
+        for the given release.
 
-    def __init__(self, changes: 'ChangesData'):
+        :arg release: A release description
+        :return: A map of plugin types to lists of plugin descriptions
         """
-        Create a modern changes metadata plugin resolver.
-        """
-        self.changes = changes
-        self.plugins = collections.defaultdict(dict)
-        for _, config in changes.releases.items():
-            if 'modules' in config:
-                for plugin in config['modules']:
-                    self.plugins['module'][plugin['name']] = plugin
-            if 'plugins' in config:
-                for plugin_type, plugins in config['plugins'].items():
-                    for plugin in plugins:
-                        self.plugins[plugin_type][plugin['name']] = plugin
-
-    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
-        """
-        Return a list of plugin descriptions from the given data.
-
-        :arg plugin_type: The plugin type
-        :arg plugin_names: A list of plugin names
-        """
-        if plugin_type not in self.plugins:
-            return []
-        return [
-            self.plugins[plugin_type][plugin_name]
-            for plugin_name in plugin_names
-            if plugin_name in self.plugins[plugin_type]
-        ]
+        result = dict()
+        if 'modules' in release:
+            result['module'] = release['modules']
+        if 'plugins' in release:
+            result.update(release['plugins'])
+        return result
 
 
 class ChangesData(ChangesBase):
@@ -624,7 +610,7 @@ class ChangesData(ChangesBase):
 
     @staticmethod
     def _create_plugin_entry(plugin: PluginDescription) -> dict:
-        return SimplePluginResolver.resolve_plugin(plugin)
+        return LegacyPluginResolver.resolve_plugin(plugin)
 
     def get_plugin_resolver(
             self, plugins: Optional[List[PluginDescription]] = None) -> PluginResolver:
@@ -633,7 +619,7 @@ class ChangesData(ChangesBase):
 
         The plugins list is not used.
         """
-        return ChangesDataPluginResolver(self)
+        return ChangesDataPluginResolver()
 
     def get_fragment_resolver(
             self, fragments: Optional[List[ChangelogFragment]] = None) -> FragmentResolver:

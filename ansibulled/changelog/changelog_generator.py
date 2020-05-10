@@ -35,7 +35,6 @@ class ChangelogGenerator:
 
     config: ChangelogConfig
     changes: ChangesBase
-    fragments: Optional[List[ChangelogFragment]]
     plugin_resolver: PluginResolver
     fragment_resolver: FragmentResolver
 
@@ -55,22 +54,27 @@ class ChangelogGenerator:
         self.plugin_resolver = changes.get_plugin_resolver(plugins)
         self.fragment_resolver = changes.get_fragment_resolver(fragments)
 
+    def version_constructor(self, version: str) -> Any:
+        """
+        Create a version object.
+        """
+        if self.config.is_collection:
+            return semantic_version.Version(version)
+        return packaging.version.Version(version)
+
     def _collect_versions(self, after_version: Optional[str] = None,
                           until_version: Optional[str] = None) -> List[str]:
         """
         Collect all versions of interest and return them as an ordered list,
         latest to earliest.
         """
-        Version = (semantic_version.Version if self.config.is_collection
-                   else packaging.version.Version)
-
         result = []
-        for version in sorted(self.changes.releases, reverse=True, key=Version):
+        for version in sorted(self.changes.releases, reverse=True, key=self.version_constructor):
             if after_version is not None:
-                if Version(version) <= Version(after_version):
+                if self.version_constructor(version) <= self.version_constructor(after_version):
                     continue
             if until_version is not None:
-                if Version(version) > Version(until_version):
+                if self.version_constructor(version) > self.version_constructor(until_version):
                     continue
             result.append(version)
         return result
@@ -89,18 +93,20 @@ class ChangelogGenerator:
 
         return release_entries[entry_version]
 
-    @staticmethod
-    def _update_modules_plugins(entry_config: dict, release: dict) -> None:
+    def _update_modules_plugins(self, entry_config: dict, release: dict) -> None:
         """
         Update a release entry given a release information dict.
         """
-        entry_config['modules'] += release.get('modules', [])
+        plugins = self.plugin_resolver.resolve(release)
 
-        for plugin_type, plugins in release.get('plugins', {}).items():
+        if 'module' in plugins:
+            entry_config['modules'] += plugins.pop('module')
+
+        for plugin_type, plugin_list in plugins.items():
             if plugin_type not in entry_config['plugins']:
                 entry_config['plugins'][plugin_type] = []
 
-            entry_config['plugins'][plugin_type] += plugins
+            entry_config['plugins'][plugin_type] += plugin_list
 
     def _collect(self, squash: bool = False, after_version: Optional[str] = None,
                  until_version: Optional[str] = None) -> Mapping[str, dict]:
@@ -238,23 +244,20 @@ class ChangelogGenerator:
 
         builder.add_raw_rst('')
 
-    def _add_plugins(self, builder: RstBuilder,
-                     plugin_types_and_names: Dict[str, List[Dict[str, Any]]],
+    @staticmethod
+    def _add_plugins(builder: RstBuilder,
+                     plugins_database: Dict[str, List[Dict[str, Any]]],
                      start_level: int = 0) -> None:
         """
         Add new plugins to the changelog.
         """
-        if not plugin_types_and_names:
+        if not plugins_database:
             return
 
         have_section = False
 
-        for plugin_type in sorted(plugin_types_and_names):
-            plugin_names = plugin_types_and_names.get(plugin_type, [])
-            if self.config.changes_format != 'classic':
-                plugin_names = [plugin['name'] for plugin in plugin_names]
-            plugins = self.plugin_resolver.resolve(plugin_type, plugin_names)
-
+        for plugin_type in sorted(plugins_database):
+            plugins = plugins_database.get(plugin_type)
             if not plugins:
                 continue
 
@@ -269,31 +272,22 @@ class ChangelogGenerator:
 
             builder.add_raw_rst('')
 
-    def _add_modules(self, builder: RstBuilder,
-                     module_names: List[Dict[str, Any]],
+    @staticmethod
+    def _add_modules(builder: RstBuilder,
+                     modules: List[Dict[str, Any]],
                      flatmap: bool,
                      start_level: int = 0) -> None:
         """
         Add new modules to the changelog.
         """
-        if not module_names:
+        if not modules:
             return
 
-        if self.config.changes_format != 'classic':
-            module_names = [module['name'] for module in module_names]
-
-        modules = dict(
-            (module['name'], module)
-            for module in self.plugin_resolver.resolve('module', module_names))
-        previous_section = None
-
         modules_by_namespace = collections.defaultdict(list)
-
-        for module_name in sorted(modules):
-            module = modules[module_name]
-
+        for module in sorted(modules, key=lambda module: module['name']):
             modules_by_namespace[module['namespace']].append(module)
 
+        previous_section = None
         for namespace in sorted(modules_by_namespace):
             parts = namespace.split('.')
 
