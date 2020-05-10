@@ -167,7 +167,7 @@ class ChangesBase(metaclass=abc.ABCMeta):
             if codename is not None:
                 self.releases[version]['codename'] = codename
         else:
-            LOGGER.warning('release %s already exists', version)
+            LOGGER.warning('release {} already exists', version)
 
     @abc.abstractmethod
     def add_fragment(self, fragment: ChangelogFragment, version: str):
@@ -710,7 +710,7 @@ def add_release(config: ChangelogConfig,  # pylint: disable=too-many-arguments
                            else packaging.version.Version)
     version_constructor(version)
 
-    LOGGER.info('release version %s is a %s version', version,
+    LOGGER.info('release version {} is a {} version', version,
                 'release' if is_release_version(config, version) else 'pre-release')
 
     # filter out plugins which were not added in this release

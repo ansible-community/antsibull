@@ -144,8 +144,8 @@ class ChangelogGenerator:
                 for section, lines in fragment.content.items():
                     if section == self.config.prelude_name:
                         if entry_fragment:
-                            LOGGER.info('skipping prelude in version %s due to newer '
-                                        'prelude in version %s',
+                            LOGGER.info('skipping prelude in version {} due to newer '
+                                        'prelude in version {}',
                                         version, entry_version)
                             continue
 
