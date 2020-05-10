@@ -8,7 +8,6 @@
 Collect and store information on Ansible plugins and modules.
 """
 
-import abc
 import json
 import os
 import subprocess
@@ -67,68 +66,6 @@ class PluginDescription:
                 ))
 
         return plugins
-
-
-class PluginResolver(metaclass=abc.ABCMeta):
-    # pylint: disable=too-few-public-methods
-    """
-    Given a plugin type and list of plugin names, return a list of plugin information.
-    """
-
-    @abc.abstractmethod
-    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
-        """
-        Return a list of plugin descriptions from the given data.
-
-        :arg plugin_type: The plugin type
-        :arg plugin_names: A list of plugin names
-        """
-
-
-class SimplePluginResolver(PluginResolver):
-    # pylint: disable=too-few-public-methods
-    """
-    Provides a plugin resolved based on a list of ``PluginDescription`` objects.
-    """
-
-    plugins: Dict[str, Dict[str, Dict[str, Any]]]
-
-    @staticmethod
-    def resolve_plugin(plugin: PluginDescription) -> Dict[str, Any]:
-        """
-        Convert a ``PluginDecscription`` object to a plugin description dictionary.
-        """
-        return dict(
-            name=plugin.name,
-            namespace=plugin.namespace,
-            description=plugin.description,
-        )
-
-    def __init__(self, plugins: List[PluginDescription]):
-        """
-        Create a simple plugin resolver from a list of ``PluginDescription`` objects.
-        """
-        self.plugins = dict()
-        for plugin in plugins:
-            if plugin.type not in self.plugins:
-                self.plugins[plugin.type] = dict()
-
-            self.plugins[plugin.type][plugin.name] = self.resolve_plugin(plugin)
-
-    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
-        """
-        Return a list of plugin descriptions from the given data.
-
-        :arg plugin_type: The plugin type
-        :arg plugin_names: A list of plugin names
-        """
-        if plugin_type not in self.plugins:
-            return []
-        return [
-            self.plugins[plugin_type][plugin_name]
-            for plugin_name in plugin_names
-            if plugin_name in self.plugins[plugin_type]
-        ]
 
 
 def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],

@@ -8,7 +8,6 @@
 Changelog fragment loading, modification and linting.
 """
 
-import abc
 import os
 
 from typing import Any, Dict, List, Optional, Union, Tuple
@@ -165,49 +164,6 @@ class ChangelogFragmentLinter:
                            'file must be a mapping not %s' % (type(fragment.content).__name__, )))
 
         return errors
-
-
-class FragmentResolver(metaclass=abc.ABCMeta):
-    # pylint: disable=too-few-public-methods
-    """
-    Allows to resolve a release section to a list of changelog fragments.
-    """
-
-    @abc.abstractmethod
-    def resolve(self, release: dict) -> List[ChangelogFragment]:
-        """
-        Return a list of ``ChangelogFragment`` objects from the given release object.
-
-        :arg release: A release description
-        :return: A list of changelog fragments
-        """
-
-
-class SimpleFragmentResolver(FragmentResolver):
-    # pylint: disable=too-few-public-methods
-    """
-    Given a list of changelog fragments, allows to resolve from a list of fragment names.
-    """
-
-    fragments: Dict[str, ChangelogFragment]
-
-    def __init__(self, fragments: List[ChangelogFragment]):
-        """
-        Create a simple fragment resolver.
-        """
-        self.fragments = dict()
-        for fragment in fragments:
-            self.fragments[fragment.name] = fragment
-
-    def resolve(self, release: dict) -> List[ChangelogFragment]:
-        """
-        Return a list of ``ChangelogFragment`` objects from the given release object.
-
-        :arg release: A release description
-        :return: A list of changelog fragments
-        """
-        fragment_names: List[str] = release.get('fragments', [])
-        return [self.fragments[fragment] for fragment in fragment_names]
 
 
 def load_fragments(paths: PathsConfig, config: ChangelogConfig,

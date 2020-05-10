@@ -21,9 +21,41 @@ import semantic_version
 import yaml
 
 from .config import PathsConfig, ChangelogConfig
-from .fragment import load_fragments, ChangelogFragment, FragmentResolver, SimpleFragmentResolver
-from .plugins import load_plugins, PluginDescription, PluginResolver, SimplePluginResolver
+from .fragment import load_fragments, ChangelogFragment
+from .plugins import load_plugins, PluginDescription
 from .utils import LOGGER, is_release_version
+
+
+class FragmentResolver(metaclass=abc.ABCMeta):
+    # pylint: disable=too-few-public-methods
+    """
+    Allows to resolve a release section to a list of changelog fragments.
+    """
+
+    @abc.abstractmethod
+    def resolve(self, release: dict) -> List[ChangelogFragment]:
+        """
+        Return a list of ``ChangelogFragment`` objects from the given release object.
+
+        :arg release: A release description
+        :return: A list of changelog fragments
+        """
+
+
+class PluginResolver(metaclass=abc.ABCMeta):
+    # pylint: disable=too-few-public-methods
+    """
+    Given a plugin type and list of plugin names, return a list of plugin information.
+    """
+
+    @abc.abstractmethod
+    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Return a list of plugin descriptions from the given data.
+
+        :arg plugin_type: The plugin type
+        :arg plugin_names: A list of plugin names
+        """
 
 
 class ChangesBase(metaclass=abc.ABCMeta):
@@ -200,6 +232,79 @@ class ChangesBase(metaclass=abc.ABCMeta):
         """
 
 
+class SimpleFragmentResolver(FragmentResolver):
+    # pylint: disable=too-few-public-methods
+    """
+    Given a list of changelog fragments, allows to resolve from a list of fragment names.
+    """
+
+    fragments: Dict[str, ChangelogFragment]
+
+    def __init__(self, fragments: List[ChangelogFragment]):
+        """
+        Create a simple fragment resolver.
+        """
+        self.fragments = dict()
+        for fragment in fragments:
+            self.fragments[fragment.name] = fragment
+
+    def resolve(self, release: dict) -> List[ChangelogFragment]:
+        """
+        Return a list of ``ChangelogFragment`` objects from the given release object.
+
+        :arg release: A release description
+        :return: A list of changelog fragments
+        """
+        fragment_names: List[str] = release.get('fragments', [])
+        return [self.fragments[fragment] for fragment in fragment_names]
+
+
+class SimplePluginResolver(PluginResolver):
+    # pylint: disable=too-few-public-methods
+    """
+    Provides a plugin resolved based on a list of ``PluginDescription`` objects.
+    """
+
+    plugins: Dict[str, Dict[str, Dict[str, Any]]]
+
+    @staticmethod
+    def resolve_plugin(plugin: PluginDescription) -> Dict[str, Any]:
+        """
+        Convert a ``PluginDecscription`` object to a plugin description dictionary.
+        """
+        return dict(
+            name=plugin.name,
+            namespace=plugin.namespace,
+            description=plugin.description,
+        )
+
+    def __init__(self, plugins: List[PluginDescription]):
+        """
+        Create a simple plugin resolver from a list of ``PluginDescription`` objects.
+        """
+        self.plugins = dict()
+        for plugin in plugins:
+            if plugin.type not in self.plugins:
+                self.plugins[plugin.type] = dict()
+
+            self.plugins[plugin.type][plugin.name] = self.resolve_plugin(plugin)
+
+    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Return a list of plugin descriptions from the given data.
+
+        :arg plugin_type: The plugin type
+        :arg plugin_names: A list of plugin names
+        """
+        if plugin_type not in self.plugins:
+            return []
+        return [
+            self.plugins[plugin_type][plugin_name]
+            for plugin_name in plugin_names
+            if plugin_name in self.plugins[plugin_type]
+        ]
+
+
 class ChangesMetadata(ChangesBase):
     """
     Read, write and manage classic Ansible (2.9 and earlier) change metadata.
@@ -338,6 +443,25 @@ class ChangesMetadata(ChangesBase):
         return SimpleFragmentResolver(fragments)
 
 
+class ChangesDataFragmentResolver(FragmentResolver):
+    # pylint: disable=too-few-public-methods
+    """
+    A ``FragmentResolver`` class for modern ``ChangesData`` objects.
+    """
+
+    def resolve(self, release: dict) -> List[ChangelogFragment]:
+        """
+        Return a list of ``ChangelogFragment`` objects from the given release object.
+
+        :arg release: A release description
+        :return: A list of changelog fragments
+        """
+        changes = release.get('changes')
+        if changes is None:
+            return []
+        return [ChangelogFragment.from_dict(changes)]
+
+
 class ChangesDataPluginResolver(PluginResolver):
     # pylint: disable=too-few-public-methods
     """
@@ -376,25 +500,6 @@ class ChangesDataPluginResolver(PluginResolver):
             for plugin_name in plugin_names
             if plugin_name in self.plugins[plugin_type]
         ]
-
-
-class ChangesDataFragmentResolver(FragmentResolver):
-    # pylint: disable=too-few-public-methods
-    """
-    A ``FragmentResolver`` class for modern ``ChangesData`` objects.
-    """
-
-    def resolve(self, release: dict) -> List[ChangelogFragment]:
-        """
-        Return a list of ``ChangelogFragment`` objects from the given release object.
-
-        :arg release: A release description
-        :return: A list of changelog fragments
-        """
-        changes = release.get('changes')
-        if changes is None:
-            return []
-        return [ChangelogFragment.from_dict(changes)]
 
 
 class ChangesData(ChangesBase):

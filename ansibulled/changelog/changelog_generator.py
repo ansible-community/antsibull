@@ -17,9 +17,9 @@ import packaging.version
 import semantic_version
 
 from .config import PathsConfig, ChangelogConfig
-from .changes import ChangesBase, ChangesMetadata
-from .fragment import ChangelogFragment, FragmentResolver
-from .plugins import PluginDescription, PluginResolver
+from .changes import ChangesBase, ChangesMetadata, FragmentResolver, PluginResolver
+from .fragment import ChangelogFragment
+from .plugins import PluginDescription
 from .rst import RstBuilder
 from .utils import LOGGER, is_release_version
 
