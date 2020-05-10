@@ -172,7 +172,7 @@ def load_plugins(paths: PathsConfig, version: str,
             plugins_data = yaml.safe_load(plugin_cache_fd)
 
             if version != plugins_data['version']:
-                LOGGER.info('version %s does not match plugin cache version %s',
+                LOGGER.info('version {} does not match plugin cache version {}',
                             version, plugins_data['version'])
                 plugins_data = {}
 

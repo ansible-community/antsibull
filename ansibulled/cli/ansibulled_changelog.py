@@ -137,13 +137,13 @@ def command_init(args: Any) -> None:
 
     paths = set_paths(force=root)
 
-    LOGGER.debug('Checking "{0}" for existance'.format(paths.galaxy_path))
+    LOGGER.debug('Checking "{}" for existance', paths.galaxy_path)
     if not os.path.exists(cast(str, paths.galaxy_path)):
         LOGGER.error('The file galaxy.yml does not exists in the collection root!')
         sys.exit(3)
-    LOGGER.debug('Checking "{0}" for existance'.format(paths.config_path))
+    LOGGER.debug('Checking "{}" for existance', paths.config_path)
     if os.path.exists(paths.config_path):
-        LOGGER.error('A configuration file already exists at "{0}"!'.format(paths.config_path))
+        LOGGER.error('A configuration file already exists at "{}"!', paths.config_path)
         sys.exit(3)
 
     galaxy = load_galaxy_metadata(paths)
@@ -158,16 +158,16 @@ def command_init(args: Any) -> None:
         os.makedirs(fragments_dir, exist_ok=True)
         print('Created fragments directory "{0}"'.format(fragments_dir))
     except Exception as e:
-        LOGGER.error('Cannot create fragments directory "{0}"'.format(fragments_dir))
-        LOGGER.info('Exception: {0}'.format(str(e)))
+        LOGGER.error('Cannot create fragments directory "{}"', fragments_dir)
+        LOGGER.info('Exception: {}', str(e))
         sys.exit(3)
 
     try:
         config.store(paths.config_path)
         print('Created config file "{0}"'.format(paths.config_path))
     except Exception as e:
-        LOGGER.error('Cannot create config file "{0}"'.format(paths.config_path))
-        LOGGER.info('Exception: {0}'.format(str(e)))
+        LOGGER.error('Cannot create config file "{}"', paths.config_path)
+        LOGGER.info('Exception: {}', str(e))
         sys.exit(3)
 
 
