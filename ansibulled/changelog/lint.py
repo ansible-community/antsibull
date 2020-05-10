@@ -133,9 +133,9 @@ class ChangelogYamlLinter:
                                 ['releases', version_str, 'plugins']))))
             if self.verify_type(plugins, (list, ),
                                 ['releases', version_str, 'plugins', plugin_type]):
-                for i, plugin in enumerate(plugins):
+                for idx, plugin in enumerate(plugins):
                     self.verify_plugin(plugin,
-                                       ['releases', version_str, 'modules', plugin_type, str(i)],
+                                       ['releases', version_str, 'modules', plugin_type, str(idx)],
                                        is_module=False)
 
     def lint_releases_entry(self, fragment_linter: ChangelogFragmentLinter,
@@ -165,9 +165,9 @@ class ChangelogYamlLinter:
                             ['releases', version_str, 'modules'],
                             allow_none=True) and modules:
             modules = cast(list, modules)
-            for i, plugin in enumerate(modules):
+            for idx, plugin in enumerate(modules):
                 self.verify_plugin(plugin,
-                                   ['releases', version_str, 'modules', str(i)],
+                                   ['releases', version_str, 'modules', str(idx)],
                                    is_module=True)
 
         plugins = entry.get('plugins')
@@ -182,9 +182,9 @@ class ChangelogYamlLinter:
                             ['releases', version_str, 'fragments'],
                             allow_none=True) and fragments:
             fragments = cast(list, fragments)
-            for i, fragment in enumerate(fragments):
+            for idx, fragment in enumerate(fragments):
                 self.verify_type(fragment, (str, ),
-                                 ['releases', version_str, 'fragments', str(i)])
+                                 ['releases', version_str, 'fragments', str(idx)])
 
     def lint(self) -> List[Tuple[str, int, int, str]]:
         """
