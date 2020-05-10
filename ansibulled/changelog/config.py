@@ -4,31 +4,45 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+"""
+Configuration classes for paths and changelogs.
+"""
 
 import collections
 import os
 
+from typing import Mapping, Optional
+
 import yaml
 
 
-class PathsConfig(object):
-    """Configuration for paths."""
+class PathsConfig:
+    """
+    Configuration for paths.
+    """
+
+    base_dir: str
+    galaxy_path: Optional[str]
+    changelog_dir: str
+    config_path: str
+    ansible_doc_path: Optional[str]
 
     @staticmethod
-    def _changelog_dir(base_dir):
+    def _changelog_dir(base_dir: str) -> str:
         return os.path.join(base_dir, 'changelogs')
 
     @staticmethod
-    def _config_path(changelog_dir):
+    def _config_path(changelog_dir: str) -> str:
         return os.path.join(changelog_dir, 'config.yaml')
 
-    def __init__(self, base_dir, galaxy_path, ansible_doc_path):
-        """Forces configuration with given base path.
-        :type base_dir: str
-        :type galaxy_path: str | None
-        :type ansible_doc_path: str | None
+    def __init__(self, base_dir: str, galaxy_path: Optional[str],
+                 ansible_doc_path: Optional[str]):
+        """
+        Forces configuration with given base path.
+
+        :arg base_dir: Base directory of Ansible checkout or collection checkout
+        :arg galaxy_path: Path to galaxy.yml for collection checkouts
+        :arg ansible_doc_path: Path to ``ansible-doc``
         """
         self.base_dir = base_dir
         self.galaxy_path = galaxy_path
@@ -37,27 +51,33 @@ class PathsConfig(object):
         self.ansible_doc_path = ansible_doc_path
 
     @staticmethod
-    def force_collection(base_dir):
-        """Forces configuration with given collection base path.
-        :type base_dir: str
+    def force_collection(base_dir: str) -> 'PathsConfig':
+        """
+        Forces configuration for collection checkout with given base path.
+
+        :arg base_dir: Base directory of collection checkout
         """
         base_dir = os.path.abspath(base_dir)
         return PathsConfig(base_dir, os.path.join(base_dir, 'galaxy.yml'), None)
 
     @staticmethod
-    def force_ansible(base_dir):
-        """Forces configuration with given Ansible Base base path.
-        :type base_dir: str
+    def force_ansible(base_dir: str) -> 'PathsConfig':
+        """
+        Forces configuration with given Ansible Base base path.
+
+        :type base_dir: Base directory of ansible-base checkout
         """
         base_dir = os.path.abspath(base_dir)
         return PathsConfig(base_dir, None, None)
 
     @staticmethod
-    def detect():
-        """Detect paths configuration from current working directory.
-        :raises ValueError: cannot identify collection or ansible/ansible checkout
+    def detect() -> 'PathsConfig':
         """
-        previous = None
+        Detect paths configuration from current working directory.
+
+        :raises ValueError: cannot identify collection or ansible-base checkout
+        """
+        previous: Optional[str] = None
         base_dir = os.getcwd()
         while True:
             changelog_dir = PathsConfig._changelog_dir(base_dir)
@@ -75,11 +95,32 @@ class PathsConfig(object):
                 raise ValueError()
 
 
-class ChangelogConfig(object):
-    """Configuration for changelogs."""
-    def __init__(self, is_collection, config):
+class ChangelogConfig:
+    # pylint: disable=too-many-instance-attributes
+    """
+    Configuration for changelogs.
+    """
+
+    config: dict
+    is_collection: bool
+    title: Optional[str]
+    notes_dir: str
+    prelude_name: str
+    prelude_title: str
+    new_plugins_after_name: str
+    changes_file: str
+    changes_format: str
+    keep_fragments: bool
+    changelog_filename_template: str
+    changelog_filename_version_depth: int
+    mention_ancestor: bool
+    release_tag_re: str
+    pre_release_tag_re: str
+    sections: Mapping[str, str]
+
+    def __init__(self, is_collection: bool, config: dict):
         """
-        :type config: dict
+        Create changelog config from dictionary.
         """
         self.config = config
 
@@ -110,16 +151,16 @@ class ChangelogConfig(object):
             raise ValueError('changes_format == "classic" cannot be '
                              'combined with keep_fragments == False')
 
-        self.sections = collections.OrderedDict([(self.prelude_name, self.prelude_title)])
-
+        sections = collections.OrderedDict([(self.prelude_name, self.prelude_title)])
         for section_name, section_title in self.config['sections']:
-            self.sections[section_name] = section_title
+            sections[section_name] = section_title
+        self.sections = sections
 
-    def store(self, path):
+    def store(self, path: str) -> None:
         """
-        :type path: str
+        Store changelog configuration file to disk.
         """
-        config = {
+        config: dict = {
             'notesdir': self.notes_dir,
             'changes_file': self.changes_file,
             'changes_format': self.changes_format,
@@ -130,7 +171,6 @@ class ChangelogConfig(object):
             'prelude_section_name': self.prelude_name,
             'prelude_section_title': self.prelude_title,
             'new_plugins_after_name': self.new_plugins_after_name,
-            'sections': [],
         }
         if not self.is_collection:
             config.update({
@@ -139,26 +179,35 @@ class ChangelogConfig(object):
             })
         if self.title is not None:
             config['title'] = self.title
-        for k, v in self.sections.items():
-            if k == self.prelude_name and v == self.prelude_title:
+        sections = []
+        for key, value in self.sections.items():
+            if key == self.prelude_name and value == self.prelude_title:
                 continue
-            config['sections'].append([k, v])
+            sections.append([key, value])
+        config['sections'] = sections
 
-        with open(path, 'wb') as f:
-            yaml.safe_dump(config, f, default_flow_style=False, encoding='utf-8')
+        with open(path, 'w') as config_f:
+            yaml.safe_dump(config, config_f, default_flow_style=False, encoding='utf-8')
 
     @staticmethod
-    def load(path, is_collection):
+    def load(path: str, is_collection: bool) -> 'ChangelogConfig':
         """
-        :type path: str
-        :type is_collection: bool
+        Load changelog configuration file from disk.
+
+        :arg is_collection: ``True`` if the changelog config is part of a collection
         """
         with open(path, 'r') as config_fd:
             config = yaml.safe_load(config_fd)
         return ChangelogConfig(is_collection, config)
 
     @staticmethod
-    def default(title=None, is_collection=True):
+    def default(title: Optional[str] = None, is_collection: bool = True) -> 'ChangelogConfig':
+        """
+        Create default changelog config.
+
+        :type title: Title of the project
+        :type is_collection: ``True`` if the changelog config is part of a collection
+        """
         config = {
             'changes_file': 'changelog.yaml',
             'changes_format': 'combined',

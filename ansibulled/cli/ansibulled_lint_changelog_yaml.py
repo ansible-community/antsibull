@@ -2,14 +2,16 @@
 # Author: Felix Fontein <felix@fontein.de>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""Entrypoint to the ansibulled-changelog script."""
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+"""
+Entrypoint to the ansibulled-changelog script.
+"""
 
 import argparse
 import logging
 import sys
+
+from typing import Any
 
 try:
     import argcomplete  # pyre-ignore
@@ -20,8 +22,10 @@ from ..changelog.lint import lint_changelog_yaml
 from ..changelog.utils import LOGGER
 
 
-def main():
-    """Main program entry point."""
+def main() -> None:
+    """
+    Main program entry point.
+    """
     parser = argparse.ArgumentParser(description='changelogs/changelog.yaml linter')
 
     parser.add_argument('-v', '--verbose',
@@ -56,9 +60,11 @@ def main():
     command_lint_changelog(args)
 
 
-def command_lint_changelog(args):
+def command_lint_changelog(args: Any) -> None:
     """
-    :type args: any
+    Validate a changelogs/changelog.yaml file.
+
+    :arg args: Parsed arguments
     """
     errors = lint_changelog_yaml(args.changelog_yaml_path)
 

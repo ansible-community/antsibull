@@ -4,11 +4,11 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+"""
+Linting for changelog.yaml.
+"""
 
-
-from collections.abc import Mapping
+from typing import cast, Any, List, Optional, Tuple, Type
 
 import semantic_version
 import yaml
@@ -18,151 +18,213 @@ from .config import ChangelogConfig
 from .fragment import ChangelogFragment, ChangelogFragmentLinter
 
 
-def check_version(errors, version, message, path):
-    try:
-        return semantic_version.Version(version)
-    except Exception as e:
-        errors.append((path, 0, 0,
-                       '{0}: error while parse version "{1}": {2}'.format(message, version, e)))
+class ChangelogYamlLinter:
+    """
+    Lint a changelogs/changelog.yaml file.
+    """
 
+    errors: List[Tuple[str, int, int, str]]
+    path: str
 
-def format_yaml_path(yaml_path):
-    return "'{0}'".format("' -> '".join(yaml_path))
+    def __init__(self, path):
+        self.errors = []
+        self.path = path
 
+    def check_version(self, version: str, message: str) -> Optional[semantic_version.Version]:
+        """
+        Check that the given version is a valid semantic version.
 
-def verify_type(errors, value, allowed_types, yaml_path, path, allow_none=False):
-    if allow_none and value is None:
-        return True
+        :arg version: Version string to check
+        :arg message: Message to prepend to error
+        :return: A ``semantic_version.Version`` object
+        """
+        try:
+            return semantic_version.Version(version)
+        except ValueError as exc:
+            self.errors.append((self.path, 0, 0,
+                                '{0}: error while parse version "{1}": {2}'
+                                .format(message, version, exc)))
+            return None
 
-    if not isinstance(allowed_types, tuple):
-        allowed_types = (allowed_types, )
+    @staticmethod
+    def _format_yaml_path(yaml_path: List[str]) -> str:
+        """
+        Format path to YAML element as string.
+        """
+        return "'{0}'".format("' -> '".join(yaml_path))
 
-    if isinstance(value, allowed_types):
-        return True
+    def verify_type(self, value: Any, allowed_types: Tuple[Type[Any], ...],
+                    yaml_path: List[str], allow_none=False) -> bool:
+        """
+        Verify that a value is of a given type.
 
-    if len(allowed_types) == 1:
-        allowed_types_str = '{0}'.format(str(allowed_types[0]))
-    else:
-        allowed_types_str = 'one of {0}'.format(
-            ', '.join([str(allowed_type) for allowed_type in allowed_types]))
-    if allow_none:
-        allowed_types_str = 'null or {0}'.format(allowed_types_str)
-    errors.append((path, 0, 0, '{0} is expected to be {1}, but got {2!r}'.format(
-        format_yaml_path(yaml_path),
-        allowed_types_str,
-        value,
-    )))
-    return False
+        :arg value: Value to check
+        :arg allowed_types: Tuple with allowed types
+        :arg yaml_path: Path to this object in the YAML file
+        :arg allow_none: Whether ``None`` is an acceptable value
+        """
+        if allow_none and value is None:
+            return True
 
+        if isinstance(value, allowed_types):
+            return True
 
-def verify_plugin(errors, plugin, yaml_path, path, is_module):
-    if verify_type(errors, plugin, Mapping, yaml_path, path):
-        name = plugin.get('name')
-        if verify_type(errors, name, str, yaml_path + ['name'], path):
-            if '.' in name:
-                errors.append((path, 0, 0, '{0} must not be a FQCN'.format(
-                    format_yaml_path(yaml_path + ['name'])
-                )))
-        verify_type(errors, plugin.get('description'), str, yaml_path + ['description'], path)
-        namespace = plugin.get('namespace')
-        if is_module:
-            if verify_type(errors, namespace, str, yaml_path + ['namespace'],
-                           path, allow_none=True):
-                if ' ' in namespace or '/' in namespace or '\\' in namespace:
-                    errors.append((path, 0, 0, '{0} must not contain spaces or slashes'.format(
-                        format_yaml_path(yaml_path + ['namespace'])
-                    )))
+        if len(allowed_types) == 1:
+            allowed_types_str = '{0}'.format(str(allowed_types[0]))
         else:
-            if namespace is not None:
-                errors.append((path, 0, 0, '{0} must be null'.format(
-                    format_yaml_path(yaml_path + ['namespace'])
-                )))
+            allowed_types_str = 'one of {0}'.format(
+                ', '.join([str(allowed_type) for allowed_type in allowed_types]))
+        if allow_none:
+            allowed_types_str = 'null or {0}'.format(allowed_types_str)
+        self.errors.append((self.path, 0, 0, '{0} is expected to be {1}, but got {2!r}'.format(
+            self._format_yaml_path(yaml_path),
+            allowed_types_str,
+            value,
+        )))
+        return False
+
+    def verify_plugin(self, plugin: dict, yaml_path: List[str], is_module: bool) -> None:
+        """
+        Verify that a given dictionary is a plugin or module description.
+
+        :arg plugin: The dictionary to check
+        :arg yaml_path: Path to this dictionary in the YAML
+        :arg is_module: Whether this is a module description or a plugin description
+        """
+        if self.verify_type(plugin, (dict, ), yaml_path):
+            name = plugin.get('name')
+            if self.verify_type(name, (str, ), yaml_path + ['name']):
+                name = cast(str, name)
+                if '.' in name:
+                    self.errors.append((self.path, 0, 0, '{0} must not be a FQCN'.format(
+                        self._format_yaml_path(yaml_path + ['name'])
+                    )))
+            self.verify_type(plugin.get('description'), (str, ), yaml_path + ['description'])
+            namespace = plugin.get('namespace')
+            if is_module:
+                if self.verify_type(namespace, (str, ), yaml_path + ['namespace'],
+                                    allow_none=True):
+                    namespace = cast(str, namespace)
+                    if ' ' in namespace or '/' in namespace or '\\' in namespace:
+                        self.errors.append((self.path, 0, 0, '{0} must not contain spaces or '
+                                            'slashes'.format(
+                                                self._format_yaml_path(yaml_path + ['namespace'])
+                                            )))
+            else:
+                if namespace is not None:
+                    self.errors.append((self.path, 0, 0, '{0} must be null'.format(
+                        self._format_yaml_path(yaml_path + ['namespace'])
+                    )))
+
+    def lint_plugins(self, version_str: str, plugins_dict: dict):
+        """
+        Lint a plugin dictionary.
+
+        :arg version_str: To which release the plugin dictionary belongs
+        :arg plugins_dict: The plugin dictionary
+        """
+        for plugin_type, plugins in plugins_dict.items():
+            if self.verify_type(plugin_type, (str, ), ['releases', version_str, 'plugins']):
+                if plugin_type not in get_documentable_plugins() or plugin_type == 'module':
+                    self.errors.append((
+                        self.path, 0, 0,
+                        'Unknown plugin type "{0}" in {1}'.format(
+                            plugin_type, self._format_yaml_path(
+                                ['releases', version_str, 'plugins']))))
+            if self.verify_type(plugins, (list, ),
+                                ['releases', version_str, 'plugins', plugin_type]):
+                for i, plugin in enumerate(plugins):
+                    self.verify_plugin(plugin,
+                                       ['releases', version_str, 'modules', plugin_type, str(i)],
+                                       is_module=False)
+
+    def lint_releases_entry(self, fragment_linter: ChangelogFragmentLinter,
+                            version_str: str, entry: dict):
+        """
+        Lint an entry of the releases list.
+
+        :arg fragment_linter: A fragment linter
+        :arg version_str: The version this entry belongs to
+        :arg entry: The releases list entry
+        """
+        codename = entry.get('codename')
+        self.verify_type(codename, (str, ),
+                         ['releases', version_str, 'codename'], allow_none=True)
+
+        changes = entry.get('changes')
+        if self.verify_type(changes, (dict, ),
+                            ['releases', version_str, 'changes'],
+                            allow_none=True) and changes:
+            changes = cast(dict, changes)
+            if changes is not None:
+                fragment = ChangelogFragment.from_dict(changes, self.path)
+                self.errors += fragment_linter.lint(fragment)
+
+        modules = entry.get('modules')
+        if self.verify_type(modules, (list, ),
+                            ['releases', version_str, 'modules'],
+                            allow_none=True) and modules:
+            modules = cast(list, modules)
+            for i, plugin in enumerate(modules):
+                self.verify_plugin(plugin,
+                                   ['releases', version_str, 'modules', str(i)],
+                                   is_module=True)
+
+        plugins = entry.get('plugins')
+        if self.verify_type(plugins, (dict, ),
+                            ['releases', version_str, 'plugins'],
+                            allow_none=True) and plugins:
+            plugins = cast(dict, plugins)
+            self.lint_plugins(version_str, plugins)
+
+        fragments = entry.get('fragments')
+        if self.verify_type(fragments, (list, ),
+                            ['releases', version_str, 'fragments'],
+                            allow_none=True) and fragments:
+            fragments = cast(list, fragments)
+            for i, fragment in enumerate(fragments):
+                self.verify_type(fragment, (str, ),
+                                 ['releases', version_str, 'fragments', str(i)])
+
+    def lint(self) -> List[Tuple[str, int, int, str]]:
+        """
+        Load and lint the changelog.yaml file.
+        """
+        try:
+            with open(self.path, 'r') as changelog_fd:
+                changelog_yaml = yaml.safe_load(changelog_fd)
+        except Exception as exc:  # pylint: disable=broad-except
+            self.errors.append((self.path, 0, 0, 'error while parsing YAML: {0}'.format(exc)))
+            return self.errors
+
+        ancestor_str = changelog_yaml.get('ancestor')
+        if ancestor_str is not None:
+            ancestor = self.check_version(ancestor_str, 'Invalid ancestor version')
+        else:
+            ancestor = None
+
+        config = ChangelogConfig.default()
+        fragment_linter = ChangelogFragmentLinter(config)
+
+        if self.verify_type(changelog_yaml.get('releases'), (dict, ), ['releases']):
+            for version_str, entry in changelog_yaml['releases'].items():
+                # Check version
+                version = self.check_version(version_str, 'Invalid release version')
+                if version is not None and ancestor is not None:
+                    if version <= ancestor:
+                        self.errors.append((self.path, 0, 0,
+                                            'release version "{0}" must come after ancestor '
+                                            'version "{1}"'.format(version_str, ancestor_str)))
+
+                # Check release information
+                if self.verify_type(entry, (dict, ), ['releases', version_str]):
+                    self.lint_releases_entry(fragment_linter, version_str, entry)
+
+        return self.errors
 
 
-def lint_plugins(errors, path, version_str, plugins):
-    for k, v in plugins.items():
-        if verify_type(errors, k, str,
-                       ['releases', version_str, 'plugins'], path=path):
-            if k not in get_documentable_plugins() or k == 'module':
-                errors.append((path, 0, 0,
-                               'Unknown plugin type "{0}" in {1}'.format(
-                                k, format_yaml_path(['releases', version_str, 'plugins']))))
-        if verify_type(errors, v, list,
-                       ['releases', version_str, 'plugins', k], path=path):
-            for i, plugin in enumerate(v):
-                verify_plugin(errors, plugin,
-                              ['releases', version_str, 'modules', k, i],
-                              path=path, is_module=False)
-
-
-def lint_releases_entry(errors, path, fragment_linter, version_str, entry):
-    codename = entry.get('codename')
-    verify_type(errors, codename, str,
-                ['releases', version_str, 'codename'], path=path, allow_none=True)
-
-    changes = entry.get('changes')
-    if verify_type(errors, changes, Mapping,
-                   ['releases', version_str, 'changes'],
-                   path=path, allow_none=True) and changes:
-        if changes is not None:
-            fragment = ChangelogFragment.from_dict(changes, path)
-            errors += fragment_linter.lint(fragment)
-
-    modules = entry.get('modules')
-    if verify_type(errors, modules, list,
-                   ['releases', version_str, 'modules'],
-                   path=path, allow_none=True) and modules:
-        for i, plugin in enumerate(modules):
-            verify_plugin(errors, plugin,
-                          ['releases', version_str, 'modules', i],
-                          path=path, is_module=True)
-
-    plugins = entry.get('plugins')
-    if verify_type(errors, plugins, dict,
-                   ['releases', version_str, 'plugins'],
-                   path=path, allow_none=True) and plugins:
-        lint_plugins(errors, path, version_str, plugins)
-
-    fragments = entry.get('fragments')
-    if verify_type(errors, fragments, list,
-                   ['releases', version_str, 'fragments'],
-                   path=path, allow_none=True) and fragments:
-        for i, fragment in enumerate(fragments):
-            verify_type(errors, fragment, str,
-                        ['releases', version_str, 'fragments', i], path=path)
-
-
-def lint_changelog_yaml(path):
-    errors = []
-
-    try:
-        with open(path, 'r') as changelog_fd:
-            changelog_yaml = yaml.safe_load(changelog_fd)
-    except Exception as e:
-        errors.append((path, 0, 0, 'error while parsing YAML: {0}'.format(e)))
-        return errors
-
-    ancestor_str = changelog_yaml.get('ancestor')
-    if ancestor_str is not None:
-        ancestor = check_version(errors, ancestor_str, 'Invalid ancestor version', path=path)
-    else:
-        ancestor = None
-
-    config = ChangelogConfig.default()
-    fragment_linter = ChangelogFragmentLinter(config)
-
-    if verify_type(errors, changelog_yaml.get('releases'), Mapping, ['releases'], path=path):
-        for version_str, entry in changelog_yaml['releases'].items():
-            # Check version
-            version = check_version(errors, version_str, 'Invalid release version', path=path)
-            if version is not None and ancestor is not None:
-                if version <= ancestor:
-                    errors.append((path, 0, 0,
-                                   'release version "{0}" must come after ancestor '
-                                   'version "{1}"'.format(version_str, ancestor_str)))
-
-            # Check release information
-            if verify_type(errors, entry, Mapping, ['releases', version_str], path=path):
-                lint_releases_entry(errors, path, fragment_linter, version_str, entry)
-
-    return errors
+def lint_changelog_yaml(path: str) -> List[Tuple[str, int, int, str]]:
+    """
+    Lint a changelogs/changelog.yaml file.
+    """
+    return ChangelogYamlLinter(path).lint()
