@@ -13,19 +13,20 @@ import logging
 import os
 import sys
 
-from typing import cast, Any, List, Tuple, Union
+from typing import cast, Any, List, Optional, Tuple, Union
 
 try:
     import argcomplete  # pyre-ignore
+    HAS_ARGCOMPLETE = True
 except ImportError:
-    argcomplete = None
+    HAS_ARGCOMPLETE = False
 
 from ..changelog.ansible import get_ansible_release
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
 from ..changelog.fragment import load_fragments, ChangelogFragment, ChangelogFragmentLinter
-from ..changelog.plugins import load_plugins
+from ..changelog.plugins import load_plugins, PluginDescription
 from ..changelog.utils import LOGGER, load_galaxy_metadata
 
 
@@ -101,7 +102,7 @@ def main() -> None:
                                  action='store_true',
                                  help='force reload of plugin cache')
 
-    if argcomplete:
+    if HAS_ARGCOMPLETE:
         argcomplete.autocomplete(parser)
 
     formatter = logging.Formatter('%(levelname)s %(message)s')
@@ -157,17 +158,17 @@ def command_init(args: Any) -> None:
     try:
         os.makedirs(fragments_dir, exist_ok=True)
         print('Created fragments directory "{0}"'.format(fragments_dir))
-    except Exception as e:
+    except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create fragments directory "{}"', fragments_dir)
-        LOGGER.info('Exception: {}', str(e))
+        LOGGER.info('Exception: {}', str(exc))
         sys.exit(3)
 
     try:
         config.store(paths.config_path)
         print('Created config file "{0}"'.format(paths.config_path))
-    except Exception as e:
+    except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create config file "{}"', paths.config_path)
-        LOGGER.info('Exception: {}', str(e))
+        LOGGER.info('Exception: {}', str(exc))
         sys.exit(3)
 
 
@@ -205,6 +206,8 @@ def command_release(args: Any) -> None:
             galaxy = load_galaxy_metadata(paths)
             version = galaxy['version']
 
+    version = cast(str, version)
+
     changes = load_changes(paths, config)
     plugins = load_plugins(paths=paths, version=version, force_reload=reload_plugins)
     fragments = load_fragments(paths, config)
@@ -234,8 +237,8 @@ def command_generate(args: Any) -> None:
         print('Cannot create changelog when not at least one release has been added.')
         sys.exit(2)
     if reload_plugins:
-        plugins = load_plugins(paths=paths, version=changes.latest_version,
-                               force_reload=reload_plugins)
+        plugins: Optional[List[PluginDescription]] = load_plugins(
+            paths=paths, version=changes.latest_version, force_reload=reload_plugins)
     else:
         plugins = None
     fragments = load_fragments(paths, config)
