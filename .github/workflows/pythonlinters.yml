@@ -31,21 +31,21 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          poetry run flake8 ansibulled --count --max-complexity=10 --max-line-length=100 --statistics
+          ./lint-flake8.sh
 
       - name: Lint with pyre
         run: |
-          poetry run pyre --source-directory ansibulled --search-path $(poetry run python -c 'from distutils.sysconfig import get_python_lib;print(get_python_lib())') --search-path stubs/
+          ./lint-pyre.sh
         if: always()
 
       # note: pylint is run informationally, never to fail the build
       - name: Lint with pylint
         run: |
-          poetry run pylint ansibulled || :
+          ./lint-pylint.sh || :
         if: always()
 
       # note: mypy is run informationally, never to fail the build
       - name: Lint with mypy
         run: |
-          MYPYPATH=stubs/ poetry run mypy ansibulled || :
+          ./lint-mypy.sh || :
         if: always()
