@@ -118,6 +118,8 @@ class ChangelogConfig:
 
     def store(self, path):
         """
+        Store changelog configuration file to disk.
+
         :type path: str
         """
         config = {
@@ -140,17 +142,19 @@ class ChangelogConfig:
             })
         if self.title is not None:
             config['title'] = self.title
-        for k, v in self.sections.items():
-            if k == self.prelude_name and v == self.prelude_title:
+        for key, value in self.sections.items():
+            if key == self.prelude_name and value == self.prelude_title:
                 continue
-            config['sections'].append([k, v])
+            config['sections'].append([key, value])
 
-        with open(path, 'wb') as f:
-            yaml.safe_dump(config, f, default_flow_style=False, encoding='utf-8')
+        with open(path, 'wb') as config_f:
+            yaml.safe_dump(config, config_f, default_flow_style=False, encoding='utf-8')
 
     @staticmethod
     def load(path, is_collection):
         """
+        Load changelog configuration file from disk.
+
         :type path: str
         :type is_collection: bool
         """
@@ -160,6 +164,12 @@ class ChangelogConfig:
 
     @staticmethod
     def default(title=None, is_collection=True):
+        """
+        Create default changelog config.
+
+        :type title: str
+        :type is_collection: bool
+        """
         config = {
             'changes_file': 'changelog.yaml',
             'changes_format': 'combined',

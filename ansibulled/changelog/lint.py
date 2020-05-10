@@ -21,9 +21,9 @@ from .fragment import ChangelogFragment, ChangelogFragmentLinter
 def check_version(errors, version, message, path):
     try:
         return semantic_version.Version(version)
-    except Exception as e:
+    except ValueError as exc:
         errors.append((path, 0, 0,
-                       '{0}: error while parse version "{1}": {2}'.format(message, version, e)))
+                       '{0}: error while parse version "{1}": {2}'.format(message, version, exc)))
 
 
 def format_yaml_path(yaml_path):
@@ -79,19 +79,20 @@ def verify_plugin(errors, plugin, yaml_path, path, is_module):
                 )))
 
 
-def lint_plugins(errors, path, version_str, plugins):
-    for k, v in plugins.items():
-        if verify_type(errors, k, str,
+def lint_plugins(errors, path, version_str, plugins_dict):
+    for plugin_type, plugins in plugins_dict.items():
+        if verify_type(errors, plugin_type, str,
                        ['releases', version_str, 'plugins'], path=path):
-            if k not in get_documentable_plugins() or k == 'module':
-                errors.append((path, 0, 0,
-                               'Unknown plugin type "{0}" in {1}'.format(
-                                k, format_yaml_path(['releases', version_str, 'plugins']))))
-        if verify_type(errors, v, list,
-                       ['releases', version_str, 'plugins', k], path=path):
-            for i, plugin in enumerate(v):
+            if plugin_type not in get_documentable_plugins() or plugin_type == 'module':
+                errors.append((
+                    path, 0, 0,
+                    'Unknown plugin type "{0}" in {1}'.format(
+                        plugin_type, format_yaml_path(['releases', version_str, 'plugins']))))
+        if verify_type(errors, plugins, list,
+                       ['releases', version_str, 'plugins', plugin_type], path=path):
+            for i, plugin in enumerate(plugins):
                 verify_plugin(errors, plugin,
-                              ['releases', version_str, 'modules', k, i],
+                              ['releases', version_str, 'modules', plugin_type, i],
                               path=path, is_module=False)
 
 
@@ -138,8 +139,8 @@ def lint_changelog_yaml(path):
     try:
         with open(path, 'r') as changelog_fd:
             changelog_yaml = yaml.safe_load(changelog_fd)
-    except Exception as e:
-        errors.append((path, 0, 0, 'error while parsing YAML: {0}'.format(e)))
+    except Exception as exc:  # pylint: disable=broad-except
+        errors.append((path, 0, 0, 'error while parsing YAML: {0}'.format(exc)))
         return errors
 
     ancestor_str = changelog_yaml.get('ancestor')

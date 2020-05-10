@@ -7,6 +7,7 @@
 ReStructuredText helpers.
 """
 
+
 class RstBuilder:
     """Simple RST builder."""
     def __init__(self):

@@ -165,7 +165,7 @@ class PluginDescription:
         return plugins
 
 
-class PluginResolver(object, metaclass=abc.ABCMeta):
+class PluginResolver(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resolve(self, plugin_type, plugin_names):
         """Return a list of PluginDescription objects from the given data.

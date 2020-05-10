@@ -79,7 +79,7 @@ def add_release(config, changes, plugins, fragments, version, codename, date):
             fragment.remove()
 
 
-class ChangesBase(object, metaclass=abc.ABCMeta):
+class ChangesBase(metaclass=abc.ABCMeta):
     """Read, write and manage change metadata."""
     def __init__(self, config, path):
         self.config = config
@@ -87,8 +87,8 @@ class ChangesBase(object, metaclass=abc.ABCMeta):
         self.data = self.empty()
         self.known_plugins = set()
         self.ancestor = None
-        self.Version = (semantic_version.Version if self.config.is_collection
-                        else packaging.version.Version)
+        self.version_constructor = (semantic_version.Version if self.config.is_collection
+                                    else packaging.version.Version)
 
     @staticmethod
     def empty():
@@ -104,7 +104,7 @@ class ChangesBase(object, metaclass=abc.ABCMeta):
         """Latest version in the changes.
         :rtype: str
         """
-        return sorted(self.releases, reverse=True, key=self.Version)[0]
+        return sorted(self.releases, reverse=True, key=self.version_constructor)[0]
 
     @property
     def has_release(self):
@@ -171,7 +171,8 @@ class ChangesBase(object, metaclass=abc.ABCMeta):
         :type version: str
         """
 
-    def _create_plugin_entry(self, plugin):
+    @staticmethod
+    def _create_plugin_entry(plugin):
         return plugin.name
 
     def add_plugin(self, plugin, version):
@@ -232,7 +233,7 @@ class ChangesMetadata(ChangesBase):
         """Load the change metadata from disk."""
         super(ChangesMetadata, self).load(data_override=data_override)
 
-        for version, config in self.releases.items():
+        for _, config in self.releases.items():
             for plugin_type, plugin_names in config.get('plugins', {}).items():
                 self.known_plugins |= set(
                     '%s/%s' % (plugin_type, plugin_name) for plugin_name in plugin_names)
@@ -249,7 +250,7 @@ class ChangesMetadata(ChangesBase):
         """
         valid_fragments = set(fragment.name for fragment in fragments)
 
-        for version, config in self.releases.items():
+        for _, config in self.releases.items():
             if 'fragments' not in config:
                 continue
 
@@ -270,7 +271,7 @@ class ChangesMetadata(ChangesBase):
         for plugin in plugins:
             valid_plugins[plugin.type].add(plugin.name)
 
-        for version, config in self.releases.items():
+        for _, config in self.releases.items():
             if 'modules' in config:
                 invalid_modules = set(
                     module for module in config['modules']
@@ -294,7 +295,7 @@ class ChangesMetadata(ChangesBase):
 
     def sort(self):
         """Sort change metadata in place."""
-        for release, config in self.data['releases'].items():
+        for _, config in self.data['releases'].items():
             if 'modules' in config:
                 config['modules'] = sorted(config['modules'])
 
@@ -346,7 +347,7 @@ class ChangesDataPluginResolver(PluginResolver):
     def __init__(self, changes):
         self.changes = changes
         self.plugins = collections.defaultdict(dict)
-        for version, config in changes.releases.items():
+        for _, config in changes.releases.items():
             if 'modules' in config:
                 for plugin in config['modules']:
                     self.plugins['module'][plugin['name']] = plugin
@@ -393,7 +394,7 @@ class ChangesData(ChangesBase):
         """Load the change metadata from disk."""
         super(ChangesData, self).load(data_override=data_override)
 
-        for version, config in self.releases.items():
+        for _, config in self.releases.items():
             for plugin_type, plugins in config.get('plugins', {}).items():
                 self.known_plugins |= set(
                     '%s/%s' % (plugin_type, plugin['name']) for plugin in plugins)
@@ -411,7 +412,7 @@ class ChangesData(ChangesBase):
         for plugin in plugins:
             valid_plugins[plugin.type].add(plugin.name)
 
-        for version, config in self.releases.items():
+        for _, config in self.releases.items():
             if 'modules' in config:
                 invalid_module_names = set(
                     module['name'] for module in config['modules']
@@ -438,7 +439,7 @@ class ChangesData(ChangesBase):
         """Sort change metadata in place."""
         super(ChangesData, self).sort()
 
-        for release, config in self.data['releases'].items():
+        for _, config in self.data['releases'].items():
             if 'modules' in config:
                 config['modules'] = sorted(config['modules'], key=lambda module: module['name'])
 
@@ -504,19 +505,22 @@ class ChangesData(ChangesBase):
         """
         return ChangesDataFragmentResolver()
 
+    def _version_or_none(self, version):
+        return self.version_constructor(version) if version is not None else None
+
     def prune_versions(self, versions_after, versions_until):
         """
         :type versions_after: str | None
         :type versions_until: str | None
         """
-        versions_after = self.Version(versions_after) if versions_after is not None else None
-        versions_until = self.Version(versions_until) if versions_until is not None else None
+        versions_after = self._version_or_none(versions_after)
+        versions_until = self._version_or_none(versions_until)
         for version in list(self.data['releases']):
-            v = self.Version(version)
-            if versions_after is not None and v <= versions_after:
+            version_obj = self.version_constructor(version)
+            if versions_after is not None and version_obj <= versions_after:
                 del self.data['releases'][version]
                 continue
-            if versions_until is not None and v > versions_until:
+            if versions_until is not None and version_obj > versions_until:
                 del self.data['releases'][version]
                 continue
 

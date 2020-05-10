@@ -39,7 +39,7 @@ def load_fragments(paths, config, fragment_paths=None, exceptions=None):
     for path in fragment_paths:
         try:
             fragments.append(ChangelogFragment.load(path))
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             if exceptions is not None:
                 exceptions.append((path, ex))
             else:
@@ -63,7 +63,7 @@ class ChangelogFragment:
         """Remove changelog fragment from disk."""
         try:
             os.remove(self.path)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
     @staticmethod
@@ -133,7 +133,8 @@ class ChangelogFragmentLinter:
             if section not in self.config.sections:
                 errors.append((fragment.path, 0, 0, 'invalid section: %s' % section))
 
-    def _lint_lines(self, errors, fragment, section, lines):
+    @staticmethod
+    def _lint_lines(errors, fragment, section, lines):
         """
         :type errors: list[(str, int, int, str)]
         :type fragment: ChangelogFragment
@@ -176,7 +177,7 @@ class ChangelogFragmentLinter:
         return errors
 
 
-class FragmentResolver(object, metaclass=abc.ABCMeta):
+class FragmentResolver(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def resolve(self, release):
         """Return a list of ChangelogFragment objects from the given fragment names
