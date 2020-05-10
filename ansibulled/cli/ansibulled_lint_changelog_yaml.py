@@ -16,7 +16,6 @@ try:
 except ImportError:
     argcomplete = None
 
-from ..changelog.config import PathsConfig
 from ..changelog.lint import lint_changelog_yaml
 from ..changelog.utils import LOGGER
 

@@ -86,8 +86,7 @@ def lint_plugins(errors, path, version_str, plugins):
             if k not in get_documentable_plugins() or k == 'module':
                 errors.append((path, 0, 0,
                                'Unknown plugin type "{0}" in {1}'.format(
-                                k, format_yaml_path(
-                                    ['releases', version_str, 'plugins']))))
+                                k, format_yaml_path(['releases', version_str, 'plugins']))))
         if verify_type(errors, v, list,
                        ['releases', version_str, 'plugins', k], path=path):
             for i, plugin in enumerate(v):

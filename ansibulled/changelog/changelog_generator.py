@@ -143,7 +143,7 @@ class ChangelogGenerator(object):
 
             self._update_modules_plugins(entry_config, release)
 
-        return release_entries, entry_version, entry_fragment
+        return release_entries
 
     def generate_to(self, builder, start_level=0, squash=False,
                     after_version=None, until_version=None):
@@ -151,7 +151,7 @@ class ChangelogGenerator(object):
         :type builder: RstBuilder
         :type start_level: int
         """
-        release_entries, entry_version, entry_fragment = self._collect(
+        release_entries = self._collect(
             squash=squash, after_version=after_version, until_version=until_version)
 
         for version, release in release_entries.items():
