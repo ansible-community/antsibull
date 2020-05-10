@@ -9,21 +9,23 @@ Return Ansible-specific information, like current release or list of documentabl
 
 try:
     from ansible import constants as C  # pyre-ignore
+    HAS_ANSIBLE_CONSTANTS = True
 except ImportError:
-    C = None
+    HAS_ANSIBLE_CONSTANTS = False
 
 
 try:
     from ansible import release as ansible_release
+    HAS_ANSIBLE_RELEASE = True
 except ImportError:
-    ansible_release = None
+    HAS_ANSIBLE_RELEASE = False
 
 
 def get_documentable_plugins():
     """ Retrieve plugin types that can be documented. Does not include 'module'.
     :rtype tuple[str]:
     """
-    if C is not None:
+    if HAS_ANSIBLE_CONSTANTS is not None:
         return C.DOCUMENTABLE_PLUGINS
     return (
         'become', 'cache', 'callback', 'cliconf', 'connection', 'httpapi', 'inventory',
@@ -35,6 +37,6 @@ def get_ansible_release():
     """Retrieve current version and codename of Ansible.
     :rtype (str, str): version and codename
     """
-    if ansible_release is None:
+    if not HAS_ANSIBLE_RELEASE:
         raise ValueError('Cannot import ansible.release')
     return ansible_release.__version__, ansible_release.__codename__

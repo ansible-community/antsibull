@@ -43,3 +43,9 @@ jobs:
         run: |
           poetry run pylint ansibulled || :
         if: always()
+
+      # note: mypy is run informationally, never to fail the build
+      - name: Lint with mypy
+        run: |
+          MYPYPATH=stubs/ poetry run mypy ansibulled || :
+        if: always()
