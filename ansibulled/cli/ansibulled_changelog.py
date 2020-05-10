@@ -13,6 +13,8 @@ import logging
 import os
 import sys
 
+from typing import cast, Any, List, Tuple, Union
+
 try:
     import argcomplete  # pyre-ignore
 except ImportError:
@@ -22,27 +24,33 @@ from ..changelog.ansible import get_ansible_release
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
-from ..changelog.fragment import load_fragments, ChangelogFragmentLinter
+from ..changelog.fragment import load_fragments, ChangelogFragment, ChangelogFragmentLinter
 from ..changelog.plugins import load_plugins
 from ..changelog.utils import LOGGER, load_galaxy_metadata
 
 
-def set_paths(force=None):
+def set_paths(force: Union[str, None] = None) -> PathsConfig:
+    """
+    Create ``PathsConfig``.
+
+    :arg force: If ``True``, create a collection path config for the given path.
+                Otherwise, detect configuration.
+    """
     if force:
-        paths = PathsConfig.force_collection(force)
-    else:
-        try:
-            paths = PathsConfig.detect()
-        except ValueError:
-            print("Only the 'init' and 'lint-changelog' commands can be used outside an "
-                  "Ansible checkout and outside a collection repository.\n")
-            sys.exit(3)
+        return PathsConfig.force_collection(force)
 
-    return paths
+    try:
+        return PathsConfig.detect()
+    except ValueError:
+        print("Only the 'init' and 'lint-changelog' commands can be used outside an "
+              "Ansible checkout and outside a collection repository.\n")
+        sys.exit(3)
 
 
-def main():
-    """Main program entry point."""
+def main() -> None:
+    """
+    Main program entry point.
+    """
     parser = argparse.ArgumentParser(description='Changelog generator and linter.')
 
     common = argparse.ArgumentParser(add_help=False)
@@ -119,16 +127,18 @@ def main():
     args.func(args)
 
 
-def command_init(args):
+def command_init(args: Any) -> None:
     """
-    :type args: any
+    Initialize a changelog config.
+
+    :arg args: Parsed arguments
     """
-    root = args.root  # type: str
+    root: str = args.root
 
     paths = set_paths(force=root)
 
     LOGGER.debug('Checking "{0}" for existance'.format(paths.galaxy_path))
-    if not os.path.exists(paths.galaxy_path):
+    if not os.path.exists(cast(str, paths.galaxy_path)):
         LOGGER.error('The file galaxy.yml does not exists in the collection root!')
         sys.exit(3)
     LOGGER.debug('Checking "{0}" for existance'.format(paths.config_path))
@@ -161,16 +171,18 @@ def command_init(args):
         sys.exit(3)
 
 
-def command_release(args):
+def command_release(args: Any) -> None:
     """
-    :type args: any
+    Add a new release to a changelog.
+
+    :arg args: Parsed arguments
     """
     paths = set_paths()
 
-    version = args.version  # type: str
-    codename = args.codename  # type: str
+    version: Union[str, None] = args.version
+    codename: Union[str, None] = args.codename
     date = datetime.datetime.strptime(args.date, "%Y-%m-%d").date()
-    reload_plugins = args.reload_plugins  # type: bool
+    reload_plugins: bool = args.reload_plugins
 
     config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
 
@@ -190,6 +202,7 @@ def command_release(args):
 
         elif not version:
             # Codename is not required for collections, only version is
+            galaxy = load_galaxy_metadata(paths)
             version = galaxy['version']
 
     changes = load_changes(paths, config)
@@ -199,13 +212,15 @@ def command_release(args):
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
 
 
-def command_generate(args):
+def command_generate(args: Any) -> None:
     """
-    :type args: any
+    (Re-)generate the reStructuredText version of the changelog.
+
+    :arg args: Parsed arguments
     """
     paths = set_paths()
 
-    reload_plugins = args.reload_plugins  # type: bool
+    reload_plugins: bool = args.reload_plugins
 
     config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
 
@@ -227,26 +242,31 @@ def command_generate(args):
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
 
 
-def command_lint(args):
+def command_lint(args: Any) -> None:
     """
-    :type args: any
+    Lint changelog fragments.
+
+    :arg args: Parsed arguments
     """
     paths = set_paths()
 
-    fragment_paths = args.fragments  # type: list
+    fragment_paths: List[str] = args.fragments
 
     config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
 
-    exceptions = []
+    exceptions: List[Tuple[str, Exception]] = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)
     lint_fragments(config, fragments, exceptions)
 
 
-def lint_fragments(config, fragments, exceptions):
+def lint_fragments(config: ChangelogConfig, fragments: List[ChangelogFragment],
+                   exceptions: List[Tuple[str, Exception]]) -> None:
     """
-    :type config: ChangelogConfig
-    :type fragments: list[ChangelogFragment]
-    :type exceptions: list[tuple[str, Exception]]
+    Lint a given set of changelog fragment objects.
+
+    :arg config: The configuration
+    :arg fragments: The loaded fragments
+    :arg exceptions: Exceptions from loading the fragments
     """
     linter = ChangelogFragmentLinter(config)
 

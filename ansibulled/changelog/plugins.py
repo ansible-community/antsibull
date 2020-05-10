@@ -13,19 +13,141 @@ import json
 import os
 import subprocess
 
+from typing import Any, Dict, List, Optional
+
 import yaml
 
 from .ansible import get_documentable_plugins
+from .config import PathsConfig
 from .utils import LOGGER, load_galaxy_metadata
 
 
-def jsondoc_to_metadata(paths, collection_name, plugin_type, name, data):
-    namespace = None
+class PluginDescription:
+    # pylint: disable=too-few-public-methods
+    """
+    Stores a description of one plugin.
+    """
+
+    type: str
+    name: str
+    namespace: Optional[str]
+    description: str
+    version_added: Optional[str]
+
+    def __init__(self, plugin_type: str, name: str, namespace: Optional[str],
+                 description: str, version_added: Optional[str]):
+        # pylint: disable=too-many-arguments
+        """
+        Create a new plugin description.
+        """
+        self.type = plugin_type
+        self.name = name
+        self.namespace = namespace
+        self.description = description
+        self.version_added = version_added
+
+    @staticmethod
+    def from_dict(data: Dict[str, Dict[str, Dict[str, Any]]]):
+        """
+        Return a list of ``PluginDescription`` objects from the given data.
+
+        :arg data: A dictionary mapping plugin types to a dictionary of plugins.
+        :return: A list of plugin descriptions.
+        """
+        plugins = []
+
+        for plugin_type, plugin_data in data.items():
+            for plugin_name, plugin_details in plugin_data.items():
+                plugins.append(PluginDescription(
+                    plugin_type=plugin_type,
+                    name=plugin_name,
+                    namespace=plugin_details.get('namespace'),
+                    description=plugin_details['description'],
+                    version_added=plugin_details['version_added'],
+                ))
+
+        return plugins
+
+
+class PluginResolver(metaclass=abc.ABCMeta):
+    # pylint: disable=too-few-public-methods
+    """
+    Given a plugin type and list of plugin names, return a list of plugin information.
+    """
+
+    @abc.abstractmethod
+    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Return a list of plugin descriptions from the given data.
+
+        :arg plugin_type: The plugin type
+        :arg plugin_names: A list of plugin names
+        """
+
+
+class SimplePluginResolver(PluginResolver):
+    # pylint: disable=too-few-public-methods
+    """
+    Provides a plugin resolved based on a list of ``PluginDescription`` objects.
+    """
+
+    plugins: Dict[str, Dict[str, Dict[str, Any]]]
+
+    @staticmethod
+    def resolve_plugin(plugin: PluginDescription) -> Dict[str, Any]:
+        """
+        Convert a ``PluginDecscription`` object to a plugin description dictionary.
+        """
+        return dict(
+            name=plugin.name,
+            namespace=plugin.namespace,
+            description=plugin.description,
+        )
+
+    def __init__(self, plugins: List[PluginDescription]):
+        """
+        Create a simple plugin resolver from a list of ``PluginDescription`` objects.
+        """
+        self.plugins = dict()
+        for plugin in plugins:
+            if plugin.type not in self.plugins:
+                self.plugins[plugin.type] = dict()
+
+            self.plugins[plugin.type][plugin.name] = self.resolve_plugin(plugin)
+
+    def resolve(self, plugin_type: str, plugin_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Return a list of plugin descriptions from the given data.
+
+        :arg plugin_type: The plugin type
+        :arg plugin_names: A list of plugin names
+        """
+        if plugin_type not in self.plugins:
+            return []
+        return [
+            self.plugins[plugin_type][plugin_name]
+            for plugin_name in plugin_names
+            if plugin_name in self.plugins[plugin_type]
+        ]
+
+
+def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
+                        plugin_type: str, name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert ``ansible-doc --json`` output to plugin metadata.
+
+    :arg paths: Paths configuration
+    :arg collection_name: The name of the collection, if appropriate
+    :arg plugin_type: The plugin's type
+    :arg name: The plugin's name
+    :arg data: The JSON for this plugin returned by ``ansible-doc --json``
+    """
+    namespace: Optional[str] = None
     if collection_name and name.startswith(collection_name + '.'):
         name = name[len(collection_name) + 1:]
-    docs = data.get('doc') or dict()
+    docs: dict = data.get('doc') or dict()
     if plugin_type == 'module':
-        filename = docs.get('filename')
+        filename: Optional[str] = docs.get('filename')
         if filename:
             # Follow links
             tried_links = set()
@@ -43,14 +165,14 @@ def jsondoc_to_metadata(paths, collection_name, plugin_type, name, data):
             path = os.path.relpath(filename, rel_to)
             path = os.path.split(path)[0]
             # Extract namespace from relative path
-            namespace = []
+            namespace_list: List[str] = []
             while True:
                 (path, last), prev = os.path.split(path), path
                 if path == prev:
                     break
                 if last not in ('', '.', '..'):
-                    namespace.insert(0, last)
-            namespace = '.'.join(namespace)
+                    namespace_list.insert(0, last)
+            namespace = '.'.join(namespace_list)
     return {
         'description': docs.get('short_description'),
         'name': name,
@@ -59,8 +181,16 @@ def jsondoc_to_metadata(paths, collection_name, plugin_type, name, data):
     }
 
 
-def load_plugin_metadata(paths, plugin_type, collection_name):
-    command = [paths.ansible_doc_path, '--json', '-t', plugin_type, '--list']
+def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
+                         collection_name: Optional[str]) -> Dict[str, Dict[str, Any]]:
+    """
+    Collect plugin metadata for all plugins of a given type.
+
+    :arg paths: Paths configuration
+    :arg plugin_type: The plugin type to consider
+    :arg collection_name: The name of the collection, if appropriate.
+    """
+    command = [paths.ansible_doc_path or 'ansible-doc', '--json', '-t', plugin_type, '--list']
     if collection_name:
         command.append(collection_name)
     output = subprocess.check_output(command)
@@ -73,11 +203,11 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
             if '.' not in name or name.startswith('ansible.builtin.')
         }
 
-    result = dict()
+    result: Dict[str, Dict[str, Any]] = {}
     if not plugins_list:
         return result
 
-    command = [paths.ansible_doc_path, '--json', '-t', plugin_type]
+    command = [paths.ansible_doc_path or 'ansible-doc', '--json', '-t', plugin_type]
     command.extend(sorted(plugins_list.keys()))
     output = subprocess.check_output(command)
     plugins_data = json.loads(output.decode('utf-8'))
@@ -87,15 +217,18 @@ def load_plugin_metadata(paths, plugin_type, collection_name):
     return result
 
 
-def load_plugins(paths, version, force_reload):
-    """Load plugins from ansible-doc.
-    :type paths: PathsConfig
-    :type version: str
-    :type force_reload: bool
-    :rtype: list[PluginDescription]
+def load_plugins(paths: PathsConfig, version: str,
+                 force_reload: bool = False) -> List[PluginDescription]:
+    """
+    Load plugins from ansible-doc.
+
+    :arg paths: Paths configuration
+    :arg version: The current version. Used for caching data
+    :arg force_reload: Set to ``True`` to ignore potentially cached data
+    :return: A list of all plugins
     """
     plugin_cache_path = os.path.join(paths.changelog_dir, '.plugin-cache.yaml')
-    plugins_data = {}
+    plugins_data: Dict[str, Any] = {}
 
     if not force_reload and os.path.exists(plugin_cache_path):
         with open(plugin_cache_path, 'r') as plugin_cache_fd:
@@ -112,7 +245,7 @@ def load_plugins(paths, version, force_reload):
         plugins_data['version'] = version
         plugins_data['plugins'] = {}
 
-        collection_name = None
+        collection_name: Optional[str] = None
         if paths.galaxy_path:
             galaxy = load_galaxy_metadata(paths)
             collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
@@ -133,78 +266,3 @@ def load_plugins(paths, version, force_reload):
     plugins = PluginDescription.from_dict(plugins_data['plugins'])
 
     return plugins
-
-
-class PluginDescription:
-    """Plugin description."""
-    def __init__(self, plugin_type, name, namespace, description, version_added):
-        self.type = plugin_type
-        self.name = name
-        self.namespace = namespace
-        self.description = description
-        self.version_added = version_added
-
-    @staticmethod
-    def from_dict(data):
-        """Return a list of PluginDescription objects from the given data.
-        :type data: dict[str, dict[str, dict[str, any]]]
-        :rtype: list[PluginDescription]
-        """
-        plugins = []
-
-        for plugin_type, plugin_data in data.items():
-            for plugin_name, plugin_details in plugin_data.items():
-                plugins.append(PluginDescription(
-                    plugin_type=plugin_type,
-                    name=plugin_name,
-                    namespace=plugin_details.get('namespace'),
-                    description=plugin_details['description'],
-                    version_added=plugin_details['version_added'],
-                ))
-
-        return plugins
-
-
-class PluginResolver(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def resolve(self, plugin_type, plugin_names):
-        """Return a list of PluginDescription objects from the given data.
-        :type plugin_type: str
-        :type plugin_names: list[str]
-        :rtype: list[dict]
-        """
-
-
-class SimplePluginResolver(PluginResolver):
-    @staticmethod
-    def resolve_plugin(plugin):
-        return dict(
-            name=plugin.name,
-            namespace=plugin.namespace,
-            description=plugin.description,
-        )
-
-    def __init__(self, plugins):
-        """
-        :type plugins: dict(str, list[PluginDescription])
-        """
-        self.plugins = dict()
-        for plugin in plugins:
-            if plugin.type not in self.plugins:
-                self.plugins[plugin.type] = dict()
-
-            self.plugins[plugin.type][plugin.name] = self.resolve_plugin(plugin)
-
-    def resolve(self, plugin_type, plugin_names):
-        """Return a list of PluginDescription objects from the given data.
-        :type plugin_type: str
-        :type plugin_names: list[str]
-        :rtype: list[dict]
-        """
-        if plugin_type not in self.plugins:
-            return []
-        return [
-            self.plugins[plugin_type][plugin_name]
-            for plugin_name in plugin_names
-            if plugin_name in self.plugins[plugin_type]
-        ]

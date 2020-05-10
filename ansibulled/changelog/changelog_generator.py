@@ -11,61 +11,56 @@ Generate reStructuredText changelog from ChangesBase instance.
 import collections
 import os
 
+from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Union
+
 import packaging.version
 import semantic_version
 
+from .config import PathsConfig, ChangelogConfig
+from .changes import ChangesBase, ChangesMetadata
+from .fragment import ChangelogFragment, FragmentResolver
+from .plugins import PluginDescription, PluginResolver
 from .rst import RstBuilder
 from .utils import LOGGER, is_release_version
 
 
-def generate_changelog(paths, config, changes, plugins=None, fragments=None, flatmap=True):
-    """Generate the changelog.
-    :type paths: PathsConfig
-    :type config: ChangelogConfig
-    :type changes: ChangesBase
-    :type plugins: list[PluginDescription] | None
-    :type fragments: list[ChangelogFragment] | None
-    :type flatmap: bool
-    """
-    if plugins is not None or fragments is not None:
-        if plugins is not None:
-            changes.prune_plugins(plugins)
-        if fragments is not None and config.changes_format == 'classic':
-            changes.prune_fragments(fragments)
-        changes.save()
-
-    major_minor_version = '.'.join(
-        changes.latest_version.split('.')[:config.changelog_filename_version_depth])
-    changelog_path = os.path.join(
-        paths.changelog_dir, config.changelog_filename_template % major_minor_version)
-
-    generator = ChangelogGenerator(config, changes, plugins, fragments, flatmap)
-    rst = generator.generate()
-
-    with open(changelog_path, 'wb') as changelog_fd:
-        changelog_fd.write(rst.encode('utf-8'))
-
-
 class ChangelogGenerator:
-    """Changelog generator."""
-    def __init__(self, config, changes, plugins=None, fragments=None, flatmap=True):
+    """
+    Generate changelog as reStructuredText.
+
+    This class can be both used to create a full changelog, or to append a
+    changelog to an existing RstBuilder. This is for example useful to create
+    a combined ACD changelog.
+    """
+
+    config: ChangelogConfig
+    changes: ChangesBase
+    fragments: Optional[List[ChangelogFragment]]
+    plugin_resolver: PluginResolver
+    fragment_resolver: FragmentResolver
+
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 config: ChangelogConfig,
+                 changes: ChangesBase,
+                 plugins: Optional[List[PluginDescription]] = None,
+                 fragments: Optional[List[ChangelogFragment]] = None,
+                 flatmap: bool = True):
         """
-        :type config: ChangelogConfig
-        :type changes: ChangesBase
-        :type plugins: list[PluginDescription] | None
-        :type fragments: list[ChangelogFragment] | None
-        :type flatmap: bool
+        Create a changelog generator.
         """
         self.config = config
         self.changes = changes
-        self.plugins = {}
-        self.modules = []
         self.flatmap = flatmap
 
         self.plugin_resolver = changes.get_plugin_resolver(plugins)
         self.fragment_resolver = changes.get_fragment_resolver(fragments)
 
-    def _collect_versions(self, after_version=None, until_version=None):
+    def _collect_versions(self, after_version: Optional[str] = None,
+                          until_version: Optional[str] = None) -> List[str]:
+        """
+        Collect all versions of interest and return them as an ordered list,
+        latest to earliest.
+        """
         Version = (semantic_version.Version if self.config.is_collection
                    else packaging.version.Version)
 
@@ -81,7 +76,10 @@ class ChangelogGenerator:
         return result
 
     @staticmethod
-    def _get_entry_config(release_entries, entry_version):
+    def _get_entry_config(release_entries: MutableMapping[str, dict], entry_version: str) -> dict:
+        """
+        Create (if not existing) and return release entry for a given version.
+        """
         if entry_version not in release_entries:
             release_entries[entry_version] = dict(
                 modules=[],
@@ -92,7 +90,10 @@ class ChangelogGenerator:
         return release_entries[entry_version]
 
     @staticmethod
-    def _update_modules_plugins(entry_config, release):
+    def _update_modules_plugins(entry_config: dict, release: dict) -> None:
+        """
+        Update a release entry given a release information dict.
+        """
         entry_config['modules'] += release.get('modules', [])
 
         for plugin_type, plugins in release.get('plugins', {}).items():
@@ -101,8 +102,17 @@ class ChangelogGenerator:
 
             entry_config['plugins'][plugin_type] += plugins
 
-    def _collect(self, squash=False, after_version=None, until_version=None):
-        release_entries = collections.OrderedDict()
+    def _collect(self, squash: bool = False, after_version: Optional[str] = None,
+                 until_version: Optional[str] = None) -> Mapping[str, dict]:
+        """
+        Collect release entries.
+
+        :arg squash: Squash all releases into one entry
+        :arg after_version: If given, only consider versions after this one
+        :arg until_version: If given, do not consider versions following this one
+        :return: An ordered mapping of versions to release entries
+        """
+        release_entries: MutableMapping[str, dict] = collections.OrderedDict()
         entry_version = until_version or self.changes.latest_version
         entry_fragment = None
 
@@ -145,11 +155,20 @@ class ChangelogGenerator:
 
         return release_entries
 
-    def generate_to(self, builder, start_level=0, squash=False,
-                    after_version=None, until_version=None):
-        """Generate the changelog.
-        :type builder: RstBuilder
-        :type start_level: int
+    def generate_to(self,  # pylint: disable=too-many-arguments
+                    builder: RstBuilder,
+                    start_level: int = 0,
+                    squash: bool = False,
+                    after_version: Optional[str] = None,
+                    until_version: Optional[str] = None) -> None:
+        """
+        Append changelog to a reStructuredText (RST) builder.
+
+        :arg start_level: Level to add to headings in the generated RST
+        :arg squash: Squash all releases into one entry
+        :arg after_version: If given, only consider versions after this one
+        :arg until_version: If given, do not consider versions following this one
+        :return: An ordered mapping of versions to release entries
         """
         release_entries = self._collect(
             squash=squash, after_version=after_version, until_version=until_version)
@@ -168,9 +187,9 @@ class ChangelogGenerator:
             self._add_modules(builder, release['modules'], flatmap=self.flatmap,
                               start_level=start_level)
 
-    def generate(self):
-        """Generate the changelog.
-        :rtype: str
+    def generate(self) -> str:
+        """
+        Generate the changelog as reStructuredText.
         """
         latest_version = self.changes.latest_version
         codename = self.changes.releases[latest_version].get('codename')
@@ -196,7 +215,12 @@ class ChangelogGenerator:
 
         return builder.generate()
 
-    def _add_section(self, builder, combined_fragments, section_name, start_level=0):
+    def _add_section(self, builder: RstBuilder,
+                     combined_fragments: Dict[str, Union[str, List[str]]],
+                     section_name: str, start_level: int = 0) -> None:
+        """
+        Add a section of fragments to the changelog.
+        """
         if section_name not in combined_fragments:
             return
 
@@ -214,7 +238,12 @@ class ChangelogGenerator:
 
         builder.add_raw_rst('')
 
-    def _add_plugins(self, builder, plugin_types_and_names, start_level=0):
+    def _add_plugins(self, builder: RstBuilder,
+                     plugin_types_and_names: Dict[str, List[Dict[str, Any]]],
+                     start_level: int = 0) -> None:
+        """
+        Add new plugins to the changelog.
+        """
         if not plugin_types_and_names:
             return
 
@@ -240,7 +269,13 @@ class ChangelogGenerator:
 
             builder.add_raw_rst('')
 
-    def _add_modules(self, builder, module_names, flatmap, start_level=0):
+    def _add_modules(self, builder: RstBuilder,
+                     module_names: List[Dict[str, Any]],
+                     flatmap: bool,
+                     start_level: int = 0) -> None:
+        """
+        Add new modules to the changelog.
+        """
         if not module_names:
             return
 
@@ -285,3 +320,35 @@ class ChangelogGenerator:
                 builder.add_raw_rst('- %s - %s' % (module_name, module['description']))
 
             builder.add_raw_rst('')
+
+
+def generate_changelog(paths: PathsConfig,  # pylint: disable=too-many-arguments
+                       config: ChangelogConfig,
+                       changes: ChangesBase,
+                       plugins: Optional[List[PluginDescription]] = None,
+                       fragments: Optional[List[ChangelogFragment]] = None,
+                       flatmap: bool = True):
+    """
+    Generate the changelog as reStructuredText.
+
+    :arg plugins: Will be loaded if necessary. Only provide when you already have them
+    :arg fragments: Will be loaded if necessary. Only provide when you already have them
+    :type flatmap: Whether the collection uses flatmapping or not
+    """
+    if plugins is not None or fragments is not None:
+        if plugins is not None:
+            changes.prune_plugins(plugins)
+        if fragments is not None and isinstance(changes, ChangesMetadata):
+            changes.prune_fragments(fragments)
+        changes.save()
+
+    major_minor_version = '.'.join(
+        changes.latest_version.split('.')[:config.changelog_filename_version_depth])
+    changelog_path = os.path.join(
+        paths.changelog_dir, config.changelog_filename_template % major_minor_version)
+
+    generator = ChangelogGenerator(config, changes, plugins, fragments, flatmap)
+    rst = generator.generate()
+
+    with open(changelog_path, 'wb') as changelog_fd:
+        changelog_fd.write(rst.encode('utf-8'))
