@@ -23,7 +23,6 @@ from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
 from ..changelog.fragment import load_fragments, ChangelogFragmentLinter
-from ..changelog.lint import lint_changelog_yaml
 from ..changelog.plugins import load_plugins
 from ..changelog.utils import LOGGER, load_galaxy_metadata
 
@@ -93,15 +92,6 @@ def main():
     generate_parser.add_argument('--reload-plugins',
                                  action='store_true',
                                  help='force reload of plugin cache')
-
-    lint_changelog_parser = subparsers.add_parser('lint-changelog',
-                                                  parents=[common],
-                                                  help='check changelog.yaml file '
-                                                       'for syntax errors')
-    lint_changelog_parser.set_defaults(func=command_lint_changelog)
-    lint_changelog_parser.add_argument('changelog_yaml_path',
-                                       metavar='/path/to/changelog.yaml',
-                                       help='path to changelogs/changelog.yaml')
 
     if argcomplete:
         argcomplete.autocomplete(parser)
@@ -250,20 +240,6 @@ def command_lint(args):
     exceptions = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)
     lint_fragments(config, fragments, exceptions)
-
-
-def command_lint_changelog(args):
-    """
-    :type args: any
-    """
-    errors = lint_changelog_yaml(args.changelog_yaml_path)
-
-    messages = sorted(set(
-        '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])
-        for error in errors))
-
-    for message in messages:
-        print(message)
 
 
 def lint_fragments(config, fragments, exceptions):
