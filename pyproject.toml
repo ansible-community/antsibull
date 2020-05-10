@@ -17,6 +17,8 @@ packages = [
 
 [tool.poetry.scripts]
 ansibulled = "ansibulled.cli.ansibulled:main"
+ansibulled-changelog = "ansibulled.cli.ansibulled_changelog:main"
+ansibulled-lint-changelog-yaml = "ansibulled.cli.ansibulled_lint_changelog_yaml:main"
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
@@ -26,6 +28,9 @@ jinja2 = "^2.11.2"
 packaging = "^20.3"
 semantic_version = "^2.8.5"
 sh = "^1.13.1"
+docutils = "^0.16"
+rstcheck = "^3.3.1"
+PyYAML = "*"
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"
