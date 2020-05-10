@@ -4,6 +4,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Generate reStructuredText changelog from ChangesBase instance.
+"""
 
 import collections
 import os

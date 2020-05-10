@@ -4,6 +4,10 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Classes handling ``changelog.yaml`` (new Ansible and collections)
+and ``.changes.yaml`` (old Ansible) files.
+"""
 
 import abc
 import collections

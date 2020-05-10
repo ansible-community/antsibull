@@ -4,6 +4,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Configuration classes for paths and changelogs.
+"""
 
 import collections
 import os

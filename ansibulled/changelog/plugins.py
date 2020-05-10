@@ -4,6 +4,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Collect and store information on Ansible plugins and modules.
+"""
 
 import abc
 import json

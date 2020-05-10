@@ -3,6 +3,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Return Ansible-specific information, like current release or list of documentable plugins.
+"""
 
 try:
     from ansible import constants as C  # pyre-ignore

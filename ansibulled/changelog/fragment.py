@@ -4,6 +4,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Changelog fragment loading, modification and linting.
+"""
 
 import abc
 import os

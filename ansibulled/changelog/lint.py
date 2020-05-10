@@ -4,6 +4,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+Linting for changelog.yaml.
+"""
 
 from collections.abc import Mapping
 

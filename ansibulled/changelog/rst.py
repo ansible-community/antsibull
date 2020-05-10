@@ -3,6 +3,9 @@
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
 
+"""
+ReStructuredText helpers.
+"""
 
 class RstBuilder:
     """Simple RST builder."""
