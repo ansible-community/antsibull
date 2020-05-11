@@ -203,10 +203,14 @@ def command_release(args: Any) -> None:
 
         elif not version:
             # Codename is not required for collections, only version is
-            galaxy = load_galaxy_metadata(paths)
-            version = galaxy['version']
-
-    version = cast(str, version)
+            try:
+                galaxy = load_galaxy_metadata(paths)
+                version = galaxy['version']
+                if not isinstance(version, str):
+                    raise Exception('Version in galaxy.yml is not a string')
+            except Exception as exc:  # pylint: disable=broad-except
+                LOGGER.error('Error while extracting version from galaxy.yml: {}', str(exc))
+                sys.exit(3)
 
     changes = load_changes(paths, config)
     plugins = load_plugins(paths=paths, version=version, force_reload=reload_plugins)
