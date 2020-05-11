@@ -8,6 +8,8 @@
 Linting for changelog.yaml.
 """
 
+import re
+
 from typing import cast, Any, List, Optional, Tuple, Type
 
 import semantic_version
@@ -16,6 +18,9 @@ import yaml
 from .ansible import get_documentable_plugins
 from .config import ChangelogConfig
 from .fragment import ChangelogFragment, ChangelogFragmentLinter
+
+
+ISO_DATE_REGEX = re.compile('^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$')
 
 
 class ChangelogYamlLinter:
@@ -147,6 +152,15 @@ class ChangelogYamlLinter:
         :arg version_str: The version this entry belongs to
         :arg entry: The releases list entry
         """
+        release_date = entry.get('release_date')
+        if self.verify_type(release_date, (str, ),
+                            ['releases', version_str, 'release_date']):
+            release_date = cast(str, release_date)
+            if not ISO_DATE_REGEX.match(release_date):
+                self.errors.append((self.path, 0, 0, '{0} must be a ISO date (YYYY-MM-DD)'.format(
+                    self._format_yaml_path(['releases', version_str, 'release_date'])
+                )))
+
         codename = entry.get('codename')
         self.verify_type(codename, (str, ),
                          ['releases', version_str, 'codename'], allow_none=True)

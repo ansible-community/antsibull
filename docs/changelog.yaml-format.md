@@ -44,17 +44,19 @@ releases:
 
 For a release `x.y.z`, the `releases` dictionary contains an entry `x.y.z` mapping to another dictionary. That dictionary can have the following entries:
 
+1. `release_date`: a string in ISO format (`YYYY-MM-DD`) specifying on which date the release was made.
 1. `codename`: a string for the version's codename. Optional; mainly required for ansible-base.
-2. `fragments`: a list of strings mentioning changelog fragment files used for this release. This is not used for compiling a changelog.
-3. `changes`: a dictionary containing all changes. See below.
-4. `modules`: a list of plugin dictionaries. See below.
-5. `plugins`: a dictionary mapping plugin types to lists of plugin dictionaries. See below.
+1. `fragments`: a list of strings mentioning changelog fragment files used for this release. This is not used for compiling a changelog.
+1. `changes`: a dictionary containing all changes. See below.
+1. `modules`: a list of plugin dictionaries. See below.
+1. `plugins`: a dictionary mapping plugin types to lists of plugin dictionaries. See below.
 
 The following is an example of release information for version `1.0.0`:
 
 ```.yaml
 releases:
   1.0.0:
+    release_date: 2020-04-01
     codename: White Rabbit
     changes:
       release_summary: This is the initial White Rabbit release. Enjoy!
