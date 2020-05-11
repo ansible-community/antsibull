@@ -240,8 +240,9 @@ def command_generate(args: Any) -> None:
     if not changes.has_release:
         print('Cannot create changelog when not at least one release has been added.')
         sys.exit(2)
+    plugins: Optional[List[PluginDescription]]
     if reload_plugins:
-        plugins: Optional[List[PluginDescription]] = load_plugins(
+        plugins = load_plugins(
             paths=paths, version=changes.latest_version, force_reload=reload_plugins)
     else:
         plugins = None
