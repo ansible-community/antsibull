@@ -162,7 +162,7 @@ class ChangesBase(metaclass=abc.ABCMeta):
         """
         if version not in self.releases:
             self.releases[version] = dict(
-                release_date=str(release_date),
+                release_date=release_date.isoformat(),
             )
             if codename is not None:
                 self.releases[version]['codename'] = codename
