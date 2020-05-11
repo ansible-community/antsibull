@@ -14,9 +14,10 @@ import sys
 from typing import Any
 
 try:
-    import argcomplete  # pyre-ignore
+    import argcomplete
+    HAS_ARGCOMPLETE = True
 except ImportError:
-    argcomplete = None
+    HAS_ARGCOMPLETE = False
 
 from ..changelog.lint import lint_changelog_yaml
 from ..changelog.utils import LOGGER
@@ -37,7 +38,7 @@ def main() -> None:
                         metavar='/path/to/changelog.yaml',
                         help='path to changelogs/changelog.yaml')
 
-    if argcomplete:
+    if HAS_ARGCOMPLETE:
         argcomplete.autocomplete(parser)
 
     formatter = logging.Formatter('%(levelname)s %(message)s')
