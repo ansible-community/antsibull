@@ -13,31 +13,34 @@ Building Ansible
 
 The script needs python-3.8 or later.
 
-Here's some steps to test the build process:
+Here's some steps to test the build process.  These are steps for running from source.  If the
+package is installed, you won't need to know about poetry at all::
 
-::
-    # Setup steps
+    # Setup steps for building for the first time:
     git clone git@github.com:ansible-community/ansible-build-data
     mkdir ansible-build-data/2.10
-    cp acd.in ansible-build-data/2.10
+    # Copy from previous version... already done for 2.10
+    # cp ansible-build-data/2.10/acd.in ansible-build-data/2.10
     mkdir built
-    python3.8 -m pip install -r requirements.txt --user
+
+    # Creates a venv with all of the requirements
+    poetry install
 
     # Generate the list of compatible versions.  Intended to be run when we feature freeze
-    python3.8 ansibulled new-acd 2.10.0 --dest-dir ansible-build-data/2.10
+    poetry run ansibulled new-acd 2.10.0 --dest-dir ansible-build-data/2.10
 
-    # Create an ansible release using one of the following:
+    # Create an ansible release using *one* of the following:
     # Single tarball for ansible with a dep on the ansible-base package
-    python3.8 ansibulled build-single 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run ansibulled build-single 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
     # One tarball per collection plus the ansible package which deps on all of them and ansible-base
-    python3.8 ansibulled build-multiple 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run ansibulled build-multiple 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
 
     # Create a collection that can be installed to pull in all of the collections
-    python3.8 ansibulled build-collection 2.10.0 --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run ansibulled build-collection 2.10.0 --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
 
     # Record the files used to build:
     cd ansible-build-data/2.10
-    git add acd-2.10.build
+    git add acd-2.10.build acd-2.10.0.deps
     git commit -m 'Collection dependency information for ansible 2.10.x and ansible-2.10.0'
     git push
 
@@ -48,7 +51,7 @@ Here's some steps to test the build process:
     # But this should
     python -m pip install --user built/ansible-2.10.0.tar.gz
     # And this should once it is uploaded to test pypi
-    python3.8 -m pip install --user --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ansible
+    python -m pip install --user --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ansible
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-acd' localhost
 
@@ -59,7 +62,7 @@ Using a pre-release build
 We have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
 should be able to upgrade your ansible install like::
 
-    python3.8 -m pip install --user --upgrade --extra-index-url https://toshio.fedorapeople.org/ansible/acd/ ansible
+    python -m pip install --user --upgrade --extra-index-url https://toshio.fedorapeople.org/ansible/acd/ ansible
 
 And it will pull in both the ``ansible`` and ``ansible-base`` Python packages .
 
