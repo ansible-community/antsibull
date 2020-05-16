@@ -338,8 +338,11 @@ def generate_changelog(paths: PathsConfig,  # pylint: disable=too-many-arguments
 
     major_minor_version = '.'.join(
         changes.latest_version.split('.')[:config.changelog_filename_version_depth])
-    changelog_path = os.path.join(
-        paths.changelog_dir, config.changelog_filename_template % major_minor_version)
+    if '%s' in config.changelog_filename_template:
+        changelog_filename = config.changelog_filename_template % (major_minor_version, )
+    else:
+        changelog_filename = config.changelog_filename_template
+    changelog_path = os.path.join(paths.changelog_dir, changelog_filename)
 
     generator = ChangelogGenerator(config, changes, plugins, fragments, flatmap)
     rst = generator.generate()
