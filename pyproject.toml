@@ -31,6 +31,7 @@ sh = "*"
 docutils = "*"
 rstcheck = "^3"
 PyYAML = "*"
+pydantic = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"
