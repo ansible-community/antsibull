@@ -1,0 +1,20 @@
+comment: false
+coverage:
+  status:
+    project:
+      default:
+        # basic
+        target: auto
+        threshold: 0%
+        base: auto
+        # flags:
+        #   - unit
+        #   - integration
+        # paths:
+        #   - "src"
+        branches:
+          - master
+        if_not_found: success
+        if_ci_failed: error
+        informational: true
+        only_pulls: false
