@@ -47,3 +47,39 @@ When doing a release, the changelog generator will read all changelog fragments 
 The metadata for modules and plugins is stored in ``changelogs/.plugin-cache.yaml``, and is only recalculated once the release version changes. To force recollecting this data, either delete the file, or specify the ``--reload-plugins`` option to ``ansibulled-changelog release``.
 
 After running ``ansibulled-changelog release``, you should check ``changelogs/changelog.yaml`` and the generated reStructuredText file (by default ``changelogs/CHANGELOG.rst``) in.
+
+Changelog Fragment Categories
+=============================
+
+This section describes the section categories created in the default config. You can change them, though this is strongly discouraged for collections which will be included in the Ansible Community Distribution.
+
+The categories are very similar to the ones in the [Ansible-base changelog fragments](https://docs.ansible.com/ansible/latest/community/development_process.html#changelogs-how-to). In fact, they are the same, except that there are two new categories: ``breaking_changes`` and ``security_fixes``.
+
+The full list of categories is:
+
+**release_summary**
+  This is a special section: as opposed to a list of strings, it accepts one string. This string will be inserted at the top of the changelog entry for the current version, before any section. There can only be one fragment with a ``release_summary`` section. In Ansible-base, this is used for stating the release date and for linking to the porting guide ([example](https://github.com/ansible/ansible/blob/stable-2.9/changelogs/fragments/v2.9.0_summary.yaml), [result](https://github.com/ansible/ansible/blob/stable-2.9/changelogs/CHANGELOG-v2.9.rst#id23)).
+
+**breaking_changes**
+  This (new) category should list all changes to features which absolutely require attention from users when upgrading, because an existing behavior is changed. This is mostly what Ansible's Porting Guide used to describe. This section should only appear in a initial major release (`x.0.0`) according to semantic versioning.
+
+**major_changes**
+  This category contains major changes to the collection. It should only contain a few items per major version, describing high-level changes. This section should not appear in patch releases according to semantic versioning.
+
+**minor_changes**
+  This category should mention all new features, like plugin or module options. This section should not appear in patch releases according to semantic versioning.
+
+**removed_features**
+  This category should mention all modules, plugins and features that have been removed in this release. This section should only appear in a initial major release (`x.0.0`) according to semantic versioning.
+
+**deprecated_features**
+  This category should contain all modules, plugins and features which have been deprecated and will be removed in a future release. This section should not appear in patch releases according to semantic versioning.
+
+**security_fixes**
+  This category should mention all security relevant fixes, including CVEs if available.
+
+**bugfixes**
+  This category should be a list of all bug fixes which fix a bug that was present in a previous version.
+
+**known_issues**
+  This category should mention known issues that are currently not fixed or will not be fixed.
