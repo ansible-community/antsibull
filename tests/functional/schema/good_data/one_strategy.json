@@ -1,0 +1,23 @@
+{
+    "free": {
+        "doc": {
+            "author": "Ansible Core Team",
+            "description": [
+                "Task execution is as fast as possible per batch as defined by C(serial) (default all). Ansible will not wait for other hosts to finish the current task before queuing more tasks for other hosts. All hosts are still attempted for the current task, but it prevents blocking new tasks for hosts that have already finished.",
+                "With the free strategy, unlike the default linear strategy, a host that is slow or stuck on a specific task won't hold up the rest of the hosts and tasks."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/ansible-base-venv/lib64/python3.8/site-packages/ansible/plugins/strategy/free.py",
+            "short_description": "Executes tasks without waiting for all hosts",
+            "strategy": "free",
+            "version_added": "2.0"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}

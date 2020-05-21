@@ -1,0 +1,121 @@
+{
+    "__root__": {
+        "community.general.jsonfile": {
+            "doc": {
+                "author": [
+                    "Ansible Core (@ansible-core)"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This cache uses JSON formatted, per host, files saved to the filesystem."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/community/general/plugins/cache/jsonfile.py",
+                "name": "jsonfile",
+                "notes": [],
+                "options": {
+                    "_prefix": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "User defined prefix to use when creating the JSON files"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_CACHE_PLUGIN_PREFIX",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "fact_caching_prefix",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [],
+                        "version_added": "historical"
+                    },
+                    "_timeout": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 86400,
+                        "deprecated": {},
+                        "description": [
+                            "Expiration timeout in seconds for the cache plugin data. Set to 0 to never expire"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_CACHE_PLUGIN_TIMEOUT",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "fact_caching_timeout",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "int",
+                        "vars": [],
+                        "version_added": "historical"
+                    },
+                    "_uri": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "Path in which the cache plugin will save the JSON files"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_CACHE_PLUGIN_CONNECTION",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "fact_caching_connection",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": true,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "JSON formatted files.",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

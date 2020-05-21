@@ -1,0 +1,80 @@
+{
+    "host_group_vars": {
+        "doc": {
+            "description": [
+                "Loads YAML vars into corresponding groups/hosts in group_vars/ and host_vars/ directories.",
+                "Files are restricted by extension to one of .yaml, .json, .yml or no extension.",
+                "Hidden (starting with '.') and backup (ending with '~') files and directories are ignored.",
+                "Only applies to inventory sources that are existing paths.",
+                "Starting in 2.10, this plugin requires whitelisting and is whitelisted by default."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/ansible-base-venv/lib64/python3.8/site-packages/ansible/plugins/vars/host_group_vars.py",
+            "options": {
+                "_valid_extensions": {
+                    "default": [
+                        ".yml",
+                        ".yaml",
+                        ".json"
+                    ],
+                    "description": [
+                        "Check all of these extensions when looking for 'variable' files which should be YAML or JSON or vaulted versions of these.",
+                        "This affects vars_files, include_vars, inventory and vars plugins among others."
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_YAML_FILENAME_EXT"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "defaults",
+                            "section": "yaml_valid_extensions"
+                        }
+                    ],
+                    "type": "list"
+                },
+                "stage": {
+                    "choices": [
+                        "all",
+                        "task",
+                        "inventory"
+                    ],
+                    "description": [
+                        "Control when this vars plugin may be executed.",
+                        "Setting this option to C(all) will run the vars plugin after importing inventory and whenever it is demanded by a task.",
+                        "Setting this option to C(task) will only run the vars plugin whenever it is demanded by a task.",
+                        "Setting this option to C(inventory) will only run the vars plugin after parsing inventory.",
+                        "If this option is omitted, the global I(RUN_VARS_PLUGINS) configuration is used to determine when to execute the vars plugin."
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_VARS_PLUGIN_STAGE"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "stage",
+                            "section": "vars_host_group_vars"
+                        }
+                    ],
+                    "type": "str",
+                    "version_added": "2.10"
+                }
+            },
+            "requirements": [
+                "whitelist in configuration"
+            ],
+            "short_description": "In charge of loading group_vars and host_vars",
+            "vars": "host_group_vars",
+            "version_added": "2.4"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}

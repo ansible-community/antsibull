@@ -1,0 +1,96 @@
+{
+    "__root__": {
+        "cisco.iosxr.iosxr": {
+            "doc": {
+                "author": [
+                    "Ansible Networking Team"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This iosxr plugin provides low level abstraction apis for sending and receiving netconf commands from Cisco iosxr network devices."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/cisco/iosxr/plugins/netconf/iosxr.py",
+                "name": "iosxr",
+                "notes": [],
+                "options": {
+                    "ncclient_device_handler": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "iosxr",
+                        "deprecated": {},
+                        "description": [
+                            "Specifies the ncclient device handler name for Cisco iosxr network os. To identify the ncclient device handler name refer ncclient library documentation."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "Use iosxr netconf plugin to run netconf commands on Cisco IOSXR platform",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        },
+        "community.general.ce": {
+            "doc": {
+                "author": [],
+                "deprecated": {},
+                "description": [
+                    "This ce plugin provides low level abstraction apis for sending and receiving netconf commands from Huawei Cloudengine network devices."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/community/general/plugins/netconf/ce.py",
+                "name": "ce",
+                "notes": [],
+                "options": {
+                    "ncclient_device_handler": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "huawei",
+                        "deprecated": {},
+                        "description": [
+                            "Specifies the ncclient device handler name for Huawei Cloudengine. To identify the ncclient device handler name refer ncclient library documentation."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "Use ce netconf plugin to run netconf commands on Huawei Cloudengine platform",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

@@ -1,0 +1,130 @@
+{
+    "sh": {
+        "doc": {
+            "description": [
+                "This shell plugin is the one you want to use on most Unix systems, it is the most compatible and widely installed shell."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/ansible-base-venv/lib64/python3.8/site-packages/ansible/plugins/shell/sh.py",
+            "name": "sh",
+            "options": {
+                "admin_users": {
+                    "default": [
+                        "root",
+                        "toor"
+                    ],
+                    "description": [
+                        "list of users to be expected to have admin privileges. This is used by the controller to determine how to share temporary files between the remote user and the become user."
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_ADMIN_USERS"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "admin_users",
+                            "section": "defaults"
+                        }
+                    ],
+                    "type": "list",
+                    "vars": [
+                        {
+                            "name": "ansible_admin_users"
+                        }
+                    ]
+                },
+                "async_dir": {
+                    "default": "~/.ansible_async",
+                    "description": [
+                        "Directory in which ansible will keep async job information"
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_ASYNC_DIR"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "async_dir",
+                            "section": "defaults"
+                        }
+                    ],
+                    "vars": [
+                        {
+                            "name": "ansible_async_dir"
+                        }
+                    ]
+                },
+                "environment": {
+                    "default": {},
+                    "description": [
+                        "dictionary of environment variables and their values to use when executing commands."
+                    ],
+                    "type": "dict"
+                },
+                "remote_tmp": {
+                    "default": "~/.ansible/tmp",
+                    "description": [
+                        "Temporary directory to use on targets when executing tasks."
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_REMOTE_TEMP"
+                        },
+                        {
+                            "name": "ANSIBLE_REMOTE_TMP"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "remote_tmp",
+                            "section": "defaults"
+                        }
+                    ],
+                    "vars": [
+                        {
+                            "name": "ansible_remote_tmp"
+                        }
+                    ]
+                },
+                "system_tmpdirs": {
+                    "default": [
+                        "/var/tmp",
+                        "/tmp"
+                    ],
+                    "description": [
+                        "List of valid system temporary directories for Ansible to choose when it cannot use ``remote_tmp``, normally due to permission issues.  These must be world readable, writable, and executable."
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_SYSTEM_TMPDIRS"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "system_tmpdirs",
+                            "section": "defaults"
+                        }
+                    ],
+                    "type": "list",
+                    "vars": [
+                        {
+                            "name": "ansible_system_tmpdirs"
+                        }
+                    ]
+                }
+            },
+            "plugin_type": "shell",
+            "short_description": "POSIX shell (/bin/sh)",
+            "version_added": "historical"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}

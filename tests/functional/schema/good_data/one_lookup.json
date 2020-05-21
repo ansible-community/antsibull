@@ -1,0 +1,116 @@
+{
+    "community.general.consul_kv": {
+        "doc": {
+            "description": [
+                "Lookup metadata for a playbook from the key value store in a Consul cluster. Values can be easily set in the kv store with simple rest commands",
+                "C(curl -X PUT -d 'some-value' http://localhost:8500/v1/kv/ansible/somedata)"
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/community/general/plugins/lookup/consul_kv.py",
+            "lookup": "consul_kv",
+            "options": {
+                "_raw": {
+                    "description": "List of key(s) to retrieve.",
+                    "required": true,
+                    "type": "list"
+                },
+                "client_cert": {
+                    "description": "The client cert to verify the ssl connection.",
+                    "env": [
+                        {
+                            "name": "ANSIBLE_CONSUL_CLIENT_CERT"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "client_cert",
+                            "section": "lookup_consul"
+                        }
+                    ]
+                },
+                "datacenter": {
+                    "description": [
+                        "Retrieve the key from a consul datatacenter other than the default for the consul host."
+                    ]
+                },
+                "host": {
+                    "default": "localhost",
+                    "description": [
+                        "The target to connect to, must be a resolvable address. Will be determined from C(ANSIBLE_CONSUL_URL) if that is set.",
+                        "C(ANSIBLE_CONSUL_URL) should look like this: C(https://my.consul.server:8500)"
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_CONSUL_URL"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "host",
+                            "section": "lookup_consul"
+                        }
+                    ]
+                },
+                "index": {
+                    "description": [
+                        "If the key has a value with the specified index then this is returned allowing access to historical values."
+                    ]
+                },
+                "port": {
+                    "default": 8500,
+                    "description": [
+                        "The port of the target host to connect to.",
+                        "If you use C(ANSIBLE_CONSUL_URL) this value will be used from there."
+                    ]
+                },
+                "recurse": {
+                    "default": false,
+                    "description": "If true, will retrieve all the values that have the given key as prefix.",
+                    "type": "boolean"
+                },
+                "scheme": {
+                    "default": "http",
+                    "description": [
+                        "Whether to use http or https.",
+                        "If you use C(ANSIBLE_CONSUL_URL) this value will be used from there."
+                    ]
+                },
+                "token": {
+                    "description": "The acl token to allow access to restricted values."
+                },
+                "validate_certs": {
+                    "default": true,
+                    "description": "Whether to verify the ssl connection or not.",
+                    "env": [
+                        {
+                            "name": "ANSIBLE_CONSUL_VALIDATE_CERTS"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "validate_certs",
+                            "section": "lookup_consul"
+                        }
+                    ]
+                }
+            },
+            "requirements": [
+                "python-consul python library U(https://python-consul.readthedocs.io/en/latest/#installation)"
+            ],
+            "short_description": "Fetch metadata from a Consul key value store."
+        },
+        "examples": "\n  - debug:\n      msg: 'key contains {{item}}'\n    with_consul_kv:\n      - 'key/to/retrieve'\n\n  - name: Parameters can be provided after the key be more specific about what to retrieve\n    debug:\n      msg: 'key contains {{item}}'\n    with_consul_kv:\n      - 'key/to recurse=true token=E6C060A9-26FB-407A-B83E-12DDAFCB4D98'\n\n  - name: retrieving a KV from a remote cluster on non default port\n    debug:\n      msg: \"{{ lookup('consul_kv', 'my/key', host='10.10.10.10', port='2000') }}\"\n",
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": {
+            "_raw": {
+                "description": [
+                    "Value(s) stored in consul."
+                ]
+            }
+        }
+    }
+}

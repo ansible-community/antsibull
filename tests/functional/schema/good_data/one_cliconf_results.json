@@ -1,0 +1,62 @@
+{
+    "__root__": {
+        "arista.eos.eos": {
+            "doc": {
+                "author": [
+                    "Ansible Networking Team"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This eos plugin provides low level abstraction apis for sending and receiving CLI commands from Arista EOS network devices."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/arista/eos/plugins/cliconf/eos.py",
+                "name": "eos",
+                "notes": [],
+                "options": {
+                    "eos_use_sessions": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 1,
+                        "deprecated": {},
+                        "description": [
+                            "Specifies if sessions should be used on remote host or not"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_EOS_USE_SESSIONS",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_eos_use_sessions",
+                                "version_added": "2.7"
+                            }
+                        ],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "Use eos cliconf to run command on Arista EOS platform",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

@@ -1,0 +1,84 @@
+{
+    "__root__": {
+        "ansible.netcommon.enable": {
+            "doc": {
+                "author": [
+                    "ansible (@core)"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This become plugins allows elevated permissions on a remote network device."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/ansible/netcommon/plugins/become/enable.py",
+                "name": "enable",
+                "notes": [
+                    "enable is really implemented in the network connection handler and as such can only be used with network connections.",
+                    "This plugin ignores the 'become_exe' and 'become_user' settings as it uses an API and not an executable."
+                ],
+                "options": {
+                    "become_pass": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "password"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_BECOME_PASS",
+                                "version_added": "historical"
+                            },
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_ENABLE_PASS",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "password",
+                                "section": "enable_become_plugin",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_become_password",
+                                "version_added": "historical"
+                            },
+                            {
+                                "name": "ansible_become_pass",
+                                "version_added": "historical"
+                            },
+                            {
+                                "name": "ansible_enable_pass",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "Switch to elevated permissions on a network device",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}
