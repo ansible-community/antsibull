@@ -34,7 +34,7 @@ One example of doing all this:
 .. code-block:: pycon
 
     >>> import sh, jinja2
-    >>> from ablebaker.schemas import ansible_doc
+    >>> from ansibulled.schemas import ansible_doc
     >>> template = jinja2.Template('{{ name }} -- {{ doc["short_description"] }}')
     >>> module_json = sh.ansible_doc('-t', 'module', '--json', 'yum').stdout
     >>> module_model = ansible_doc.ModulePluginSchema.parse_raw(module_json)

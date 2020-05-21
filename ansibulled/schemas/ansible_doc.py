@@ -11,9 +11,9 @@
 import typing as t
 
 from .base import BaseModel
-from .callback_docs import CallbackSchema
-from .module_docs import ModuleSchema
-from .plugin_docs import PluginSchema
+from .callback import CallbackSchema
+from .module import ModuleSchema
+from .plugin import PluginSchema
 
 
 class AnsibleDocSchema(BaseModel):
