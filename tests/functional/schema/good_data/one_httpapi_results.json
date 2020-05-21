@@ -1,0 +1,56 @@
+{
+    "__root__": {
+        "ansible.netcommon.restconf": {
+            "doc": {
+                "author": [
+                    "Ansible Networking Team"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This HttpApi plugin provides methods to connect to Restconf API endpoints."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/ansible/netcommon/plugins/httpapi/restconf.py",
+                "name": "restconf",
+                "notes": [],
+                "options": {
+                    "root_path": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "/restconf",
+                        "deprecated": {},
+                        "description": [
+                            "Specifies the location of the Restconf root."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_httpapi_restconf_root",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "HttpApi Plugin for devices supporting Restconf API",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

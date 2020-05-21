@@ -1,0 +1,196 @@
+{
+    "__root__": {
+        "sh": {
+            "doc": {
+                "author": [],
+                "deprecated": {},
+                "description": [
+                    "This shell plugin is the one you want to use on most Unix systems, it is the most compatible and widely installed shell."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/ansible-base-venv/lib64/python3.8/site-packages/ansible/plugins/shell/sh.py",
+                "name": "sh",
+                "notes": [],
+                "options": {
+                    "admin_users": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": [
+                            "root",
+                            "toor"
+                        ],
+                        "deprecated": {},
+                        "description": [
+                            "list of users to be expected to have admin privileges. This is used by the controller to determine how to share temporary files between the remote user and the become user."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_ADMIN_USERS",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "admin_users",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "list",
+                        "vars": [
+                            {
+                                "name": "ansible_admin_users",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "async_dir": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "~/.ansible_async",
+                        "deprecated": {},
+                        "description": [
+                            "Directory in which ansible will keep async job information"
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_ASYNC_DIR",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "async_dir",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_async_dir",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "environment": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": {},
+                        "deprecated": {},
+                        "description": [
+                            "dictionary of environment variables and their values to use when executing commands."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "dict",
+                        "vars": [],
+                        "version_added": "historical"
+                    },
+                    "remote_tmp": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "~/.ansible/tmp",
+                        "deprecated": {},
+                        "description": [
+                            "Temporary directory to use on targets when executing tasks."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_REMOTE_TEMP",
+                                "version_added": "historical"
+                            },
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_REMOTE_TMP",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "remote_tmp",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_remote_tmp",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "system_tmpdirs": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": [
+                            "/var/tmp",
+                            "/tmp"
+                        ],
+                        "deprecated": {},
+                        "description": [
+                            "List of valid system temporary directories for Ansible to choose when it cannot use ``remote_tmp``, normally due to permission issues.  These must be world readable, writable, and executable."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_SYSTEM_TMPDIRS",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "system_tmpdirs",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "list",
+                        "vars": [
+                            {
+                                "name": "ansible_system_tmpdirs",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "POSIX shell (/bin/sh)",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

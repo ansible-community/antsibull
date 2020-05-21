@@ -1,0 +1,35 @@
+{
+    "ansible.netcommon.restconf": {
+        "doc": {
+            "author": "Ansible Networking Team",
+            "description": [
+                "This HttpApi plugin provides methods to connect to Restconf API endpoints."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/ansible/netcommon/plugins/httpapi/restconf.py",
+            "httpapi": "restconf",
+            "options": {
+                "root_path": {
+                    "default": "/restconf",
+                    "description": [
+                        "Specifies the location of the Restconf root."
+                    ],
+                    "type": "str",
+                    "vars": [
+                        {
+                            "name": "ansible_httpapi_restconf_root"
+                        }
+                    ]
+                }
+            },
+            "short_description": "HttpApi Plugin for devices supporting Restconf API"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}

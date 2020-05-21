@@ -1,0 +1,416 @@
+{
+    "__root__": {
+        "ansible.netcommon.httpapi": {
+            "doc": {
+                "author": [
+                    "Ansible Networking Team"
+                ],
+                "deprecated": {},
+                "description": [
+                    "This connection plugin provides a connection to remote devices over a HTTP(S)-based api."
+                ],
+                "extends_documentation_fragment": [],
+                "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/ansible/netcommon/plugins/connection/httpapi.py",
+                "name": "httpapi",
+                "notes": [],
+                "options": {
+                    "become": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 0,
+                        "deprecated": {},
+                        "description": [
+                            "The become option will instruct the CLI session to attempt privilege escalation on platforms that support it.  Normally this means transitioning from user mode to C(enable) mode in the CLI session. If become is set to True and the remote device does not support privilege escalation or the privilege has already been elevated, then this option is silently ignored.",
+                            "Can be configured from the CLI via the C(--become) or C(-b) options."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_BECOME",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "become",
+                                "section": "privilege_escalation",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_become",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "become_method": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "sudo",
+                        "deprecated": {},
+                        "description": [
+                            "This option allows the become method to be specified in for handling privilege escalation.  Typically the become_method value is set to C(enable) but could be defined as other values."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_BECOME_METHOD",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "become_method",
+                                "section": "privilege_escalation",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_become_method",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "host": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": "inventory_hostname",
+                        "deprecated": {},
+                        "description": [
+                            "Specifies the remote device FQDN or IP address to establish the HTTP(S) connection to."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_host",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "network_os": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "Configures the device platform network operating system.  This value is used to load the correct httpapi plugin to communicate with the remote device"
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_network_os",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "password": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "Configures the user password used to authenticate to the remote device when needed for the device API."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_password",
+                                "version_added": "historical"
+                            },
+                            {
+                                "name": "ansible_httpapi_pass",
+                                "version_added": "historical"
+                            },
+                            {
+                                "name": "ansible_httpapi_password",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "persistent_command_timeout": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 30,
+                        "deprecated": {},
+                        "description": [
+                            "Configures, in seconds, the amount of time to wait for a command to return from the remote device.  If this timer is exceeded before the command returns, the connection plugin will raise an exception and close."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_PERSISTENT_COMMAND_TIMEOUT",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "command_timeout",
+                                "section": "persistent_connection",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "int",
+                        "vars": [
+                            {
+                                "name": "ansible_command_timeout",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "persistent_connect_timeout": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 30,
+                        "deprecated": {},
+                        "description": [
+                            "Configures, in seconds, the amount of time to wait when trying to initially establish a persistent connection.  If this value expires before the connection to the remote device is completed, the connection will fail."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_PERSISTENT_CONNECT_TIMEOUT",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "connect_timeout",
+                                "section": "persistent_connection",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "int",
+                        "vars": [
+                            {
+                                "name": "ansible_connect_timeout",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "persistent_log_messages": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 0,
+                        "deprecated": {},
+                        "description": [
+                            "This flag will enable logging the command executed and response received from target device in the ansible log file. For this option to work 'log_path' ansible configuration option is required to be set to a file path with write access.",
+                            "Be sure to fully understand the security implications of enabling this option as it could create a security vulnerability by logging sensitive information in log file."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_PERSISTENT_LOG_MESSAGES",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "log_messages",
+                                "section": "persistent_connection",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_persistent_log_messages",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "port": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "Specifies the port on the remote device that listens for connections when establishing the HTTP(S) connection.",
+                            "When unspecified, will pick 80 or 443 based on the value of use_ssl."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_REMOTE_PORT",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "remote_port",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "int",
+                        "vars": [
+                            {
+                                "name": "ansible_httpapi_port",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "remote_user": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": null,
+                        "deprecated": {},
+                        "description": [
+                            "The username used to authenticate to the remote device when the API connection is first established.  If the remote_user is not specified, the connection will use the username of the logged in user.",
+                            "Can be configured from the CLI via the C(--user) or C(-u) options."
+                        ],
+                        "elements": "str",
+                        "env": [
+                            {
+                                "deprecated": {},
+                                "name": "ANSIBLE_REMOTE_USER",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "ini": [
+                            {
+                                "key": "remote_user",
+                                "section": "defaults",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "str",
+                        "vars": [
+                            {
+                                "name": "ansible_user",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "use_proxy": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 1,
+                        "deprecated": {},
+                        "description": [
+                            "Whether to use https_proxy for requests."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_httpapi_use_proxy",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "use_ssl": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 0,
+                        "deprecated": {},
+                        "description": [
+                            "Whether to connect using SSL (HTTPS) or not (HTTP)."
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_httpapi_use_ssl",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    },
+                    "validate_certs": {
+                        "aliases": [],
+                        "choices": [],
+                        "default": 1,
+                        "deprecated": {},
+                        "description": [
+                            "Whether to validate SSL certificates"
+                        ],
+                        "elements": "str",
+                        "env": [],
+                        "ini": [],
+                        "required": false,
+                        "suboptions": {},
+                        "type": "bool",
+                        "vars": [
+                            {
+                                "name": "ansible_httpapi_validate_certs",
+                                "version_added": "historical"
+                            }
+                        ],
+                        "version_added": "historical"
+                    }
+                },
+                "requirements": [],
+                "seealso": [],
+                "short_description": "Use httpapi to run command on network appliances",
+                "todo": [],
+                "version_added": "historical"
+            },
+            "examples": "",
+            "metadata": {
+                "status": [
+                    "preview"
+                ],
+                "supported_by": "community"
+            },
+            "return_": {}
+        }
+    }
+}

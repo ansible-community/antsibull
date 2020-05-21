@@ -1,0 +1,41 @@
+{
+    "arista.eos.eos": {
+        "doc": {
+            "author": "Ansible Networking Team",
+            "cliconf": "eos",
+            "description": [
+                "This eos plugin provides low level abstraction apis for sending and receiving CLI commands from Arista EOS network devices."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/arista/eos/plugins/cliconf/eos.py",
+            "options": {
+                "eos_use_sessions": {
+                    "default": true,
+                    "description": [
+                        "Specifies if sessions should be used on remote host or not"
+                    ],
+                    "env": [
+                        {
+                            "name": "ANSIBLE_EOS_USE_SESSIONS"
+                        }
+                    ],
+                    "type": "boolean",
+                    "vars": [
+                        {
+                            "name": "ansible_eos_use_sessions",
+                            "version_added": "2.7"
+                        }
+                    ]
+                }
+            },
+            "short_description": "Use eos cliconf to run command on Arista EOS platform"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}

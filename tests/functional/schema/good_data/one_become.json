@@ -1,0 +1,55 @@
+{
+    "ansible.netcommon.enable": {
+        "doc": {
+            "author": "ansible (@core)",
+            "become": "enable",
+            "description": [
+                "This become plugins allows elevated permissions on a remote network device."
+            ],
+            "filename": "/var/tmp/tmpku7m9k3e/installed/ansible_collections/ansible/netcommon/plugins/become/enable.py",
+            "notes": [
+                "enable is really implemented in the network connection handler and as such can only be used with network connections.",
+                "This plugin ignores the 'become_exe' and 'become_user' settings as it uses an API and not an executable."
+            ],
+            "options": {
+                "become_pass": {
+                    "description": "password",
+                    "env": [
+                        {
+                            "name": "ANSIBLE_BECOME_PASS"
+                        },
+                        {
+                            "name": "ANSIBLE_ENABLE_PASS"
+                        }
+                    ],
+                    "ini": [
+                        {
+                            "key": "password",
+                            "section": "enable_become_plugin"
+                        }
+                    ],
+                    "vars": [
+                        {
+                            "name": "ansible_become_password"
+                        },
+                        {
+                            "name": "ansible_become_pass"
+                        },
+                        {
+                            "name": "ansible_enable_pass"
+                        }
+                    ]
+                }
+            },
+            "short_description": "Switch to elevated permissions on a network device"
+        },
+        "examples": null,
+        "metadata": {
+            "status": [
+                "preview"
+            ],
+            "supported_by": "community"
+        },
+        "return": null
+    }
+}
