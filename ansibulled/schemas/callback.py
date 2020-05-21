@@ -9,7 +9,7 @@ import typing as t
 import pydantic as p
 
 from .base import BaseModel, LocalConfig, transform_return_docs
-from .plugin_docs import PluginDocSchema, PluginReturnSchema
+from .plugin import PluginDocSchema, PluginReturnSchema
 
 REQUIRED_CALLBACK_TYPE_F = p.Field(..., regex='^(aggregate|notification|stdout)$')
 

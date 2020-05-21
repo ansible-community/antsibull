@@ -9,7 +9,7 @@ import typing as t
 import pydantic as p
 
 from .base import (BaseModel, DocSchema, LocalConfig, OptionsSchema, transform_return_docs)
-from .plugin_docs import PluginReturnSchema
+from .plugin import PluginReturnSchema
 
 
 class InnerModuleOptionsSchema(OptionsSchema):

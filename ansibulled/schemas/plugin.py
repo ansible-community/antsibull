@@ -119,6 +119,7 @@ class PluginSchema(BaseModel):
     class Config(LocalConfig):
         fields = {'return_': 'return',
                   }
+
     doc: PluginDocSchema
     examples: str = ''
     metadata: t.Optional[t.Dict[str, t.Any]] = None
