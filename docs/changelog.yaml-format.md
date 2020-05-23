@@ -111,8 +111,9 @@ The `changes` dictionary contains different sections of the changelog for this v
 6. `removed_features`: a list of strings describing features removed in this release. The features should have been deprecated earlier. This should only appear for major releases (x.0.0) as these are breaking changes.
 7. `security_fixes`: a list of strings describing security-relevant bugfixes. If available, they should include the issue's CVE.
 8. `bugfixes`: a list of strings describing other bugfixes.
+9. `trivial`: a list of strings describing changes that are too trivial to show in the changelog.
 
-Note that not every section has to be used. Also note that the sections `deprecated_features` and `security_fixes` have been added only after Ansible 2.9.
+Note that not every section has to be used. Also note that the sections `deprecated_features`, `security_fixes` and `trivial` have been added only after Ansible 2.9, and that `trivial` is special in the sense that changes in there will not be shown to the user.
 
 Every of these sections - except `release_summary` - should contain a *list* of strings. Every string in this list, as well as the `release_summary` section itself, must be valid [reStructuredText](https://en.wikipedia.org/wiki/ReStructuredText). Every string should be one line only, except for `release_summary`.
 

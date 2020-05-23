@@ -117,7 +117,7 @@ class ChangelogFragmentLinter:
                                'section "%s" must be type list '
                                'not %s' % (section, type(lines).__name__)))
 
-            if section not in self.config.sections:
+            if section not in self.config.sections and section != self.config.trivial_section_name:
                 errors.append((fragment.path, 0, 0, 'invalid section: %s' % section))
 
     @staticmethod

@@ -114,6 +114,7 @@ class ChangelogConfig:
     changelog_filename_template: str
     changelog_filename_version_depth: int
     mention_ancestor: bool
+    trivial_section_name: str
     release_tag_re: str
     pre_release_tag_re: str
     sections: Mapping[str, str]
@@ -138,6 +139,7 @@ class ChangelogConfig:
         self.changelog_filename_version_depth = self.config.get(
             'changelog_filename_version_depth', 2)
         self.mention_ancestor = self.config.get('mention_ancestor', True)
+        self.trivial_section_name = self.config.get('trivial_section_name', 'trivial')
 
         # The following are only relevant for ansible-base:
         self.release_tag_re = self.config.get(
@@ -171,6 +173,7 @@ class ChangelogConfig:
             'prelude_section_name': self.prelude_name,
             'prelude_section_title': self.prelude_title,
             'new_plugins_after_name': self.new_plugins_after_name,
+            'trivial_section_name': self.trivial_section_name,
         }
         if not self.is_collection:
             config.update({
