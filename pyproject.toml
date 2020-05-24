@@ -44,3 +44,8 @@ codecov = "^2.0.22"
 pyre-check = "^0.0.46"
 pylint = "^2.5.2"
 mypy = "^0.770"
+
+[tool.isort]
+line_length = 100
+multi_line_output = 0
+balanced_wrapping = true
