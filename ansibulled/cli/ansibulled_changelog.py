@@ -136,7 +136,7 @@ def run(args: List[str]) -> int:
         return arguments.func(arguments)
     except SystemExit as e:
         return e.code
-    except Exception as e:
+    except Exception:  # pylint: disable=broad-except
         if verbosity > 0:
             traceback.print_exc()
         else:
@@ -144,7 +144,7 @@ def run(args: List[str]) -> int:
         return 1
 
 
-def command_init(args: Any) -> None:
+def command_init(args: Any) -> int:
     """
     Initialize a changelog config.
 

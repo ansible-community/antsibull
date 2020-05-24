@@ -35,7 +35,7 @@ class ChangelogYamlLinter:
         self.errors = []
         self.path = path
 
-    def check_version(self, version: str, message: str) -> Optional[semantic_version.Version]:
+    def check_version(self, version: Any, message: str) -> Optional[semantic_version.Version]:
         """
         Check that the given version is a valid semantic version.
 
@@ -54,14 +54,14 @@ class ChangelogYamlLinter:
             return None
 
     @staticmethod
-    def _format_yaml_path(yaml_path: List[str]) -> str:
+    def _format_yaml_path(yaml_path: List[Any]) -> str:
         """
         Format path to YAML element as string.
         """
         return "{0}".format(" -> ".join([repr(component) for component in yaml_path]))
 
     def verify_type(self, value: Any, allowed_types: Tuple[Type[Any], ...],
-                    yaml_path: List[str], allow_none=False) -> bool:
+                    yaml_path: List[Any], allow_none=False) -> bool:
         """
         Verify that a value is of a given type.
 
@@ -90,7 +90,7 @@ class ChangelogYamlLinter:
         )))
         return False
 
-    def verify_plugin(self, plugin: dict, yaml_path: List[str], is_module: bool) -> None:
+    def verify_plugin(self, plugin: dict, yaml_path: List[Any], is_module: bool) -> None:
         """
         Verify that a given dictionary is a plugin or module description.
 
@@ -144,6 +144,20 @@ class ChangelogYamlLinter:
                                        ['releases', version_str, 'modules', plugin_type, idx],
                                        is_module=False)
 
+    def lint_changes(self, fragment_linter: ChangelogFragmentLinter,
+                     version_str: str, changes: dict):
+        """
+        Lint changes for an entry of the releases list.
+
+        :arg fragment_linter: A fragment linter
+        :arg version_str: The version the changes belongs to
+        :arg entry: The changes dictionary
+        """
+        fragment = ChangelogFragment.from_dict(changes, self.path)
+        for error in fragment_linter.lint(fragment):
+            self.errors.append((error[0], error[1], error[2], '{1}: {0}'.format(
+                error[3], self._format_yaml_path(['releases', version_str, 'changes']))))
+
     def lint_releases_entry(self, fragment_linter: ChangelogFragmentLinter,
                             version_str: str, entry: dict):
         """
@@ -170,12 +184,7 @@ class ChangelogYamlLinter:
         if self.verify_type(changes, (dict, ),
                             ['releases', version_str, 'changes'],
                             allow_none=True) and changes:
-            changes = cast(dict, changes)
-            if changes is not None:
-                fragment = ChangelogFragment.from_dict(changes, self.path)
-                for error in fragment_linter.lint(fragment):
-                    self.errors.append((error[0], error[1], error[2], '{1}: {0}'.format(
-                        error[3], self._format_yaml_path(['releases', version_str, 'changes']))))
+            self.lint_changes(fragment_linter, version_str, cast(dict, changes))
 
         modules = entry.get('modules')
         if self.verify_type(modules, (list, ),

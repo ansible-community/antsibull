@@ -69,7 +69,7 @@ def run(args: List[str]) -> int:
         return command_lint_changelog(arguments)
     except SystemExit as e:
         return e.code
-    except Exception as e:
+    except Exception:  # pylint: disable=broad-except
         if verbosity > 0:
             traceback.print_exc()
         else:
@@ -77,7 +77,7 @@ def run(args: List[str]) -> int:
         return 1
 
 
-def command_lint_changelog(args: Any) -> None:
+def command_lint_changelog(args: Any) -> int:
     """
     Validate a changelogs/changelog.yaml file.
 
