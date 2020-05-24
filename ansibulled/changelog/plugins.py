@@ -150,7 +150,8 @@ def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
     plugins_data = json.loads(output.decode('utf-8'))
 
     for name, data in plugins_data.items():
-        result[name] = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
+        processed_data = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
+        result[processed_data['name']] = processed_data
     return result
 
 
