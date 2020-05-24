@@ -80,7 +80,7 @@ def test_changelog_release_plugin_cache(collection_changelog, namespace='asfd'):
         },
         EXAMPLES='# Some examples\n',
         RETURN={},
-    ))
+    ), subdirs=['cloud', 'sky'])
 
     assert collection_changelog.run_tool('release', ['--date', '2020-01-02']) == 0
 
@@ -97,7 +97,7 @@ def test_changelog_release_plugin_cache(collection_changelog, namespace='asfd'):
     # Plugin cache: modules
     assert sorted(plugin_cache['plugins']['module']) == ['old_module', 'test_module']
     assert plugin_cache['plugins']['module']['old_module']['name'] == 'old_module'
-    assert plugin_cache['plugins']['module']['old_module']['namespace'] == ''
+    assert plugin_cache['plugins']['module']['old_module']['namespace'] == 'cloud.sky'
     assert plugin_cache['plugins']['module']['old_module']['description'] == 'An old module'
     assert plugin_cache['plugins']['module']['old_module']['version_added'] is None
     assert plugin_cache['plugins']['module']['test_module']['name'] == 'test_module'

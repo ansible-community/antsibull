@@ -103,9 +103,9 @@ class ChangelogEnvironment:
             return ['plugins', 'modules']
         return ['plugins', plugin_type]
 
-    def add_plugin(self, plugin_type: str, name: str, content: str):
+    def add_plugin(self, plugin_type: str, name: str, content: str, subdirs: List[str] = None):
         plugin_dir = self.paths.base_dir
-        for part in self._plugin_base(plugin_type):
+        for part in self._plugin_base(plugin_type) + (subdirs or []):
             plugin_dir = os.path.join(plugin_dir, part)
             os.makedirs(plugin_dir, exist_ok=True)
             self.created_dirs.add(plugin_dir)
