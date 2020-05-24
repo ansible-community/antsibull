@@ -1,0 +1,17 @@
+{
+    "errors": [
+        [0, 0, "Invalid ancestor version: error while parse version ['test']: Expecting string"],
+        [0, 0, "'releases' -> '1.0.0' -> 'release_date' must be a ISO date (YYYY-MM-DD)"],
+        [0, 0, "'releases' -> '1.0.0' -> 'changes': invalid section: invalid_category"],
+        [0, 0, "'releases' -> '1.0.0' -> 'changes': section \"invalid_category\" list items must be type str not int"],
+        [0, 0, "'releases' -> '1.0.0' -> 'changes': section \"minor_changes\" must be type list not dict"],
+        [0, 0, "'releases' -> '1.0.0' -> 'changes': section \"major_changes\" must be type list not int"],
+        [0, 0, "'releases' -> '1.0.0' -> 'modules' -> 0 -> 'name' must not be a FQCN"],
+        [0, 0, "'releases' -> '1.0.0' -> 'modules' -> 1 -> 'description' is expected to be <class 'str'>, but got None"],
+        [0, 0, "'releases' -> '1.0.0' -> 'modules' -> 1 -> 'namespace' is expected to be <class 'str'>, but got None"],
+        [0, 0, "'releases' -> '1.0.0' -> 'fragments' is expected to be null or <class 'list'>, but got {'files': 123}"],
+        [0, 0, "Invalid release version: error while parse version 2.0: Expecting string"],
+        [0, 0, "'releases' -> 2.0 is expected to be <class 'dict'>, but got ['lists', 'are not allowed']"],
+        [0, 0, "'releases' -> '3.0.0' is expected to be <class 'dict'>, but got 42"]
+    ]
+}
