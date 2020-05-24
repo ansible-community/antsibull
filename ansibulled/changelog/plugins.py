@@ -118,6 +118,9 @@ def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
                 if last not in ('', '.', '..'):
                     namespace_list.insert(0, last)
             namespace = '.'.join(namespace_list)
+        if '.' in name:
+            # Flatmapping
+            name = name[name.rfind('.') + 1:]
     return {
         'description': docs.get('short_description'),
         'name': name,
