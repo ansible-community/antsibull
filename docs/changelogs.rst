@@ -27,7 +27,7 @@ If you want to do a basic syntax check of changelog fragments, you can run::
 
 If you want to check a specific fragment, you can provide a path to it; otherwise, all fragments in ``changelogs/fragments/`` are checked. This can be used in CI to avoid contributors to check in invalid changelog fragments, or introduce new sections (by mistyping existing ones, or simply guessing wrong names).
 
-If ``ansibulled-changelog lint`` produces no output on stdout, the changelog fragments are OK. If errors are found, they are reported by one line in stdout for each error in the format ``path/to/fragment:line:column:message``.
+If ``ansibulled-changelog lint`` produces no output on stdout, and exits with exit code 0, the changelog fragments are OK. If errors are found, they are reported by one line in stdout for each error in the format ``path/to/fragment:line:column:message``, and the program exits with exit code 3. Other exit codes indicate problems with the command line or during the execution of the linter.
 
 Releasing a new version of a collection
 =======================================

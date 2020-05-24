@@ -195,6 +195,6 @@ def main() -> int:
     """
     if sys.version_info < (3, 8):
         print('Needs Python 3.8 or later')
-        return 1
+        return 4
 
     return run(sys.argv)

@@ -13,6 +13,8 @@ You can use the `ansibulled-lint-changelog-yaml` tool to validate these files:
 
 (This only works for `changelog.yaml` files in collections, not for the corresponding files in ansible-base, since ansible-base currently does not conform to semantic versioning.)
 
+The tool does not output anything and exits with exit code 0 in case the file is OK, and outputs errors and exits with exit code 3 in case an error was found. Other exit codes indicate problems with the command line or during the execution of the linter.
+
 
 ## changelog.yaml
 
