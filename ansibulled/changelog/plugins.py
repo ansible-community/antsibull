@@ -127,6 +127,19 @@ def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
     :arg plugin_type: The plugin type to consider
     :arg collection_name: The name of the collection, if appropriate.
     """
+    if paths.galaxy_path:
+        plugin_source_path = os.path.join(paths.base_dir, 'plugins')
+        if plugin_type == 'module':
+            plugin_source_path = os.path.join(plugin_source_path, 'modules')
+        else:
+            plugin_source_path = os.path.join(plugin_source_path, 'plugins', plugin_type)
+    else:
+        plugin_source_path = os.path.join(
+            paths.base_dir, 'lib', 'ansible', 'modules' if plugin_type == 'module' else plugin_type)
+
+    if not os.path.exists(plugin_source_path) or os.listdir(plugin_source_path) == []:
+        return {}
+
     command = [paths.ansible_doc_path or 'ansible-doc', '--json', '-t', plugin_type, '--list']
     if collection_name:
         command.append(collection_name)
