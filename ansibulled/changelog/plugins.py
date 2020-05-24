@@ -152,6 +152,12 @@ def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
             name: data for name, data in plugins_list.items()
             if '.' not in name or name.startswith('ansible.builtin.')
         }
+    else:
+        # Filter out without / wrong FQCN
+        plugins_list = {
+            name: data for name, data in plugins_list.items()
+            if name.startswith(collection_name + '.')
+        }
 
     result: Dict[str, Dict[str, Any]] = {}
     if not plugins_list:
