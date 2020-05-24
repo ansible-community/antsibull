@@ -1,0 +1,28 @@
+releases:
+  0.2.0:
+    changes:
+      minor_changes:
+      - foo - add ``data`` option.
+    fragments:
+    - 1-foo-data-option.yml
+    modules:
+    - description: Make a GET
+      name: bar
+      namespace: ''
+    release_date: '2020-04-29'
+  0.2.1:
+    changes:
+      bugfixes:
+      - foo and bar - fail modules gracefully when no JSON is returned.
+    fragments:
+    - 3-foo-bar-json-result.yml
+    release_date: '2020-04-29'
+  0.2.2:
+    changes:
+      bugfixes:
+      - foo and bar - JSON decoding could still crash the module
+    fragments:
+    - really-fix-json-decoding.yml
+    release_date: '2020-04-29'
+  0.2.3:
+    release_date: '2020-04-29'

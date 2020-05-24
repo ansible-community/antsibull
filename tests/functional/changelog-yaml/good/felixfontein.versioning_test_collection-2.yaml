@@ -1,0 +1,30 @@
+ancestor: 0.2.1
+releases:
+  1.0.0:
+    changes:
+      release_summary: 'This is the first proper release of the collection! Yay!
+
+        '
+    fragments:
+    - prelude.yml
+    modules:
+    - description: Make a HEAD
+      name: baz
+      namespace: ''
+    - description: Echo params
+      name: echo
+      namespace: ''
+    release_date: '2020-04-29'
+  1.0.1:
+    changes:
+      bugfixes:
+      - foo and bar - JSON decoding could still crash the module
+    fragments:
+    - really-fix-json-decoding.yml
+    release_date: '2020-04-29'
+  1.0.2:
+    changes:
+      release_summary: Fix link to changelog.
+    fragments:
+    - release.yml
+    release_date: '2020-04-29'
