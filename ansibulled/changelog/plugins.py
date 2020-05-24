@@ -151,6 +151,8 @@ def list_plugins_walk(paths: PathsConfig, plugin_type: str, collection_name: Opt
 
     result = set()
     for dirpath, _, filenames in os.walk(plugin_source_path):
+        if plugin_type != 'module' and dirpath == plugin_source_path:
+            continue
         for filename in filenames:
             if filename == '__init__.py' or not filename.endswith('.py'):
                 continue
