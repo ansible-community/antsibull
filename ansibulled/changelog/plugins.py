@@ -126,7 +126,8 @@ def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
     }
 
 
-def list_plugins_walk(paths: PathsConfig, plugin_type: str, collection_name: Optional[str]) -> List[str]:
+def list_plugins_walk(paths: PathsConfig, plugin_type: str,
+                      collection_name: Optional[str]) -> List[str]:
     """
     Find all plugins of a type in a collection, or in Ansible-base. Uses os.walk().
 
@@ -168,7 +169,8 @@ def list_plugins_walk(paths: PathsConfig, plugin_type: str, collection_name: Opt
     return sorted(result)
 
 
-def list_plugins_ansibledoc(paths: PathsConfig, plugin_type: str, collection_name: Optional[str]) -> List[str]:
+def list_plugins_ansibledoc(paths: PathsConfig, plugin_type: str,
+                            collection_name: Optional[str]) -> List[str]:
     """
     Find all plugins of a type in a collection, or in Ansible-base. Uses ansible-doc.
 
