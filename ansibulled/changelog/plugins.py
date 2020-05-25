@@ -145,7 +145,7 @@ def list_plugins_walk(paths: PathsConfig, plugin_type: str,
         if plugin_type == 'module':
             plugin_source_path = os.path.join(plugin_source_path, 'modules')
         else:
-            plugin_source_path = os.path.join(plugin_source_path, 'plugins', plugin_type)
+            plugin_source_path = os.path.join(plugin_source_path, plugin_type)
     else:
         plugin_source_path = os.path.join(
             paths.base_dir, 'lib', 'ansible', 'modules' if plugin_type == 'module' else plugin_type)
@@ -155,7 +155,7 @@ def list_plugins_walk(paths: PathsConfig, plugin_type: str,
 
     result = set()
     for dirpath, _, filenames in os.walk(plugin_source_path):
-        if plugin_type != 'module' and dirpath == plugin_source_path:
+        if plugin_type != 'module' and dirpath != plugin_source_path:
             continue
         for filename in filenames:
             if filename == '__init__.py' or not filename.endswith('.py'):
