@@ -53,7 +53,7 @@ Changelog Fragment Categories
 
 This section describes the section categories created in the default config. You can change them, though this is strongly discouraged for collections which will be included in the Ansible Community Distribution.
 
-The categories are very similar to the ones in the `Ansible-base changelog fragments <https://docs.ansible.com/ansible/latest/community/development_process.html#changelogs-how-to>`_. In fact, they are the same, except that there are two new categories: ``breaking_changes`` and ``security_fixes``.
+The categories are very similar to the ones in the `Ansible-base changelog fragments <https://docs.ansible.com/ansible/latest/community/development_process.html#changelogs-how-to>`_. In fact, they are the same, except that there are three new categories: ``breaking_changes``, ``security_fixes`` and ``trivial``.
 
 The full list of categories is:
 
@@ -83,3 +83,6 @@ The full list of categories is:
 
 **known_issues**
   This category should mention known issues that are currently not fixed or will not be fixed.
+
+**trivial**
+  This category will **not be shown** in the changelog. It can be used to describe changes that are not touching user-facing code, like changes in tests. This is useful if every PR is required to have a changelog fragment.
