@@ -49,6 +49,20 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
             "Ansible checkout and outside a collection repository.\n")
 
 
+def parse_boolean_arg(v: Any) -> bool:
+    """
+    Parse a string as a boolean
+    """
+    if isinstance(v, bool):
+        return v
+    v = str(v)
+    if v.lower() in ('yes', 'true'):
+        return True
+    if v.lower() in ('no', 'false'):
+        return False
+    raise argparse.ArgumentTypeError('Cannot interpret as boolean')
+
+
 def create_argparser(program_name: str) -> argparse.ArgumentParser:
     """
     Create CLI argument parser.
@@ -62,6 +76,18 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                         action='count',
                         default=0,
                         help='increase verbosity of output')
+
+    collection_details = argparse.ArgumentParser(add_help=False)
+    collection_details.add_argument('--collection-namespace',
+                                    help='set collection namespace '
+                                         '(needed when galaxy.yml does not exist)')
+    collection_details.add_argument('--collection-name',
+                                    help='set collection name '
+                                         '(needed when galaxy.yml does not exist)')
+    collection_details.add_argument('--collection-flatmap',
+                                    type=parse_boolean_arg,
+                                    help='set collection type to flatmapping '
+                                         '(needed when galaxy.yml does not exist)')
 
     subparsers = parser.add_subparsers(metavar='COMMAND')
 
@@ -83,7 +109,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                              help='path to fragment to test')
 
     release_parser = subparsers.add_parser('release',
-                                           parents=[common],
+                                           parents=[common, collection_details],
                                            help='add a new release to the change metadata')
     release_parser.set_defaults(func=command_release)
     release_parser.add_argument('--version',
@@ -98,7 +124,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                                 help='force reload of plugin cache')
 
     generate_parser = subparsers.add_parser('generate',
-                                            parents=[common],
+                                            parents=[common, collection_details],
                                             help='generate the changelog')
     generate_parser.set_defaults(func=command_generate)
     generate_parser.add_argument('--reload-plugins',
@@ -109,6 +135,18 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
         argcomplete.autocomplete(parser)
 
     return parser
+
+
+def load_collection_details(collection_details: CollectionDetails, args: Any):
+    """
+    Override collection details data with CLI args.
+    """
+    if args.collection_namespace is not None:
+        collection_details.namespace = args.collection_namespace
+    if args.collection_name is not None:
+        collection_details.name = args.collection_name
+    if args.collection_flatmap is not None:
+        collection_details.flatmap = args.collection_flatmap
 
 
 def run(args: List[str]) -> int:
@@ -208,6 +246,8 @@ def command_release(args: Any) -> int:
     collection_details = CollectionDetails(paths)
     config = ChangelogConfig.load(paths, collection_details)
 
+    load_collection_details(collection_details, args)
+
     flatmap = True
     if config.is_collection:
         flatmap = collection_details.get_flatmap()
@@ -247,6 +287,8 @@ def command_generate(args: Any) -> int:
 
     collection_details = CollectionDetails(paths)
     config = ChangelogConfig.load(paths, collection_details)
+
+    load_collection_details(collection_details, args)
 
     flatmap = True
     if config.is_collection:
