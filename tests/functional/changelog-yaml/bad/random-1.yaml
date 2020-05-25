@@ -1,0 +1,28 @@
+ancestor:
+  test: 42
+ancestor:
+  - test
+releases:
+  1.0.0:
+    changes:
+      invalid_category:
+        - test
+        - 2
+      minor_changes:
+        test: 1
+      major_changes: 42
+      
+      release_summary: Initial version as a collection. Continues the `old git repository
+        <https://github.com/felixfontein/ansible-hosttech/>`_.
+    fragments:
+      files: 123
+    modules:
+    - description: Add or delete entries in Hosttech DNS service
+      name: felixfontein.hosttech_dns.hosttech_dns_record
+      namespace: ''
+    - name: a b c
+    release_date: yesterday
+  2.0:
+    - lists
+    - are not allowed
+  3.0.0: 42

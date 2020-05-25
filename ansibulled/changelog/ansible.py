@@ -27,7 +27,7 @@ def get_documentable_plugins() -> Tuple[str, ...]:
     """
     Retrieve plugin types that can be documented. Does not include 'module'.
     """
-    if HAS_ANSIBLE_CONSTANTS is not None:
+    if HAS_ANSIBLE_CONSTANTS:
         return C.DOCUMENTABLE_PLUGINS
     return (
         'become', 'cache', 'callback', 'cliconf', 'connection', 'httpapi', 'inventory',

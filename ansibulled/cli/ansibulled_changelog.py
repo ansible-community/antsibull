@@ -12,6 +12,7 @@ import datetime
 import logging
 import os
 import sys
+import traceback
 
 from typing import cast, Any, List, Optional, Tuple, Union
 
@@ -48,87 +49,102 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
         sys.exit(3)
 
 
-def main() -> None:
+def run(args: List[str]) -> int:
     """
     Main program entry point.
     """
-    parser = argparse.ArgumentParser(description='Changelog generator and linter.')
+    verbosity = 0
+    try:
+        program_name = os.path.basename(args[0])
+        parser = argparse.ArgumentParser(
+            prog=program_name,
+            description='Changelog generator and linter.')
 
-    common = argparse.ArgumentParser(add_help=False)
-    common.add_argument('-v', '--verbose',
-                        action='count',
-                        default=0,
-                        help='increase verbosity of output')
+        common = argparse.ArgumentParser(add_help=False)
+        common.add_argument('-v', '--verbose',
+                            action='count',
+                            default=0,
+                            help='increase verbosity of output')
 
-    subparsers = parser.add_subparsers(metavar='COMMAND')
+        subparsers = parser.add_subparsers(metavar='COMMAND')
 
-    init_parser = subparsers.add_parser('init',
-                                        parents=[common],
-                                        help='set up changelog infrastructure for collection')
-    init_parser.set_defaults(func=command_init)
-    init_parser.add_argument('root',
-                             metavar='COLLECTION_ROOT',
-                             help='path to collection root')
-
-    lint_parser = subparsers.add_parser('lint',
-                                        parents=[common],
-                                        help='check changelog fragments for syntax errors')
-    lint_parser.set_defaults(func=command_lint)
-    lint_parser.add_argument('fragments',
-                             metavar='FRAGMENT',
-                             nargs='*',
-                             help='path to fragment to test')
-
-    release_parser = subparsers.add_parser('release',
-                                           parents=[common],
-                                           help='add a new release to the change metadata')
-    release_parser.set_defaults(func=command_release)
-    release_parser.add_argument('--version',
-                                help='override release version')
-    release_parser.add_argument('--codename',
-                                help='override/set release codename')
-    release_parser.add_argument('--date',
-                                default=str(datetime.date.today()),
-                                help='override release date')
-    release_parser.add_argument('--reload-plugins',
-                                action='store_true',
-                                help='force reload of plugin cache')
-
-    generate_parser = subparsers.add_parser('generate',
+        init_parser = subparsers.add_parser('init',
                                             parents=[common],
-                                            help='generate the changelog')
-    generate_parser.set_defaults(func=command_generate)
-    generate_parser.add_argument('--reload-plugins',
-                                 action='store_true',
-                                 help='force reload of plugin cache')
+                                            help='set up changelog infrastructure for collection')
+        init_parser.set_defaults(func=command_init)
+        init_parser.add_argument('root',
+                                 metavar='COLLECTION_ROOT',
+                                 help='path to collection root')
 
-    if HAS_ARGCOMPLETE:
-        argcomplete.autocomplete(parser)
+        lint_parser = subparsers.add_parser('lint',
+                                            parents=[common],
+                                            help='check changelog fragments for syntax errors')
+        lint_parser.set_defaults(func=command_lint)
+        lint_parser.add_argument('fragments',
+                                 metavar='FRAGMENT',
+                                 nargs='*',
+                                 help='path to fragment to test')
 
-    formatter = logging.Formatter('%(levelname)s %(message)s')
+        release_parser = subparsers.add_parser('release',
+                                               parents=[common],
+                                               help='add a new release to the change metadata')
+        release_parser.set_defaults(func=command_release)
+        release_parser.add_argument('--version',
+                                    help='override release version')
+        release_parser.add_argument('--codename',
+                                    help='override/set release codename')
+        release_parser.add_argument('--date',
+                                    default=str(datetime.date.today()),
+                                    help='override release date')
+        release_parser.add_argument('--reload-plugins',
+                                    action='store_true',
+                                    help='force reload of plugin cache')
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(formatter)
+        generate_parser = subparsers.add_parser('generate',
+                                                parents=[common],
+                                                help='generate the changelog')
+        generate_parser.set_defaults(func=command_generate)
+        generate_parser.add_argument('--reload-plugins',
+                                     action='store_true',
+                                     help='force reload of plugin cache')
 
-    LOGGER.addHandler(handler)
-    LOGGER.setLevel(logging.WARN)
+        if HAS_ARGCOMPLETE:
+            argcomplete.autocomplete(parser)
 
-    args = parser.parse_args()
-    if getattr(args, 'func', None) is None:
-        parser.print_help()
-        parser.exit(2)
+        formatter = logging.Formatter('%(levelname)s %(message)s')
 
-    if args.verbose > 2:
-        LOGGER.setLevel(logging.DEBUG)
-    elif args.verbose > 1:
-        LOGGER.setLevel(logging.INFO)
-    elif args.verbose > 0:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+
+        LOGGER.addHandler(handler)
         LOGGER.setLevel(logging.WARN)
 
-    args.func(args)
+        arguments = parser.parse_args(args[1:])
+
+        if getattr(arguments, 'func', None) is None:
+            parser.print_help()
+            return 2
+
+        verbosity = arguments.verbose
+        if arguments.verbose > 2:
+            LOGGER.setLevel(logging.DEBUG)
+        elif arguments.verbose > 1:
+            LOGGER.setLevel(logging.INFO)
+        elif arguments.verbose > 0:
+            LOGGER.setLevel(logging.WARN)
+
+        return arguments.func(arguments)
+    except SystemExit as e:
+        return e.code
+    except Exception:  # pylint: disable=broad-except
+        if verbosity > 0:
+            traceback.print_exc()
+        else:
+            print('ERROR: Uncaught exception. Run with -v to see traceback.')
+        return 1
 
 
-def command_init(args: Any) -> None:
+def command_init(args: Any) -> int:
     """
     Initialize a changelog config.
 
@@ -141,11 +157,11 @@ def command_init(args: Any) -> None:
     LOGGER.debug('Checking "{}" for existance', paths.galaxy_path)
     if not os.path.exists(cast(str, paths.galaxy_path)):
         LOGGER.error('The file galaxy.yml does not exists in the collection root!')
-        sys.exit(3)
+        return 5
     LOGGER.debug('Checking "{}" for existance', paths.config_path)
     if os.path.exists(paths.config_path):
         LOGGER.error('A configuration file already exists at "{}"!', paths.config_path)
-        sys.exit(3)
+        return 5
 
     galaxy = load_galaxy_metadata(paths)
 
@@ -161,7 +177,7 @@ def command_init(args: Any) -> None:
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create fragments directory "{}"', fragments_dir)
         LOGGER.info('Exception: {}', str(exc))
-        sys.exit(3)
+        return 5
 
     try:
         config.store(paths.config_path)
@@ -169,10 +185,12 @@ def command_init(args: Any) -> None:
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create config file "{}"', paths.config_path)
         LOGGER.info('Exception: {}', str(exc))
-        sys.exit(3)
+        return 5
+
+    return 0
 
 
-def command_release(args: Any) -> None:
+def command_release(args: Any) -> int:
     """
     Add a new release to a changelog.
 
@@ -199,7 +217,7 @@ def command_release(args: Any) -> None:
                 version, codename = get_ansible_release()
             except ValueError:
                 LOGGER.error('Cannot import ansible.release to determine version and codename')
-                sys.exit(3)
+                return 5
 
         elif not version:
             # Codename is not required for collections, only version is
@@ -210,7 +228,7 @@ def command_release(args: Any) -> None:
                     raise Exception('Version in galaxy.yml is not a string')
             except Exception as exc:  # pylint: disable=broad-except
                 LOGGER.error('Error while extracting version from galaxy.yml: {}', str(exc))
-                sys.exit(3)
+                return 5
 
     changes = load_changes(paths, config)
     plugins = load_plugins(paths=paths, version=version, force_reload=reload_plugins)
@@ -218,8 +236,10 @@ def command_release(args: Any) -> None:
     add_release(config, changes, plugins, fragments, version, codename, date)
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
 
+    return 0
 
-def command_generate(args: Any) -> None:
+
+def command_generate(args: Any) -> int:
     """
     (Re-)generate the reStructuredText version of the changelog.
 
@@ -239,7 +259,7 @@ def command_generate(args: Any) -> None:
     changes = load_changes(paths, config)
     if not changes.has_release:
         print('Cannot create changelog when not at least one release has been added.')
-        sys.exit(2)
+        return 5
     plugins: Optional[List[PluginDescription]]
     if reload_plugins:
         plugins = load_plugins(
@@ -249,8 +269,10 @@ def command_generate(args: Any) -> None:
     fragments = load_fragments(paths, config)
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
 
+    return 0
 
-def command_lint(args: Any) -> None:
+
+def command_lint(args: Any) -> int:
     """
     Lint changelog fragments.
 
@@ -264,11 +286,11 @@ def command_lint(args: Any) -> None:
 
     exceptions: List[Tuple[str, Exception]] = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)
-    lint_fragments(config, fragments, exceptions)
+    return lint_fragments(config, fragments, exceptions)
 
 
 def lint_fragments(config: ChangelogConfig, fragments: List[ChangelogFragment],
-                   exceptions: List[Tuple[str, Exception]]) -> None:
+                   exceptions: List[Tuple[str, Exception]]) -> int:
     """
     Lint a given set of changelog fragment objects.
 
@@ -289,3 +311,30 @@ def lint_fragments(config: ChangelogConfig, fragments: List[ChangelogFragment],
 
     for message in messages:
         print(message)
+
+    return 3 if messages else 0
+
+
+def main() -> int:
+    """
+    Entrypoint called from the script.
+
+    console_scripts call functions which take no parameters.  However, it's hard to test a function
+    which takes no parameters so this function lightly wraps :func:`run`, which actually does the
+    heavy lifting.
+
+    :returns: A program return code.
+
+    Return codes:
+        :0: Success
+        :1: Unhandled error.  See the Traceback for more information.
+        :2: There was a problem with the command line arguments
+        :3: Found invalid changelog fragments
+        :4: Needs to be run on a newer version of Python
+        :5: Problem occured which prevented the execution of the command
+    """
+    if sys.version_info < (3, 6):
+        print('Needs Python 3.6 or later')
+        return 4
+
+    return run(sys.argv)

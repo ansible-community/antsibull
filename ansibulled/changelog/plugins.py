@@ -68,6 +68,20 @@ class PluginDescription:
         return plugins
 
 
+def follow_links(path: str) -> str:
+    """
+    Given a path, will recursively resolve symbolic links.
+    """
+    tried_links = set()
+    while os.path.islink(path):
+        if path in tried_links:
+            raise Exception(
+                'Found infinite symbolic link loop involving "{0}"'.format(path))
+        tried_links.add(path)
+        path = os.path.normpath(os.path.join(os.path.dirname(path), os.readlink(path)))
+    return path
+
+
 def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
                         plugin_type: str, name: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -87,13 +101,7 @@ def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
         filename: Optional[str] = docs.get('filename')
         if filename:
             # Follow links
-            tried_links = set()
-            while os.path.islink(filename):
-                if filename in tried_links:
-                    raise Exception(
-                        'Found infinite symbolic link loop involving "{0}"'.format(filename))
-                tried_links.add(filename)
-                filename = os.path.join(os.path.dirname(filename), os.readlink(filename))
+            filename = follow_links(filename)
             # Determine relative path
             if collection_name:
                 rel_to = os.path.join(paths.base_dir, 'plugins', 'modules')
@@ -110,6 +118,9 @@ def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
                 if last not in ('', '.', '..'):
                     namespace_list.insert(0, last)
             namespace = '.'.join(namespace_list)
+        if '.' in name:
+            # Flatmapping
+            name = name[name.rfind('.') + 1:]
     return {
         'description': docs.get('short_description'),
         'name': name,
@@ -118,15 +129,73 @@ def jsondoc_to_metadata(paths: PathsConfig, collection_name: Optional[str],
     }
 
 
-def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
-                         collection_name: Optional[str]) -> Dict[str, Dict[str, Any]]:
+def list_plugins_walk(paths: PathsConfig, plugin_type: str,
+                      collection_name: Optional[str]) -> List[str]:
     """
-    Collect plugin metadata for all plugins of a given type.
+    Find all plugins of a type in a collection, or in Ansible-base. Uses os.walk().
+
+    This will also work with Ansible 2.9.
 
     :arg paths: Paths configuration
     :arg plugin_type: The plugin type to consider
     :arg collection_name: The name of the collection, if appropriate.
     """
+    if paths.galaxy_path:
+        plugin_source_path = os.path.join(paths.base_dir, 'plugins')
+        if plugin_type == 'module':
+            plugin_source_path = os.path.join(plugin_source_path, 'modules')
+        else:
+            plugin_source_path = os.path.join(plugin_source_path, 'plugins', plugin_type)
+    else:
+        plugin_source_path = os.path.join(
+            paths.base_dir, 'lib', 'ansible', 'modules' if plugin_type == 'module' else plugin_type)
+
+    if not os.path.exists(plugin_source_path):
+        return []
+
+    result = set()
+    for dirpath, _, filenames in os.walk(plugin_source_path):
+        if plugin_type != 'module' and dirpath == plugin_source_path:
+            continue
+        for filename in filenames:
+            if filename == '__init__.py' or not filename.endswith('.py'):
+                continue
+            path = follow_links(os.path.join(dirpath, filename))
+            if path.endswith('.py'):
+                path = path[:-len('.py')]
+            relpath = os.path.relpath(path, plugin_source_path)
+            relname = relpath.replace(os.sep, '.')
+            if collection_name:
+                relname = '{0}.{1}'.format(collection_name, relname)
+            result.add(relname)
+
+    return sorted(result)
+
+
+def list_plugins_ansibledoc(paths: PathsConfig, plugin_type: str,
+                            collection_name: Optional[str]) -> List[str]:
+    """
+    Find all plugins of a type in a collection, or in Ansible-base. Uses ansible-doc.
+
+    Note that ansible-doc from Ansible 2.10 or newer is needed for this!
+
+    :arg paths: Paths configuration
+    :arg plugin_type: The plugin type to consider
+    :arg collection_name: The name of the collection, if appropriate.
+    """
+    if paths.galaxy_path:
+        plugin_source_path = os.path.join(paths.base_dir, 'plugins')
+        if plugin_type == 'module':
+            plugin_source_path = os.path.join(plugin_source_path, 'modules')
+        else:
+            plugin_source_path = os.path.join(plugin_source_path, 'plugins', plugin_type)
+    else:
+        plugin_source_path = os.path.join(
+            paths.base_dir, 'lib', 'ansible', 'modules' if plugin_type == 'module' else plugin_type)
+
+    if not os.path.exists(plugin_source_path) or os.listdir(plugin_source_path) == []:
+        return []
+
     command = [paths.ansible_doc_path or 'ansible-doc', '--json', '-t', plugin_type, '--list']
     if collection_name:
         command.append(collection_name)
@@ -139,18 +208,40 @@ def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
             name: data for name, data in plugins_list.items()
             if '.' not in name or name.startswith('ansible.builtin.')
         }
+    else:
+        # Filter out without / wrong FQCN
+        plugins_list = {
+            name: data for name, data in plugins_list.items()
+            if name.startswith(collection_name + '.')
+        }
+
+    return sorted(plugins_list.keys())
+
+
+def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
+                         collection_name: Optional[str]) -> Dict[str, Dict[str, Any]]:
+    """
+    Collect plugin metadata for all plugins of a given type.
+
+    :arg paths: Paths configuration
+    :arg plugin_type: The plugin type to consider
+    :arg collection_name: The name of the collection, if appropriate.
+    """
+    plugins_list = list_plugins_walk(paths, plugin_type, collection_name)
+    # plugins_list = list_plugins_ansibledoc(paths, plugin_type, collection_name)
 
     result: Dict[str, Dict[str, Any]] = {}
     if not plugins_list:
         return result
 
     command = [paths.ansible_doc_path or 'ansible-doc', '--json', '-t', plugin_type]
-    command.extend(sorted(plugins_list.keys()))
+    command.extend(plugins_list)
     output = subprocess.check_output(command)
     plugins_data = json.loads(output.decode('utf-8'))
 
     for name, data in plugins_data.items():
-        result[name] = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
+        processed_data = jsondoc_to_metadata(paths, collection_name, plugin_type, name, data)
+        result[processed_data['name']] = processed_data
     return result
 
 

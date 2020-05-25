@@ -1,0 +1,5 @@
+{
+    "errors": [
+        [0, 0, "Invalid ancestor version: error while parse version '2.9.0b1': Invalid version string: '2.9.0b1'"]
+    ]
+}

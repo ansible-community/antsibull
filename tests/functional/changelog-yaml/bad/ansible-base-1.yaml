@@ -1,0 +1,65 @@
+ancestor: 2.9.0b1
+releases:
+  2.10.0:
+    changes:
+      bugfixes:
+      - '**security issue** - The ``subversion`` module provided the password via
+        the svn command line option ``--password`` and can be retrieved from the host''s
+        /proc/<pid>/cmdline file. Update the module to use the secure ``--password-from-stdin``
+        option instead, and add a warning in the module and in the documentation if
+        svn version is too old to support it. (CVE-2020-1739)
+
+        '
+      - '**security issue** - Update ``AnsibleUnsafeText`` and ``AnsibleUnsafeBytes``
+        to maintain unsafe context by overriding ``.encode`` and ``.decode``. This
+        prevents future issues with ``to_text``, ``to_bytes``, or ``to_native`` removing
+        the unsafe wrapper when converting between string types (CVE-2019-14856)
+
+        '
+      - 'AnsibleModule.run_command() - set ``close_fds`` to ``False`` on Python 2
+        if ``pass_fds`` are passed to ``run_command()``. Since ``subprocess.Popen()``
+        on Python 2 does not have the ``pass_fds`` option, there is no way to exclude
+        a specific list of file descriptors from being closed.
+
+        '
+      - By passing the module_tmpdir as a parameter in the write_ssh_wrapper function
+        instead of initalizing module_tmpdir via get_module_path()
+      - '``AnsibleUnsafe``/``AnsibleContext``/``Templar`` - Do not treat ``AnsibleUndefined``
+        as being "unsafe" (https://github.com/ansible/ansible/issues/65198)'
+      - ansible-galaxy - Utilize ``Templar`` for templating skeleton files, so that
+        they have access to Ansible filters/tests/lookups (https://github.com/ansible/ansible/issues/69104)
+      - 'ansible-galaxy - fix a bug where listing a specific role if it was not in
+        the first path failed to find the role
+
+        '
+      - ansible-galaxy - fix regression that prenented roles from being listed
+      - ansible-galaxy - properly list roles when the role name also happens to be
+        in the role path (https://github.com/ansible/ansible/issues/67365)
+      - get_url - Don't treat no checksum as a checksum match (https://github.com/ansible/ansible/issues/61978)
+      - get_url pass incorrect If-Modified-Since header (https://github.com/ansible/ansible/issues/67417)
+      - git - when force=True, apply --force flag to git fetches as well
+      - 'group - The group module was not correctly detecting whether a local group
+        is existing or not with local set to yes if the same group exists in a non
+        local group repository e.g. LDAP. (https://github.com/ansible/ansible/issues/58619)
+
+        '
+      deprecated_features:
+      - hash_behaviour - Deprecate ``hash_behaviour`` for future removal.
+      - script inventory plugin - The 'cache' option is deprecated and will be removed
+        in 2.12. Its use has been removed from the plugin since it has never had any
+        effect.
+      minor_changes:
+      - '''Edit on GitHub'' link for plugin, cli documentation fixed to navigate to
+        correct plugin, cli source.'
+      - A `vmware` module_defaults group has been added to simplify parameters for
+        multiple VMware tasks. This group includes all VMware modules.
+      removed_features:
+      - core - remove support for ``check_invalid_arguments`` in ``AnsibleModule``,
+        ``AzureModule`` and ``UTMModule``.
+    codename: When the Levee Breaks
+    fragments:
+    - 39295-grafana_dashboard.yml
+    - 47050-copy_ensure-_original_basename-is-set.yaml
+    - 51489-apt-not-honor-update-cache.yml
+    - 51595-adds-win32_diskdrive-object-to-win_disk_facts.yaml
+    release_date: '2020-05-01'

@@ -1,0 +1,6 @@
+{
+    "errors": [
+        [0, 0, "'releases' -> '1.0.0' -> 'modules' -> 0 -> 'name' must not be a FQCN"],
+        [0, 0, "'releases' -> '1.0.0' -> 'modules' -> 1 -> 'name' must not be a FQCN"]
+    ]
+}

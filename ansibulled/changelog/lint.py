@@ -35,7 +35,7 @@ class ChangelogYamlLinter:
         self.errors = []
         self.path = path
 
-    def check_version(self, version: str, message: str) -> Optional[semantic_version.Version]:
+    def check_version(self, version: Any, message: str) -> Optional[semantic_version.Version]:
         """
         Check that the given version is a valid semantic version.
 
@@ -44,22 +44,24 @@ class ChangelogYamlLinter:
         :return: A ``semantic_version.Version`` object
         """
         try:
+            if not isinstance(version, str):
+                raise ValueError('Expecting string')
             return semantic_version.Version(version)
         except ValueError as exc:
             self.errors.append((self.path, 0, 0,
-                                '{0}: error while parse version "{1}": {2}'
+                                '{0}: error while parse version {1!r}: {2}'
                                 .format(message, version, exc)))
             return None
 
     @staticmethod
-    def _format_yaml_path(yaml_path: List[str]) -> str:
+    def _format_yaml_path(yaml_path: List[Any]) -> str:
         """
         Format path to YAML element as string.
         """
-        return "'{0}'".format("' -> '".join(yaml_path))
+        return "{0}".format(" -> ".join([repr(component) for component in yaml_path]))
 
     def verify_type(self, value: Any, allowed_types: Tuple[Type[Any], ...],
-                    yaml_path: List[str], allow_none=False) -> bool:
+                    yaml_path: List[Any], allow_none=False) -> bool:
         """
         Verify that a value is of a given type.
 
@@ -88,7 +90,7 @@ class ChangelogYamlLinter:
         )))
         return False
 
-    def verify_plugin(self, plugin: dict, yaml_path: List[str], is_module: bool) -> None:
+    def verify_plugin(self, plugin: dict, yaml_path: List[Any], is_module: bool) -> None:
         """
         Verify that a given dictionary is a plugin or module description.
 
@@ -107,8 +109,7 @@ class ChangelogYamlLinter:
             self.verify_type(plugin.get('description'), (str, ), yaml_path + ['description'])
             namespace = plugin.get('namespace')
             if is_module:
-                if self.verify_type(namespace, (str, ), yaml_path + ['namespace'],
-                                    allow_none=True):
+                if self.verify_type(namespace, (str, ), yaml_path + ['namespace']):
                     namespace = cast(str, namespace)
                     if ' ' in namespace or '/' in namespace or '\\' in namespace:
                         self.errors.append((self.path, 0, 0, '{0} must not contain spaces or '
@@ -133,15 +134,29 @@ class ChangelogYamlLinter:
                 if plugin_type not in get_documentable_plugins() or plugin_type == 'module':
                     self.errors.append((
                         self.path, 0, 0,
-                        'Unknown plugin type "{0}" in {1}'.format(
+                        'Unknown plugin type {0!r} in {1}'.format(
                             plugin_type, self._format_yaml_path(
                                 ['releases', version_str, 'plugins']))))
             if self.verify_type(plugins, (list, ),
                                 ['releases', version_str, 'plugins', plugin_type]):
                 for idx, plugin in enumerate(plugins):
                     self.verify_plugin(plugin,
-                                       ['releases', version_str, 'modules', plugin_type, str(idx)],
+                                       ['releases', version_str, 'modules', plugin_type, idx],
                                        is_module=False)
+
+    def lint_changes(self, fragment_linter: ChangelogFragmentLinter,
+                     version_str: str, changes: dict):
+        """
+        Lint changes for an entry of the releases list.
+
+        :arg fragment_linter: A fragment linter
+        :arg version_str: The version the changes belongs to
+        :arg entry: The changes dictionary
+        """
+        fragment = ChangelogFragment.from_dict(changes, self.path)
+        for error in fragment_linter.lint(fragment):
+            self.errors.append((error[0], error[1], error[2], '{1}: {0}'.format(
+                error[3], self._format_yaml_path(['releases', version_str, 'changes']))))
 
     def lint_releases_entry(self, fragment_linter: ChangelogFragmentLinter,
                             version_str: str, entry: dict):
@@ -169,10 +184,7 @@ class ChangelogYamlLinter:
         if self.verify_type(changes, (dict, ),
                             ['releases', version_str, 'changes'],
                             allow_none=True) and changes:
-            changes = cast(dict, changes)
-            if changes is not None:
-                fragment = ChangelogFragment.from_dict(changes, self.path)
-                self.errors += fragment_linter.lint(fragment)
+            self.lint_changes(fragment_linter, version_str, cast(dict, changes))
 
         modules = entry.get('modules')
         if self.verify_type(modules, (list, ),
@@ -181,7 +193,7 @@ class ChangelogYamlLinter:
             modules = cast(list, modules)
             for idx, plugin in enumerate(modules):
                 self.verify_plugin(plugin,
-                                   ['releases', version_str, 'modules', str(idx)],
+                                   ['releases', version_str, 'modules', idx],
                                    is_module=True)
 
         plugins = entry.get('plugins')
@@ -198,7 +210,7 @@ class ChangelogYamlLinter:
             fragments = cast(list, fragments)
             for idx, fragment in enumerate(fragments):
                 self.verify_type(fragment, (str, ),
-                                 ['releases', version_str, 'fragments', str(idx)])
+                                 ['releases', version_str, 'fragments', idx])
 
     def lint(self) -> List[Tuple[str, int, int, str]]:
         """
@@ -227,8 +239,8 @@ class ChangelogYamlLinter:
                 if version is not None and ancestor is not None:
                     if version <= ancestor:
                         self.errors.append((self.path, 0, 0,
-                                            'release version "{0}" must come after ancestor '
-                                            'version "{1}"'.format(version_str, ancestor_str)))
+                                            'release version {0!r} must come after ancestor '
+                                            'version {1!r}'.format(version_str, ancestor_str)))
 
                 # Check release information
                 if self.verify_type(entry, (dict, ), ['releases', version_str]):
