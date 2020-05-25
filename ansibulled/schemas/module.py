@@ -8,8 +8,8 @@ import typing as t
 
 import pydantic as p
 
-from .base import (BaseModel, DocSchema, LocalConfig, OptionsSchema, transform_return_docs)
-from .plugin import PluginReturnSchema
+from .base import BaseModel, DocSchema, OptionsSchema
+from .plugin import PluginExamplesSchema, PluginMetadataSchema, PluginReturnSchema
 
 
 class InnerModuleOptionsSchema(OptionsSchema):
@@ -30,32 +30,17 @@ class ModuleOptionsSchema(OptionsSchema):
     suboptions: t.Dict[str, 'InnerModuleOptionsSchema'] = {}
 
 
-class ModuleDocSchema(DocSchema):
+class OuterModuleDocSchema(DocSchema):
     options: t.Dict[str, ModuleOptionsSchema] = {}
 
 
 # Ignore Uninitialized attribute error as BaseModel works some magic to initialize the
 # attributes when data is loaded into them.
 # pyre-ignore[13]
-class ModuleSchema(BaseModel):
+class ModuleDocSchema(BaseModel):
+    doc: OuterModuleDocSchema
+
+
+class ModuleSchema(ModuleDocSchema, PluginExamplesSchema, PluginMetadataSchema,
+                   PluginReturnSchema, BaseModel):
     """Documentation for modules."""
-
-    class Config(LocalConfig):
-        fields = {'return_': 'return',
-                  }
-
-    doc: ModuleDocSchema
-    examples: str = ''
-    metadata: t.Optional[t.Dict[str, t.Any]] = None
-    # return_: t.Dict[str, t.Any] = {}
-    return_: t.Dict[str, PluginReturnSchema] = {}
-
-    @p.validator('return_', pre=True)
-    def transform_return(cls, obj):
-        return transform_return_docs(obj)
-
-    @p.validator('examples', pre=True)
-    def normalize_examples(cls, value):
-        if value is None:
-            value = ''
-        return value

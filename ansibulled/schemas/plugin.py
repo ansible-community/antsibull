@@ -12,11 +12,9 @@ import typing as t
 
 import pydantic as p
 
-from .base import (REQUIRED_ENV_VAR_F, JSONValueT, OPTION_TYPE_F, RETURN_TYPE_F,
-                   BaseModel, DeprecationSchema, DocSchema, LocalConfig,
-                   OptionsSchema, list_from_scalars,
+from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, BaseModel, DeprecationSchema,
+                   DocSchema, JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
                    normalize_option_type_names, transform_return_docs)
-
 
 _SENTINEL = object()
 
@@ -93,7 +91,7 @@ class InnerReturnSchema(ReturnSchema):
 InnerReturnSchema.update_forward_refs()
 
 
-class PluginReturnSchema(ReturnSchema):
+class OuterReturnSchema(ReturnSchema):
     """Toplevel return schema."""
 
     contains: t.Dict[str, InnerReturnSchema] = {}
@@ -109,28 +107,40 @@ class PluginOptionsSchema(OptionsSchema):
 PluginOptionsSchema.update_forward_refs()
 
 
-class PluginDocSchema(DocSchema):
+class InnerDocSchema(DocSchema):
     options: t.Dict[str, PluginOptionsSchema] = {}
 
 
-class PluginSchema(BaseModel):
-    """Documentation of an Ansible plugin."""
+class PluginDocSchema(BaseModel):
+    doc: InnerDocSchema
 
-    class Config(LocalConfig):
-        fields = {'return_': 'return',
-                  }
 
-    doc: PluginDocSchema
+class PluginExamplesSchema(BaseModel):
     examples: str = ''
-    metadata: t.Optional[t.Dict[str, t.Any]] = None
-    return_: t.Dict[str, PluginReturnSchema] = {}
-
-    @p.validator('return_', pre=True)
-    def transform_return(cls, obj):
-        return transform_return_docs(obj)
 
     @p.validator('examples', pre=True)
     def normalize_examples(cls, value):
         if value is None:
             value = ''
         return value
+
+
+class PluginMetadataSchema(BaseModel):
+    metadata: t.Optional[t.Dict[str, t.Any]] = None
+
+
+class PluginReturnSchema(BaseModel):
+    class Config(LocalConfig):
+        fields = {'return_': 'return',
+                  }
+
+    return_: t.Dict[str, OuterReturnSchema] = {}
+
+    @p.validator('return_', pre=True)
+    def transform_return(cls, obj):
+        return transform_return_docs(obj)
+
+
+class PluginSchema(PluginDocSchema, PluginExamplesSchema, PluginMetadataSchema, PluginReturnSchema,
+                   BaseModel):
+    """Documentation of an Ansible plugin."""

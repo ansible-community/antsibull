@@ -2,7 +2,12 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""Schemas for the plugin DOCUMENTATION data."""
+"""
+Schemas for the plugin DOCUMENTATION data.
+
+This is a highlevel interface.  The hope is that developers can use either this or
+ansibulled.schemas.docs to handle all of their validation needs.
+"""
 
 # Ignore Unitialized attribute errors because BaseModel works some magic
 # to initialize the attributes when data is loaded into them.
@@ -28,6 +33,12 @@ class AnsibleDocSchema(BaseModel):
         plugin_type:
             plugin_name:
                 # json.loads(ansible-doc -t plugin_type --json plugin_name)
+
+    Pass the dict above to :meth:`AnsibleDocSchema.parse_obj` to build the models from the schema.
+
+    If you want to use the Schema to validate and normalize the data but need a :python:obj:`dict`
+    afterwards, call :meth:`AnsibleDocSchema.dict` on the populated model to get
+    a :python:obj:`dict` back out.
     """
 
     become: t.Dict[str, PluginSchema]
@@ -50,13 +61,39 @@ class GenericPluginSchema(BaseModel):
     Document the output of ``ansible-doc -t PLUGIN_TYPE PLUGIN_NAME``.
 
     .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
-        to the ``__root`` key. This happens because the toplevel key of ansible-doc's output is
+        to the ``__root__`` key. This happens because the toplevel key of ansible-doc's output is
         a dynamic key which we can't automatically map to an attribute name.
     """
 
     __root__: t.Dict[str, PluginSchema]
 
 
+class CallbackPluginSchema(BaseModel):
+    """
+    Document the output of ``ansible-doc -t callback CALLBACK_NAME``.
+
+    .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
+        to the ``__root__`` key. This happens because the toplevel key of ansible-doc's output is
+        a dynamic key which we can't automatically map to an attribute name.
+    """
+
+    __root__: t.Dict[str, CallbackSchema]
+
+
+class ModulePluginSchema(BaseModel):
+    """
+    Document the output of ``ansible-doc -t module MODULE_NAME``.
+
+    .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
+        to the ``__root__`` key. This happens because the toplevel key of ansible-doc's output is
+        a dynamic key which we can't automatically map to an attribute name.
+    """
+
+    __root__: t.Dict[str, ModuleSchema]
+
+
+#: Make sure users can access plugins using the plugin type rather than having to guess that
+#: these types use the GenericPluginSchema
 BecomePluginSchema = GenericPluginSchema
 CachePluginSchema = GenericPluginSchema
 CliConfPluginSchema = GenericPluginSchema
@@ -70,25 +107,20 @@ StrategyPluginSchema = GenericPluginSchema
 VarsPluginSchema = GenericPluginSchema
 
 
-class CallbackPluginSchema(BaseModel):
-    """
-    Document the output of ``ansible-doc -t callback CALLBACK_NAME``.
-
-    .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
-        to the ``__root`` key. This happens because the toplevel key of ansible-doc's output is
-        a dynamic key which we can't automatically map to an attribute name.
-    """
-
-    __root__: t.Dict[str, CallbackSchema]
-
-
-class ModulePluginSchema(BaseModel):
-    """
-    Document the output of ``ansible-doc -t module MODULE_NAME``.
-
-    .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
-        to the ``__root`` key. This happens because the toplevel key of ansible-doc's output is
-        a dynamic key which we can't automatically map to an attribute name.
-    """
-
-    __root__: t.Dict[str, ModuleSchema]
+#: A mapping from plugin type to the Schema to use for them.  Use this to more easily get
+#: the Schema programmatically.
+ANSIBLE_DOC_SCHEMAS = {
+    'become': BecomePluginSchema,
+    'cache': CachePluginSchema,
+    'callback': CallbackPluginSchema,
+    'cliconf': CliConfPluginSchema,
+    'connection': ConnectionPluginSchema,
+    'httpapi': HttpApiPluginSchema,
+    'inventory': InventoryPluginSchema,
+    'lookup': LookupPluginSchema,
+    'module': ModulePluginSchema,
+    'netconf': NetConfPluginSchema,
+    'shell': ShellPluginSchema,
+    'strategy': StrategyPluginSchema,
+    'vars': VarsPluginSchema,
+}

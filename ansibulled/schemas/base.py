@@ -9,22 +9,50 @@
 """
 Base schemas and supporting validator functions.
 
-How to use these schemas effectively
-====================================
-
 `Pydantic <https://pydantic-docs.helpmanual.io/>`_  is written to be an advanced version of
 :python:mod:`dataclasses`.  It's primary use case is creating Python objects that hold data (think
 of traditional C-style ``structs``).  As such, it is optimized for a slightly different use case
 than what we are using it for.  However, the utility methods that come with pydantic make it quite
 usable for data validation and normalization even with this difference in goals.
 
+How to use these schemas effectively
+====================================
+
+The schemas shipped with ansibulled allow you to validate and normalize plugin documentation.  This
+way, you can use data from the plugins for web documentation, display on the command line, or
+testing that your documentation is well formed.
+
 To use these schemas, follow these steps:
 
-* Choose the Schema that matches with the level of data that you want to validate.
+* Choose the Schema that matches with the level of data that you want to validate and normalize.
+
+    * If you want to validate and normalize :ansible:cmd:`ansible-doc` output, use the schemas in
+      :mod:`ansibulled.schemas.ansible_doc`.
+
+      * :obj:`~ansibulled.schemas.ansible_doc.AnsibleDocSchema` lets you validate the documentation
+        for multiple plugins at once.  It is useful if all you want to do is validate documentation
+        as you can run it once and then get all the errors.
+
+      * If you want to normalize the data and use it to make documentation then the schemas in
+        :attr:`~ansibulled.schemas.ansible_doc.ANSIBLE_DOC_SCHEMAS` might be more appropriate.
+        These schemas can be run on individual plugin data.  The advantage of using them is that
+        an error in documentation will only fail that one plugin, not all of them.
+
+    * If you need more fine grained control, you can use the schemas in
+      :mod:`ansibulled.schemas.docs.DOCS_SCHEMAS`.  These schemas give you access to the individual
+      components of a plugin's documentation, doc, example, metadata, and return.  That way you can
+      create documentation if any one of these (or specific ones) can be normalized even if the
+      others cannot.
+
 * Use one of the pydantic.BaseModel `alternate constructors
   <https://pydantic-docs.helpmanual.io/usage/models/#helper-functions>`_
-  to load the data into the Schema.
+  to load the data into the Schema.  :ansible:cmd:`ansible-doc` output is json, for instance, so you
+  can feed that directly to :meth:`ansible_doc.ModulePluginSchema.parse_raw` (or the same method on
+  a different schema).  If you have to manipulate the data as a dict first, you can use
+  :meth:`ansible_doc.ModulePluginSchema.parse_obj`.
+
 * The Schema will validate and normalize the data as it is loaded.
+
 * Call the `dict() <https://pydantic-docs.helpmanual.io/usage/exporting_models/#modeldict>`_
   method on the returned model to convert the data back into a dict so that you can use it with
   templating engines or modify the structure of the data.
@@ -38,6 +66,7 @@ One example of doing all this:
     >>> template = jinja2.Template('{{ name }} -- {{ doc["short_description"] }}')
     >>> module_json = sh.ansible_doc('-t', 'module', '--json', 'yum').stdout
     >>> module_model = ansible_doc.ModulePluginSchema.parse_raw(module_json)
+    >>> # Retrieve the data from the __root__ field of the dict representation:
     >>> module_dict = module_model.dict()['__root__']
     >>> for plugin_name, plugin_info in module_dict.items():
     >>>     out = template.render(name=plugin_name, doc=plugin_info['doc'])
@@ -257,7 +286,7 @@ class OptionsSchema(BaseModel):
         """
         Remove name from this schema.
 
-        ``name`` is redundant with ``description``.  If we did need a shorter description gere for
+        ``name`` is redundant with ``description``.  If we did need a shorter description here for
         some reason, we should call it ``short_description`` to match the other parts of the schema.
         """
         if 'name' in values:
