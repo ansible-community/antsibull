@@ -17,7 +17,31 @@ import yaml
 from .config import PathsConfig, ChangelogConfig
 
 
-LOGGER = logging.getLogger('changelog')
+class FormattingAdapter(logging.LoggerAdapter):
+    """
+    By default, the logging framework does not allow to format messages
+    other than by % formatting, except by jumping through loops. This
+    makes {} formatting work with the least amount of work.
+
+    The idea is similar to the one in https://stackoverflow.com/a/24683360
+    """
+
+    def __init__(self, logger):
+        self.logger = logger
+        self.logger_args = ['exc_info', 'extra', 'stack_info']
+
+    def log(self, level, msg, *args, **kwargs):
+        if self.isEnabledFor(level):
+            log_kwargs = {
+                key: kwargs[key] for key in self.logger_args if key in kwargs
+            }
+            self.logger._log(level, msg.format(*args, **kwargs), (), **log_kwargs)
+
+    def addHandler(self, *args, **kwargs):
+        self.logger.addHandler(*args, **kwargs)
+
+
+LOGGER = FormattingAdapter(logging.getLogger('changelog'))
 
 
 def load_galaxy_metadata(paths: PathsConfig) -> dict:
