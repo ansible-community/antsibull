@@ -49,6 +49,88 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
             "Ansible checkout and outside a collection repository.\n")
 
 
+def create_argparser(program_name: str) -> argparse.ArgumentParser:
+    """
+    Create CLI argument parser.
+    """
+    parser = argparse.ArgumentParser(
+        prog=program_name,
+        description='Changelog generator and linter.')
+
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument('-v', '--verbose',
+                        action='count',
+                        default=0,
+                        help='increase verbosity of output')
+
+    subparsers = parser.add_subparsers(metavar='COMMAND')
+
+    init_parser = subparsers.add_parser('init',
+                                        parents=[common],
+                                        help='set up changelog infrastructure for collection')
+    init_parser.set_defaults(func=command_init)
+    init_parser.add_argument('root',
+                             metavar='COLLECTION_ROOT',
+                             help='path to collection root')
+
+    lint_parser = subparsers.add_parser('lint',
+                                        parents=[common],
+                                        help='check changelog fragments for syntax errors')
+    lint_parser.set_defaults(func=command_lint)
+    lint_parser.add_argument('fragments',
+                             metavar='FRAGMENT',
+                             nargs='*',
+                             help='path to fragment to test')
+
+    release_parser = subparsers.add_parser('release',
+                                           parents=[common],
+                                           help='add a new release to the change metadata')
+    release_parser.set_defaults(func=command_release)
+    release_parser.add_argument('--version',
+                                help='override release version')
+    release_parser.add_argument('--codename',
+                                help='override/set release codename')
+    release_parser.add_argument('--date',
+                                default=str(datetime.date.today()),
+                                help='override release date')
+    release_parser.add_argument('--reload-plugins',
+                                action='store_true',
+                                help='force reload of plugin cache')
+
+    generate_parser = subparsers.add_parser('generate',
+                                            parents=[common],
+                                            help='generate the changelog')
+    generate_parser.set_defaults(func=command_generate)
+    generate_parser.add_argument('--reload-plugins',
+                                 action='store_true',
+                                 help='force reload of plugin cache')
+
+    if HAS_ARGCOMPLETE:
+        argcomplete.autocomplete(parser)
+
+    return parser
+
+
+def setup_logger(verbosity: int) -> None:
+    """
+    Setup logger.
+    """
+    formatter = logging.Formatter('%(levelname)s %(message)s')
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+
+    LOGGER.addHandler(handler)
+    LOGGER.setLevel(logging.WARN)
+
+    if verbosity > 2:
+        LOGGER.setLevel(logging.DEBUG)
+    elif verbosity > 1:
+        LOGGER.setLevel(logging.INFO)
+    elif verbosity > 0:
+        LOGGER.setLevel(logging.WARN)
+
+
 def run(args: List[str]) -> int:
     """
     Main program entry point.
@@ -56,68 +138,7 @@ def run(args: List[str]) -> int:
     verbosity = 0
     try:
         program_name = os.path.basename(args[0])
-        parser = argparse.ArgumentParser(
-            prog=program_name,
-            description='Changelog generator and linter.')
-
-        common = argparse.ArgumentParser(add_help=False)
-        common.add_argument('-v', '--verbose',
-                            action='count',
-                            default=0,
-                            help='increase verbosity of output')
-
-        subparsers = parser.add_subparsers(metavar='COMMAND')
-
-        init_parser = subparsers.add_parser('init',
-                                            parents=[common],
-                                            help='set up changelog infrastructure for collection')
-        init_parser.set_defaults(func=command_init)
-        init_parser.add_argument('root',
-                                 metavar='COLLECTION_ROOT',
-                                 help='path to collection root')
-
-        lint_parser = subparsers.add_parser('lint',
-                                            parents=[common],
-                                            help='check changelog fragments for syntax errors')
-        lint_parser.set_defaults(func=command_lint)
-        lint_parser.add_argument('fragments',
-                                 metavar='FRAGMENT',
-                                 nargs='*',
-                                 help='path to fragment to test')
-
-        release_parser = subparsers.add_parser('release',
-                                               parents=[common],
-                                               help='add a new release to the change metadata')
-        release_parser.set_defaults(func=command_release)
-        release_parser.add_argument('--version',
-                                    help='override release version')
-        release_parser.add_argument('--codename',
-                                    help='override/set release codename')
-        release_parser.add_argument('--date',
-                                    default=str(datetime.date.today()),
-                                    help='override release date')
-        release_parser.add_argument('--reload-plugins',
-                                    action='store_true',
-                                    help='force reload of plugin cache')
-
-        generate_parser = subparsers.add_parser('generate',
-                                                parents=[common],
-                                                help='generate the changelog')
-        generate_parser.set_defaults(func=command_generate)
-        generate_parser.add_argument('--reload-plugins',
-                                     action='store_true',
-                                     help='force reload of plugin cache')
-
-        if HAS_ARGCOMPLETE:
-            argcomplete.autocomplete(parser)
-
-        formatter = logging.Formatter('%(levelname)s %(message)s')
-
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-
-        LOGGER.addHandler(handler)
-        LOGGER.setLevel(logging.WARN)
+        parser = create_argparser(program_name)
 
         arguments = parser.parse_args(args[1:])
 
@@ -126,12 +147,7 @@ def run(args: List[str]) -> int:
             return 2
 
         verbosity = arguments.verbose
-        if arguments.verbose > 2:
-            LOGGER.setLevel(logging.DEBUG)
-        elif arguments.verbose > 1:
-            LOGGER.setLevel(logging.INFO)
-        elif arguments.verbose > 0:
-            LOGGER.setLevel(logging.WARN)
+        setup_logger(verbosity)
 
         return arguments.func(arguments)
     except ChangelogError as e:
