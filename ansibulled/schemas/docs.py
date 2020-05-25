@@ -5,16 +5,14 @@
 """
 Schemas for the plugin DOCUMENTATION data.
 
-This is a highlevel interface.  The hope is that eventually people can use either this or
-ansibulled.  Right now that's probably infeasible because people will want to validate a smaller
-piece of the docs so that they can recover from errors (for instance, validate the docs, examples,
-metadta, and returndocs separately.  Only fail if docs doesn't validate.
+This is a highlevel interface.  The hope is that developers can use either this or
+ansibulled.schemas.ansible_doc to handle all of their validation needs.
 """
 
-from .plugin import PluginSchema
-from .callback import CallbackSchema
-from .module import ModuleSchema
-
+from .callback import CallbackDocSchema, CallbackSchema
+from .module import ModuleDocSchema, ModuleSchema
+from .plugin import (PluginDocSchema, PluginExamplesSchema,
+                     PluginMetadataSchema, PluginReturnSchema, PluginSchema)
 
 BecomeSchema = PluginSchema
 CacheSchema = PluginSchema
@@ -28,18 +26,45 @@ ShellSchema = PluginSchema
 StrategySchema = PluginSchema
 VarsSchema = PluginSchema
 
-SCHEMAS = {
-    'become': PluginSchema,
-    'cache': PluginSchema,
-    'callback': CallbackSchema,
-    'cliconf': PluginSchema,
-    'connection': PluginSchema,
-    'httpapi': PluginSchema,
-    'inventory': PluginSchema,
-    'lookup': PluginSchema,
-    'module': ModuleSchema,
-    'netconf': PluginSchema,
-    'shell': PluginSchema,
-    'strategy': PluginSchema,
-    'vars': PluginSchema,
+
+#: The schemas that most plugins use to validate and normalize their documentation.
+_PLUGIN_SCHEMA_RECORD = {
+    'top': PluginSchema,
+    'doc': PluginDocSchema,
+    'example': PluginExamplesSchema,
+    'metadata': PluginMetadataSchema,
+    'return': PluginReturnSchema,
+}
+
+
+#: Mapping of plugin_types to the schemas which validate and normalize their documentation.
+#: The structure of this mapping is a two level nested dict.  The outer key is the plugin_type.
+#: The inner keys are the sections of the documentation (doc, example, metadata, return, or top
+#: [which combines all of hte above, such as ansible-doc returns]) to validate.
+DOCS_SCHEMAS = {
+    'become': _PLUGIN_SCHEMA_RECORD,
+    'cache': _PLUGIN_SCHEMA_RECORD,
+    'callback': {
+        'top': CallbackSchema,
+        'doc': CallbackDocSchema,
+        'example': PluginExamplesSchema,
+        'metadata': PluginMetadataSchema,
+        'return': PluginReturnSchema,
+    },
+    'cliconf': _PLUGIN_SCHEMA_RECORD,
+    'connection': _PLUGIN_SCHEMA_RECORD,
+    'httpapi': _PLUGIN_SCHEMA_RECORD,
+    'inventory': _PLUGIN_SCHEMA_RECORD,
+    'lookup': _PLUGIN_SCHEMA_RECORD,
+    'module': {
+        'top': ModuleSchema,
+        'doc': ModuleDocSchema,
+        'example': PluginExamplesSchema,
+        'metadata': PluginMetadataSchema,
+        'return': PluginReturnSchema,
+    },
+    'netconf': _PLUGIN_SCHEMA_RECORD,
+    'shell': _PLUGIN_SCHEMA_RECORD,
+    'strategy': _PLUGIN_SCHEMA_RECORD,
+    'vars': _PLUGIN_SCHEMA_RECORD,
 }
