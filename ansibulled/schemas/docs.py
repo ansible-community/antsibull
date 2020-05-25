@@ -31,7 +31,7 @@ VarsSchema = PluginSchema
 _PLUGIN_SCHEMA_RECORD = {
     'top': PluginSchema,
     'doc': PluginDocSchema,
-    'example': PluginExamplesSchema,
+    'examples': PluginExamplesSchema,
     'metadata': PluginMetadataSchema,
     'return': PluginReturnSchema,
 }
@@ -47,7 +47,7 @@ DOCS_SCHEMAS = {
     'callback': {
         'top': CallbackSchema,
         'doc': CallbackDocSchema,
-        'example': PluginExamplesSchema,
+        'examples': PluginExamplesSchema,
         'metadata': PluginMetadataSchema,
         'return': PluginReturnSchema,
     },
@@ -59,7 +59,7 @@ DOCS_SCHEMAS = {
     'module': {
         'top': ModuleSchema,
         'doc': ModuleDocSchema,
-        'example': PluginExamplesSchema,
+        'examples': PluginExamplesSchema,
         'metadata': PluginMetadataSchema,
         'return': PluginReturnSchema,
     },
