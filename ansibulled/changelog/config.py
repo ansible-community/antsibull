@@ -15,11 +15,15 @@ from typing import Mapping, Optional
 
 import yaml
 
+from .utils import LOGGER
+
 
 class PathsConfig:
     """
     Configuration for paths.
     """
+
+    is_collection: bool
 
     base_dir: str
     galaxy_path: Optional[str]
@@ -35,7 +39,7 @@ class PathsConfig:
     def _config_path(changelog_dir: str) -> str:
         return os.path.join(changelog_dir, 'config.yaml')
 
-    def __init__(self, base_dir: str, galaxy_path: Optional[str],
+    def __init__(self, is_collection: bool, base_dir: str, galaxy_path: Optional[str],
                  ansible_doc_path: Optional[str]):
         """
         Forces configuration with given base path.
@@ -44,7 +48,11 @@ class PathsConfig:
         :arg galaxy_path: Path to galaxy.yml for collection checkouts
         :arg ansible_doc_path: Path to ``ansible-doc``
         """
+        self.is_collection = is_collection
         self.base_dir = base_dir
+        if galaxy_path and not os.path.exists(galaxy_path):
+            LOGGER.debug('Cannot find galaxy.yml')
+            galaxy_path = None
         self.galaxy_path = galaxy_path
         self.changelog_dir = PathsConfig._changelog_dir(self.base_dir)
         self.config_path = PathsConfig._config_path(self.changelog_dir)
@@ -58,7 +66,7 @@ class PathsConfig:
         :arg base_dir: Base directory of collection checkout
         """
         base_dir = os.path.abspath(base_dir)
-        return PathsConfig(base_dir, os.path.join(base_dir, 'galaxy.yml'), None)
+        return PathsConfig(True, base_dir, os.path.join(base_dir, 'galaxy.yml'), None)
 
     @staticmethod
     def force_ansible(base_dir: str) -> 'PathsConfig':
@@ -68,7 +76,7 @@ class PathsConfig:
         :type base_dir: Base directory of ansible-base checkout
         """
         base_dir = os.path.abspath(base_dir)
-        return PathsConfig(base_dir, None, None)
+        return PathsConfig(False, base_dir, None, None)
 
     @staticmethod
     def detect() -> 'PathsConfig':
@@ -86,10 +94,12 @@ class PathsConfig:
                 galaxy_path = os.path.join(base_dir, 'galaxy.yml')
                 if os.path.exists(galaxy_path):
                     # We are in a collection and assume ansible-doc is available in $PATH
-                    return PathsConfig(base_dir, galaxy_path, 'ansible-doc')
+                    return PathsConfig(True, base_dir, galaxy_path, 'ansible-doc')
                 if os.path.exists(os.path.join(base_dir, 'lib', 'ansible')):
                     # We are in a checkout of ansible/ansible
-                    return PathsConfig(base_dir, None, os.path.join(base_dir, 'bin', 'ansible-doc'))
+                    return PathsConfig(
+                        False, base_dir, None,
+                        os.path.join(base_dir, 'bin', 'ansible-doc'))
             previous, base_dir = base_dir, os.path.dirname(base_dir)
             if previous == base_dir:
                 raise ValueError()

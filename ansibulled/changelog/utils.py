@@ -57,7 +57,7 @@ def load_galaxy_metadata(paths: PathsConfig) -> dict:
     """
     path = paths.galaxy_path
     if path is None:
-        raise ValueError('Path configuration is not for a collection')
+        raise ValueError('Cannot find galaxy.yml')
     with open(path, 'r') as galaxy_fd:
         return yaml.safe_load(galaxy_fd)
 

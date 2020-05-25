@@ -14,7 +14,7 @@ import os
 import sys
 import traceback
 
-from typing import cast, Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 try:
     import argcomplete
@@ -175,11 +175,10 @@ def command_init(args: Any) -> int:
 
     paths = set_paths(force=root)
 
-    LOGGER.debug('Checking "{}" for existance', paths.galaxy_path)
-    if not os.path.exists(cast(str, paths.galaxy_path)):
+    if paths.galaxy_path is None:
         LOGGER.error('The file galaxy.yml does not exists in the collection root!')
         return 5
-    LOGGER.debug('Checking "{}" for existance', paths.config_path)
+    LOGGER.debug('Checking for existance of "{}"', paths.config_path)
     if os.path.exists(paths.config_path):
         LOGGER.error('A configuration file already exists at "{}"!', paths.config_path)
         return 5
@@ -224,12 +223,16 @@ def command_release(args: Any) -> int:
     date = datetime.datetime.strptime(args.date, "%Y-%m-%d").date()
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
 
     flatmap = True
     if config.is_collection:
-        galaxy = load_galaxy_metadata(paths)
-        flatmap = galaxy.get('type', '') == 'flatmap'
+        try:
+            galaxy = load_galaxy_metadata(paths)
+            flatmap = galaxy.get('type', '') == 'flatmap'
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.error('Error while extracting flatmap flag from galaxy.yml: {}', str(exc))
+            return 5
 
     if not version or not codename:
         if not config.is_collection:
@@ -246,7 +249,7 @@ def command_release(args: Any) -> int:
                 galaxy = load_galaxy_metadata(paths)
                 version = galaxy['version']
                 if not isinstance(version, str):
-                    raise Exception('Version in galaxy.yml is not a string')
+                    raise ValueError('Version in galaxy.yml is not a string')
             except Exception as exc:  # pylint: disable=broad-except
                 LOGGER.error('Error while extracting version from galaxy.yml: {}', str(exc))
                 return 5
@@ -270,12 +273,16 @@ def command_generate(args: Any) -> int:
 
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
 
     flatmap = True
     if config.is_collection:
-        galaxy = load_galaxy_metadata(paths)
-        flatmap = galaxy.get('type', '') == 'flatmap'
+        try:
+            galaxy = load_galaxy_metadata(paths)
+            flatmap = galaxy.get('type', '') == 'flatmap'
+        except Exception as exc:  # pylint: disable=broad-except
+            LOGGER.error('Error while extracting flatmap flag from galaxy.yml: {}', str(exc))
+            return 5
 
     changes = load_changes(paths, config)
     if not changes.has_release:
@@ -303,7 +310,7 @@ def command_lint(args: Any) -> int:
 
     fragment_paths: List[str] = args.fragments
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
 
     exceptions: List[Tuple[str, Exception]] = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)

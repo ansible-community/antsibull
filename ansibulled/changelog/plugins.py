@@ -18,7 +18,7 @@ import yaml
 
 from .ansible import get_documentable_plugins
 from .config import PathsConfig
-from .utils import LOGGER, load_galaxy_metadata
+from .utils import ChangelogError, LOGGER, load_galaxy_metadata
 
 
 class PluginDescription:
@@ -140,7 +140,7 @@ def list_plugins_walk(paths: PathsConfig, plugin_type: str,
     :arg plugin_type: The plugin type to consider
     :arg collection_name: The name of the collection, if appropriate.
     """
-    if paths.galaxy_path:
+    if paths.is_collection:
         plugin_source_path = os.path.join(paths.base_dir, 'plugins')
         if plugin_type == 'module':
             plugin_source_path = os.path.join(plugin_source_path, 'modules')
@@ -183,7 +183,7 @@ def list_plugins_ansibledoc(paths: PathsConfig, plugin_type: str,
     :arg plugin_type: The plugin type to consider
     :arg collection_name: The name of the collection, if appropriate.
     """
-    if paths.galaxy_path:
+    if paths.is_collection:
         plugin_source_path = os.path.join(paths.base_dir, 'plugins')
         if plugin_type == 'module':
             plugin_source_path = os.path.join(plugin_source_path, 'modules')
@@ -274,9 +274,13 @@ def load_plugins(paths: PathsConfig, version: str,
         plugins_data['plugins'] = {}
 
         collection_name: Optional[str] = None
-        if paths.galaxy_path:
-            galaxy = load_galaxy_metadata(paths)
-            collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
+        if paths.is_collection:
+            try:
+                galaxy = load_galaxy_metadata(paths)
+                collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
+            except Exception as exc:  # pylint: disable=broad-except
+                raise ChangelogError(
+                    'Error while extracting collection name from galaxy.yml: {}'.format(exc))
 
         for plugin_type in get_documentable_plugins():
             plugins_data['plugins'][plugin_type] = load_plugin_metadata(
