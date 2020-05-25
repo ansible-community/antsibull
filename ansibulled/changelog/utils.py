@@ -41,6 +41,10 @@ class FormattingAdapter(logging.LoggerAdapter):
         self.logger.addHandler(*args, **kwargs)
 
 
+class ChangelogError(Exception):
+    pass
+
+
 LOGGER = FormattingAdapter(logging.getLogger('changelog'))
 
 

@@ -28,7 +28,7 @@ from ..changelog.changes import load_changes, add_release
 from ..changelog.config import PathsConfig, ChangelogConfig
 from ..changelog.fragment import load_fragments, ChangelogFragment, ChangelogFragmentLinter
 from ..changelog.plugins import load_plugins, PluginDescription
-from ..changelog.utils import LOGGER, load_galaxy_metadata
+from ..changelog.utils import ChangelogError, LOGGER, load_galaxy_metadata
 
 
 def set_paths(force: Union[str, None] = None) -> PathsConfig:
@@ -44,9 +44,9 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
     try:
         return PathsConfig.detect()
     except ValueError:
-        print("Only the 'init' and 'lint-changelog' commands can be used outside an "
-              "Ansible checkout and outside a collection repository.\n")
-        sys.exit(3)
+        raise ChangelogError(
+            "Only the 'init' and 'lint-changelog' commands can be used outside an "
+            "Ansible checkout and outside a collection repository.\n")
 
 
 def run(args: List[str]) -> int:
@@ -134,6 +134,11 @@ def run(args: List[str]) -> int:
             LOGGER.setLevel(logging.WARN)
 
         return arguments.func(arguments)
+    except ChangelogError as e:
+        LOGGER.error(str(e))
+        if verbosity > 2:
+            traceback.print_exc()
+        return 5
     except SystemExit as e:
         return e.code
     except Exception:  # pylint: disable=broad-except
