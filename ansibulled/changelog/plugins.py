@@ -17,8 +17,8 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 from .ansible import get_documentable_plugins
-from .config import PathsConfig
-from .utils import ChangelogError, LOGGER, load_galaxy_metadata
+from .config import CollectionDetails, PathsConfig
+from .logger import LOGGER
 
 
 class PluginDescription:
@@ -245,12 +245,15 @@ def load_plugin_metadata(paths: PathsConfig, plugin_type: str,
     return result
 
 
-def load_plugins(paths: PathsConfig, version: str,
+def load_plugins(paths: PathsConfig,
+                 collection_details: CollectionDetails,
+                 version: str,
                  force_reload: bool = False) -> List[PluginDescription]:
     """
     Load plugins from ansible-doc.
 
     :arg paths: Paths configuration
+    :arg collection_details: Collection details
     :arg version: The current version. Used for caching data
     :arg force_reload: Set to ``True`` to ignore potentially cached data
     :return: A list of all plugins
@@ -275,12 +278,8 @@ def load_plugins(paths: PathsConfig, version: str,
 
         collection_name: Optional[str] = None
         if paths.is_collection:
-            try:
-                galaxy = load_galaxy_metadata(paths)
-                collection_name = '{0}.{1}'.format(galaxy['namespace'], galaxy['name'])
-            except Exception as exc:  # pylint: disable=broad-except
-                raise ChangelogError(
-                    'Error while extracting collection name from galaxy.yml: {}'.format(exc))
+            collection_name = '{}.{}'.format(
+                collection_details.get_namespace(), collection_details.get_name())
 
         for plugin_type in get_documentable_plugins():
             plugins_data['plugins'][plugin_type] = load_plugin_metadata(

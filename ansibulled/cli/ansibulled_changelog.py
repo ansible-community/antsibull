@@ -9,7 +9,6 @@ Entrypoint to the ansibulled-changelog script.
 
 import argparse
 import datetime
-import logging
 import os
 import sys
 import traceback
@@ -25,10 +24,11 @@ except ImportError:
 from ..changelog.ansible import get_ansible_release
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
-from ..changelog.config import PathsConfig, ChangelogConfig
+from ..changelog.config import ChangelogConfig, CollectionDetails, PathsConfig
+from ..changelog.errors import ChangelogError
 from ..changelog.fragment import load_fragments, ChangelogFragment, ChangelogFragmentLinter
 from ..changelog.plugins import load_plugins, PluginDescription
-from ..changelog.utils import ChangelogError, LOGGER, load_galaxy_metadata
+from ..changelog.logger import LOGGER, setup_logger
 
 
 def set_paths(force: Union[str, None] = None) -> PathsConfig:
@@ -111,26 +111,6 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
     return parser
 
 
-def setup_logger(verbosity: int) -> None:
-    """
-    Setup logger.
-    """
-    formatter = logging.Formatter('%(levelname)s %(message)s')
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(formatter)
-
-    LOGGER.addHandler(handler)
-    LOGGER.setLevel(logging.WARN)
-
-    if verbosity > 2:
-        LOGGER.setLevel(logging.DEBUG)
-    elif verbosity > 1:
-        LOGGER.setLevel(logging.INFO)
-    elif verbosity > 0:
-        LOGGER.setLevel(logging.WARN)
-
-
 def run(args: List[str]) -> int:
     """
     Main program entry point.
@@ -183,11 +163,13 @@ def command_init(args: Any) -> int:
         LOGGER.error('A configuration file already exists at "{}"!', paths.config_path)
         return 5
 
-    galaxy = load_galaxy_metadata(paths)
+    collection_details = CollectionDetails(paths)
 
     config = ChangelogConfig.default(
-        title='{0}.{1}'.format(galaxy['namespace'].title(), galaxy['name'].title()),
-        is_collection=True,
+        paths,
+        collection_details,
+        title='{0}.{1}'.format(
+            collection_details.get_namespace().title(), collection_details.get_name().title()),
     )
 
     fragments_dir = os.path.join(paths.changelog_dir, config.notes_dir)
@@ -200,7 +182,7 @@ def command_init(args: Any) -> int:
         return 5
 
     try:
-        config.store(paths.config_path)
+        config.store()
         print('Created config file "{0}"'.format(paths.config_path))
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create config file "{}"', paths.config_path)
@@ -223,16 +205,12 @@ def command_release(args: Any) -> int:
     date = datetime.datetime.strptime(args.date, "%Y-%m-%d").date()
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
 
     flatmap = True
     if config.is_collection:
-        try:
-            galaxy = load_galaxy_metadata(paths)
-            flatmap = galaxy.get('type', '') == 'flatmap'
-        except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.error('Error while extracting flatmap flag from galaxy.yml: {}', str(exc))
-            return 5
+        flatmap = collection_details.get_flatmap()
 
     if not version or not codename:
         if not config.is_collection:
@@ -245,17 +223,11 @@ def command_release(args: Any) -> int:
 
         elif not version:
             # Codename is not required for collections, only version is
-            try:
-                galaxy = load_galaxy_metadata(paths)
-                version = galaxy['version']
-                if not isinstance(version, str):
-                    raise ValueError('Version in galaxy.yml is not a string')
-            except Exception as exc:  # pylint: disable=broad-except
-                LOGGER.error('Error while extracting version from galaxy.yml: {}', str(exc))
-                return 5
+            version = collection_details.get_version()
 
-    changes = load_changes(paths, config)
-    plugins = load_plugins(paths=paths, version=version, force_reload=reload_plugins)
+    changes = load_changes(config)
+    plugins = load_plugins(paths=paths, collection_details=collection_details,
+                           version=version, force_reload=reload_plugins)
     fragments = load_fragments(paths, config)
     add_release(config, changes, plugins, fragments, version, codename, date)
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
@@ -273,25 +245,21 @@ def command_generate(args: Any) -> int:
 
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
 
     flatmap = True
     if config.is_collection:
-        try:
-            galaxy = load_galaxy_metadata(paths)
-            flatmap = galaxy.get('type', '') == 'flatmap'
-        except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.error('Error while extracting flatmap flag from galaxy.yml: {}', str(exc))
-            return 5
+        flatmap = collection_details.get_flatmap()
 
-    changes = load_changes(paths, config)
+    changes = load_changes(config)
     if not changes.has_release:
         print('Cannot create changelog when not at least one release has been added.')
         return 5
     plugins: Optional[List[PluginDescription]]
     if reload_plugins:
-        plugins = load_plugins(
-            paths=paths, version=changes.latest_version, force_reload=reload_plugins)
+        plugins = load_plugins(paths=paths, collection_details=collection_details,
+                               version=changes.latest_version, force_reload=reload_plugins)
     else:
         plugins = None
     fragments = load_fragments(paths, config)
@@ -310,7 +278,8 @@ def command_lint(args: Any) -> int:
 
     fragment_paths: List[str] = args.fragments
 
-    config = ChangelogConfig.load(paths.config_path, paths.is_collection)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
 
     exceptions: List[Tuple[str, Exception]] = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)

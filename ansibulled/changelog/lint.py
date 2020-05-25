@@ -16,7 +16,7 @@ import semantic_version
 import yaml
 
 from .ansible import get_documentable_plugins
-from .config import ChangelogConfig
+from .config import ChangelogConfig, CollectionDetails, PathsConfig
 from .fragment import ChangelogFragment, ChangelogFragmentLinter
 
 
@@ -229,7 +229,8 @@ class ChangelogYamlLinter:
         else:
             ancestor = None
 
-        config = ChangelogConfig.default()
+        paths = PathsConfig.force_collection('')  # path doesn't matter
+        config = ChangelogConfig.default(paths, CollectionDetails(paths))
         fragment_linter = ChangelogFragmentLinter(config)
 
         if self.verify_type(changelog_yaml.get('releases'), (dict, ), ['releases']):
