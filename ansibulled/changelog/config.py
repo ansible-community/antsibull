@@ -80,7 +80,7 @@ class PathsConfig:
         return PathsConfig(False, base_dir, None, None)
 
     @staticmethod
-    def detect() -> 'PathsConfig':
+    def detect(is_collection: Optional[bool] = None) -> 'PathsConfig':
         """
         Detect paths configuration from current working directory.
 
@@ -93,17 +93,18 @@ class PathsConfig:
             config_path = PathsConfig._config_path(changelog_dir)
             if os.path.exists(changelog_dir) and os.path.exists(config_path):
                 galaxy_path = os.path.join(base_dir, 'galaxy.yml')
-                if os.path.exists(galaxy_path):
+                if os.path.exists(galaxy_path) or is_collection is True:
                     # We are in a collection and assume ansible-doc is available in $PATH
                     return PathsConfig(True, base_dir, galaxy_path, 'ansible-doc')
-                if os.path.exists(os.path.join(base_dir, 'lib', 'ansible')):
+                ansible_lib_dir = os.path.join(base_dir, 'lib', 'ansible')
+                if os.path.exists(ansible_lib_dir) or is_collection is False:
                     # We are in a checkout of ansible/ansible
                     return PathsConfig(
                         False, base_dir, None,
                         os.path.join(base_dir, 'bin', 'ansible-doc'))
             previous, base_dir = base_dir, os.path.dirname(base_dir)
             if previous == base_dir:
-                raise ValueError('Cannot identify collection or ansible-base checkout')
+                raise ValueError('Cannot identify collection or ansible-base checkout.')
 
 
 def load_galaxy_metadata(paths: PathsConfig) -> dict:
@@ -141,18 +142,7 @@ class CollectionDetails:
         self.version = None
         self.flatmap = None
 
-    def _load_galaxy_yaml(self, needed_var: str):
-        if self.galaxy_yaml_loaded:
-            return
-        if not self.paths.is_collection:
-            raise Exception('Internal error: cannot get collection details for non-collection')
-
-        try:
-            galaxy_yaml = load_galaxy_metadata(self.paths)
-        except Exception as e:
-            raise ChangelogError('Cannot find galaxy.yaml to load field "{0}": {1}'.format(
-                needed_var, e))
-
+    def _parse_galaxy_yaml(self, galaxy_yaml):
         self.galaxy_yaml_loaded = True
         if self.namespace is None and isinstance(galaxy_yaml.get('namespace'), str):
             self.namespace = galaxy_yaml.get('namespace')
@@ -163,45 +153,69 @@ class CollectionDetails:
         if self.flatmap is None:
             self.flatmap = galaxy_yaml.get('type', '') == 'flatmap'
 
+    def _load_galaxy_yaml(self, needed_var: str,
+                          what_for: Optional[str] = None,
+                          help_text: Optional[str] = None):
+        if self.galaxy_yaml_loaded:
+            return
+        if not self.paths.is_collection:
+            raise Exception('Internal error: cannot get collection details for non-collection')
+
+        if what_for is None:
+            what_for = 'load field "{0}"'.format(needed_var)
+        try:
+            galaxy_yaml = load_galaxy_metadata(self.paths)
+        except Exception as e:
+            msg = 'Cannot find galaxy.yaml to {0}: {1}'.format(what_for, e)
+            if help_text is not None:
+                msg = '{0}. {1}'.format(msg, help_text)
+            raise ChangelogError(msg)
+
+        self._parse_galaxy_yaml(galaxy_yaml)
+
     def get_namespace(self) -> str:
         """
         Get collection's namespace.
         """
+        help_text = 'You can explicitly specify the value with `--collection-namespace`.'
         if self.namespace is None:
-            self._load_galaxy_yaml('namespace')
+            self._load_galaxy_yaml('namespace', help_text=help_text)
         namespace = self.namespace
         if namespace is None:
-            raise ChangelogError('Cannot find "namespace" field in galaxy.yaml')
+            raise ChangelogError('Cannot find "namespace" field in galaxy.yaml. ' + help_text)
         return namespace
 
     def get_name(self) -> str:
         """
         Get collection's name.
         """
+        help_text = 'You can explicitly specify the value with `--collection-name`.'
         if self.name is None:
-            self._load_galaxy_yaml('name')
+            self._load_galaxy_yaml('name', help_text=help_text)
         name = self.name
         if name is None:
-            raise ChangelogError('Cannot find "name" field in galaxy.yaml')
+            raise ChangelogError('Cannot find "name" field in galaxy.yaml. ' + help_text)
         return name
 
     def get_version(self) -> str:
         """
         Get collection's version.
         """
+        help_text = 'You can explicitly specify the value with `--version`.'
         if self.version is None:
-            self._load_galaxy_yaml('version')
+            self._load_galaxy_yaml('version', help_text=help_text)
         version = self.version
         if version is None:
-            raise ChangelogError('Cannot find "version" field in galaxy.yaml')
+            raise ChangelogError('Cannot find "version" field in galaxy.yaml. ' + help_text)
         return version
 
     def get_flatmap(self) -> bool:
         """
         Get collection's flatmap flag.
         """
+        help_text = 'You can explicitly specify the value with `--collection-flatmap`.'
         if self.flatmap is None:
-            self._load_galaxy_yaml('type')
+            self._load_galaxy_yaml('type', what_for='determine flatmapping', help_text=help_text)
         flatmap = self.flatmap
         if flatmap is None:
             raise Exception(

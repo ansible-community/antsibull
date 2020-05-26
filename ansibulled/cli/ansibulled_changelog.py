@@ -31,7 +31,7 @@ from ..changelog.plugins import load_plugins, PluginDescription
 from ..changelog.logger import LOGGER, setup_logger
 
 
-def set_paths(force: Union[str, None] = None) -> PathsConfig:
+def set_paths(force: Optional[str] = None, is_collection: Optional[bool] = None) -> PathsConfig:
     """
     Create ``PathsConfig``.
 
@@ -39,26 +39,30 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
                 Otherwise, detect configuration.
     """
     if force:
+        if is_collection is False:
+            return PathsConfig.force_ansible(force)
         return PathsConfig.force_collection(force)
 
     try:
-        return PathsConfig.detect()
+        return PathsConfig.detect(is_collection=is_collection)
     except ValueError:
         raise ChangelogError(
             "Only the 'init' and 'lint-changelog' commands can be used outside an "
-            "Ansible checkout and outside a collection repository.\n")
+            "Ansible checkout and outside a collection repository.\n"
+            "If you are in a collection without galaxy.yml, specify `--is-collection no` "
+            "on the command line.")
 
 
-def parse_boolean_arg(v: Any) -> bool:
+def parse_boolean_arg(value: Any) -> bool:
     """
     Parse a string as a boolean
     """
-    if isinstance(v, bool):
-        return v
-    v = str(v)
-    if v.lower() in ('yes', 'true'):
+    if isinstance(value, bool):
+        return value
+    value = str(value)
+    if value.lower() in ('yes', 'true'):
         return True
-    if v.lower() in ('no', 'false'):
+    if value.lower() in ('no', 'false'):
         return False
     raise argparse.ArgumentTypeError('Cannot interpret as boolean')
 
@@ -77,6 +81,12 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                         default=0,
                         help='increase verbosity of output')
 
+    is_collection = argparse.ArgumentParser(add_help=False)
+    is_collection.add_argument('--is-collection',
+                               type=parse_boolean_arg,
+                               help='override whether this is a collection or not '
+                                    '(needed when galaxy.yml does not exist)')
+
     collection_details = argparse.ArgumentParser(add_help=False)
     collection_details.add_argument('--collection-namespace',
                                     help='set collection namespace '
@@ -86,7 +96,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                                          '(needed when galaxy.yml does not exist)')
     collection_details.add_argument('--collection-flatmap',
                                     type=parse_boolean_arg,
-                                    help='set collection type to flatmapping '
+                                    help='override collection flatmapping flag '
                                          '(needed when galaxy.yml does not exist)')
 
     subparsers = parser.add_subparsers(metavar='COMMAND')
@@ -109,7 +119,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                              help='path to fragment to test')
 
     release_parser = subparsers.add_parser('release',
-                                           parents=[common, collection_details],
+                                           parents=[common, is_collection, collection_details],
                                            help='add a new release to the change metadata')
     release_parser.set_defaults(func=command_release)
     release_parser.add_argument('--version',
@@ -124,7 +134,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                                 help='force reload of plugin cache')
 
     generate_parser = subparsers.add_parser('generate',
-                                            parents=[common, collection_details],
+                                            parents=[common, is_collection, collection_details],
                                             help='generate the changelog')
     generate_parser.set_defaults(func=command_generate)
     generate_parser.add_argument('--reload-plugins',
@@ -236,7 +246,7 @@ def command_release(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     version: Union[str, None] = args.version
     codename: Union[str, None] = args.codename
@@ -281,7 +291,7 @@ def command_generate(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     reload_plugins: bool = args.reload_plugins
 
@@ -316,7 +326,7 @@ def command_lint(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     fragment_paths: List[str] = args.fragments
 
