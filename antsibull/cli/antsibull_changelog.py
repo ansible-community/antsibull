@@ -110,7 +110,7 @@ def create_argparser(program_name: str) -> argparse.ArgumentParser:
                              help='path to collection root')
 
     lint_parser = subparsers.add_parser('lint',
-                                        parents=[common],
+                                        parents=[common, is_collection],
                                         help='check changelog fragments for syntax errors')
     lint_parser.set_defaults(func=command_lint)
     lint_parser.add_argument('fragments',
