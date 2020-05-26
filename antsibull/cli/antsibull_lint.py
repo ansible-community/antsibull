@@ -33,26 +33,38 @@ def run(args: List[str]) -> int:
         program_name = os.path.basename(args[0])
         parser = argparse.ArgumentParser(
             prog=program_name,
-            description='changelogs/changelog.yaml linter')
+            description='Linting tool')
 
-        parser.add_argument('-v', '--verbose',
+        common = argparse.ArgumentParser(add_help=False)
+        common.add_argument('-v', '--verbose',
                             action='count',
                             default=0,
                             help='increase verbosity of output')
 
-        parser.add_argument('changelog_yaml_path',
-                            metavar='/path/to/changelog.yaml',
-                            help='path to changelogs/changelog.yaml')
+        subparsers = parser.add_subparsers(metavar='COMMAND')
+
+        changelog_yaml = subparsers.add_parser('changelog-yaml',
+                                               parents=[common],
+                                               help='changelogs/changelog.yaml linter')
+        changelog_yaml.set_defaults(func=command_lint_changelog)
+
+        changelog_yaml.add_argument('changelog_yaml_path',
+                                    metavar='/path/to/changelog.yaml',
+                                    help='path to changelogs/changelog.yaml')
 
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
 
         arguments = parser.parse_args(args[1:])
 
+        if getattr(arguments, 'func', None) is None:
+            parser.print_help()
+            return 2
+
         verbosity = arguments.verbose
         setup_logger(verbosity)
 
-        return command_lint_changelog(arguments)
+        return arguments.func(arguments)
     except SystemExit as e:
         return e.code
     except Exception:  # pylint: disable=broad-except

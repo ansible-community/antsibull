@@ -7,9 +7,9 @@ The format is similar to the `.changes.yaml` file used internally by Ansible unt
 
 Please remember that collection versions **must** use [semantic versioning](https://semver.org/) if included in ACD or RedHat's Automation Hub.
 
-You can use the `antsibull-lint-changelog-yaml` tool to validate these files:
+You can use the `antsibull-lint changelog-yaml` tool to validate these files:
 
-    antsibull-lint-changelog-yaml /path/to/changelog.yaml
+    antsibull-lint changelog-yaml /path/to/changelog.yaml
 
 (This only works for `changelog.yaml` files in collections, not for the corresponding files in ansible-base, since ansible-base currently does not conform to semantic versioning.)
 
