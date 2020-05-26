@@ -6,7 +6,7 @@ Scripts that are here:
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
 * antsibull-docs - Extracts documentation from ansible plugins
 * antsibull-changelog - Changelog generator for Ansible collections and ansible-base ([docs](docs/changelogs.rst))
-* antsibull-lint-changelog-yaml - Validates ``changelogs/changelog.yaml`` files ([docs](docs/changelog.yaml-format.md))
+* antsibull-lint - Right now only validates ``changelogs/changelog.yaml`` files ([docs](docs/changelog.yaml-format.md))
 
 Scripts are created by poetry at build time.  So if you want to run from
 a checkout, you'll have to run them under poetry::
