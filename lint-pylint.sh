@@ -1,3 +1,3 @@
 #!/bin/bash
 set -e
-poetry run pylint --rcfile .pylintrc.automated ansibulled "$@"
+poetry run pylint --rcfile .pylintrc.automated antsibull "$@"

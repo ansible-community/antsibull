@@ -1,19 +1,19 @@
-# ansibulled -- Ansible Build Scripts
+# antsibull -- Ansible Build Scripts
 Tooling for building various things related to Ansible
 
 Scripts that are here:
 
-* ansibulled - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
-* ansibulled-docs - Extracts documentation from ansible plugins
-* ansibulled-changelog - Changelog generator for Ansible collections and ansible-base ([docs](docs/changelogs.rst))
-* ansibulled-lint-changelog-yaml - Validates ``changelogs/changelog.yaml`` files ([docs](docs/changelog.yaml-format.md))
+* antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
+* antsibull-docs - Extracts documentation from ansible plugins
+* antsibull-changelog - Changelog generator for Ansible collections and ansible-base ([docs](docs/changelogs.rst))
+* antsibull-lint-changelog-yaml - Validates ``changelogs/changelog.yaml`` files ([docs](docs/changelog.yaml-format.md))
 
 Scripts are created by poetry at build time.  So if you want to run from
 a checkout, you'll have to run them under poetry::
 
     python3 -m pip install poetry
     poetry install  # Installs dependencies into a virtualenv
-    poetry run ansibulled --help
+    poetry run antsibull-build --help
 
 If you want to create a new release::
 

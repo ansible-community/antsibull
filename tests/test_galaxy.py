@@ -7,7 +7,7 @@ from asynctest import CoroutineMock
 from aiohttp_utils import CaseControlledTestServer, http_redirect
 from certificate_utils import ssl_certificate
 
-from ansibulled.galaxy import GalaxyClient
+from antsibull.galaxy import GalaxyClient
 
 
 SAMPLE_VERSIONS = {

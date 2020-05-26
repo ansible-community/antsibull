@@ -2,7 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""Entrypoint to the ansibulled tool."""
+"""Entrypoint to the antsibull-build tool."""
 
 import argparse
 import os.path
@@ -115,7 +115,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage building ACD')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
-                                       help='for help use ansibulled SUBCOMMANDS -h')
+                                       help='for help use antsibull-build SUBCOMMANDS -h')
 
     new_parser = subparsers.add_parser('new-acd', parents=[common_parser],
                                        description='Generate a new build description from the'

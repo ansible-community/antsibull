@@ -18,7 +18,7 @@ usable for data validation and normalization even with this difference in goals.
 How to use these schemas effectively
 ====================================
 
-The schemas shipped with ansibulled allow you to validate and normalize plugin documentation.  This
+The schemas shipped with antsibull allow you to validate and normalize plugin documentation.  This
 way, you can use data from the plugins for web documentation, display on the command line, or
 testing that your documentation is well formed.
 
@@ -27,19 +27,19 @@ To use these schemas, follow these steps:
 * Choose the Schema that matches with the level of data that you want to validate and normalize.
 
     * If you want to validate and normalize :ansible:cmd:`ansible-doc` output, use the schemas in
-      :mod:`ansibulled.schemas.ansible_doc`.
+      :mod:`antsibull.schemas.ansible_doc`.
 
-      * :obj:`~ansibulled.schemas.ansible_doc.AnsibleDocSchema` lets you validate the documentation
+      * :obj:`~antsibull.schemas.ansible_doc.AnsibleDocSchema` lets you validate the documentation
         for multiple plugins at once.  It is useful if all you want to do is validate documentation
         as you can run it once and then get all the errors.
 
       * If you want to normalize the data and use it to make documentation then the schemas in
-        :attr:`~ansibulled.schemas.ansible_doc.ANSIBLE_DOC_SCHEMAS` might be more appropriate.
+        :attr:`~antsibull.schemas.ansible_doc.ANSIBLE_DOC_SCHEMAS` might be more appropriate.
         These schemas can be run on individual plugin data.  The advantage of using them is that
         an error in documentation will only fail that one plugin, not all of them.
 
     * If you need more fine grained control, you can use the schemas in
-      :mod:`ansibulled.schemas.docs.DOCS_SCHEMAS`.  These schemas give you access to the individual
+      :mod:`antsibull.schemas.docs.DOCS_SCHEMAS`.  These schemas give you access to the individual
       components of a plugin's documentation, doc, example, metadata, and return.  That way you can
       create documentation if any one of these (or specific ones) can be normalized even if the
       others cannot.
@@ -62,7 +62,7 @@ One example of doing all this:
 .. code-block:: pycon
 
     >>> import sh, jinja2
-    >>> from ansibulled.schemas import ansible_doc
+    >>> from antsibull.schemas import ansible_doc
     >>> template = jinja2.Template('{{ name }} -- {{ doc["short_description"] }}')
     >>> module_json = sh.ansible_doc('-t', 'module', '--json', 'yum').stdout
     >>> module_model = ansible_doc.ModulePluginSchema.parse_raw(module_json)

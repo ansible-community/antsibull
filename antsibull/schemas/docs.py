@@ -6,7 +6,7 @@
 Schemas for the plugin DOCUMENTATION data.
 
 This is a highlevel interface.  The hope is that developers can use either this or
-ansibulled.schemas.ansible_doc to handle all of their validation needs.
+antsibull.schemas.ansible_doc to handle all of their validation needs.
 """
 
 from .callback import CallbackDocSchema, CallbackSchema
