@@ -4,7 +4,7 @@
 # Copyright: Ansible Project, 2020
 
 """
-Entrypoint to the ansibulled-changelog script.
+Entrypoint to the antsibull-changelog script.
 """
 
 import argparse

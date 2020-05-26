@@ -1,4 +1,4 @@
-.. automodule:: ansibulled.schemas.base
+.. automodule:: antsibull.schemas.base
 
 There is a dictionary named ANSIBLE_DOC_SCHEMAS to allow you easier access to these
 programmatically.  It is a mapping of plugin types to the ansible_doc schema which handle it.
@@ -9,7 +9,7 @@ For example, this is the entry for modules:
     {'module': ModulePluginSchema}
 
 
-?If you want to validate individual plugins, use ansibulled.schemas.docs?
+?If you want to validate individual plugins, use antsibull.schemas.docs?
 :${PLUGIN_TYPE}Schema: if you want to validate individual sections of the ansible-doc output (doc,
     examples, metadata, return)
 

@@ -7,7 +7,7 @@ import os.path
 
 import pytest
 
-from ansibulled.changelog.lint import lint_changelog_yaml
+from antsibull.changelog.lint import lint_changelog_yaml
 
 
 # Collect files

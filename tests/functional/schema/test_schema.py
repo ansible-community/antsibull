@@ -7,7 +7,7 @@ import os.path
 
 import pytest
 
-from ansibulled.schemas import ansible_doc as ad
+from antsibull.schemas import ansible_doc as ad
 
 
 SINGLE_TESTS = {

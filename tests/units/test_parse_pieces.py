@@ -1,6 +1,6 @@
 import pytest
 
-from ansibulled import dependency_files as df
+from antsibull import dependency_files as df
 
 PIECES = """
 community.general

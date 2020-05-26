@@ -6,7 +6,7 @@
 Schemas for the plugin DOCUMENTATION data.
 
 This is a highlevel interface.  The hope is that developers can use either this or
-ansibulled.schemas.docs to handle all of their validation needs.
+antsibull.schemas.docs to handle all of their validation needs.
 """
 
 # Ignore Unitialized attribute errors because BaseModel works some magic

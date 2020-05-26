@@ -1,3 +1,3 @@
 #!/bin/bash
 set -e
-MYPYPATH=stubs/ poetry run mypy ansibulled "$@"
+MYPYPATH=stubs/ poetry run mypy antsibull "$@"

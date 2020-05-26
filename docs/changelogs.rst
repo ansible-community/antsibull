@@ -2,16 +2,16 @@
 Changelogs for Collections
 **************************
 
-The ``ansibulled-changelog`` tool allows you to create and update changelogs for Ansible collections, that are similar to the ones provided by Ansible itself in earlier versions, and that are compatible to the combined Ansible Community Distribution changelogs.
+The ``antsibull-changelog`` tool allows you to create and update changelogs for Ansible collections, that are similar to the ones provided by Ansible itself in earlier versions, and that are compatible to the combined Ansible Community Distribution changelogs.
 
-The following instructions assume that ansibulled has been properly installed, for example via ``pip install https://github.com/ansible-community/ansible-changelog/archive/master.tar.gz``. If it is used with ``poetry`` from git, ``ansibulled-changelog`` has to be replaced with ``poetry run ansibulled-changelog``.
+The following instructions assume that antsibull has been properly installed, for example via ``pip install https://github.com/ansible-community/ansible-changelog/archive/master.tar.gz``. If it is used with ``poetry`` from git, ``antsibull-changelog`` has to be replaced with ``poetry run antsibull-changelog``.
 
 Bootstrapping changelogs for collections
 ========================================
 
-To set up ``ansibulled-changelog``, run::
+To set up ``antsibull-changelog``, run::
 
-    ansibulled-changelog init /path/to/your/collection
+    antsibull-changelog init /path/to/your/collection
 
 This is the directory which contains ``galaxy.yml``. This creates subdirectories ``changelogs/`` and ``changelogs/fragments/``, and a configuration file ``changelogs/config.yaml``. Adjust the configuration file to your needs. The settings of highest interest are:
 
@@ -23,30 +23,30 @@ Validating changelog fragments
 
 If you want to do a basic syntax check of changelog fragments, you can run::
 
-    ansibulled-changelog lint
+    antsibull-changelog lint
 
 If you want to check a specific fragment, you can provide a path to it; otherwise, all fragments in ``changelogs/fragments/`` are checked. This can be used in CI to avoid contributors to check in invalid changelog fragments, or introduce new sections (by mistyping existing ones, or simply guessing wrong names).
 
-If ``ansibulled-changelog lint`` produces no output on stdout, and exits with exit code 0, the changelog fragments are OK. If errors are found, they are reported by one line in stdout for each error in the format ``path/to/fragment:line:column:message``, and the program exits with exit code 3. Other exit codes indicate problems with the command line or during the execution of the linter.
+If ``antsibull-changelog lint`` produces no output on stdout, and exits with exit code 0, the changelog fragments are OK. If errors are found, they are reported by one line in stdout for each error in the format ``path/to/fragment:line:column:message``, and the program exits with exit code 3. Other exit codes indicate problems with the command line or during the execution of the linter.
 
 Releasing a new version of a collection
 =======================================
 
 To release a new version of a collection, you need to run::
 
-    ansibulled-changelog release
+    antsibull-changelog release
 
 inside your collection's tree. This assumes that ``galaxy.yml`` exists and its version is the version of the release you want to make. If that file does not exist, or has a wrong value for ``version``, you can explicitly specify the version you want to release::
 
-    ansibulled-changelog release --version 1.0.0
+    antsibull-changelog release --version 1.0.0
 
 You can also specify a release date with ``--date 2020-12-31``, if the default (today) is not what you want.
 
 When doing a release, the changelog generator will read all changelog fragments which are not already mentioned in the changelog, and include them in a new entry in ``changelogs/changelog.yaml``. It will also scan metadata for all modules and plugins of your collection, and mention all modules and plugins with ``version_added`` equal to this version as new modules/plugins.
 
-The metadata for modules and plugins is stored in ``changelogs/.plugin-cache.yaml``, and is only recalculated once the release version changes. To force recollecting this data, either delete the file, or specify the ``--reload-plugins`` option to ``ansibulled-changelog release``.
+The metadata for modules and plugins is stored in ``changelogs/.plugin-cache.yaml``, and is only recalculated once the release version changes. To force recollecting this data, either delete the file, or specify the ``--reload-plugins`` option to ``antsibull-changelog release``.
 
-After running ``ansibulled-changelog release``, you should check ``changelogs/changelog.yaml`` and the generated reStructuredText file (by default ``changelogs/CHANGELOG.rst``) in.
+After running ``antsibull-changelog release``, you should check ``changelogs/changelog.yaml`` and the generated reStructuredText file (by default ``changelogs/CHANGELOG.rst``) in.
 
 Changelog Fragment Categories
 =============================
