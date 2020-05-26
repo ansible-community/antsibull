@@ -5,7 +5,7 @@ import pytest
 import yaml
 
 from ansibulled.cli.ansibulled_changelog import run as run_changelog_tool
-from ansibulled.changelog.config import PathsConfig, ChangelogConfig
+from ansibulled.changelog.config import PathsConfig, CollectionDetails, ChangelogConfig
 
 from typing import Any, Dict, List, Tuple, Optional, Set, Union
 
@@ -52,7 +52,7 @@ class ChangelogEnvironment:
         self.base = base_path
 
         self.paths = paths
-        self.config = ChangelogConfig.default(is_collection=is_collection)
+        self.config = ChangelogConfig.default(paths, CollectionDetails(paths))
 
         self.created_dirs = set()
         self.created_files = dict()
@@ -85,7 +85,7 @@ class ChangelogEnvironment:
         os.makedirs(config_dir, exist_ok=True)
         self.created_dirs.add(config_dir)
         self.config = config
-        self.config.store(self.paths.config_path)
+        self.config.store()
         self._written(self.paths.config_path)
 
     def add_fragment(self, fragment_name: str, content: str):
@@ -187,7 +187,9 @@ class CollectionChangelogEnvironment(ChangelogEnvironment):
             data['namespace'] = self.namespace
         if 'name' not in data:
             data['name'] = self.collection
-        self._write_yaml(self.paths.galaxy_path, data)
+        galaxy_path = os.path.join(self.paths.base_dir, 'galaxy.yml')
+        self._write_yaml(galaxy_path, data)
+        self.paths.galaxy_path = galaxy_path
 
 
 @pytest.fixture

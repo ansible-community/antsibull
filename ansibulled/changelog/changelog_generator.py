@@ -19,9 +19,10 @@ import semantic_version
 from .config import PathsConfig, ChangelogConfig
 from .changes import ChangesBase, ChangesMetadata, FragmentResolver, PluginResolver
 from .fragment import ChangelogFragment
+from .logger import LOGGER
 from .plugins import PluginDescription
 from .rst import RstBuilder
-from .utils import LOGGER, is_release_version
+from .utils import is_release_version
 
 
 class ChangelogGenerator:

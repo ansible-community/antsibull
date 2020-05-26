@@ -15,11 +15,16 @@ from typing import Mapping, Optional
 
 import yaml
 
+from .errors import ChangelogError
+from .logger import LOGGER
+
 
 class PathsConfig:
     """
     Configuration for paths.
     """
+
+    is_collection: bool
 
     base_dir: str
     galaxy_path: Optional[str]
@@ -35,7 +40,7 @@ class PathsConfig:
     def _config_path(changelog_dir: str) -> str:
         return os.path.join(changelog_dir, 'config.yaml')
 
-    def __init__(self, base_dir: str, galaxy_path: Optional[str],
+    def __init__(self, is_collection: bool, base_dir: str, galaxy_path: Optional[str],
                  ansible_doc_path: Optional[str]):
         """
         Forces configuration with given base path.
@@ -44,7 +49,11 @@ class PathsConfig:
         :arg galaxy_path: Path to galaxy.yml for collection checkouts
         :arg ansible_doc_path: Path to ``ansible-doc``
         """
+        self.is_collection = is_collection
         self.base_dir = base_dir
+        if galaxy_path and not os.path.exists(galaxy_path):
+            LOGGER.debug('Cannot find galaxy.yml')
+            galaxy_path = None
         self.galaxy_path = galaxy_path
         self.changelog_dir = PathsConfig._changelog_dir(self.base_dir)
         self.config_path = PathsConfig._config_path(self.changelog_dir)
@@ -58,7 +67,7 @@ class PathsConfig:
         :arg base_dir: Base directory of collection checkout
         """
         base_dir = os.path.abspath(base_dir)
-        return PathsConfig(base_dir, os.path.join(base_dir, 'galaxy.yml'), None)
+        return PathsConfig(True, base_dir, os.path.join(base_dir, 'galaxy.yml'), None)
 
     @staticmethod
     def force_ansible(base_dir: str) -> 'PathsConfig':
@@ -68,10 +77,10 @@ class PathsConfig:
         :type base_dir: Base directory of ansible-base checkout
         """
         base_dir = os.path.abspath(base_dir)
-        return PathsConfig(base_dir, None, None)
+        return PathsConfig(False, base_dir, None, None)
 
     @staticmethod
-    def detect() -> 'PathsConfig':
+    def detect(is_collection: Optional[bool] = None) -> 'PathsConfig':
         """
         Detect paths configuration from current working directory.
 
@@ -84,15 +93,134 @@ class PathsConfig:
             config_path = PathsConfig._config_path(changelog_dir)
             if os.path.exists(changelog_dir) and os.path.exists(config_path):
                 galaxy_path = os.path.join(base_dir, 'galaxy.yml')
-                if os.path.exists(galaxy_path):
+                if os.path.exists(galaxy_path) or is_collection is True:
                     # We are in a collection and assume ansible-doc is available in $PATH
-                    return PathsConfig(base_dir, galaxy_path, 'ansible-doc')
-                if os.path.exists(os.path.join(base_dir, 'lib', 'ansible')):
+                    return PathsConfig(True, base_dir, galaxy_path, 'ansible-doc')
+                ansible_lib_dir = os.path.join(base_dir, 'lib', 'ansible')
+                if os.path.exists(ansible_lib_dir) or is_collection is False:
                     # We are in a checkout of ansible/ansible
-                    return PathsConfig(base_dir, None, os.path.join(base_dir, 'bin', 'ansible-doc'))
+                    return PathsConfig(
+                        False, base_dir, None,
+                        os.path.join(base_dir, 'bin', 'ansible-doc'))
             previous, base_dir = base_dir, os.path.dirname(base_dir)
             if previous == base_dir:
-                raise ValueError()
+                raise ValueError('Cannot identify collection or ansible-base checkout.')
+
+
+def load_galaxy_metadata(paths: PathsConfig) -> dict:
+    """
+    Load galaxy.yml metadata.
+
+    :arg paths: Paths configuration.
+    :return: The contents of ``galaxy.yaml``.
+    """
+    path = paths.galaxy_path
+    if path is None:
+        raise ValueError('Cannot find galaxy.yml')
+    with open(path, 'r') as galaxy_fd:
+        return yaml.safe_load(galaxy_fd)
+
+
+class CollectionDetails:
+    """
+    Stores information about a collection. Can auto-populate from galaxy.yml.
+    """
+
+    paths: PathsConfig
+    galaxy_yaml_loaded: bool
+
+    namespace: Optional[str]
+    name: Optional[str]
+    version: Optional[str]
+    flatmap: Optional[bool]
+
+    def __init__(self, paths: PathsConfig):
+        self.paths = paths
+        self.galaxy_yaml_loaded = False
+        self.namespace = None
+        self.name = None
+        self.version = None
+        self.flatmap = None
+
+    def _parse_galaxy_yaml(self, galaxy_yaml):
+        self.galaxy_yaml_loaded = True
+        if self.namespace is None and isinstance(galaxy_yaml.get('namespace'), str):
+            self.namespace = galaxy_yaml.get('namespace')
+        if self.name is None and isinstance(galaxy_yaml.get('name'), str):
+            self.name = galaxy_yaml.get('name')
+        if self.version is None and isinstance(galaxy_yaml.get('version'), str):
+            self.version = galaxy_yaml.get('version')
+        if self.flatmap is None:
+            self.flatmap = galaxy_yaml.get('type', '') == 'flatmap'
+
+    def _load_galaxy_yaml(self, needed_var: str,
+                          what_for: Optional[str] = None,
+                          help_text: Optional[str] = None):
+        if self.galaxy_yaml_loaded:
+            return
+        if not self.paths.is_collection:
+            raise Exception('Internal error: cannot get collection details for non-collection')
+
+        if what_for is None:
+            what_for = 'load field "{0}"'.format(needed_var)
+        try:
+            galaxy_yaml = load_galaxy_metadata(self.paths)
+        except Exception as e:
+            msg = 'Cannot find galaxy.yaml to {0}: {1}'.format(what_for, e)
+            if help_text is not None:
+                msg = '{0}. {1}'.format(msg, help_text)
+            raise ChangelogError(msg)
+
+        self._parse_galaxy_yaml(galaxy_yaml)
+
+    def get_namespace(self) -> str:
+        """
+        Get collection's namespace.
+        """
+        help_text = 'You can explicitly specify the value with `--collection-namespace`.'
+        if self.namespace is None:
+            self._load_galaxy_yaml('namespace', help_text=help_text)
+        namespace = self.namespace
+        if namespace is None:
+            raise ChangelogError('Cannot find "namespace" field in galaxy.yaml. ' + help_text)
+        return namespace
+
+    def get_name(self) -> str:
+        """
+        Get collection's name.
+        """
+        help_text = 'You can explicitly specify the value with `--collection-name`.'
+        if self.name is None:
+            self._load_galaxy_yaml('name', help_text=help_text)
+        name = self.name
+        if name is None:
+            raise ChangelogError('Cannot find "name" field in galaxy.yaml. ' + help_text)
+        return name
+
+    def get_version(self) -> str:
+        """
+        Get collection's version.
+        """
+        help_text = 'You can explicitly specify the value with `--version`.'
+        if self.version is None:
+            self._load_galaxy_yaml('version', help_text=help_text)
+        version = self.version
+        if version is None:
+            raise ChangelogError('Cannot find "version" field in galaxy.yaml. ' + help_text)
+        return version
+
+    def get_flatmap(self) -> bool:
+        """
+        Get collection's flatmap flag.
+        """
+        help_text = 'You can explicitly specify the value with `--collection-flatmap`.'
+        if self.flatmap is None:
+            self._load_galaxy_yaml('type', what_for='determine flatmapping', help_text=help_text)
+        flatmap = self.flatmap
+        if flatmap is None:
+            raise Exception(
+                'Internal error: flatmap is None after successful _load_galaxy_yaml() call')
+        return flatmap
 
 
 class ChangelogConfig:
@@ -100,6 +228,9 @@ class ChangelogConfig:
     """
     Configuration for changelogs.
     """
+
+    paths: PathsConfig
+    collection_details: CollectionDetails
 
     config: dict
     is_collection: bool
@@ -119,13 +250,15 @@ class ChangelogConfig:
     pre_release_tag_re: str
     sections: Mapping[str, str]
 
-    def __init__(self, is_collection: bool, config: dict):
+    def __init__(self, paths: PathsConfig, collection_details: CollectionDetails, config: dict):
         """
         Create changelog config from dictionary.
         """
+        self.paths = paths
+        self.collection_details = collection_details
         self.config = config
 
-        self.is_collection = is_collection
+        self.is_collection = paths.is_collection
         self.title = self.config.get('title')
         self.notes_dir = self.config.get('notesdir', 'fragments')
         self.prelude_name = self.config.get('prelude_section_name', 'release_summary')
@@ -158,7 +291,7 @@ class ChangelogConfig:
             sections[section_name] = section_title
         self.sections = sections
 
-    def store(self, path: str) -> None:
+    def store(self) -> None:
         """
         Store changelog configuration file to disk.
         """
@@ -189,27 +322,25 @@ class ChangelogConfig:
             sections.append([key, value])
         config['sections'] = sections
 
-        with open(path, 'w') as config_f:
+        with open(self.paths.config_path, 'w') as config_f:
             yaml.safe_dump(config, config_f, default_flow_style=False, encoding='utf-8')
 
     @staticmethod
-    def load(path: str, is_collection: bool) -> 'ChangelogConfig':
+    def load(paths: PathsConfig, collection_details: CollectionDetails) -> 'ChangelogConfig':
         """
         Load changelog configuration file from disk.
-
-        :arg is_collection: ``True`` if the changelog config is part of a collection
         """
-        with open(path, 'r') as config_fd:
+        with open(paths.config_path, 'r') as config_fd:
             config = yaml.safe_load(config_fd)
-        return ChangelogConfig(is_collection, config)
+        return ChangelogConfig(paths, collection_details, config)
 
     @staticmethod
-    def default(title: Optional[str] = None, is_collection: bool = True) -> 'ChangelogConfig':
+    def default(paths: PathsConfig, collection_details: CollectionDetails,
+                title: Optional[str] = None) -> 'ChangelogConfig':
         """
         Create default changelog config.
 
         :type title: Title of the project
-        :type is_collection: ``True`` if the changelog config is part of a collection
         """
         config = {
             'changes_file': 'changelog.yaml',
@@ -230,4 +361,4 @@ class ChangelogConfig:
         }
         if title is not None:
             config['title'] = title
-        return ChangelogConfig(is_collection, config)
+        return ChangelogConfig(paths, collection_details, config)

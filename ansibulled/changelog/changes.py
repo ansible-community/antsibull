@@ -20,10 +20,11 @@ import packaging.version
 import semantic_version
 import yaml
 
-from .config import PathsConfig, ChangelogConfig
+from .config import ChangelogConfig
 from .fragment import load_fragments, ChangelogFragment
+from .logger import LOGGER
 from .plugins import load_plugins, PluginDescription
-from .utils import LOGGER, is_release_version
+from .utils import is_release_version
 
 
 class FragmentResolver(metaclass=abc.ABCMeta):
@@ -314,15 +315,13 @@ class ChangesMetadata(ChangesBase):
     Read, write and manage classic Ansible (2.9 and earlier) change metadata.
     """
 
-    paths: PathsConfig
     known_fragments: Set[str]
 
-    def __init__(self, paths: PathsConfig, config: ChangelogConfig, path: str):
+    def __init__(self, config: ChangelogConfig, path: str):
         """
         Create legacy change metadata.
         """
         super(ChangesMetadata, self).__init__(config, path)
-        self.paths = paths
         self.known_fragments = set()
         self.load()
 
@@ -431,7 +430,9 @@ class ChangesMetadata(ChangesBase):
         If the plugins are not provided and needed by this object, they **will** be loaded.
         """
         if plugins is None:
-            plugins = load_plugins(paths=self.paths, version=self.latest_version,
+            plugins = load_plugins(paths=self.config.paths,
+                                   collection_details=self.config.collection_details,
+                                   version=self.latest_version,
                                    force_reload=False)
         return LegacyPluginResolver(plugins)
 
@@ -443,7 +444,7 @@ class ChangesMetadata(ChangesBase):
         If the fragments are not provided and needed by this object, they **will** be loaded.
         """
         if fragments is None:
-            fragments = load_fragments(paths=self.paths, config=self.config)
+            fragments = load_fragments(paths=self.config.paths, config=self.config)
         return LegacyFragmentResolver(fragments)
 
 
@@ -678,13 +679,13 @@ class ChangesData(ChangesBase):
         return ChangesData(last.config, last.path, data)
 
 
-def load_changes(paths: PathsConfig, config: ChangelogConfig) -> ChangesBase:
+def load_changes(config: ChangelogConfig) -> ChangesBase:
     """
     Load changes metadata.
     """
-    path = os.path.join(paths.changelog_dir, config.changes_file)
+    path = os.path.join(config.paths.changelog_dir, config.changes_file)
     if config.changes_format == 'classic':
-        return ChangesMetadata(paths, config, path)
+        return ChangesMetadata(config, path)
     return ChangesData(config, path)
 
 

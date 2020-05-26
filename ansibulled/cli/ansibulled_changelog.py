@@ -9,12 +9,11 @@ Entrypoint to the ansibulled-changelog script.
 
 import argparse
 import datetime
-import logging
 import os
 import sys
 import traceback
 
-from typing import cast, Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 try:
     import argcomplete
@@ -25,13 +24,14 @@ except ImportError:
 from ..changelog.ansible import get_ansible_release
 from ..changelog.changelog_generator import generate_changelog
 from ..changelog.changes import load_changes, add_release
-from ..changelog.config import PathsConfig, ChangelogConfig
+from ..changelog.config import ChangelogConfig, CollectionDetails, PathsConfig
+from ..changelog.errors import ChangelogError
 from ..changelog.fragment import load_fragments, ChangelogFragment, ChangelogFragmentLinter
 from ..changelog.plugins import load_plugins, PluginDescription
-from ..changelog.utils import LOGGER, load_galaxy_metadata
+from ..changelog.logger import LOGGER, setup_logger
 
 
-def set_paths(force: Union[str, None] = None) -> PathsConfig:
+def set_paths(force: Optional[str] = None, is_collection: Optional[bool] = None) -> PathsConfig:
     """
     Create ``PathsConfig``.
 
@@ -39,14 +39,124 @@ def set_paths(force: Union[str, None] = None) -> PathsConfig:
                 Otherwise, detect configuration.
     """
     if force:
+        if is_collection is False:
+            return PathsConfig.force_ansible(force)
         return PathsConfig.force_collection(force)
 
     try:
-        return PathsConfig.detect()
+        return PathsConfig.detect(is_collection=is_collection)
     except ValueError:
-        print("Only the 'init' and 'lint-changelog' commands can be used outside an "
-              "Ansible checkout and outside a collection repository.\n")
-        sys.exit(3)
+        raise ChangelogError(
+            "Only the 'init' and 'lint-changelog' commands can be used outside an "
+            "Ansible checkout and outside a collection repository.\n"
+            "If you are in a collection without galaxy.yml, specify `--is-collection no` "
+            "on the command line.")
+
+
+def parse_boolean_arg(value: Any) -> bool:
+    """
+    Parse a string as a boolean
+    """
+    if isinstance(value, bool):
+        return value
+    value = str(value)
+    if value.lower() in ('yes', 'true'):
+        return True
+    if value.lower() in ('no', 'false'):
+        return False
+    raise argparse.ArgumentTypeError('Cannot interpret as boolean')
+
+
+def create_argparser(program_name: str) -> argparse.ArgumentParser:
+    """
+    Create CLI argument parser.
+    """
+    parser = argparse.ArgumentParser(
+        prog=program_name,
+        description='Changelog generator and linter.')
+
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument('-v', '--verbose',
+                        action='count',
+                        default=0,
+                        help='increase verbosity of output')
+
+    is_collection = argparse.ArgumentParser(add_help=False)
+    is_collection.add_argument('--is-collection',
+                               type=parse_boolean_arg,
+                               help='override whether this is a collection or not '
+                                    '(needed when galaxy.yml does not exist)')
+
+    collection_details = argparse.ArgumentParser(add_help=False)
+    collection_details.add_argument('--collection-namespace',
+                                    help='set collection namespace '
+                                         '(needed when galaxy.yml does not exist)')
+    collection_details.add_argument('--collection-name',
+                                    help='set collection name '
+                                         '(needed when galaxy.yml does not exist)')
+    collection_details.add_argument('--collection-flatmap',
+                                    type=parse_boolean_arg,
+                                    help='override collection flatmapping flag '
+                                         '(needed when galaxy.yml does not exist)')
+
+    subparsers = parser.add_subparsers(metavar='COMMAND')
+
+    init_parser = subparsers.add_parser('init',
+                                        parents=[common],
+                                        help='set up changelog infrastructure for collection')
+    init_parser.set_defaults(func=command_init)
+    init_parser.add_argument('root',
+                             metavar='COLLECTION_ROOT',
+                             help='path to collection root')
+
+    lint_parser = subparsers.add_parser('lint',
+                                        parents=[common],
+                                        help='check changelog fragments for syntax errors')
+    lint_parser.set_defaults(func=command_lint)
+    lint_parser.add_argument('fragments',
+                             metavar='FRAGMENT',
+                             nargs='*',
+                             help='path to fragment to test')
+
+    release_parser = subparsers.add_parser('release',
+                                           parents=[common, is_collection, collection_details],
+                                           help='add a new release to the change metadata')
+    release_parser.set_defaults(func=command_release)
+    release_parser.add_argument('--version',
+                                help='override release version')
+    release_parser.add_argument('--codename',
+                                help='override/set release codename')
+    release_parser.add_argument('--date',
+                                default=str(datetime.date.today()),
+                                help='override release date')
+    release_parser.add_argument('--reload-plugins',
+                                action='store_true',
+                                help='force reload of plugin cache')
+
+    generate_parser = subparsers.add_parser('generate',
+                                            parents=[common, is_collection, collection_details],
+                                            help='generate the changelog')
+    generate_parser.set_defaults(func=command_generate)
+    generate_parser.add_argument('--reload-plugins',
+                                 action='store_true',
+                                 help='force reload of plugin cache')
+
+    if HAS_ARGCOMPLETE:
+        argcomplete.autocomplete(parser)
+
+    return parser
+
+
+def load_collection_details(collection_details: CollectionDetails, args: Any):
+    """
+    Override collection details data with CLI args.
+    """
+    if args.collection_namespace is not None:
+        collection_details.namespace = args.collection_namespace
+    if args.collection_name is not None:
+        collection_details.name = args.collection_name
+    if args.collection_flatmap is not None:
+        collection_details.flatmap = args.collection_flatmap
 
 
 def run(args: List[str]) -> int:
@@ -56,68 +166,7 @@ def run(args: List[str]) -> int:
     verbosity = 0
     try:
         program_name = os.path.basename(args[0])
-        parser = argparse.ArgumentParser(
-            prog=program_name,
-            description='Changelog generator and linter.')
-
-        common = argparse.ArgumentParser(add_help=False)
-        common.add_argument('-v', '--verbose',
-                            action='count',
-                            default=0,
-                            help='increase verbosity of output')
-
-        subparsers = parser.add_subparsers(metavar='COMMAND')
-
-        init_parser = subparsers.add_parser('init',
-                                            parents=[common],
-                                            help='set up changelog infrastructure for collection')
-        init_parser.set_defaults(func=command_init)
-        init_parser.add_argument('root',
-                                 metavar='COLLECTION_ROOT',
-                                 help='path to collection root')
-
-        lint_parser = subparsers.add_parser('lint',
-                                            parents=[common],
-                                            help='check changelog fragments for syntax errors')
-        lint_parser.set_defaults(func=command_lint)
-        lint_parser.add_argument('fragments',
-                                 metavar='FRAGMENT',
-                                 nargs='*',
-                                 help='path to fragment to test')
-
-        release_parser = subparsers.add_parser('release',
-                                               parents=[common],
-                                               help='add a new release to the change metadata')
-        release_parser.set_defaults(func=command_release)
-        release_parser.add_argument('--version',
-                                    help='override release version')
-        release_parser.add_argument('--codename',
-                                    help='override/set release codename')
-        release_parser.add_argument('--date',
-                                    default=str(datetime.date.today()),
-                                    help='override release date')
-        release_parser.add_argument('--reload-plugins',
-                                    action='store_true',
-                                    help='force reload of plugin cache')
-
-        generate_parser = subparsers.add_parser('generate',
-                                                parents=[common],
-                                                help='generate the changelog')
-        generate_parser.set_defaults(func=command_generate)
-        generate_parser.add_argument('--reload-plugins',
-                                     action='store_true',
-                                     help='force reload of plugin cache')
-
-        if HAS_ARGCOMPLETE:
-            argcomplete.autocomplete(parser)
-
-        formatter = logging.Formatter('%(levelname)s %(message)s')
-
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-
-        LOGGER.addHandler(handler)
-        LOGGER.setLevel(logging.WARN)
+        parser = create_argparser(program_name)
 
         arguments = parser.parse_args(args[1:])
 
@@ -126,14 +175,14 @@ def run(args: List[str]) -> int:
             return 2
 
         verbosity = arguments.verbose
-        if arguments.verbose > 2:
-            LOGGER.setLevel(logging.DEBUG)
-        elif arguments.verbose > 1:
-            LOGGER.setLevel(logging.INFO)
-        elif arguments.verbose > 0:
-            LOGGER.setLevel(logging.WARN)
+        setup_logger(verbosity)
 
         return arguments.func(arguments)
+    except ChangelogError as e:
+        LOGGER.error(str(e))
+        if verbosity > 2:
+            traceback.print_exc()
+        return 5
     except SystemExit as e:
         return e.code
     except Exception:  # pylint: disable=broad-except
@@ -154,20 +203,21 @@ def command_init(args: Any) -> int:
 
     paths = set_paths(force=root)
 
-    LOGGER.debug('Checking "{}" for existance', paths.galaxy_path)
-    if not os.path.exists(cast(str, paths.galaxy_path)):
+    if paths.galaxy_path is None:
         LOGGER.error('The file galaxy.yml does not exists in the collection root!')
         return 5
-    LOGGER.debug('Checking "{}" for existance', paths.config_path)
+    LOGGER.debug('Checking for existance of "{}"', paths.config_path)
     if os.path.exists(paths.config_path):
         LOGGER.error('A configuration file already exists at "{}"!', paths.config_path)
         return 5
 
-    galaxy = load_galaxy_metadata(paths)
+    collection_details = CollectionDetails(paths)
 
     config = ChangelogConfig.default(
-        title='{0}.{1}'.format(galaxy['namespace'].title(), galaxy['name'].title()),
-        is_collection=True,
+        paths,
+        collection_details,
+        title='{0}.{1}'.format(
+            collection_details.get_namespace().title(), collection_details.get_name().title()),
     )
 
     fragments_dir = os.path.join(paths.changelog_dir, config.notes_dir)
@@ -180,7 +230,7 @@ def command_init(args: Any) -> int:
         return 5
 
     try:
-        config.store(paths.config_path)
+        config.store()
         print('Created config file "{0}"'.format(paths.config_path))
     except Exception as exc:  # pylint: disable=broad-except
         LOGGER.error('Cannot create config file "{}"', paths.config_path)
@@ -196,19 +246,21 @@ def command_release(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     version: Union[str, None] = args.version
     codename: Union[str, None] = args.codename
     date = datetime.datetime.strptime(args.date, "%Y-%m-%d").date()
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
+
+    load_collection_details(collection_details, args)
 
     flatmap = True
     if config.is_collection:
-        galaxy = load_galaxy_metadata(paths)
-        flatmap = galaxy.get('type', '') == 'flatmap'
+        flatmap = collection_details.get_flatmap()
 
     if not version or not codename:
         if not config.is_collection:
@@ -221,17 +273,11 @@ def command_release(args: Any) -> int:
 
         elif not version:
             # Codename is not required for collections, only version is
-            try:
-                galaxy = load_galaxy_metadata(paths)
-                version = galaxy['version']
-                if not isinstance(version, str):
-                    raise Exception('Version in galaxy.yml is not a string')
-            except Exception as exc:  # pylint: disable=broad-except
-                LOGGER.error('Error while extracting version from galaxy.yml: {}', str(exc))
-                return 5
+            version = collection_details.get_version()
 
-    changes = load_changes(paths, config)
-    plugins = load_plugins(paths=paths, version=version, force_reload=reload_plugins)
+    changes = load_changes(config)
+    plugins = load_plugins(paths=paths, collection_details=collection_details,
+                           version=version, force_reload=reload_plugins)
     fragments = load_fragments(paths, config)
     add_release(config, changes, plugins, fragments, version, codename, date)
     generate_changelog(paths, config, changes, plugins, fragments, flatmap=flatmap)
@@ -245,25 +291,27 @@ def command_generate(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     reload_plugins: bool = args.reload_plugins
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
+
+    load_collection_details(collection_details, args)
 
     flatmap = True
     if config.is_collection:
-        galaxy = load_galaxy_metadata(paths)
-        flatmap = galaxy.get('type', '') == 'flatmap'
+        flatmap = collection_details.get_flatmap()
 
-    changes = load_changes(paths, config)
+    changes = load_changes(config)
     if not changes.has_release:
         print('Cannot create changelog when not at least one release has been added.')
         return 5
     plugins: Optional[List[PluginDescription]]
     if reload_plugins:
-        plugins = load_plugins(
-            paths=paths, version=changes.latest_version, force_reload=reload_plugins)
+        plugins = load_plugins(paths=paths, collection_details=collection_details,
+                               version=changes.latest_version, force_reload=reload_plugins)
     else:
         plugins = None
     fragments = load_fragments(paths, config)
@@ -278,11 +326,12 @@ def command_lint(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    paths = set_paths()
+    paths = set_paths(is_collection=args.is_collection)
 
     fragment_paths: List[str] = args.fragments
 
-    config = ChangelogConfig.load(paths.config_path, paths.galaxy_path is not None)
+    collection_details = CollectionDetails(paths)
+    config = ChangelogConfig.load(paths, collection_details)
 
     exceptions: List[Tuple[str, Exception]] = []
     fragments = load_fragments(paths, config, fragment_paths, exceptions)

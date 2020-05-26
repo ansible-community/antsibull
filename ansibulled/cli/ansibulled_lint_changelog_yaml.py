@@ -8,7 +8,6 @@ Entrypoint to the ansibulled-changelog script.
 """
 
 import argparse
-import logging
 import os.path
 import sys
 import traceback
@@ -22,7 +21,7 @@ except ImportError:
     HAS_ARGCOMPLETE = False
 
 from ..changelog.lint import lint_changelog_yaml
-from ..changelog.utils import LOGGER
+from ..changelog.logger import setup_logger
 
 
 def run(args: List[str]) -> int:
@@ -48,23 +47,10 @@ def run(args: List[str]) -> int:
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
 
-        formatter = logging.Formatter('%(levelname)s %(message)s')
-
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-
-        LOGGER.addHandler(handler)
-        LOGGER.setLevel(logging.WARN)
-
         arguments = parser.parse_args(args[1:])
 
         verbosity = arguments.verbose
-        if arguments.verbose > 2:
-            LOGGER.setLevel(logging.DEBUG)
-        elif arguments.verbose > 1:
-            LOGGER.setLevel(logging.INFO)
-        elif arguments.verbose > 0:
-            LOGGER.setLevel(logging.WARN)
+        setup_logger(verbosity)
 
         return command_lint_changelog(arguments)
     except SystemExit as e:
