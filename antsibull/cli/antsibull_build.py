@@ -130,8 +130,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' place $BASENAME_OF_PIECES_FILE-X.Y.build into --dest-dir')
 
     build_single_parser = subparsers.add_parser('build-single',
-                          parents=[common_parser, build_parser],
-                          description='Build a single-file ACD')
+                                                parents=[common_parser, build_parser],
+                                                description='Build a single-file ACD')
 
     build_single_parser.add_argument('--debian', action='store_true',
                                      help='Include Debian/Ubuntu packaging files in'
