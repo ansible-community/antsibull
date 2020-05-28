@@ -4,6 +4,7 @@
 # Copyright: Ansible Project, 2020
 
 import asyncio
+from datetime import datetime
 import os
 import os.path
 import pkgutil
@@ -82,11 +83,13 @@ def copy_boilerplate_files(package_dir):
         f.write(readme)
 
 
-def write_manifest(package_dir):
+def write_manifest(package_dir, debian=False):
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
     with open(manifest_file, 'w') as f:
         f.write('include COPYING\n')
         f.write('include README\n')
+        if debian:
+            f.write('include debian/*\n')
         f.write('recursive-include ansible_collections/ **\n')
 
 
@@ -100,10 +103,34 @@ def write_setup(acd_version, collection_deps, package_dir):
         f.write(setup_contents)
 
 
-def write_python_build_files(acd_version, collection_deps, package_dir):
+def write_python_build_files(acd_version, collection_deps, package_dir, debian=False):
     copy_boilerplate_files(package_dir)
-    write_manifest(package_dir)
+    write_manifest(package_dir, debian)
     write_setup(acd_version, collection_deps, package_dir)
+
+
+def write_debian_directory(acd_version, package_dir):
+    debian_dir = os.path.join(package_dir, 'debian')
+    os.mkdir(debian_dir, mode=0o700)
+    debian_files = ('changelog.j2', 'control', 'copyright', 'rules')
+    for filename in debian_files:
+        # Don't use os.path.join here, the get_data docs say it should be
+        # slash-separated.
+        src_pkgfile = 'debian/' + filename
+        data = pkgutil.get_data('antsibull.data', src_pkgfile).decode('utf-8')
+
+        if filename.endswith('.j2'):
+            filename = filename.replace('.j2', '')
+            # If the file is a template, send it in vars it might need
+            # and update 'data' to be the result.
+            tmpl = Template(data)
+            data = tmpl.render(
+                version=acd_version,
+                date=datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
+            )
+
+        with open(os.path.join(debian_dir, filename), 'w') as f:
+            f.write(data)
 
 
 def make_dist(ansible_dir, dest_dir):
@@ -138,7 +165,10 @@ def build_single_command(args):
 
         asyncio.run(install_collections_together(args.acd_version, download_dir,
                                                  ansible_collections_dir))
-        write_python_build_files(args.acd_version, '', package_dir)
+        write_python_build_files(args.acd_version, '', package_dir, args.debian)
+        if args.debian:
+            print('Including debian packaging files')
+            write_debian_directory(args.acd_version, package_dir)
         make_dist(package_dir, args.dest_dir)
 
     deps_filename = os.path.join(args.dest_dir, args.deps_file)

@@ -1,0 +1,25 @@
+Source: ansible
+Section: admin
+Priority: optional
+Maintainer: Rick Elrod <relrod@redhat.com>
+Build-Depends: debhelper-compat (= 12), dh-python, python3-setuptools, python3-all
+Standards-Version: 4.4.1
+Homepage: https://ansible.com/
+Vcs-Browser: https://github.com/ansible-community/
+Vcs-Git: https://github.com/ansible-community/antsibull.git
+#Testsuite: autopkgtest-pkg-python
+
+Package: ansible
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, ansible-base
+#Suggests: python-ansible-doc
+Description: ansible collections for ansible-base
+
+#Package: python-ansible-doc
+#Architecture: all
+#Section: doc
+#Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+#Description: <insert up to 60 chars description> (common documentation)
+# <insert long description, indented with spaces>
+# .
+# This is the common documentation package.
