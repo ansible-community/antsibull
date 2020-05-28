@@ -239,7 +239,7 @@ class ChangelogGenerator:
 
         if isinstance(content, list):
             for rst in sorted(content):
-                builder.add_raw_rst('- %s' % rst)
+                builder.add_list_item(rst)
         else:
             builder.add_raw_rst(content)
 

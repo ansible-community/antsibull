@@ -50,6 +50,17 @@ class RstBuilder:
         """
         self.lines.append(content)
 
+    def add_list_item(self, content: str) -> None:
+        """
+        Add a list item. Content can be multi-lined.
+        """
+        lines = content.splitlines()
+        for no, line in enumerate(lines):
+            if no > 0 and not line:
+                self.lines.append('')
+                continue
+            self.lines.append('%s %s' % (' ' if no else '-', line))
+
     def generate(self) -> str:
         """
         Generate RST content.
