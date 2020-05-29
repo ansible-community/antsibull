@@ -20,8 +20,8 @@ try:
 except ImportError:
     HAS_ARGCOMPLETE = False
 
-from ..changelog.lint import lint_changelog_yaml
-from ..changelog.logger import setup_logger
+from antsibull_changelog.lint import lint_changelog_yaml
+from antsibull_changelog.logger import setup_logger
 
 
 def run(args: List[str]) -> int:
