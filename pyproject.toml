@@ -17,7 +17,6 @@ packages = [
 
 [tool.poetry.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
-antsibull-changelog = "antsibull.cli.antsibull_changelog:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
 antsibull-docs = "antsibull.cli.antsibull_docs:main"
 
@@ -35,6 +34,7 @@ PyYAML = "*"
 pydantic = "*"
 asyncio-pool = "*"
 perky = "*"
+antsibull-changelog = "*"
 # Current twiggy head to get dict_config
 twiggy = {git = "https://github.com/wearpants/twiggy", rev = "d4c5b57abc551a44a6ee7ca01f5622cc3b277456"}
 
