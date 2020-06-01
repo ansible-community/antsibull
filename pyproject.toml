@@ -36,7 +36,11 @@ asyncio-pool = "*"
 perky = "*"
 antsibull-changelog = "*"
 # Current twiggy head to get dict_config
-twiggy = {git = "https://github.com/wearpants/twiggy", rev = "d4c5b57abc551a44a6ee7ca01f5622cc3b277456"}
+# so... wheels can't dep on modules from git.  So I'll either have to get a new
+# release of twiggy or switchover to logging.  We haven't started using it heavily yet so
+# I'll choose which to do before using it more.
+#twiggy = {git = "https://github.com/wearpants/twiggy", rev = "d4c5b57abc551a44a6ee7ca01f5622cc3b277456"}
+twiggy = "*"
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"
