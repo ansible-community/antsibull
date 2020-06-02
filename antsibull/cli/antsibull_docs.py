@@ -15,12 +15,13 @@ from typing import Callable, Dict, List
 # from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import writable_via_acls
-from .doc_commands import collection, devel, plugin, stable
+from .doc_commands import collection, devel, plugin, stable, current
 
 #: Mapping from command line subcommand names to functions which implement those
 #: The functions need to take a single argument, the processed list of args.
 ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'stable': stable.generate_docs,
+                                 'current': current.generate_docs,
                                  'collection': collection.generate_docs,
                                  'plugin': plugin.generate_docs,
                                  }
@@ -82,6 +83,16 @@ def _normalize_stable_options(args: argparse.Namespace) -> None:
                                    ' per line')
 
 
+def _normalize_current_options(args: argparse.Namespace) -> None:
+    if args.command != 'current':
+        return
+
+    if not os.path.isdir(args.collection_dir) or not os.path.isdir(
+            os.path.join(args.collection_dir, 'ansible_collections')):
+        raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
+                                   ' a directory containing a subdirectory ansible_collections')
+
+
 def _normalize_plugin_options(args: argparse.Namespace) -> None:
     if args.command != 'plugin':
         return
@@ -141,6 +152,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                help='File which contains the list of collections and'
                                ' versions which were included in this version of Ansible')
 
+    current_parser = subparsers.add_parser('current',
+                                           parents=[common_parser],
+                                           description='Generate documentation for the current'
+                                           ' installed version of ansible and the current installed'
+                                           ' collections')
+    current_parser.add_argument('--collection-dir', required=True,
+                                help='Path to the directory containing ansible_collections')
+
     collection_parser = subparsers.add_parser('collection',
                                               parents=[common_parser],
                                               description='Generate documentation for a single'
@@ -170,6 +189,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_common_options(args)
     _normalize_devel_options(args)
     _normalize_stable_options(args)
+    _normalize_current_options(args)
     _normalize_plugin_options(args)
 
     # Note: collections aren't validated as existing files or collection names here because talking
