@@ -3,10 +3,8 @@
 # Copyright: Ansible Project, 2020
 """Entrypoint to the antsibull-docs script."""
 
-import os
 import typing as t
 
-from ...ansible_base import get_ansible_base
 from ...compat import asyncio_run
 from ...docs_parsing.ansible_doc import get_ansible_plugin_info
 from ...logging import log
