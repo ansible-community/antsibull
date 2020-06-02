@@ -45,7 +45,7 @@ class AnsibleBasePyPiClient:
         self.aio_session = aio_session
         self.pypi_server_url = pypi_server_url
 
-    @lru_cache
+    @lru_cache(None)
     async def get_info(self) -> t.Dict[str, t.Any]:
         """
         Retrieve information about the ansible-base package from pypi.
@@ -189,7 +189,7 @@ def cache_is_correct_version(ansible_base_cache: t.Optional[str],
     return False
 
 
-@lru_cache
+@lru_cache(None)
 async def checkout_from_git(download_dir: str, repo_url: str = ANSIBLE_BASE_URL) -> str:
     """
     Checkout the ansible-base git repo.
