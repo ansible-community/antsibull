@@ -39,13 +39,21 @@ PluginErrorsRT = t.DefaultDict[str, t.DefaultDict[str, t.List[str]]]
 
 async def retrieve(ansible_base_version: str,
                    collections: t.Mapping[str, str],
-                   tmp_dir: str) -> t.Dict[str, 'semver.Version']:
+                   tmp_dir: str,
+                   ansible_base_cache: t.Optional[str] = None,
+                   collection_cache: t.Optional[str] = None) -> t.Dict[str, 'semver.Version']:
     """
     Download ansible-base and the collections.
 
     :arg ansible_base_version: Version of ansible-base to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into
+    :kwarg ansible_base_cache: If given, a path to an Ansible-base checkout or expanded sdist.
+        This will be used instead of downloading an ansible-base package if the version matches
+        with ``ansible_base_version``.
+    :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
+        These tarballs will be used instead of downloading new tarballs provided that the
+        versions match the criteria (latest compatible version known to galaxy).
     :returns: Map of collection name to directory it is in.  ansible-base will
         use the special key, `_ansible_base`.
     """
@@ -54,10 +62,12 @@ async def retrieve(ansible_base_version: str,
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        requestors['_ansible_base'] = asyncio.create_task(get_ansible_base(aio_session,
-                                                                           ansible_base_version,
-                                                                           tmp_dir))
-        downloader = CollectionDownloader(aio_session, collection_dir)
+        requestors['_ansible_base'] = asyncio.create_task(
+            get_ansible_base(aio_session, ansible_base_version, tmp_dir,
+                             ansible_base_cache=ansible_base_cache))
+
+        downloader = CollectionDownloader(aio_session, collection_dir,
+                                          collection_cache=collection_cache)
         for collection, version in collections.items():
             requestors[collection] = asyncio.create_task(downloader.download(collection, version))
 
@@ -210,12 +220,15 @@ def generate_docs(args: 'argparse.Namespace') -> int:
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # Retrieve ansible-base and the collections
-        collection_tarballs = asyncio_run(retrieve(ansible_base_version, collections, tmp_dir))
+        collection_tarballs = asyncio_run(retrieve(ansible_base_version, collections, tmp_dir,
+                                                   ansible_base_cache=args.ansible_base_cache,
+                                                   collection_cache=args.collection_cache))
         flog.debug('Finished retrieving tarballs')
 
         # Get the ansible-base location
         try:
-            ansible_base_tarball = collection_tarballs.pop('_ansible_base')
+            # Note, this may be a tarball or the path to an ansible-base checkout/expanded sdist.
+            ansible_base_path = collection_tarballs.pop('_ansible_base')
         except KeyError:
             print('ansible-base did not download successfully')
             return 3
@@ -235,7 +248,10 @@ def generate_docs(args: 'argparse.Namespace') -> int:
 
         # Create venv for ansible-base
         venv = VenvRunner('ansible-base-venv', tmp_dir)
-        venv.install_package(ansible_base_tarball)
+        if os.path.isdir(ansible_base_path):
+            venv.install_package(ansible_base_path, from_project_path=True)
+        else:
+            venv.install_package(ansible_base_path)
         flog.debug('Finished installing ansible-base')
 
         # Get the list of plugins

@@ -4,21 +4,21 @@
 # Copyright: Ansible Project, 2020
 """Functions to work with Galaxy."""
 
-import hashlib
 import os.path
-from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Union
+import shutil
+import typing as t
 from urllib.parse import urljoin
 
-import aiofiles
 import semantic_version as semver
 
+from .constants import CHUNKSIZE
+from .hashing import verify_hash
+
 # The type checker can handle finding aiohttp.client but flake8 cannot :-(
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     import aiohttp.client
 
 
-#: Number of bytes to read or write in one chunk
-CHUNKSIZE = 4096
 #: URL to galaxy.
 GALAXY_SERVER_URL = 'https://galaxy.ansible.com/'
 
@@ -35,7 +35,7 @@ class DownloadFailure(Exception):
     """Failure downloading a collection from Galaxy."""
 
 
-class DownloadResults(NamedTuple):
+class DownloadResults(t.NamedTuple):
     """Results of downloading a collection."""
 
     #: :obj:`semantic_version.Version` of the exact version of the collection that was downloaded.
@@ -60,7 +60,7 @@ class GalaxyClient:
         self.aio_session = aio_session
         self.params = {'format': 'json'}
 
-    async def _get_galaxy_versions(self, versions_url: str) -> List[str]:
+    async def _get_galaxy_versions(self, versions_url: str) -> t.List[str]:
         """
         Retrieve the complete list of versions for a collection from a galaxy endpoint.
 
@@ -85,7 +85,7 @@ class GalaxyClient:
 
         return versions
 
-    async def get_versions(self, collection: str) -> List[str]:
+    async def get_versions(self, collection: str) -> t.List[str]:
         """
         Retrieve all versions of a collection on Galaxy.
 
@@ -97,7 +97,7 @@ class GalaxyClient:
         retval = await self._get_galaxy_versions(galaxy_url)
         return retval
 
-    async def get_info(self, collection: str) -> Dict[str, Any]:
+    async def get_info(self, collection: str) -> t.Dict[str, t.Any]:
         """
         Retrieve information about the collection on Galaxy.
 
@@ -122,7 +122,7 @@ class GalaxyClient:
         return collection_info
 
     async def get_release_info(self, collection: str,
-                               version: Union[str, semver.Version]) -> Dict[str, Any]:
+                               version: t.Union[str, semver.Version]) -> t.Dict[str, t.Any]:
         """
         Retrive information about a specific version of a collection.
 
@@ -155,19 +155,25 @@ class CollectionDownloader(GalaxyClient):
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
                  download_dir: str,
-                 galaxy_server: str = GALAXY_SERVER_URL) -> None:
+                 galaxy_server: str = GALAXY_SERVER_URL,
+                 collection_cache: t.Optional[str] = None) -> None:
         """
         Create an object to download collections from galaxy.
 
         :arg aio_session: :obj:`aiohttp.ClientSession` with which to perform all
             requests to galaxy.
         :arg download_dir: Directory to download into.
+        :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
+            These tarballs will be used instead of downloading new tarballs provided that the
+            versions match the criteria (latest compatible version known to galaxy).
         :kwarg galaxy_server: URL to the galaxy server.
         """
         super().__init__(aio_session, galaxy_server)
         self.download_dir = download_dir
+        # TODO: PY3.8: self.collection_cache: t.Final[t.Optional[str]] = collection_cache
+        self.collection_cache = collection_cache
 
-    async def download(self, collection: str, version: Union[str, semver.Version]) -> str:
+    async def download(self, collection: str, version: t.Union[str, semver.Version], ) -> str:
         """
         Download a collection.
 
@@ -184,6 +190,15 @@ class CollectionDownloader(GalaxyClient):
         download_filename = os.path.join(self.download_dir, release_info['artifact']['filename'])
         sha256sum = release_info['artifact']['sha256']
 
+        if self.collection_cache:
+            if release_info['artifact']['filename'] in os.listdir(self.collection_cache):
+                # TODO: PY3.8: We can use t.Final in __init__ instead of cast here.
+                cached_copy = os.path.join(t.cast(str, self.collection_cache),
+                                           release_info['artifact']['filename'])
+                if await verify_hash(cached_copy, sha256sum):
+                    shutil.copyfile(cached_copy, download_filename)
+                return download_filename
+
         async with self.aio_session.get(release_url) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {release_url}')
@@ -196,17 +211,9 @@ class CollectionDownloader(GalaxyClient):
                     chunk = await response.content.read(CHUNKSIZE)
 
         # Verify the download
-        hasher = hashlib.sha256()
-        async with aiofiles.open(download_filename, 'rb') as f:
-            # TODO: PY3.8: while chunk := await f.read(CHUNKSIZE):
-            chunk = await f.read(CHUNKSIZE)
-            while chunk:
-                hasher.update(chunk)
-                chunk = await f.read(CHUNKSIZE)
-        if hasher.hexdigest() != sha256sum:
-            raise DownloadFailure(f'{release_url} failed to download correctly.  Failed checksum:\n'
-                                  f'Expected: {sha256sum}\n'
-                                  f'Actual:   {hasher.hexdigest()}')
+        if not await verify_hash(download_filename, sha256sum):
+            raise DownloadFailure(f'{release_url} failed to download correctly.'
+                                  f' Expected checksum: {sha256sum}')
 
         return download_filename
 

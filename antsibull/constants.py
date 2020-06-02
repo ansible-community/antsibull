@@ -7,6 +7,9 @@
 from typing import FrozenSet
 
 
+#: Number of bytes to read or write in one chunk
+CHUNKSIZE = 4096
+
 #: All the types of ansible plugins
 PLUGIN_TYPES: FrozenSet[str] = frozenset(('become', 'cache', 'callback', 'cliconf', 'connection',
                                           'httpapi', 'inventory', 'lookup', 'shell', 'strategy',
