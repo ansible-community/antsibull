@@ -49,6 +49,42 @@ class ParsingError(Exception):
     """Error raised while parsing plugins for documentation."""
 
 
+def _combined_ansible_doc(ansible_doc, plugin_type, plugin_names):
+    if not plugin_names:
+        return {}
+
+    try:
+        result = ansible_doc('-t', plugin_type, '--json', *plugin_names)
+    except Exception as e:
+        result = e
+
+    if isinstance(result, Exception) or isinstance(result, sh.ErrorReturnCode):
+        if len(plugin_names) == 1:
+            return {
+                plugin_names[0]: (result, None)
+            }
+
+        # print('failure in', len(plugin_names), plugin_names)
+
+        if len(plugin_names) < 10:
+            # Simple loop
+            parts = [[plugin_name] for plugin_name in plugin_names]
+        else:
+            # Divide and conquer
+            middle = len(plugin_names) // 2
+            parts = [plugin_names[:middle], plugin_names[middle:]]
+
+        result = {}
+        for part in parts:
+            result.update(_combined_ansible_doc(ansible_doc, plugin_type, part))
+        return result
+
+    stdout = result.stdout.decode("utf-8", errors="surrogateescape")
+    result = json.loads(_filter_non_json_lines(stdout)[0])
+
+    return {plugin_name: (None, plugin_info) for plugin_name, plugin_info in result.items()}
+
+
 async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
                            max_workers: int = THREAD_MAX) -> Dict[str, Any]:
     """
@@ -80,54 +116,55 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     del ansible_doc_list_cmd
 
     loop = best_get_loop()
+    executor = ThreadPoolExecutor(max_workers=max_workers)
 
     # For each plugin, get its documentation
     extractors = {}
-    executor = ThreadPoolExecutor(max_workers=max_workers)
-    for plugin_name in plugin_map.keys():
-        extractors[plugin_name] = loop.run_in_executor(executor, ansible_doc, '-t', plugin_type,
-                                                       '--json', plugin_name)
-    plugin_info = await asyncio.gather(*extractors.values(), return_exceptions=True)
+    plugin_names = list(plugin_map.keys())
+    block_size = 128
+    for i in range(0, len(plugin_names), block_size):
+        block = plugin_names[i:i + block_size]
+        extractors[i] = loop.run_in_executor(executor, _combined_ansible_doc,
+                                             ansible_doc, plugin_type, block)
+    plugin_info_blocks = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
     results = {}
-    for plugin_name, ansible_doc_results in zip(extractors, plugin_info):
-        err_msg = []
+    for plugin_info_block in plugin_info_blocks:
+        for plugin_name, (exception, plugin_info) in plugin_info_block.items():
+            if exception is not None:
+                err_msg = []
 
-        if isinstance(ansible_doc_results, Exception):
-            formatted_exception = traceback.format_exception(None, ansible_doc_results,
-                                                             ansible_doc_results.__traceback__)
-            err_msg.append(f'Exception while parsing documentation for {plugin_type} plugin:'
-                           f' {plugin_name}.  Will not document this plugin.')
-            err_msg.append(f'Exception:\n{"".join(formatted_exception)}')
+                if isinstance(exception, Exception):
+                    formatted_exception = traceback.format_exception(None, exception,
+                                                                     exception.__traceback__)
+                    err_msg.append(f'Exception while parsing documentation for {plugin_type}'
+                                   f' plugin: {plugin_name}.  Will not document this plugin.')
+                    err_msg.append(f'Exception:\n{"".join(formatted_exception)}')
 
-        # Note: Exception will also be True.
-        if isinstance(ansible_doc_results, sh.ErrorReturnCode):
-            stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
-            stderr = ansible_doc_results.stderr.decode("utf-8", errors="surrogateescape")
+                if isinstance(exception, sh.ErrorReturnCode):
+                    stdout = exception.stdout.decode("utf-8", errors="surrogateescape")
+                    stderr = exception.stderr.decode("utf-8", errors="surrogateescape")
 
-            err_msg.append(f'Full process stdout:\n{stdout}')
-            err_msg.append(f'Full process stderr:\n{stderr}')
+                    err_msg.append(f'Full process stdout:\n{stdout}')
+                    err_msg.append(f'Full process stderr:\n{stderr}')
 
-        if err_msg:
-            sys.stderr.write('\n'.join(err_msg))
-            continue
+                sys.stderr.write('\n'.join(err_msg))
+                continue
 
-        stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
+            # ansible-doc returns plugins shipped with ansible-base using no namespace and
+            # collection. For now, we fix these entries to use the ansible.builtin collection
+            # here.  The reason we do it here instead of as part of a general normalization step
+            # is that other plugins (site-specific ones from ANSIBLE_LIBRARY, for instance) will
+            # also be returned with no collection name.  We know that we don't have any of those
+            # in this code (because we set ANSIBLE_LIBRARY and other plugin path variables to
+            # /dev/null) so we can safely fix this here but not outside the ansible-doc backend.
+            fqcn = plugin_name
+            try:
+                get_fqcn_parts(fqcn)
+            except ValueError:
+                fqcn = f'ansible.builtin.{plugin_name}'
 
-        # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
-        # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
-        # do it here instead of as part of a general normalization step is that other plugins
-        # (site-specific ones from ANSIBLE_LIBRARY, for instance) will also be returned with no
-        # collection name.  We know that we don't have any of those in this code (because we set
-        # ANSIBLE_LIBRARY and other plugin path variables to /dev/null) so we can safely fix this
-        # here but not outside the ansible-doc backend.
-        fqcn = plugin_name
-        try:
-            get_fqcn_parts(fqcn)
-        except ValueError:
-            fqcn = f'ansible.builtin.{plugin_name}'
-
-        results[fqcn] = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
+            results[fqcn] = plugin_info
 
     return results
 
