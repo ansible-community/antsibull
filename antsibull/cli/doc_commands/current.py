@@ -3,31 +3,19 @@
 # Copyright: Ansible Project, 2020
 """Entrypoint to the antsibull-docs script."""
 
-import asyncio
 import os
-import os.path
-import tempfile
 import typing as t
-from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor
-
-import aiohttp
-from pydantic import ValidationError
 
 from ...ansible_base import get_ansible_base
-from ...compat import asyncio_run, best_get_loop
+from ...compat import asyncio_run
 from ...docs_parsing.ansible_doc import get_ansible_plugin_info
-from ...docs_parsing.fqcn import get_fqcn_parts
-from ...galaxy import CollectionDownloader
 from ...logging import log
-from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import FakeVenvRunner
 from ...write_docs import output_indexes, output_all_plugin_rst
 from .stable import normalize_all_plugin_info, get_collection_contents
 
 if t.TYPE_CHECKING:
     import argparse
-    import semantic_version as semver
 
 
 mlog = log.fields(mod=__name__)
