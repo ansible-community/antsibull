@@ -100,12 +100,25 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     :raises InvalidArgumentError: Whenever there's something wrong with the arguments.
     """
     # TODO: Need a function to return a parser with options that all antsibull
-    # scripts use. Then we can add it as a parent to the common_parser.
+    # scripts use. Then we can add it as a parent to the common_parser.  First use case:
+    # config file.
     # antsibull_parser =
 
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument('--dest-dir', default='.',
                                help='Directory to write the output to')
+
+    cache_parser = argparse.ArgumentParser(add_help=False)
+    cache_parser.add_argument('--ansible-base-cache', default=None,
+                              help='Checkout or expanded tarball of the ansible-base package.  If'
+                              ' this is a git checkout it must be the HEAD of the cache branch.'
+                              ' If it is an expanded tarball, the __version__ will be checked to'
+                              ' make sure it is compatible with and the same or later version than'
+                              ' requested by the depcs file.')
+    cache_parser.add_argument('--collection-cache', default=None,
+                              help='Directory of collection tarballs.  These will be used instead'
+                              ' of downloading fresh versions provided that they meet the criteria'
+                              ' (Latest version of the collections known to galaxy).')
 
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage generated documentation for'
@@ -114,14 +127,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        help='for help use  SUBCOMMANDS -h')
 
     # Document the next version of ansible
-    devel_parser = subparsers.add_parser('devel', parents=[common_parser],
+    devel_parser = subparsers.add_parser('devel', parents=[common_parser, cache_parser],
                                          description='Generate documentation for the next major'
                                          ' release of Ansible')
     devel_parser.add_argument('--pieces-file', default=DEFAULT_PIECES_FILE,
                               help='File containing a list of collections to include')
 
     stable_parser = subparsers.add_parser('stable',
-                                          parents=[common_parser],
+                                          parents=[common_parser, cache_parser],
                                           description='Generate documentation for a current'
                                           ' version of ansible')
     stable_parser.add_argument('--deps-file', required=True,
