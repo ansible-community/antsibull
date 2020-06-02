@@ -83,8 +83,7 @@ class AnsibleBasePyPiClient:
         versions = await self.get_versions()
         return versions[0]
 
-    async def retrieve(self, ansible_base_version: t.Union[str, pypiver.Version],
-                       download_dir: str) -> str:
+    async def retrieve(self, ansible_base_version: str, download_dir: str) -> str:
         """
         Get the release from pypi.
 
@@ -239,6 +238,6 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
             assert ansible_base_cache is not None
             return ansible_base_cache
 
-        install_file = await pypi_client.retrieve(ansible_base_version, tmpdir)
+        install_file = await pypi_client.retrieve(ansible_base_version.public, tmpdir)
 
     return install_file
