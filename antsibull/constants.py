@@ -25,4 +25,4 @@ DOCUMENTABLE_PLUGINS: FrozenSet[str] = frozenset(('become', 'cache', 'callback',
 THREAD_MAX: int = 128
 
 #: A good maximum number of concurrent processes to allow
-PROCESS_MAX: int = 128
+PROCESS_MAX: int = 7
