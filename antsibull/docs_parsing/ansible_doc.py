@@ -8,7 +8,7 @@ import json
 import os
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Union
 
 import sh
 
@@ -18,7 +18,7 @@ from ..constants import DOCUMENTABLE_PLUGINS
 from ..vendored.json_utils import _filter_non_json_lines
 
 if TYPE_CHECKING:
-    from ..venv import VenvRunner
+    from ..venv import VenvRunner, FakeVenvRunner
 
 
 #: Clear Ansible environment variables that set paths where plugins could be found.
@@ -123,7 +123,7 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
     return results
 
 
-async def get_ansible_plugin_info(venv: 'VenvRunner',
+async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: str) -> Dict[str, Dict[str, Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
