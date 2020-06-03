@@ -6,12 +6,7 @@
 :source: @{ source }@
 -#}
 
-{# avoids rST "isn't included in any toctree" errors for module docs #}
-{# In the collection world, this should either be on for everything or off foor everything
-{% if plugin_type == 'module' %}
 :orphan:
-{% endif %}
--#}
 
 {# Do we need modules and module_utils anymore or can we just use the singular form?
 {%- if plugin_type in ('module', 'module_util') %}
@@ -164,7 +159,7 @@ Parameters
                     {# Turn boolean values in 'yes' and 'no' values #}
                     {% if value['default'] is sameas true %}
                         {% set _x = value.update({'default': 'yes'}) %}
-                    {% elif value['default'] is sameas false %}
+                    {% elif value['default'] is not none and value['default'] is sameas false %}
                         {% set _x = value.update({'default': 'no'}) %}
                     {% endif %}
                     {% if value['type'] == 'bool' %}
@@ -189,7 +184,7 @@ Parameters
                         </ul>
                     {% endif %}
                     {# Show default value, when multiple choice or no choices #}
-                    {% if value['default'] not in value['choices'] %}
+                    {% if value['default'] is not none and value['default'] not in value['choices'] %}
                         <b>Default:</b><br/><div style="color: blue">@{ value['default'] | tojson | escape }@</div>
                     {% endif %}
                 </td>
@@ -231,25 +226,25 @@ Parameters
 
 .. Notes
 
-{% if notes -%}
+{% if doc['notes'] -%}
 Notes
 -----
 
 .. note::
-{%   for note in notes %}
+{%   for note in doc['notes'] %}
    - @{ note | rst_ify }@
 {%   endfor %}
 {% endif %}
 
 .. Seealso
 
-{% if seealso -%}
+{% if doc['seealso'] -%}
 See Also
 --------
 
 .. seealso::
 
-{% for item in seealso %}
+{% for item in doc['seealso'] %}
 {# ################# problem: Need an anchor that matches this format ######### #}
 {%   if item.module is defined and item.description %}
    :ref:`@{ item['module'] }@_module`
@@ -410,13 +405,13 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 
 ..  Status (Presently only deprecated)
 
-{% if deprecated %}
+{% if doc['deprecated'] %}
 Status
 ------
 
 .. Deprecated note
 
-- This @{ plugin_type }@ will be removed in version @{ deprecated['removed_in'] | default('') | string | rst_ify }@. *[deprecated]*
+- This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | default('') | string | rst_ify }@. *[deprecated]*
 - For more information see `DEPRECATED`_.
 
 {% endif %}
@@ -454,7 +449,9 @@ There were some errors parsing the documentation for this plugin.  Please file a
 The errors were:
 
 {% for error in nonfatal_errors %}
-* @{ error }@
+* ::
+
+@{ error | indent(width=8, first=True) }@
 
 {% endfor %}
 {% endif %}

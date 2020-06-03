@@ -158,7 +158,7 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
         # Errors where we have at least docs.  We can still create a docs page for these with some
         # information left out
         if plugin_record[1]:
-            nonfatal_errors[plugin_type][plugin_name].extend(results[1])
+            nonfatal_errors[plugin_type][plugin_name].extend(plugin_record[1])
 
         new_plugin_info[plugin_type][plugin_name] = plugin_record[0]
 

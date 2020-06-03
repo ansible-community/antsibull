@@ -1,9 +1,17 @@
+.. Document meta section
+
+:orphan:
+
+.. Document body
+
 The documentation for the @{ plugin_type }@ plugin, @{ plugin_name }@,  was malformed.
 
 The errors were:
 
 {% for error in nonfatal_errors %}
-* @{ error| replace('\n', '; ') }@
+* ::
+
+@{ error | indent(width=8, first=True) }@
 
 {% endfor %}
 
