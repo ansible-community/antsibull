@@ -47,7 +47,7 @@ async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[st
         plugin_contents = error_tmpl.render(
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
-            nonfatal_erros=nonfatal_errors)
+            nonfatal_errors=nonfatal_errors)
     else:
         plugin_contents = plugin_tmpl.render(
             collection=collection_name,

@@ -150,9 +150,9 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
         # Errors which broke doc parsing (and therefore we won't have enough info to
         # build a docs page)
         if isinstance(plugin_record, Exception):
-            nonfatal_errors[plugin_type][plugin_name].append(str(plugin_record))
             # An exception means there is no usable documentation for this plugin
-            new_plugin_info[plugin_type][plugin_name] = {}
+            # Record a nonfatal error and then move on
+            nonfatal_errors[plugin_type][plugin_name].append(str(plugin_record))
             continue
 
         # Errors where we have at least docs.  We can still create a docs page for these with some
@@ -182,18 +182,18 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
             - plugin_short_name: short_description
     """
     collection_plugins = defaultdict(lambda: defaultdict(dict))
-    for plugin_type, plugin_list in plugin_info.items():
-        for plugin_name, plugin_desc in plugin_list.items():
-            namespace, collection, short_name = get_fqcn_parts(plugin_name)
-            collection_plugins['.'.join((namespace, collection))][plugin_type][short_name] = (
-                plugin_desc)
-
     # Some plugins won't have an entry in the plugin_info because documentation failed to parse.
     # Those should be documented in the nonfatal_errors information.
     for plugin_type, plugin_list in nonfatal_errors.items():
         for plugin_name, dummy_ in plugin_list.items():
             namespace, collection, short_name = get_fqcn_parts(plugin_name)
             collection_plugins['.'.join((namespace, collection))][plugin_type][short_name] = ''
+
+    for plugin_type, plugin_list in plugin_info.items():
+        for plugin_name, plugin_desc in plugin_list.items():
+            namespace, collection, short_name = get_fqcn_parts(plugin_name)
+            collection_plugins['.'.join((namespace, collection))][plugin_type][short_name] = (
+                plugin_desc['doc']['short_description'])
 
     return collection_plugins
 

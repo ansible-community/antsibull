@@ -1,4 +1,5 @@
 .. Document meta
+
 {# If we can put together source and github repo, we could make the Edit me of github button work.
    See meta.get("source") in Ansible's docs/docsite/_themes/sphinx_rtd_theme/breadcrumbs.html
    for more information
@@ -21,6 +22,7 @@
 -#}
 
 .. Anchors
+
 {# singular form is okay?
 .. _ansible_collections.@{collection}@.plugins.@{normalized_plugin_type}@.@{doc['name']}@:
 #}
@@ -32,11 +34,13 @@
 {% endif -%}
 
 .. Anchors: aliases
+
 {% for alias in doc['aliases'] -%}
 .. _@{ alias }@_@{ plugin_type }@:
 {% endfor %}
 
 .. Collection note
+
 {% if collection != 'ansible.builtins' -%}
 .. note::
     This plugin is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_.
@@ -47,6 +51,7 @@
 {% endif %}
 
 .. Title
+
 {% if doc['short_description'] -%}
 {%   set title = plugin_name + ' -- ' + doc['short_description'] | rst_ify -%}
 {% else -%}
@@ -57,6 +62,7 @@
 @{ '+' * title|length }@
 
 .. version_added
+
 {% if doc['version_added'] is still_relevant -%}
 .. versionadded:: @{ doc['version_added'] }@
 {% endif %}
@@ -66,6 +72,7 @@
    :depth: 1
 
 .. Deprecated
+
 {% if doc['deprecated'] -%}
 DEPRECATED
 ----------
@@ -78,16 +85,19 @@ Synopsis
 --------
 
 .. Description
+
 {%   for desc in doc['description'] -%}
 - @{ desc | rst_ify }@
 {%   endfor %}
 
 .. Aliases
+
 {% if doc['aliases'] -%}
 Aliases: @{ ','.join(aliases) }@
 {% endif %}
 
 .. Requirements
+
 {% if doc['requirements'] -%}
 Requirements
 ------------
@@ -104,6 +114,7 @@ The below requirements are needed on the local controller node that executes thi
 {% endif %}
 
 .. Options
+
 {% if doc['options'] -%}
 
 Parameters
@@ -219,6 +230,7 @@ Parameters
 {% endif %}
 
 .. Notes
+
 {% if notes -%}
 Notes
 -----
@@ -230,6 +242,7 @@ Notes
 {% endif %}
 
 .. Seealso
+
 {% if seealso -%}
 See Also
 --------
@@ -255,6 +268,7 @@ See Also
 {% endif %}
 
 .. Examples
+
 {% if examples -%}
 Examples
 --------
@@ -275,6 +289,7 @@ Examples
 {% endif %}
 
 .. Facts
+
 {% if returnfacts -%}
 Returned Facts
 --------------
@@ -335,6 +350,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
 {% endif %}
 
 .. Return values
+
 {% if returndocs -%}
 Return Values
 -------------
@@ -393,6 +409,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
 {% endif %}
 
 ..  Status (Presently only deprecated)
+
 {% if deprecated %}
 Status
 ------
@@ -405,6 +422,7 @@ Status
 {% endif %}
 
 .. Authors
+
 {% if doc['author'] -%}
 Authors
 ~~~~~~~
@@ -429,6 +447,7 @@ Authors
 {% endif %}
 
 .. Parsing errors
+
 {% if nonfatal_errors %}
 There were some errors parsing the documentation for this plugin.  Please file a bug with the collection.
 

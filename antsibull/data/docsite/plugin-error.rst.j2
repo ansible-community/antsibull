@@ -3,7 +3,7 @@ The documentation for the @{ plugin_type }@ plugin, @{ plugin_name }@,  was malf
 The errors were:
 
 {% for error in nonfatal_errors %}
-* @{ error }@
+* @{ error| replace('\n', '; ') }@
 
 {% endfor %}
 
