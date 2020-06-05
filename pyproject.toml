@@ -35,12 +35,8 @@ pydantic = "*"
 asyncio-pool = "*"
 perky = "*"
 antsibull-changelog = "*"
-# Current twiggy head to get dict_config
-# so... wheels can't dep on modules from git.  So I'll either have to get a new
-# release of twiggy or switchover to logging.  We haven't started using it heavily yet so
-# I'll choose which to do before using it more.
-#twiggy = {git = "https://github.com/wearpants/twiggy", rev = "d4c5b57abc551a44a6ee7ca01f5622cc3b277456"}
-twiggy = "*"
+# 0.5.0 introduces dict_config
+twiggy = ">= 0.5.0"
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"
@@ -48,7 +44,7 @@ pytest = "^5.4.1"
 pytest-cov = "^2.8.1"
 cryptography = "^2.9.2"
 pytest-asyncio = ">= 0.12"
-flake8 = {version = "^3.8.0-alpha.2", allow-prereleases = true}
+flake8 = ">= 3.8.0"
 codecov = "^2.0.22"
 pyre-check = "^0.0.46"
 pylint = "^2.5.2"
