@@ -86,8 +86,6 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
     results = {}
     for plugin_name, ansible_doc_results in zip(extractors, plugin_info):
         err_msg = []
-        stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
-        stderr = ansible_doc_results.stderr.decode("utf-8", errors="surrogateescape")
 
         if isinstance(ansible_doc_results, Exception):
             formatted_exception = traceback.format_exception(None, ansible_doc_results,
@@ -98,6 +96,9 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
 
         # Note: Exception will also be True.
         if isinstance(ansible_doc_results, sh.ErrorReturnCode):
+            stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
+            stderr = ansible_doc_results.stderr.decode("utf-8", errors="surrogateescape")
+
             err_msg.append(f'Full process stdout:\n{stdout}')
             err_msg.append(f'Full process stderr:\n{stderr}')
 
