@@ -14,8 +14,9 @@ from typing import Callable, Dict, List
 
 # from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
-from ..filesystem import writable_via_acls
-from .doc_commands import collection, devel, plugin, stable, current
+from ..filesystem import UnableToCheck, writable_via_acls
+from .doc_commands import collection, current, devel, plugin, stable
+
 
 #: Mapping from command line subcommand names to functions which implement those
 #: The functions need to take a single argument, the processed list of args.
@@ -59,9 +60,14 @@ def _normalize_common_options(args: argparse.Namespace) -> None:
     if stat.S_IMODE(stat_results.st_mode) & (stat.S_IWOTH | stat.S_IWGRP):
         raise InvalidArgumentError(f'{args.dest_dir} must only be writable by the owner')
 
-    if writable_via_acls(args.dest_dir, euid):
-        raise InvalidArgumentError(f'Filesystem acls grant write on {args.dest_dir} to'
-                                   ' additional users')
+    try:
+        if writable_via_acls(args.dest_dir, euid):
+            raise InvalidArgumentError(f'Filesystem acls grant write on {args.dest_dir} to'
+                                       ' additional users')
+    except UnableToCheck:
+        # We've done our best but some systems don't even have acls on their filesystem so we can't
+        # error here.
+        pass
 
 
 def _normalize_devel_options(args: argparse.Namespace) -> None:
