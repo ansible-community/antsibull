@@ -106,6 +106,8 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
             sys.stderr.write('\n'.join(err_msg))
             continue
 
+        stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
+
         # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
         # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
         # do it here instead of as part of a general normalization step is that other plugins
