@@ -61,7 +61,7 @@ async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[st
     collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
     # This is dangerous but the code that takes dest_dir from the user checks
     # permissions on it to make it as safe as possible.
-    os.makedirs(collection_dir, exist_ok=True)
+    os.makedirs(collection_dir, mode=0o755, exist_ok=True)
 
     plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
@@ -90,9 +90,10 @@ async def output_all_plugin_rst(plugin_info: t.Dict[str, t.Any],
     async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
         for plugin_type, plugins_by_type in plugin_info.items():
             for plugin_name, plugin_record in plugins_by_type.items():
-                writers.append(pool.spawn_n(write_rst(plugin_name, plugin_type, plugin_record,
-                                                      nonfatal_errors[plugin_type][plugin_name],
-                                                      plugin_tmpl, error_tmpl, dest_dir)))
+                writers.append(await pool.spawn(
+                    write_rst(plugin_name, plugin_type, plugin_record,
+                              nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
+                              error_tmpl, dest_dir)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)
@@ -133,6 +134,9 @@ async def write_plugin_lists(collection_name: str,
         collection_name=collection_name,
         plugin_maps=plugin_maps)
 
+    # This is only safe because we made sure that the top of the directory tree we're writing to
+    # (docs/docsite/rst) is only writable by us.
+    os.makedirs(dest_dir, mode=0o755, exist_ok=True)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -156,15 +160,14 @@ async def output_indexes(collection_info: t.Mapping[str, t.Mapping[str, t.Mappin
     writers = []
     async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
         collection_toplevel = os.path.join(dest_dir, 'collections')
-        writers.append(pool.spawn_n(write_collection_list(collection_info.keys(),
-                                                          collection_list_tmpl,
-                                                          collection_toplevel)))
+        writers.append(await pool.spawn(
+            write_collection_list(collection_info.keys(), collection_list_tmpl,
+                                  collection_toplevel)))
 
         for collection_name, plugin_maps in collection_info.items():
             collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
-            writers.append(pool.spawn_n(write_plugin_lists(collection_name,
-                                                           plugin_maps,
-                                                           collection_plugins_tmpl,
-                                                           collection_dir)))
+            writers.append(await pool.spawn(
+                write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
+                                   collection_dir)))
 
         await asyncio.gather(*writers)

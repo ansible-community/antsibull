@@ -7,9 +7,11 @@ import asyncio
 import os
 
 import aiohttp
+import asyncio_pool
 import semantic_version as semver
 
 from .ansible_base import AnsibleBasePyPiClient
+from .constants import THREAD_MAX
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
 
@@ -24,19 +26,20 @@ async def get_version_info(collections):
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        pypi_client = AnsibleBasePyPiClient(aio_session)
-        requestors['_ansible_base'] = asyncio.create_task(pypi_client.get_versions())
-        galaxy_client = GalaxyClient(aio_session)
+        async with asyncio_pool.AioPool(max_workers=THREAD_MAX) as pool:
+            pypi_client = AnsibleBasePyPiClient(aio_session)
+            requestors['_ansible_base'] = await pool.spawn(pypi_client.get_versions())
+            galaxy_client = GalaxyClient(aio_session)
 
-        for collection in collections:
-            requestors[collection] = asyncio.create_task(
-                galaxy_client.get_versions(collection))
+            for collection in collections:
+                requestors[collection] = await pool.spawn(
+                    galaxy_client.get_versions(collection))
 
-        collection_versions = {}
-        responses = await asyncio.gather(*requestors.values())
+            collection_versions = {}
+            responses = await asyncio.gather(*requestors.values())
 
-        for idx, collection_name in enumerate(requestors):
-            collection_versions[collection_name] = responses[idx]
+    for idx, collection_name in enumerate(requestors):
+        collection_versions[collection_name] = responses[idx]
 
     return collection_versions
 

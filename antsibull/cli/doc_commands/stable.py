@@ -12,11 +12,13 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 
 import aiohttp
+import asyncio_pool
 from pydantic import ValidationError
 
 from ...ansible_base import get_ansible_base
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
+from ...constants import PROCESS_MAX, THREAD_MAX
 from ...dependency_files import DepsFile
 from ...docs_parsing.ansible_doc import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
@@ -24,7 +26,7 @@ from ...galaxy import CollectionDownloader
 from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner
-from ...write_docs import output_indexes, output_all_plugin_rst
+from ...write_docs import output_all_plugin_rst, output_indexes
 
 if t.TYPE_CHECKING:
     import argparse
@@ -62,16 +64,18 @@ async def retrieve(ansible_base_version: str,
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        requestors['_ansible_base'] = asyncio.create_task(
-            get_ansible_base(aio_session, ansible_base_version, tmp_dir,
-                             ansible_base_cache=ansible_base_cache))
+        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+            requestors['_ansible_base'] = await pool.spawn(
+                get_ansible_base(aio_session, ansible_base_version, tmp_dir,
+                                 ansible_base_cache=ansible_base_cache))
 
-        downloader = CollectionDownloader(aio_session, collection_dir,
-                                          collection_cache=collection_cache)
-        for collection, version in collections.items():
-            requestors[collection] = asyncio.create_task(downloader.download(collection, version))
+            downloader = CollectionDownloader(aio_session, collection_dir,
+                                              collection_cache=collection_cache)
+            for collection, version in collections.items():
+                requestors[collection] = await pool.spawn(
+                    downloader.download(collection, version))
 
-        responses = await asyncio.gather(*requestors.values())
+            responses = await asyncio.gather(*requestors.values())
 
     # Note: Python dicts have always had a stable order as long as you don't modify the dict.
     # So requestors (implicitly, the keys) and responses have a matching order here.
@@ -134,13 +138,14 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
                     - error string
     """
     loop = best_get_loop()
+    executor = ProcessPoolExecutor(max_workers=PROCESS_MAX)
 
     # Normalize each plugin in a subprocess since normalization is CPU bound
     normalizers = {}
     for plugin_type, plugin_list_for_type in plugin_info.items():
         for plugin_name, plugin_record in plugin_list_for_type.items():
             normalizers[(plugin_type, plugin_name)] = loop.run_in_executor(
-                ProcessPoolExecutor(), normalize_plugin_info, plugin_type, plugin_record)
+                executor, normalize_plugin_info, plugin_type, plugin_record)
 
     results = await asyncio.gather(*normalizers.values(), return_exceptions=True)
 

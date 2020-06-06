@@ -5,11 +5,13 @@
 """Functions to deal with collections on the local system"""
 import asyncio
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 import sh
 
 from .compat import best_get_loop
+from .constants import THREAD_MAX
 
 
 class CollectionFormatError(Exception):
@@ -19,6 +21,7 @@ class CollectionFormatError(Exception):
 async def install_together(collection_tarballs: List[str],
                            ansible_collections_dir: str) -> None:
     loop = best_get_loop()
+    executor = ThreadPoolExecutor(max_workers=THREAD_MAX)
 
     installers = []
     for pathname in collection_tarballs:
@@ -32,19 +35,21 @@ async def install_together(collection_tarballs: List[str],
         # using that
         # sh dynamically creates functions which map to executables
         # pyre-ignore[16]
-        installers.append(loop.run_in_executor(None, sh.tar, '-xf', pathname, '-C', collection_dir))
+        installers.append(loop.run_in_executor(executor, sh.tar, '-xf', pathname, '-C',
+                                               collection_dir))
 
     await asyncio.gather(*installers)
 
 
 async def install_separately(collection_tarballs: List[str], collection_dir: str) -> List:
-    loop = asyncio.get_running_loop()
-
     installers = []
     collection_dirs = []
 
     if not collection_tarballs:
         return collection_dirs
+
+    loop = asyncio.get_running_loop()
+    executor = ThreadPoolExecutor(max_workers=THREAD_MAX)
 
     for pathname in collection_tarballs:
         filename = os.path.basename(pathname)
@@ -74,8 +79,8 @@ async def install_separately(collection_tarballs: List[str], collection_dir: str
         # using that
         # sh dynamically creates functions which map to executables
         # pyre-ignore[16]
-        installers.append(loop.run_in_executor(None, sh.tar, '-xf', pathname,
-                                               '-C', collection_dir))
+        installers.append(loop.run_in_executor(executor, sh.tar, '-xf', pathname, '-C',
+                                               collection_dir))
 
     await asyncio.gather(*installers)
 

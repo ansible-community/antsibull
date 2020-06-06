@@ -8,14 +8,15 @@ import json
 import os
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any, Dict, Union
 
 import sh
 
-from .fqcn import get_fqcn_parts
 from ..compat import best_get_loop
-from ..constants import DOCUMENTABLE_PLUGINS
+from ..constants import DOCUMENTABLE_PLUGINS, THREAD_MAX
 from ..vendored.json_utils import _filter_non_json_lines
+from .fqcn import get_fqcn_parts
 
 if TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -48,7 +49,8 @@ class ParsingError(Exception):
     """Error raised while parsing plugins for documentation."""
 
 
-async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[str, Any]:
+async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
+                           max_workers: int = THREAD_MAX) -> Dict[str, Any]:
     """
     Retrieve info about all Ansible plugins of a particular type.
 
@@ -65,6 +67,9 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
                               # ansible-base.
                     {information from ansible-doc --json.  See the ansible-doc documentation for
                      more info.}
+    :kwarg max_workers: The maximum number of threads that should be run in parallel by this
+        function.
+    :returns: Mapping of fqcn's to plugin_info.
     """
     # Get the list of plugins
     ansible_doc_list_cmd = ansible_doc('--list', '--t', plugin_type, '--json')
@@ -78,8 +83,13 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command') -> Dict[
 
     # For each plugin, get its documentation
     extractors = {}
+    executor = ThreadPoolExecutor(max_workers=max_workers)
     for plugin_name in plugin_map.keys():
-        extractors[plugin_name] = loop.run_in_executor(None, ansible_doc, '-t', plugin_type,
+        # Why THREAD_MAX instead of process max?  ansible_doc is a subprocess, right?
+        # It's because this code will be IO-bound instead of CPU bound.  So it makes sense to use
+        # THREAD_MAX to run more ansible_doc instances in parallel so that more of them can be
+        # operating while others are waiting for IO.
+        extractors[plugin_name] = loop.run_in_executor(executor, ansible_doc, '-t', plugin_type,
                                                        '--json', plugin_name)
     plugin_info = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
@@ -149,10 +159,21 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
     venv_ansible_doc = venv.get_command('ansible-doc')
     venv_ansible_doc = venv_ansible_doc.bake('-vvv', _env=env)
 
+    # We invoke _get_plugin_info once for each documentable plugin type.  Within _get_plugin_info,
+    # new threads are spawned to handle waiting for ansible-doc to parse files and give us results.
+    # To keep ourselves under THREAD_MAX, we need to divide the number of threads we're allowed over
+    # each call of _get_plugin_info.
+    # Why use THREAD_MAX instead of process max?  Even though this ultimately invokes separate
+    # ansible-doc processes, the limiting factor is IO as ansible-doc reads from disk.  So it makes
+    # sense to scale up to THREAD_MAX instead of PROCESS_MAX.
+    max_workers = int(THREAD_MAX / len(DOCUMENTABLE_PLUGINS))
+    if max_workers < 1:
+        max_workers = 1
+
     extractors = {}
     for plugin_type in DOCUMENTABLE_PLUGINS:
         extractors[plugin_type] = asyncio.create_task(
-            _get_plugin_info(plugin_type, venv_ansible_doc))
+            _get_plugin_info(plugin_type, venv_ansible_doc, max_workers))
 
     results = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
