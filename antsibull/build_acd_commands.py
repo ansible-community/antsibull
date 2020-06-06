@@ -14,10 +14,12 @@ from functools import partial
 
 import aiofiles
 import aiohttp
+import asyncio_pool
 import sh
 from jinja2 import Template
 
 from .collections import install_separately, install_together
+from .constants import THREAD_MAX
 from .dependency_files import BuildFile, DepsFile
 from .galaxy import CollectionDownloader
 
@@ -26,16 +28,18 @@ from .galaxy import CollectionDownloader
 # Common code
 #
 
+
 async def download_collections(deps, download_dir):
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        downloader = CollectionDownloader(aio_session, download_dir)
-        for collection_name, version_spec in deps.items():
-            requestors[collection_name] = asyncio.create_task(
-                downloader.download_latest_matching(collection_name, version_spec))
+        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+            downloader = CollectionDownloader(aio_session, download_dir)
+            for collection_name, version_spec in deps.items():
+                requestors[collection_name] = await pool.spawn(
+                    downloader.download_latest_matching(collection_name, version_spec))
 
-        included_versions = {}
-        responses = await asyncio.gather(*requestors.values())
+            included_versions = {}
+            responses = await asyncio.gather(*requestors.values())
 
     # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
     # used requestors.values() to generate responses, requestors and responses therefor have
@@ -208,14 +212,15 @@ async def make_collection_dist(name, version, package_dir, dest_dir):
 
 async def make_collection_dists(dest_dir, collection_dirs):
     dist_creators = []
-    for collection_dir in collection_dirs:
-        dir_name_only = os.path.basename(collection_dir)
-        dummy_, dummy_, name, version = dir_name_only.split('-', 3)
+    async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+        for collection_dir in collection_dirs:
+            dir_name_only = os.path.basename(collection_dir)
+            dummy_, dummy_, name, version = dir_name_only.split('-', 3)
 
-        dist_creators.append(asyncio.create_task(
-            make_collection_dist(name, version, collection_dir, dest_dir)))
+            dist_creators.append(await pool.spawn(
+                make_collection_dist(name, version, collection_dir, dest_dir)))
 
-    await asyncio.gather(*dist_creators)
+        await asyncio.gather(*dist_creators)
 
 
 def build_multiple_command(args):
