@@ -53,7 +53,8 @@ To use these schemas, follow these steps:
 
 * The Schema will validate and normalize the data as it is loaded.
 
-* Call the `dict() <https://pydantic-docs.helpmanual.io/usage/exporting_models/#modeldict>`_
+* Call the `dict(by_alias=True)
+  <https://pydantic-docs.helpmanual.io/usage/exporting_models/#modeldict>`_
   method on the returned model to convert the data back into a dict so that you can use it with
   templating engines or modify the structure of the data.
 
@@ -67,7 +68,7 @@ One example of doing all this:
     >>> module_json = sh.ansible_doc('-t', 'module', '--json', 'yum').stdout
     >>> module_model = ansible_doc.ModulePluginSchema.parse_raw(module_json)
     >>> # Retrieve the data from the __root__ field of the dict representation:
-    >>> module_dict = module_model.dict()['__root__']
+    >>> module_dict = module_model.dict(by_alias=True)['__root__']
     >>> for plugin_name, plugin_info in module_dict.items():
     >>>     out = template.render(name=plugin_name, doc=plugin_info['doc'])
     >>>     print(out)

@@ -55,7 +55,7 @@ async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[st
             plugin_name=plugin_name,
             doc=plugin_record['doc'],
             examples=plugin_record['examples'],
-            returndocs=plugin_record['return_'],
+            returndocs=plugin_record['return'],
             nonfatal_errors=nonfatal_errors)
 
     collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)

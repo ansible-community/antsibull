@@ -16,6 +16,7 @@ import asyncio_pool
 from pydantic import ValidationError
 
 from ...ansible_base import get_ansible_base
+from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
 from ...constants import PROCESS_MAX, THREAD_MAX
@@ -102,7 +103,7 @@ def normalize_plugin_info(plugin_type: str,
     # Note: loop through "doc" before any other keys.
     for field in ('doc', 'examples', 'return'):
         try:
-            new_info.update(DOCS_SCHEMAS[plugin_type][field](**{field: plugin_info[field]}).dict())
+            field_model = DOCS_SCHEMAS[plugin_type][field].parse_obj({field: plugin_info[field]})
         except ValidationError as e:
             if field == 'doc':
                 # We can't recover if there's not a doc field
@@ -112,7 +113,9 @@ def normalize_plugin_info(plugin_type: str,
             # so we're able to use it in the error message here.
             errors.append(f'Unable to normalize {new_info["doc"]["name"]}: {field}'
                           f' due to: {str(e)}')
-            new_info.update(DOCS_SCHEMAS[plugin_type][field].parse_obj({}))
+            field_model = DOCS_SCHEMAS[plugin_type][field].parse_obj({})
+
+        new_info.update(field_model.dict(by_alias=True))
 
     return (new_info, errors)
 
@@ -274,7 +277,7 @@ def generate_docs(args: 'argparse.Namespace') -> int:
 
         plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
         flog.debug('Finished normalizing data')
-        # calculate_additional_info(plugin_info) (full_path)
+        augment_docs(plugin_info)
 
         """
         with open('dump_normalized_plugin_info.json', 'w') as f:
