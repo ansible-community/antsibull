@@ -85,10 +85,6 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     extractors = {}
     executor = ThreadPoolExecutor(max_workers=max_workers)
     for plugin_name in plugin_map.keys():
-        # Why THREAD_MAX instead of process max?  ansible_doc is a subprocess, right?
-        # It's because this code will be IO-bound instead of CPU bound.  So it makes sense to use
-        # THREAD_MAX to run more ansible_doc instances in parallel so that more of them can be
-        # operating while others are waiting for IO.
         extractors[plugin_name] = loop.run_in_executor(executor, ansible_doc, '-t', plugin_type,
                                                        '--json', plugin_name)
     plugin_info = await asyncio.gather(*extractors.values(), return_exceptions=True)
