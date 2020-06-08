@@ -144,9 +144,9 @@ Parameters
                 {# parameter name with required and/or introduced label #}
                 <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
                     {# ##################### Problem full_key ################### #}
-                    <div class="ansibleOptionAnchor" id="parameter-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+                    <div class="ansibleOptionAnchor" id="parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
                     <b>@{ key }@</b>
-                    <a class="ansibleOptionLink" href="#parameter-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
+                    <a class="ansibleOptionLink" href="#parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
                     <div style="font-size: small">
                         <span style="color: purple">@{ value['type'] | documented_type }@</span>
                         {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
@@ -217,7 +217,7 @@ Parameters
                 </td>
             </tr>
             {% if value['suboptions'] %}
-                @{ loop(value.suboptions|dictsort) }@
+                @{ loop(value['suboptions']|dictsort) }@
             {% endif %}
         {% endfor %}
     </table>
@@ -298,7 +298,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
         {% for key, value in returnfacts|dictsort recursive %}
             @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
             {% if value['contains'] -%}
-                @{ loop(value.contains.items()) -}@
+                @{ loop(value['contains'].items()) -}@
             {% endif -%}
         {% endfor -%}
         <tr>
@@ -312,12 +312,11 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     <td class="elbow-placeholder"></td>
                 {% endfor %}
                 <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@" colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
-                    {# ##################### Problem full_key ################### #}
-                    <div class="ansibleOptionAnchor" id="return-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+                    <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
                     <b>@{ key }@</b>
-                    <a class="ansibleOptionLink" href="#return-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this fact"></a>
+                    <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this fact"></a>
                     <div style="font-size: small">
-                      <span style="color: purple">@{ value.type | documented_type }@</span>
+                      <span style="color: purple">@{ value['type'] | documented_type }@</span>
                       {% if value['elements'] %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
                     </div>
                     {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@</div>{% endif %}
@@ -336,8 +335,8 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     {% endif %}
                 </td>
             </tr>
-            {% if value.contains %}
-                @{ loop(value.contains|dictsort) }@
+            {% if value['contains'] %}
+                @{ loop(value['contains']|dictsort) }@
             {% endif %}
         {% endfor %}
     </table>
@@ -358,7 +357,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         {% for key, value in returndocs|dictsort recursive -%}
             @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
             {% if value['contains'] -%}
-                @{ loop(value.contains.items()) -}@
+                @{ loop(value['contains'].items()) -}@
             {% endif -%}
         {% endfor -%}
         <tr>
@@ -372,10 +371,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                     <td class="elbow-placeholder">&nbsp;</td>
                 {% endfor %}
                 <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
-                    {# ##################### Problem full_key ################### #}
-                    <div class="ansibleOptionAnchor" id="return-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+                    <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
                     <b>@{ key }@</b>
-                    <a class="ansibleOptionLink" href="#return-{% for part in value.full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
+                    <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
                     <div style="font-size: small">
                       <span style="color: purple">@{ value['type'] | documented_type }@</span>
                       {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
@@ -388,15 +386,15 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                         <div>@{ desc | html_ify |indent(4) | trim}@</div>
                     {% endfor %}
                     <br/>
-                    {% if value.sample %}
+                    {% if value['sample'] %}
                         <div style="font-size: smaller"><b>Sample:</b></div>
                         {# TODO: The sample should be escaped, using |escape or |htmlify, but both mess things up beyond repair with dicts #}
                         <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</div>
                     {% endif %}
                 </td>
             </tr>
-            {% if value.contains %}
-                @{ loop(value.contains|dictsort) }@
+            {% if value['contains'] %}
+                @{ loop(value['contains']|dictsort) }@
             {% endif %}
         {% endfor %}
     </table>
