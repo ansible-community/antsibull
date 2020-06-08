@@ -4,9 +4,6 @@
 """Augment data from plugin documenation with additional values."""
 
 import typing as t
-from collections.abc import Mapping
-
-from .utils.collections import is_sequence
 
 
 def add_full_key(options_data: t.Mapping[str, t.Any], suboption_entry: str,
