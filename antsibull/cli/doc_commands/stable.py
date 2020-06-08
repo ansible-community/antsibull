@@ -107,12 +107,16 @@ def normalize_plugin_info(plugin_type: str,
         except ValidationError as e:
             if field == 'doc':
                 # We can't recover if there's not a doc field
-                raise
+                # pydantic exceptions are not picklable (probably due to bugs in the pickle module)
+                # so convert it to an exception type which is picklable
+                raise ValueError(str(e))
+
             # But we can use the default value (some variant of "empty") for everything else
-            # Note: We looped through doc first and raised an exception if doc did not normalize
+            # Note: We looped through doc first and returned an exception if doc did not normalize
             # so we're able to use it in the error message here.
             errors.append(f'Unable to normalize {new_info["doc"]["name"]}: {field}'
                           f' due to: {str(e)}')
+
             field_model = DOCS_SCHEMAS[plugin_type][field].parse_obj({})
 
         new_info.update(field_model.dict(by_alias=True))
@@ -177,7 +181,7 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
                             nonfatal_errors: PluginErrorsRT
                             ) -> t.DefaultDict[str, t.DefaultDict[str, t.Dict[str, str]]]:
     """
-    Return the contents plugins which are in each collection.
+    Return the plugins which are in each collection.
 
     :arg plugin_info: Mapping of plugin type to a mapping of plugin name to plugin record.
         The plugin_type, plugin_name, and short_description from plugin_records are used.
@@ -273,6 +277,10 @@ def generate_docs(args: 'argparse.Namespace') -> int:
             import json
             json.dump(plugin_info, f)
         flog.debug('Finished dumping raw plugin_info')
+
+        with open('dump_formatted_plugin_info.json', 'r') as f:
+            import json
+            plugin_info = json.load(f)
         """
 
         plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
