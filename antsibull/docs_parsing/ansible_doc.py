@@ -162,12 +162,19 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
     # Why use THREAD_MAX instead of process max?  Even though this ultimately invokes separate
     # ansible-doc processes, the limiting factor is IO as ansible-doc reads from disk.  So it makes
     # sense to scale up to THREAD_MAX instead of PROCESS_MAX.
-    max_workers = int(THREAD_MAX / len(DOCUMENTABLE_PLUGINS))
-    if max_workers < 1:
-        max_workers = 1
+
+    # Allocate more for modules because the vast majority of plugins are modules
+    module_workers = max(int(.7 * THREAD_MAX), 1)
+    other_workers = int((THREAD_MAX - module_workers) / (len(DOCUMENTABLE_PLUGINS) - 1))
+    if other_workers < 1:
+        other_workers = 1
 
     extractors = {}
     for plugin_type in DOCUMENTABLE_PLUGINS:
+        if plugin_type == 'module':
+            max_workers = module_workers
+        else:
+            max_workers = other_workers
         extractors[plugin_type] = asyncio.create_task(
             _get_plugin_info(plugin_type, venv_ansible_doc, max_workers))
 
