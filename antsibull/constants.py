@@ -22,7 +22,7 @@ DOCUMENTABLE_PLUGINS: FrozenSet[str] = frozenset(('become', 'cache', 'callback',
                                                   'strategy',))
 
 #: A good maximum number of concurrent threads to allow
-THREAD_MAX: int = 128
+THREAD_MAX: int = 64
 
 #: A good maximum number of concurrent processes to allow
 PROCESS_MAX: int = 7
