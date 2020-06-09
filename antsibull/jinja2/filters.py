@@ -71,7 +71,7 @@ def rst_ify(text):
 
     t = _ITALIC.sub(r"*\1*", text)
     t = _BOLD.sub(r"**\1**", t)
-    t = _MODULE.sub(r":ref:`\1 <\1_module>`", t)
+    t = _MODULE.sub(r":ref:`\1 <ansible_collections.\1_module>`", t)
     t = _LINK.sub(r"`\1 <\2>`_", t)
     t = _URL.sub(r"\1", t)
     t = _REF.sub(r":ref:`\1 <\2>`", t)
