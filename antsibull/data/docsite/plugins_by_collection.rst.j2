@@ -12,18 +12,11 @@ These are the plugins in the @{collection_name}@ collection
 
 {% for category, plugins in plugin_maps.items() | sort %}
 
-@{ category }@ Plugins
+@{ category | capitalize }@ Plugins
 @{ '-' * ((category | length) + 8) }@
 
-{#  I don't think we need this anymore
-{% if category in ('module', 'module_util') %}
-{%   set normalized_category = category + 's' %}
-{% else %}
-{%   set normalized_category = category %}
-{% endif %}
-#}
 {% for name, desc in plugins.items() | sort %}
-* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.plugins.@{ category }@.@{ name }@>` -- @{ desc }@
+* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc }@
 {% endfor %}
 {% endfor %}
 
