@@ -9,7 +9,7 @@ import os.path
 import sys
 from typing import List
 
-import packaging.version as pypiver
+from packaging.version import Version as PypiVer
 
 from ..new_acd import new_acd_command
 from ..build_collection import build_collection_command
@@ -96,7 +96,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     :raises InvalidArgumentError: Whenever there's something wrong with the arguments.
     """
     common_parser = argparse.ArgumentParser(add_help=False)
-    common_parser.add_argument('acd_version', type=pypiver.Version,
+    common_parser.add_argument('acd_version', type=PypiVer,
                                help='The X.Y.Z version of ACD that this will be for')
     common_parser.add_argument('--dest-dir', default='.',
                                help='Directory to write the output to')

@@ -11,8 +11,8 @@ from functools import lru_cache
 from urllib.parse import urljoin
 
 import aiofiles
-import packaging.version as pypiver
 import sh
+from packaging.version import Version as PypiVer
 
 from .compat import best_get_loop
 from .constants import CHUNKSIZE
@@ -61,7 +61,7 @@ class AnsibleBasePyPiClient:
             pkg_info = await response.json()
         return pkg_info
 
-    async def get_versions(self) -> t.List[pypiver.Version]:
+    async def get_versions(self) -> t.List[PypiVer]:
         """
         Get the versions of the ansible-base package on pypi.
 
@@ -69,11 +69,11 @@ class AnsibleBasePyPiClient:
             for all the versions on pypi, including prereleases.
         """
         pkg_info = await self.get_info()
-        versions = [pypiver.Version(r) for r in pkg_info['releases']]
+        versions = [PypiVer(r) for r in pkg_info['releases']]
         versions.sort(reverse=True)
         return versions
 
-    async def get_latest_version(self) -> pypiver.Version:
+    async def get_latest_version(self) -> PypiVer:
         """
         Get the latest version of ansible-base uploaded to pypi.
 
@@ -115,7 +115,7 @@ class AnsibleBasePyPiClient:
         return tar_filename
 
 
-def _get_cache_version(ansible_base_cache: str) -> pypiver.Version:
+def _get_cache_version(ansible_base_cache: str) -> PypiVer:
     with open(os.path.join(ansible_base_cache, 'lib', 'ansible', 'release.py')) as f:
         root = ast.parse(f.read())
 
@@ -136,7 +136,7 @@ def _get_cache_version(ansible_base_cache: str) -> pypiver.Version:
     if not cache_version:
         raise ValueError('Version was not found')
 
-    return pypiver.Version(cache_version)
+    return PypiVer(cache_version)
 
 
 def cache_is_devel(ansible_base_cache: t.Optional[str]) -> bool:
@@ -162,7 +162,7 @@ def cache_is_devel(ansible_base_cache: t.Optional[str]) -> bool:
 
 
 def cache_is_correct_version(ansible_base_cache: t.Optional[str],
-                             ansible_base_version: pypiver.Version) -> bool:
+                             ansible_base_version: PypiVer) -> bool:
     """
     :arg ansible_base_cache: A path to an Ansible-base checkout or expanded sdist or None.
         This will be used instead of downloading an ansible-base package if the version matches
@@ -229,9 +229,9 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
     else:
         pypi_client = AnsibleBasePyPiClient(aio_session)
         if ansible_base_version == '@latest':
-            ansible_base_version: pypiver.Version = await pypi_client.get_latest_version()
+            ansible_base_version: PypiVer = await pypi_client.get_latest_version()
         else:
-            ansible_base_version: pypiver.Version = pypiver.Version(ansible_base_version)
+            ansible_base_version: PypiVer = PypiVer(ansible_base_version)
 
         # is the cache the asked for version?
         if cache_is_correct_version(ansible_base_cache, ansible_base_version):

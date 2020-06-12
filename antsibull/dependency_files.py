@@ -16,8 +16,8 @@ We don't want to install backwards incompatible collections until the next major
 from typing import TYPE_CHECKING, Dict, List, Mapping, NamedTuple, Optional
 
 if TYPE_CHECKING:
-    from packaging.version import Version as PyPiVersion
-    from semantic_version import Version as SemVersion
+    from packaging.version import Version as PypiVer
+    from semantic_version import Version as SemVer
 
 
 class DependencyFileData(NamedTuple):
@@ -136,8 +136,8 @@ class BuildFile:
         """Parse the build from a dependency file."""
         return _parse_name_version_spec_file(self.filename)
 
-    def write(self, acd_version: 'PyPiVersion', ansible_base_version: str,
-              dependencies: Mapping[str, 'SemVersion']) -> None:
+    def write(self, acd_version: 'PypiVer', ansible_base_version: str,
+              dependencies: Mapping[str, 'SemVer']) -> None:
         """
         Write a build dependency file.
 
