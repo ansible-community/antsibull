@@ -26,7 +26,7 @@ async def get_version_info(collections):
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        async with asyncio_pool.AioPool(max_workers=THREAD_MAX) as pool:
+        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
             pypi_client = AnsibleBasePyPiClient(aio_session)
             requestors['_ansible_base'] = await pool.spawn(pypi_client.get_versions())
             galaxy_client = GalaxyClient(aio_session)
