@@ -17,6 +17,7 @@ import aiohttp
 import asyncio_pool
 import sh
 from jinja2 import Template
+from packaging.version import Version as PypiVer
 
 from .collections import install_separately, install_together
 from .constants import THREAD_MAX
@@ -74,20 +75,23 @@ def write_manifest(package_dir, debian=False):
         f.write('recursive-include ansible_collections/ **\n')
 
 
-def write_setup(acd_version, collection_deps, package_dir):
+def write_setup(acd_version, ansible_base_version, collection_deps, package_dir):
     setup_filename = os.path.join(package_dir, 'setup.py')
 
     setup_tmpl = Template(pkgutil.get_data('antsibull.data', 'acd-setup_py.j2').decode('utf-8'))
-    setup_contents = setup_tmpl.render(version=acd_version, collection_deps=collection_deps)
+    setup_contents = setup_tmpl.render(version=acd_version,
+                                       ansible_base_version=ansible_base_version,
+                                       collection_deps=collection_deps)
 
     with open(setup_filename, 'w') as f:
         f.write(setup_contents)
 
 
-def write_python_build_files(acd_version, collection_deps, package_dir, debian=False):
+def write_python_build_files(acd_version, ansible_base_version, collection_deps, package_dir,
+                             debian=False):
     copy_boilerplate_files(package_dir)
     write_manifest(package_dir, debian)
-    write_setup(acd_version, collection_deps, package_dir)
+    write_setup(acd_version, ansible_base_version, collection_deps, package_dir)
 
 
 def write_debian_directory(acd_version, package_dir):
@@ -127,6 +131,7 @@ def make_dist(ansible_dir, dest_dir):
 def build_single_command(args):
     build_file = BuildFile(args.build_file)
     build_acd_version, ansible_base_version, deps = build_file.parse()
+    ansible_base_version = PypiVer(ansible_base_version)
 
     if not str(args.acd_version).startswith(build_acd_version):
         print(f'{args.build_file} is for version {build_acd_version} but we need'
@@ -147,7 +152,8 @@ def build_single_command(args):
         collections_to_install = [p for f in os.listdir(download_dir)
                                   if os.path.isfile(p := os.path.join(download_dir, f))]
         asyncio.run(install_together(collections_to_install, ansible_collections_dir))
-        write_python_build_files(args.acd_version, '', package_dir, args.debian)
+        write_python_build_files(args.acd_version, ansible_base_version, '',
+                                 package_dir, args.debian)
         if args.debian:
             write_debian_directory(args.acd_version, package_dir)
         make_dist(package_dir, args.dest_dir)
@@ -226,6 +232,7 @@ async def make_collection_dists(dest_dir, collection_dirs):
 def build_multiple_command(args):
     build_file = BuildFile(args.build_file)
     build_acd_version, ansible_base_version, deps = build_file.parse()
+    ansible_base_version = PypiVer(ansible_base_version)
 
     if not str(args.acd_version).startswith(build_acd_version):
         print(f'{args.build_file} is for version {build_acd_version} but we need'
@@ -253,7 +260,8 @@ def build_multiple_command(args):
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
         collection_deps = '\n' + ',\n'.join(collection_deps)
-        write_python_build_files(args.acd_version, collection_deps, package_dir)
+        write_python_build_files(args.acd_version, ansible_base_version,
+                                 collection_deps, package_dir)
 
         make_dist(package_dir, args.dest_dir)
 
