@@ -27,7 +27,7 @@ setup(
     packages=['ansible_collections'],
     include_package_data=True,
     install_requires=[
-        'ansible-base>={{ version }},<{{ version.major }}.{{ version.minor + 1 }}',{{ collection_deps }}
+        'ansible-base>={{ ansible_base_version }},<{{ ansible_base_version.major }}.{{ ansible_base_version.minor + 1 }}',{{ collection_deps }}
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
