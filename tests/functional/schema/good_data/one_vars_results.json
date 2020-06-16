@@ -86,7 +86,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "2.10"
+                        "version_added": "2.10",
+                        "version_added_collection": "foo.bar"
                     }
                 },
                 "requirements": [
@@ -95,7 +96,8 @@
                 "seealso": [],
                 "short_description": "In charge of loading group_vars and host_vars",
                 "todo": [],
-                "version_added": "2.4"
+                "version_added": "2.4",
+                "version_added_collection": "foo.bar"
             },
             "examples": "",
             "metadata": {

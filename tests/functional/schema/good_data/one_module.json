@@ -47,7 +47,8 @@
                 }
             ],
             "short_description": "Add a host (and alternatively a group) to the ansible-playbook in-memory inventory",
-            "version_added": "0.9"
+            "version_added": "0.9",
+            "version_added_collection": "foo.bar"
         },
         "examples": "\n- name: Add host to group 'just_created' with variable foo=42\n  add_host:\n    name: '{{ ip_from_ec2 }}'\n    groups: just_created\n    foo: 42\n\n- name: Add host to multiple groups\n  add_host:\n    hostname: '{{ new_ip }}'\n    groups:\n    - group1\n    - group2\n\n- name: Add a host with a non-standard port local to your machines\n  add_host:\n    name: '{{ new_ip }}:{{ new_port }}'\n\n- name: Add a host alias that we reach through a tunnel (Ansible 1.9 and older)\n  add_host:\n    hostname: '{{ new_ip }}'\n    ansible_ssh_host: '{{ inventory_hostname }}'\n    ansible_ssh_port: '{{ new_port }}'\n\n- name: Add a host alias that we reach through a tunnel (Ansible 2.0 and newer)\n  add_host:\n    hostname: '{{ new_ip }}'\n    ansible_host: '{{ inventory_hostname }}'\n    ansible_port: '{{ new_port }}'\n\n- name: Ensure inventory vars are set to the same value as the inventory_hostname has (close to pre Ansible 2.4 behaviour)\n  add_host:\n    hostname: charlie\n    inventory_dir: '{{ inventory_dir }}'\n",
         "metadata": {
