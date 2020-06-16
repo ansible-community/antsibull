@@ -81,7 +81,7 @@ DEPRECATED
 {% else %}
 :Removed in: a future release
 {% endif %}
-{% if doc['deprecated'].get('removed_from_collection', collection_name) != collection_name %}
+{% if (doc['deprecated']['removed_from_collection'] or collection_name) != collection_name %}
              of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@
 {% endif %}
 :Why: @{ doc['deprecated']['why'] | rst_ify }@
@@ -167,7 +167,7 @@ Parameters
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
-                        {% if value.get('version_added_collection', collection_name) != collection_name %}
+                        {% if (value['version_added_collection'] or collection_name) != collection_name %}
                           of @{ doc['version_added_collection'] | rst_ify }@
                         {% endif %}
                       </div>
@@ -344,7 +344,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
-                        {% if value.get('version_added_collection', collection_name) != collection_name %}
+                        {% if (value['version_added_collection' or collection_name) != collection_name %}
                           of @{ doc['version_added_collection'] | rst_ify }@
                         {% endif %}
                       </div>
@@ -438,7 +438,7 @@ Status
 
 .. Deprecated note
 
-{% if doc['deprecated'].get('removed_from_collection', collection_name) != collection_name %}
+{% if (doc['deprecated']['removed_from_collection'] or collection_name) != collection_name %}
 {%   if 'removed_at_date' in doc['deprecated'] %}
 - This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
   of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
