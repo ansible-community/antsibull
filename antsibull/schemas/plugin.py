@@ -12,8 +12,9 @@ import typing as t
 
 import pydantic as p
 
-from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, COLLECTION_NAME_F, BaseModel,
-                   DocSchema, JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
+from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, VERSION_F, DATE_F,
+                   COLLECTION_NAME_F, REQUIRED_COLLECTION_NAME_F, BaseModel, DocSchema,
+                   JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
                    normalize_option_type_names, transform_return_docs)
 
 _SENTINEL = object()
