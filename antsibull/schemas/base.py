@@ -144,15 +144,15 @@ OPTION_TYPE_F = p.Field('str', regex='^(bits|bool|bytes|dict|float|int|json|json
 
 #: Constrained string type for version numbers
 REQUIRED_VERSION_F = p.Field(..., regex='^([0-9][0-9.]+)$')
-VERSION_F = p.Field('str', regex='^([0-9][0-9.]+)$')
+VERSION_F = p.Field(default=None, regex='^([0-9][0-9.]+)$')
 
 #: Constrained string type for dates
 REQUIRED_DATE_F = p.Field(..., regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
-DATE_F = p.Field('str', regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
+DATE_F = p.Field(default=None, regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
 
 #: Constrained string type for collection names
 REQUIRED_COLLECTION_NAME_F = p.Field(..., regex='^([^.]+\\.[^.]+)$')
-COLLECTION_NAME_F = p.Field('str', regex='^([^.]+\\.[^.]+)$')
+COLLECTION_NAME_F = p.Field(default=None, regex='^([^.]+\\.[^.]+)$')
 
 #: Constrained string listing the possible types of a return field
 RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str)$')

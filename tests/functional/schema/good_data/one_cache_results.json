@@ -28,21 +28,25 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_PREFIX",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_prefix",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "_timeout": {
                         "aliases": [],
@@ -57,21 +61,25 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_TIMEOUT",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_timeout",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "_uri": {
                         "aliases": [],
@@ -86,28 +94,33 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_CONNECTION",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_connection",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": true,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     }
                 },
                 "requirements": [],
                 "seealso": [],
                 "short_description": "JSON formatted files.",
                 "todo": [],
-                "version_added": "historical"
+                "version_added": "historical",
+                "version_added_collection": null
             },
             "examples": "",
             "metadata": {

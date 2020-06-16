@@ -33,17 +33,20 @@
                             {
                                 "deprecated": {},
                                 "name": "EC2_ACCESS_KEY",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_ACCESS_KEY",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_ACCESS_KEY_ID",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [],
@@ -51,7 +54,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "aws_profile": {
                         "aliases": [
@@ -68,12 +72,14 @@
                             {
                                 "deprecated": {},
                                 "name": "AWS_DEFAULT_PROFILE",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_PROFILE",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [],
@@ -81,7 +87,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "aws_secret_key": {
                         "aliases": [
@@ -98,17 +105,20 @@
                             {
                                 "deprecated": {},
                                 "name": "EC2_SECRET_KEY",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_SECRET_KEY",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_SECRET_ACCESS_KEY",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [],
@@ -116,7 +126,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "aws_security_token": {
                         "aliases": [],
@@ -131,17 +142,20 @@
                             {
                                 "deprecated": {},
                                 "name": "EC2_SECURITY_TOKEN",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_SESSION_TOKEN",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "AWS_SECURITY_TOKEN",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [],
@@ -149,7 +163,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "cache": {
                         "aliases": [],
@@ -164,21 +179,25 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_INVENTORY_CACHE",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "cache",
                                 "section": "inventory",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "cache_connection": {
                         "aliases": [],
@@ -193,31 +212,38 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_CONNECTION",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_INVENTORY_CACHE_CONNECTION",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_connection",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "key": "cache_connection",
                                 "section": "inventory",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "cache_plugin": {
                         "aliases": [],
@@ -232,31 +258,38 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_INVENTORY_CACHE_PLUGIN",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "key": "cache_plugin",
                                 "section": "inventory",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "cache_prefix": {
                         "aliases": [],
@@ -271,31 +304,38 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_PREFIX",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_INVENTORY_CACHE_PLUGIN_PREFIX",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_prefix",
                                 "section": "default",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "key": "cache_prefix",
                                 "section": "inventory",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "cache_timeout": {
                         "aliases": [],
@@ -310,31 +350,38 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_TIMEOUT",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_INVENTORY_CACHE_TIMEOUT",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "fact_caching_timeout",
                                 "section": "defaults",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "key": "cache_timeout",
                                 "section": "inventory",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "compose": {
                         "aliases": [],
@@ -351,7 +398,8 @@
                         "suboptions": {},
                         "type": "dict",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "filters": {
                         "aliases": [],
@@ -369,7 +417,8 @@
                         "suboptions": {},
                         "type": "dict",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "groups": {
                         "aliases": [],
@@ -386,7 +435,8 @@
                         "suboptions": {},
                         "type": "dict",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "hostnames": {
                         "aliases": [],
@@ -405,7 +455,8 @@
                         "suboptions": {},
                         "type": "list",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "iam_role_arn": {
                         "aliases": [],
@@ -422,7 +473,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "include_extra_api_calls": {
                         "aliases": [],
@@ -440,7 +492,8 @@
                         "suboptions": {},
                         "type": "bool",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "keyed_groups": {
                         "aliases": [],
@@ -457,7 +510,8 @@
                         "suboptions": {},
                         "type": "list",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "plugin": {
                         "aliases": [],
@@ -476,7 +530,8 @@
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "regions": {
                         "aliases": [],
@@ -494,7 +549,8 @@
                         "suboptions": {},
                         "type": "list",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "strict": {
                         "aliases": [],
@@ -512,7 +568,8 @@
                         "suboptions": {},
                         "type": "bool",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "strict_permissions": {
                         "aliases": [],
@@ -530,7 +587,8 @@
                         "suboptions": {},
                         "type": "bool",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "use_contrib_script_compatible_sanitization": {
                         "aliases": [],
@@ -549,7 +607,8 @@
                         "suboptions": {},
                         "type": "bool",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     }
                 },
                 "requirements": [
@@ -559,7 +618,8 @@
                 "seealso": [],
                 "short_description": "EC2 inventory source",
                 "todo": [],
-                "version_added": "historical"
+                "version_added": "historical",
+                "version_added_collection": null
             },
             "examples": "\n# Minimal example using environment vars or instance role credentials\n# Fetch all hosts in us-east-1, the hostname is the public DNS if it exists, otherwise the private IP address\nplugin: aws_ec2\nregions:\n  - us-east-1\n\n# Example using filters, ignoring permission errors, and specifying the hostname precedence\nplugin: aws_ec2\nboto_profile: aws_profile\n# Populate inventory with instances in these regions\nregions:\n  - us-east-1\n  - us-east-2\nfilters:\n  # All instances with their `Environment` tag set to `dev`\n  tag:Environment: dev\n  # All dev and QA hosts\n  tag:Environment:\n    - dev\n    - qa\n  instance.group-id: sg-xxxxxxxx\n# Ignores 403 errors rather than failing\nstrict_permissions: False\n# Note: I(hostnames) sets the inventory_hostname. To modify ansible_host without modifying\n# inventory_hostname use compose (see example below).\nhostnames:\n  - tag:Name=Tag1,Name=Tag2  # Return specific hosts only\n  - tag:CustomDNSName\n  - dns-name\n  - private-ip-address\n\n# Example using constructed features to create groups and set ansible_host\nplugin: aws_ec2\nregions:\n  - us-east-1\n  - us-west-1\n# keyed_groups may be used to create custom groups\nstrict: False\nkeyed_groups:\n  # Add e.g. x86_64 hosts to an arch_x86_64 group\n  - prefix: arch\n    key: 'architecture'\n  # Add hosts to tag_Name_Value groups for each Name/Value tag pair\n  - prefix: tag\n    key: tags\n  # Add hosts to e.g. instance_type_z3_tiny\n  - prefix: instance_type\n    key: instance_type\n  # Create security_groups_sg_abcd1234 group for each SG\n  - key: 'security_groups|json_query(\"[].group_id\")'\n    prefix: 'security_groups'\n  # Create a group for each value of the Application tag\n  - key: tags.Application\n    separator: ''\n  # Create a group per region e.g. aws_region_us_east_2\n  - key: placement.region\n    prefix: aws_region\n  # Create a group (or groups) based on the value of a custom tag \"Role\" and add them to a metagroup called \"project\"\n  - key: tags['Role']\n    prefix: foo\n    parent_group: \"project\"\n# Set individual variables with compose\ncompose:\n  # Use the private IP address to connect to the host\n  # (note: this does not modify inventory_hostname, which is set via I(hostnames))\n  ansible_host: private_ip_address\n",
             "metadata": {

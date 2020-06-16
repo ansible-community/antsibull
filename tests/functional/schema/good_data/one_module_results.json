@@ -30,7 +30,6 @@
                         ],
                         "choices": [],
                         "default": null,
-                        "deprecated": {},
                         "description": [
                             "The groups to add the hostname to."
                         ],
@@ -38,7 +37,8 @@
                         "required": false,
                         "suboptions": {},
                         "type": "list",
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "name": {
                         "aliases": [
@@ -47,7 +47,6 @@
                         ],
                         "choices": [],
                         "default": null,
-                        "deprecated": {},
                         "description": [
                             "The hostname/ip of the host to add to the inventory, can include a colon and a port number."
                         ],
@@ -55,7 +54,8 @@
                         "required": true,
                         "suboptions": {},
                         "type": "str",
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     }
                 },
                 "requirements": [],

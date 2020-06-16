@@ -31,19 +31,23 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_BECOME_PASS",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_ENABLE_PASS",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "password",
                                 "section": "enable_become_plugin",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
@@ -51,26 +55,34 @@
                         "type": "str",
                         "vars": [
                             {
+                                "deprecated": {},
                                 "name": "ansible_become_password",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "name": "ansible_become_pass",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             },
                             {
+                                "deprecated": {},
                                 "name": "ansible_enable_pass",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     }
                 },
                 "requirements": [],
                 "seealso": [],
                 "short_description": "Switch to elevated permissions on a network device",
                 "todo": [],
-                "version_added": "historical"
+                "version_added": "historical",
+                "version_added_collection": null
             },
             "examples": "",
             "metadata": {
