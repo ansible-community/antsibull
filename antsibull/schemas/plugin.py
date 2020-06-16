@@ -12,9 +12,9 @@ import typing as t
 
 import pydantic as p
 
-from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, BaseModel, DeprecationSchema,
-                   DocSchema, JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
-                   normalize_option_type_names, transform_return_docs)
+from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, COLLECTION_NAME_F, BaseModel,
+                   DeprecationSchema, DocSchema, JSONValueT, LocalConfig, OptionsSchema,
+                   list_from_scalars, normalize_option_type_names, transform_return_docs)
 
 _SENTINEL = object()
 
@@ -23,17 +23,22 @@ class OptionEnvSchema(BaseModel):
     name: str = REQUIRED_ENV_VAR_F
     deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
 
 class OptionIniSchema(BaseModel):
     key: str
     section: str
+    deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
 
 class OptionVarsSchema(BaseModel):
     name: str
+    deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
 
 class ReturnSchema(BaseModel):
@@ -46,6 +51,7 @@ class ReturnSchema(BaseModel):
     sample: JSONValueT = ''
     type: str = RETURN_TYPE_F
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
     @p.validator('description', pre=True)
     def list_from_scalars(cls, obj):
