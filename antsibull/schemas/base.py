@@ -287,6 +287,18 @@ class TopLevelDeprecationSchema(BaseModel):
 
         return values
 
+    @p.root_validator
+    def require_version_xor_date(cls, values):
+        """Make sure either removed_in or removed_at_date are specified, but not both."""
+        has_removed_in = values.get('removed_in', _SENTINEL) is _SENTINEL
+        has_removed_at_date = values.get('removed_at_date', _SENTINEL) is _SENTINEL
+        if not has_removed_in and not has_removed_at_date:
+            raise ValueError('One of `removed_at_date` and `removed_in` must be specified')
+        if has_removed_in and has_removed_at_date:
+            raise ValueError('Not both of `removed_at_date` and `removed_in` can be specified')
+
+        return values
+
     @p.root_validator(pre=True)
     def merge_typo_names(cls, values):
         alternatives = values.get('alternatives', _SENTINEL)

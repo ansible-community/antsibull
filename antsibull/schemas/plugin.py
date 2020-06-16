@@ -71,6 +71,18 @@ class OptionDeprecationSchema(BaseModel):
 
         return values
 
+    @p.root_validator
+    def require_version_xor_date(cls, values):
+        """Make sure either version or date are specified, but not both."""
+        has_version = values.get('version', _SENTINEL) is _SENTINEL
+        has_date = values.get('date', _SENTINEL) is _SENTINEL
+        if not has_version and not has_date:
+            raise ValueError('One of `date` and `version` must be specified')
+        if has_version and has_date:
+            raise ValueError('Not both of `date` and `version` can be specified')
+
+        return values
+
     @p.root_validator(pre=True)
     def merge_typo_names(cls, values):
         alternatives = values.get('alternatives', _SENTINEL)
