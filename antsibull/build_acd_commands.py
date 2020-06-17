@@ -70,6 +70,7 @@ def write_manifest(package_dir, debian=False):
     with open(manifest_file, 'w') as f:
         f.write('include COPYING\n')
         f.write('include README\n')
+        f.write('include build-ansible.sh\n')
         if debian:
             f.write('include debian/*\n')
         f.write('recursive-include ansible_collections/ **\n')
@@ -128,6 +129,20 @@ def make_dist(ansible_dir, dest_dir):
     shutil.move(os.path.join(dist_dir, files[0]), dest_dir)
 
 
+def write_build_script(acd_version, ansible_base_version, package_dir):
+    """Write a build-script that tells how to build this tarball."""
+    build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
+
+    build_ansible_tmpl = Template(pkgutil.get_data('antsibull.data',
+                                                   'build-ansible.sh.j2').decode('utf-8'))
+    build_ansible_contents = build_ansible_tmpl.render(version=acd_version,
+                                                       ansible_base_version=ansible_base_version)
+
+    with open(build_ansible_filename, 'w') as f:
+        f.write(build_ansible_contents)
+    os.chmod(build_ansible_filename, mode=0o755)
+
+
 def build_single_command(args):
     build_file = BuildFile(args.build_file)
     build_acd_version, ansible_base_version, deps = build_file.parse()
@@ -152,6 +167,7 @@ def build_single_command(args):
         collections_to_install = [p for f in os.listdir(download_dir)
                                   if os.path.isfile(p := os.path.join(download_dir, f))]
         asyncio.run(install_together(collections_to_install, ansible_collections_dir))
+        write_build_script(args.acd_version, ansible_base_version, package_dir)
         write_python_build_files(args.acd_version, ansible_base_version, '',
                                  package_dir, args.debian)
         if args.debian:
@@ -260,6 +276,7 @@ def build_multiple_command(args):
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
         collection_deps = '\n' + ',\n'.join(collection_deps)
+        write_build_script(args.acd_version, ansible_base_version, package_dir)
         write_python_build_files(args.acd_version, ansible_base_version,
                                  collection_deps, package_dir)
 
