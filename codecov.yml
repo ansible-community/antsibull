@@ -13,7 +13,7 @@ coverage:
         # paths:
         #   - "src"
         branches:
-          - master
+          - main
         if_not_found: success
         if_ci_failed: error
         informational: true
