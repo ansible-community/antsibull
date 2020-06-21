@@ -1,0 +1,11 @@
+#!/bin/sh
+
+MAJOR_MINOR="{{ version.major }}.{{ version.minor }}"
+
+pip install --user antsibull
+git clone git@github.com:ansible-community/ansible-build-data
+mkdir built
+antsibull-build build-single {{ version }} --build-file ansible-build-data/${MAJOR_MINOR}/acd-${MAJOR_MINOR}.build --dest-dir built
+
+#pip install twine
+#twine upload built/ansible-{{ version }}.tar.gz
