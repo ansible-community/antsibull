@@ -30,11 +30,12 @@ from .galaxy import CollectionDownloader
 #
 
 
-async def download_collections(deps, download_dir):
+async def download_collections(deps, download_dir, collection_cache=None):
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
         async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
-            downloader = CollectionDownloader(aio_session, download_dir)
+            downloader = CollectionDownloader(aio_session, download_dir,
+                                              collection_cache=collection_cache)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
                     downloader.download_latest_matching(collection_name, version_spec))
@@ -157,7 +158,8 @@ def build_single_command(args):
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio.run(download_collections(deps, download_dir))
+        included_versions = asyncio.run(
+            download_collections(deps, download_dir, args.collection_cache))
 
         package_dir = os.path.join(tmp_dir, f'ansible-{args.acd_version}')
         os.mkdir(package_dir, mode=0o700)
@@ -259,7 +261,8 @@ def build_multiple_command(args):
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio.run(download_collections(deps, download_dir))
+        included_versions = asyncio.run(
+            download_collections(deps, download_dir, args.collection_cache))
         collections_to_install = [p for f in os.listdir(download_dir)
                                   if os.path.isfile(p := os.path.join(download_dir, f))]
         collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
