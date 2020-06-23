@@ -35,21 +35,25 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_YAML_FILENAME_EXT",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "defaults",
                                 "section": "yaml_valid_extensions",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
                         "vars": [],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     },
                     "stage": {
                         "aliases": [],
@@ -72,21 +76,25 @@
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_VARS_PLUGIN_STAGE",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "ini": [
                             {
+                                "deprecated": {},
                                 "key": "stage",
                                 "section": "vars_host_group_vars",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
                         "vars": [],
-                        "version_added": "2.10"
+                        "version_added": "2.10",
+                        "version_added_collection": "foo.bar"
                     }
                 },
                 "requirements": [
@@ -95,7 +103,8 @@
                 "seealso": [],
                 "short_description": "In charge of loading group_vars and host_vars",
                 "todo": [],
-                "version_added": "2.4"
+                "version_added": "2.4",
+                "version_added_collection": "foo.bar"
             },
             "examples": "",
             "metadata": {

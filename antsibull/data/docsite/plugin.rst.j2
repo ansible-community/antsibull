@@ -55,6 +55,9 @@
 
 {% if doc['version_added'] is still_relevant -%}
 .. versionadded:: @{ doc['version_added'] }@
+{%   if doc['version_added_collection'] != collection %}
+                  of @{ doc['version_added_collection'] | rst_ify }@
+{%   endif %}
 {% endif %}
 
 .. contents::
@@ -66,7 +69,16 @@
 {% if doc['deprecated'] -%}
 DEPRECATED
 ----------
-:Removed in: version: @{ doc['deprecated']['removed_in'] | rst_ify }@
+{% if doc['deprecated']['removed_at_date'] %}
+:Removed in: major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
+{% elif doc['deprecated']['removed_in'] %}
+:Removed in: version @{ doc['deprecated']['removed_in'] | rst_ify }@
+{% else %}
+:Removed in: a future release
+{% endif %}
+{% if doc['deprecated']['removed_from_collection'] and doc['deprecated']['removed_from_collection'] != collection %}
+             of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@
+{% endif %}
 :Why: @{ doc['deprecated']['why'] | rst_ify }@
 :Alternative: @{ doc['deprecated']['alternative'] | rst_ify }@
 {% endif %}
@@ -146,7 +158,32 @@ Parameters
                         {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
                         {% if value['required'] %} / <span style="color: red">required</span>{% endif %}
                     </div>
-                    {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@</div>{% endif %}
+                    {% if value['version_added'] is still_relevant %}
+                      <div style="font-style: italic; font-size: small; color: darkgreen">
+                        added in @{value['version_added']}@
+                        {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
+                          of @{ doc['version_added_collection'] | escape }@
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                    {% if plugin_type != 'module' and value['deprecated'] %}
+                      <div>
+                        {% if value['deprecated']['removed_at_date'] %}
+                          Removed in: major release after @{ value['deprecated']['removed_at_date'] | escape }@
+                        {% elif value['deprecated']['removed_in'] %}
+                          Removed in: version @{ value['deprecated']['removed_in'] | escape }@
+                        {% else %}
+                          Removed in: a future release
+                        {% endif %}
+                        {% if value['deprecated']['removed_from_collection'] and value['deprecated']['removed_from_collection'] != collection %}
+                          of @{ value['deprecated']['removed_from_collection'] | escape }@
+                        {% endif %}
+                        <br>
+                        Why: @{ value['deprecated']['why'] | escape }@
+                        <br>
+                        Alternative: @{ value['deprecated']['alternative'] | escape }@
+                      </div>
+                    {% endif %}
                 </td>
                 {# default / choices #}
                 <td>
@@ -188,15 +225,99 @@ Parameters
                         {% if value['ini'] %}
                             <div> ini entries:
                                 {% for ini in value['ini'] %}
-                                    <p>[@{ ini['section'] }@]<br>@{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@</p>
+                                    <p>
+                                        [@{ ini['section'] }@]<br>@{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@
+                                        {% if ini['version_added'] is still_relevant %}
+                                          <div style="font-style: italic; font-size: small; color: darkgreen">
+                                            added in @{ini['version_added']}@
+                                            {% if ini['version_added_collection'] and ini['version_added_collection'] != collection %}
+                                              of @{ doc['version_added_collection'] | escape }@
+                                            {% endif %}
+                                          </div>
+                                        {% endif %}
+                                        {% if ini['deprecated'] %}
+                                          <div>
+                                            {% if ini['deprecated']['removed_at_date'] %}
+                                              Removed in: major release after @{ ini['deprecated']['removed_at_date'] | escape }@
+                                            {% elif ini['deprecated']['removed_in'] %}
+                                              Removed in: version @{ ini['deprecated']['removed_in'] | escape }@
+                                            {% else %}
+                                              Removed in: a future release
+                                            {% endif %}
+                                            {% if ini['deprecated']['removed_from_collection'] and ini['deprecated']['removed_from_collection'] != collection %}
+                                              of @{ ini['deprecated']['removed_from_collection'] | escape }@
+                                            {% endif %}
+                                            <br>
+                                            Why: @{ ini['deprecated']['why'] | escape }@
+                                            <br>
+                                            Alternative: @{ ini['deprecated']['alternative'] | escape }@
+                                          </div>
+                                        {% endif %}
+                                    </p>
                                 {% endfor %}
                             </div>
                         {% endif %}
                         {% for env in value['env'] %}
-                            <div>env:@{ env['name'] }@</div>
+                            <div>
+                                env:@{ env['name'] }@
+                                {% if env['version_added'] is still_relevant %}
+                                  <div style="font-style: italic; font-size: small; color: darkgreen">
+                                    added in @{env['version_added']}@
+                                    {% if env['version_added_collection'] and env['version_added_collection'] != collection %}
+                                      of @{ doc['version_added_collection'] | escape }@
+                                    {% endif %}
+                                  </div>
+                                {% endif %}
+                                {% if env['deprecated'] %}
+                                  <div>
+                                    {% if env['deprecated']['removed_at_date'] %}
+                                      Removed in: major release after @{ env['deprecated']['removed_at_date'] | escape }@
+                                    {% elif env['deprecated']['removed_in'] %}
+                                      Removed in: version @{ env['deprecated']['removed_in'] | escape }@
+                                    {% else %}
+                                      Removed in: a future release
+                                    {% endif %}
+                                    {% if env['deprecated']['removed_from_collection'] and env['deprecated']['removed_from_collection'] != collection %}
+                                      of @{ env['deprecated']['removed_from_collection'] | escape }@
+                                    {% endif %}
+                                    <br>
+                                    Why: @{ env['deprecated']['why'] | escape }@
+                                    <br>
+                                    Alternative: @{ env['deprecated']['alternative'] | escape }@
+                                  </div>
+                                {% endif %}
+                            </div>
                         {% endfor %}
                         {% for myvar in value['vars'] %}
-                            <div>var: @{ myvar['name'] }@</div>
+                            <div>
+                                var: @{ myvar['name'] }@
+                                {% if myvar['version_added'] is still_relevant %}
+                                  <div style="font-style: italic; font-size: small; color: darkgreen">
+                                    added in @{myvar['version_added']}@
+                                    {% if myvar['version_added_collection'] and myvar['version_added_collection'] != collection %}
+                                      of @{ doc['version_added_collection'] | escape }@
+                                    {% endif %}
+                                  </div>
+                                {% endif %}
+                                {% if myvar['deprecated'] %}
+                                  <div>
+                                    {% if myvar['deprecated']['removed_at_date'] %}
+                                      Removed in: major release after @{ myvar['deprecated']['removed_at_date'] | escape }@
+                                    {% elif myvar['deprecated']['removed_in'] %}
+                                      Removed in: version @{ myvar['deprecated']['removed_in'] | escape }@
+                                    {% else %}
+                                      Removed in: a future release
+                                    {% endif %}
+                                    {% if myvar['deprecated']['removed_from_collection'] and myvar['deprecated']['removed_from_collection'] != collection %}
+                                      of @{ myvar['deprecated']['removed_from_collection'] | escape }@
+                                    {% endif %}
+                                    <br>
+                                    Why: @{ myvar['deprecated']['why'] | escape }@
+                                    <br>
+                                    Alternative: @{ myvar['deprecated']['alternative'] | escape }@
+                                  </div>
+                                {% endif %}
+                            </div>
                         {% endfor %}
                     </td>
                 {% endif %}
@@ -260,7 +381,7 @@ See Also
 {% if examples -%}
 Examples
 --------
-{% if collection_name != 'ansible.builtin' %}
+{% if collection != 'ansible.builtin' %}
 .. note::
     These examples assume the ``collections`` keyword is defined in  playbook and do not use the fully qualified collection name.
 {% endif %}
@@ -312,7 +433,14 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                       <span style="color: purple">@{ value['type'] | documented_type }@</span>
                       {% if value['elements'] %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
                     </div>
-                    {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@</div>{% endif %}
+                    {% if value['version_added'] is still_relevant %}
+                      <div style="font-style: italic; font-size: small; color: darkgreen">
+                        added in @{value['version_added']}@
+                        {% if value['version_added_collection' and value['version_added_collection' != collection %}
+                          of @{ doc['version_added_collection'] | escape }@
+                        {% endif %}
+                      </div>
+                    {% endif %}
                 </td>
                 <td>@{ value['returned'] | html_ify }@</td>
                 <td>
@@ -402,7 +530,26 @@ Status
 
 .. Deprecated note
 
-- This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | default('') | string | rst_ify }@. *[deprecated]*
+{% if doc['deprecated']['removed_from_collection'] and doc['deprecated']['removed_from_collection'] != collection %}
+{%   if doc['deprecated']['removed_at_date'] %}
+- This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
+  of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
+{%   elif doc['deprecated']['removed_in'] %}
+- This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | string | rst_ify }@
+  of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
+{%   else %}
+- This @{ plugin_type }@ will be removed in a future release of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
+{%   endif %}
+{% else %}
+{%   if doc['deprecated']['removed_at_date'] %}
+- This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@.
+{%   elif doc['deprecated']['removed_in'] %}
+- This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | string | rst_ify }@.
+{%   else %}
+- This @{ plugin_type }@ will be removed in a future release.
+{%   endif %}
+{% endif %}
+  *[deprecated]*
 - For more information see `DEPRECATED`_.
 
 {% endif %}

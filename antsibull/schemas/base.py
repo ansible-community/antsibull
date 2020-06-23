@@ -144,6 +144,15 @@ OPTION_TYPE_F = p.Field('str', regex='^(bits|bool|bytes|dict|float|int|json|json
 
 #: Constrained string type for version numbers
 REQUIRED_VERSION_F = p.Field(..., regex='^([0-9][0-9.]+)$')
+VERSION_F = p.Field(default=None, regex='^([0-9][0-9.]+)$')
+
+#: Constrained string type for dates
+REQUIRED_DATE_F = p.Field(..., regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
+DATE_F = p.Field(default=None, regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
+
+#: Constrained string type for collection names
+REQUIRED_COLLECTION_NAME_F = p.Field(..., regex='^([^.]+\\.[^.]+)$')
+COLLECTION_NAME_F = p.Field(default=None, regex='^([^.]+\\.[^.]+)$')
 
 #: Constrained string listing the possible types of a return field
 RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str)$')
@@ -230,7 +239,9 @@ class BaseModel(p.BaseModel):
 class DeprecationSchema(BaseModel):
     """Schema for Deprecation Fields."""
 
-    removed_in: str = REQUIRED_VERSION_F
+    removed_in: str = VERSION_F
+    removed_at_date: str = DATE_F
+    removed_from_collection: str = REQUIRED_COLLECTION_NAME_F
     why: str
     alternative: str = ''
 
@@ -245,6 +256,48 @@ class DeprecationSchema(BaseModel):
 
             values['removed_in'] = version
             del values['version']
+
+        return values
+
+    @p.root_validator(pre=True)
+    def rename_date(cls, values):
+        """Make deprecations at this level match the toplevel name."""
+        date = values.get('date', _SENTINEL)
+        if date is not _SENTINEL:
+            if values.get('removed_at_date'):
+                raise ValueError('Cannot specify `date` if `removed_at_date`'
+                                 ' has been specified.')
+
+            values['removed_at_date'] = date
+            del values['date']
+
+        return values
+
+    @p.root_validator(pre=True)
+    def rename_collection_name(cls, values):
+        """Make deprecations at this level match the toplevel name."""
+        collection_name = values.get('collection_name', _SENTINEL)
+        if collection_name is not _SENTINEL:
+            if values.get('removed_from_collection'):
+                raise ValueError('Cannot specify `collection_name` if `removed_from_collection`'
+                                 ' has been specified.')
+
+            values['removed_from_collection'] = collection_name
+            del values['collection_name']
+
+        return values
+
+    @p.root_validator
+    def require_version_xor_date(cls, values):
+        """Make sure either removed_in or removed_at_date are specified, but not both."""
+        # This should be changed to a way that also works in the JSON schema; see
+        # https://github.com/ansible-community/antsibull/issues/104
+        has_removed_in = values.get('removed_in', _SENTINEL) is _SENTINEL
+        has_removed_at_date = values.get('removed_at_date', _SENTINEL) is _SENTINEL
+        if not has_removed_in and not has_removed_at_date:
+            raise ValueError('One of `removed_at_date` and `removed_in` must be specified')
+        if has_removed_in and has_removed_at_date:
+            raise ValueError('Not both of `removed_at_date` and `removed_in` can be specified')
 
         return values
 
@@ -268,11 +321,11 @@ class OptionsSchema(BaseModel):
     aliases: t.List[str] = []
     choices: t.List[t.Union[str, None]] = []
     default: JSONValueT = None
-    deprecated: DeprecationSchema = p.Field({})
     elements: str = OPTION_TYPE_F
     required: bool = False
     type: str = OPTION_TYPE_F
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
     @p.validator('aliases', 'description', 'choices', pre=True)
     def list_from_scalars(cls, obj):
@@ -347,6 +400,7 @@ class DocSchema(BaseModel):
     seealso: t.List[t.Union[SeeAlsoModSchema, SeeAlsoRefSchema, SeeAlsoLinkSchema]] = []
     todo: t.List[str] = []
     version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
     @p.validator('author', 'description', 'extends_documentation_fragment', 'notes',
                  'requirements', 'todo', pre=True)

@@ -58,7 +58,8 @@
                         }
                     ],
                     "type": "str",
-                    "version_added": "2.10"
+                    "version_added": "2.10",
+                    "version_added_collection": "foo.bar"
                 }
             },
             "requirements": [
@@ -66,7 +67,8 @@
             ],
             "short_description": "In charge of loading group_vars and host_vars",
             "vars": "host_group_vars",
-            "version_added": "2.4"
+            "version_added": "2.4",
+            "version_added_collection": "foo.bar"
         },
         "examples": null,
         "metadata": {

@@ -20,7 +20,8 @@
                 "seealso": [],
                 "short_description": "Executes tasks without waiting for all hosts",
                 "todo": [],
-                "version_added": "2.0"
+                "version_added": "2.0",
+                "version_added_collection": "foo.bar"
             },
             "examples": "",
             "metadata": {

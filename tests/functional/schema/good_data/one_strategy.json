@@ -9,7 +9,8 @@
             "filename": "/var/tmp/tmpku7m9k3e/ansible-base-venv/lib64/python3.8/site-packages/ansible/plugins/strategy/free.py",
             "short_description": "Executes tasks without waiting for all hosts",
             "strategy": "free",
-            "version_added": "2.0"
+            "version_added": "2.0",
+            "version_added_collection": "foo.bar"
         },
         "examples": null,
         "metadata": {

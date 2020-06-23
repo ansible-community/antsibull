@@ -20,7 +20,8 @@
                 "short_description": "summarizes all \"resource:actions\" completed",
                 "todo": [],
                 "type": "aggregate",
-                "version_added": "historical"
+                "version_added": "historical",
+                "version_added_collection": null
             },
             "examples": "\nexample: >\n  To enable, add this to your ansible.cfg file in the defaults block\n    [defaults]\n    callback_whitelist = aws_resource_actions\nsample output: >\n#\n# AWS ACTIONS: ['s3:PutBucketAcl', 's3:HeadObject', 's3:DeleteObject', 's3:PutObjectAcl', 's3:CreateMultipartUpload',\n#               's3:DeleteBucket', 's3:GetObject', 's3:DeleteObjects', 's3:CreateBucket', 's3:CompleteMultipartUpload',\n#               's3:ListObjectsV2', 's3:HeadBucket', 's3:UploadPart', 's3:PutObject']\n#\nsample output: >\n#\n# AWS ACTIONS: ['ec2:DescribeVpcAttribute', 'ec2:DescribeVpcClassicLink', 'ec2:ModifyVpcAttribute', 'ec2:CreateTags',\n#               'sts:GetCallerIdentity', 'ec2:DescribeSecurityGroups', 'ec2:DescribeTags', 'ec2:DescribeVpcs', 'ec2:CreateVpc']\n#\n",
             "metadata": {

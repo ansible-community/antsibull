@@ -31,18 +31,22 @@
                         "type": "str",
                         "vars": [
                             {
+                                "deprecated": {},
                                 "name": "ansible_httpapi_restconf_root",
-                                "version_added": "historical"
+                                "version_added": "historical",
+                                "version_added_collection": null
                             }
                         ],
-                        "version_added": "historical"
+                        "version_added": "historical",
+                        "version_added_collection": null
                     }
                 },
                 "requirements": [],
                 "seealso": [],
                 "short_description": "HttpApi Plugin for devices supporting Restconf API",
                 "todo": [],
-                "version_added": "historical"
+                "version_added": "historical",
+                "version_added_collection": null
             },
             "examples": "",
             "metadata": {

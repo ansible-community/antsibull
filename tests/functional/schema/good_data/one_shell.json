@@ -116,7 +116,8 @@
             },
             "plugin_type": "shell",
             "short_description": "POSIX shell (/bin/sh)",
-            "version_added": "historical"
+            "version_added": "historical",
+            "version_added_collection": "foo.bar"
         },
         "examples": null,
         "metadata": {
