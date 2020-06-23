@@ -236,8 +236,8 @@ class BaseModel(p.BaseModel):
     Config = LocalConfig
 
 
-class TopLevelDeprecationSchema(BaseModel):
-    """Schema for Top-Level Deprecation Fields."""
+class DeprecationSchema(BaseModel):
+    """Schema for Deprecation Fields."""
 
     removed_in: str = VERSION_F
     removed_at_date: str = DATE_F
@@ -392,7 +392,7 @@ class DocSchema(BaseModel):
     short_description: str
     aliases: t.List[str] = []
     author: t.List[str] = []
-    deprecated: TopLevelDeprecationSchema = p.Field({})
+    deprecated: DeprecationSchema = p.Field({})
     extends_documentation_fragment: t.List[str] = []
     filename: str = ''
     notes: t.List[str] = []

@@ -12,97 +12,17 @@ import typing as t
 
 import pydantic as p
 
-from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F, VERSION_F, DATE_F,
-                   COLLECTION_NAME_F, REQUIRED_COLLECTION_NAME_F, BaseModel, DocSchema,
+from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F,
+                   COLLECTION_NAME_F, BaseModel, DeprecationSchema, DocSchema,
                    JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
                    normalize_option_type_names, transform_return_docs)
 
 _SENTINEL = object()
 
 
-class OptionDeprecationSchema(BaseModel):
-    """Schema for Option Deprecation Fields."""
-
-    version: str = VERSION_F
-    date: str = DATE_F
-    collection_name: str = REQUIRED_COLLECTION_NAME_F
-    why: str
-    alternative: str = ''
-
-    @p.root_validator(pre=True)
-    def rename_version(cls, values):
-        """Make deprecations at this level match the toplevel name."""
-        removed_in = values.get('removed_in', _SENTINEL)
-        if removed_in is not _SENTINEL:
-            if values.get('version'):
-                raise ValueError('Cannot specify `removed_in` if `version`'
-                                 ' has been specified.')
-
-            values['version'] = removed_in
-            del values['removed_in']
-
-        return values
-
-    @p.root_validator(pre=True)
-    def rename_date(cls, values):
-        """Make deprecations at this level match the toplevel name."""
-        removed_at_date = values.get('removed_at_date', _SENTINEL)
-        if removed_at_date is not _SENTINEL:
-            if values.get('date'):
-                raise ValueError('Cannot specify `removed_at_date` if `date`'
-                                 ' has been specified.')
-
-            values['date'] = removed_at_date
-            del values['removed_at_date']
-
-        return values
-
-    @p.root_validator(pre=True)
-    def rename_collection_name(cls, values):
-        """Make deprecations at this level match the toplevel name."""
-        removed_from_collection = values.get('removed_from_collection', _SENTINEL)
-        if removed_from_collection is not _SENTINEL:
-            if values.get('collection_name'):
-                raise ValueError('Cannot specify `removed_from_collection` if `collection_name`'
-                                 ' has been specified.')
-
-            values['collection_name'] = removed_from_collection
-            del values['removed_from_collection']
-
-        return values
-
-    @p.root_validator
-    def require_version_xor_date(cls, values):
-        """Make sure either version or date are specified, but not both."""
-        # This should be changed to a way that also works in the JSON schema; see
-        # https://github.com/ansible-community/antsibull/issues/104
-        has_version = values.get('version', _SENTINEL) is _SENTINEL
-        has_date = values.get('date', _SENTINEL) is _SENTINEL
-        if not has_version and not has_date:
-            raise ValueError('One of `date` and `version` must be specified')
-        if has_version and has_date:
-            raise ValueError('Not both of `date` and `version` can be specified')
-
-        return values
-
-    @p.root_validator(pre=True)
-    def merge_typo_names(cls, values):
-        alternatives = values.get('alternatives', _SENTINEL)
-
-        if alternatives is not _SENTINEL:
-            if values.get('alternative'):
-                raise ValueError('Cannot specify `alternatives` if `alternative`'
-                                 ' has been specified.')
-
-            values['alternative'] = alternatives
-            del values['alternatives']
-
-        return values
-
-
 class OptionEnvSchema(BaseModel):
     name: str = REQUIRED_ENV_VAR_F
-    deprecated: OptionDeprecationSchema = p.Field({})
+    deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
@@ -110,14 +30,14 @@ class OptionEnvSchema(BaseModel):
 class OptionIniSchema(BaseModel):
     key: str
     section: str
-    deprecated: OptionDeprecationSchema = p.Field({})
+    deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
 
 class OptionVarsSchema(BaseModel):
     name: str
-    deprecated: OptionDeprecationSchema = p.Field({})
+    deprecated: DeprecationSchema = p.Field({})
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
@@ -189,7 +109,7 @@ class PluginOptionsSchema(OptionsSchema):
     ini: t.List[OptionIniSchema] = []
     suboptions: t.Dict[str, 'PluginOptionsSchema'] = {}
     vars: t.List[OptionVarsSchema] = []
-    deprecated: OptionDeprecationSchema = p.Field({})
+    deprecated: DeprecationSchema = p.Field({})
 
 
 PluginOptionsSchema.update_forward_refs()
