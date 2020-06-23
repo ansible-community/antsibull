@@ -183,17 +183,6 @@ class CollectionDownloader(GalaxyClient):
         :arg version: Version of the collection to download.
         :returns: The full path to the downloaded collection.
         """
-        # First check cache to avoid any network access
-        if self.collection_cache:
-            cache_filename = f"${collection.replace('.', '-')}-${version}.tar.gz"
-            if cache_filename in os.listdir(self.collection_cache):
-                # TODO: PY3.8: We can use t.Final in __init__ instead of cast here.
-                cached_copy = os.path.join(t.cast(str, self.collection_cache),
-                                           cache_filename)
-                download_filename = os.path.join(self.download_dir, cache_filename)
-                shutil.copyfile(cached_copy, download_filename)
-                return download_filename
-
         collection = collection.replace('.', '/')
         release_info = await self.get_release_info(collection, version)
         release_url = release_info['download_url']
