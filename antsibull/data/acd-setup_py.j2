@@ -7,10 +7,14 @@ __version__ = '{{ version }}'
 __author__ = 'Ansible, Inc.'
 
 
+with open('README.rst', 'r') as f:
+    long_desc = f.read()
+
 setup(
     name='ansible',
     version=__version__,
     description='Radically simple IT automation',
+    long_description=long_desc,
     author=__author__,
     author_email='info@ansible.com',
     url='https://ansible.com/',
