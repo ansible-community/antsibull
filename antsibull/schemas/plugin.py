@@ -74,6 +74,8 @@ class OptionDeprecationSchema(BaseModel):
     @p.root_validator
     def require_version_xor_date(cls, values):
         """Make sure either version or date are specified, but not both."""
+        # This should be changed to a way that also works in the JSON schema; see
+        # https://github.com/ansible-community/antsibull/issues/104
         has_version = values.get('version', _SENTINEL) is _SENTINEL
         has_date = values.get('date', _SENTINEL) is _SENTINEL
         if not has_version and not has_date:

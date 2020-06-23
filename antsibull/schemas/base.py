@@ -290,6 +290,8 @@ class TopLevelDeprecationSchema(BaseModel):
     @p.root_validator
     def require_version_xor_date(cls, values):
         """Make sure either removed_in or removed_at_date are specified, but not both."""
+        # This should be changed to a way that also works in the JSON schema; see
+        # https://github.com/ansible-community/antsibull/issues/104
         has_removed_in = values.get('removed_in', _SENTINEL) is _SENTINEL
         has_removed_at_date = values.get('removed_at_date', _SENTINEL) is _SENTINEL
         if not has_removed_in and not has_removed_at_date:
