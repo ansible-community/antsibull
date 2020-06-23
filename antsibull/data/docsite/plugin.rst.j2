@@ -74,9 +74,9 @@
 {% if doc['deprecated'] -%}
 DEPRECATED
 ----------
-{% if 'removed_at_date' in doc['deprecated'] %}
+{% if doc['deprecated']['removed_at_date'] %}
 :Removed in: major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
-{% elif 'removed_in' in doc['deprecated'] %}
+{% elif doc['deprecated']['removed_in'] %}
 :Removed in: version: @{ doc['deprecated']['removed_in'] | rst_ify }@
 {% else %}
 :Removed in: a future release
