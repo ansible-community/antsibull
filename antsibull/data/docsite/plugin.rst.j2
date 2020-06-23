@@ -60,7 +60,7 @@
 
 {% if doc['version_added'] is still_relevant -%}
 .. versionadded:: @{ doc['version_added'] }@
-{%   if 'version_added_collection' in doc and doc['version_added_collection'] != collection_name %}
+{%   if 'version_added_collection' in doc and doc['version_added_collection'] != collection %}
                   of @{ doc['version_added_collection'] | rst_ify }@
 {%   endif %}
 {% endif %}
@@ -81,7 +81,7 @@ DEPRECATED
 {% else %}
 :Removed in: a future release
 {% endif %}
-{% if (doc['deprecated']['removed_from_collection'] or collection_name) != collection_name %}
+{% if (doc['deprecated']['removed_from_collection'] or collection) != collection %}
              of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@
 {% endif %}
 :Why: @{ doc['deprecated']['why'] | rst_ify }@
@@ -167,7 +167,7 @@ Parameters
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
-                        {% if (value['version_added_collection'] or collection_name) != collection_name %}
+                        {% if (value['version_added_collection'] or collection) != collection %}
                           of @{ doc['version_added_collection'] | rst_ify }@
                         {% endif %}
                       </div>
@@ -289,7 +289,7 @@ See Also
 {% if examples -%}
 Examples
 --------
-{% if collection_name != 'ansible.builtin' %}
+{% if collection != 'ansible.builtin' %}
 .. note::
     These examples assume the ``collections`` keyword is defined in  playbook and do not use the fully qualified collection name.
 {% endif %}
@@ -344,7 +344,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
-                        {% if (value['version_added_collection' or collection_name) != collection_name %}
+                        {% if (value['version_added_collection' or collection) != collection %}
                           of @{ doc['version_added_collection'] | rst_ify }@
                         {% endif %}
                       </div>
@@ -438,7 +438,7 @@ Status
 
 .. Deprecated note
 
-{% if (doc['deprecated']['removed_from_collection'] or collection_name) != collection_name %}
+{% if (doc['deprecated']['removed_from_collection'] or collection) != collection %}
 {%   if 'removed_at_date' in doc['deprecated'] %}
 - This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
   of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.

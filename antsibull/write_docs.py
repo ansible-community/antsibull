@@ -80,27 +80,16 @@ async def output_all_plugin_rst(plugin_info: t.Dict[str, t.Any],
         pages when documentation wasn't formatted such that we could use it.
     :arg dest_dir: The directory to place the documentation in.
     """
-    templates = dict()
+    # Setup the jinja environment
+    env = doc_environment(('antsibull.data', 'docsite'))
+    # Get the templates
+    plugin_tmpl = env.get_template('plugin.rst.j2')
+    error_tmpl = env.get_template('plugin-error.rst.j2')
 
     writers = []
     async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
         for plugin_type, plugins_by_type in plugin_info.items():
             for plugin_name, plugin_record in plugins_by_type.items():
-                namespace, collection, plugin_short_name = get_fqcn_parts(plugin_name)
-                collection_name = '.'.join((namespace, collection))
-                templates_ = templates.get(collection_name)
-                if templates_ is None:
-                    # Setup the jinja environment
-                    env = doc_environment(('antsibull.data', 'docsite'),
-                                          collection_name=collection_name)
-                    # Get the templates
-                    plugin_tmpl = env.get_template('plugin.rst.j2')
-                    error_tmpl = env.get_template('plugin-error.rst.j2')
-                    # Cache templates
-                    templates_ = (plugin_tmpl, error_tmpl)
-                    templates[collection_name] = templates_
-                plugin_tmpl, error_tmpl = templates_
-
                 writers.append(await pool.spawn(
                     write_rst(plugin_name, plugin_type, plugin_record,
                               nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,

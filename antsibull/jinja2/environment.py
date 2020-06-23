@@ -4,7 +4,6 @@
 
 import json
 import os.path
-import typing as t
 
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 
@@ -29,7 +28,7 @@ def from_kludge_ns(key):
     return NS_MAP[key]
 
 
-def doc_environment(template_location, collection_name: t.Optional[str] = None):
+def doc_environment(template_location):
     if isinstance(template_location, str) and os.path.exists(template_location):
         loader = FileSystemLoader(template_location)
     else:
@@ -47,8 +46,6 @@ def doc_environment(template_location, collection_name: t.Optional[str] = None):
                       variable_end_string="}@",
                       trim_blocks=True)
     env.globals['xline'] = rst_xline
-    if collection_name is not None:
-        env.globals['collection_name'] = collection_name
 
     # Can be removed (and template switched to use namespace) when we no longer need to build
     # with <Jinja-2.10
