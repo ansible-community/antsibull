@@ -101,6 +101,13 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     common_parser.add_argument('--dest-dir', default='.',
                                help='Directory to write the output to')
 
+    cache_parser = argparse.ArgumentParser(add_help=False)
+    cache_parser.add_argument('--collection-cache', default=None,
+                              help='Directory of cached collection tarballs.  Will be'
+                              ' used if a collection tarball to be downloaded exists'
+                              ' in here, and will be populated when downloading new'
+                              ' tarballs.')
+
     build_parser = argparse.ArgumentParser(add_help=False)
     build_parser.add_argument('--build-file', default=None,
                               help='File containing the list of collections with version ranges.'
@@ -130,7 +137,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' place $BASENAME_OF_PIECES_FILE-X.Y.build into --dest-dir')
 
     build_single_parser = subparsers.add_parser('build-single',
-                                                parents=[common_parser, build_parser],
+                                                parents=[common_parser, cache_parser, build_parser],
                                                 description='Build a single-file ACD')
 
     build_single_parser.add_argument('--debian', action='store_true',
@@ -138,7 +145,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                      ' the resulting output directory')
 
     subparsers.add_parser('build-multiple',
-                          parents=[common_parser, build_parser],
+                          parents=[common_parser, cache_parser, build_parser],
                           description='Build a multi-file ACD')
 
     collection_parser = subparsers.add_parser('build-collection',

@@ -215,6 +215,13 @@ class CollectionDownloader(GalaxyClient):
             raise DownloadFailure(f'{release_url} failed to download correctly.'
                                   f' Expected checksum: {sha256sum}')
 
+        # Copy downloaded collection into cache
+        if self.collection_cache:
+            # TODO: PY3.8: We can use t.Final in __init__ instead of cast here.
+            cached_copy = os.path.join(t.cast(str, self.collection_cache),
+                                       release_info['artifact']['filename'])
+            shutil.copyfile(download_filename, cached_copy)
+
         return download_filename
 
     async def _get_latest_matching_version(self, collection: str,
