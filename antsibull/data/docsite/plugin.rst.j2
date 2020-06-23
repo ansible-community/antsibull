@@ -60,7 +60,7 @@
 
 {% if doc['version_added'] is still_relevant -%}
 .. versionadded:: @{ doc['version_added'] }@
-{%   if 'version_added_collection' in doc and doc['version_added_collection'] != collection %}
+{%   if doc['version_added_collection'] != collection %}
                   of @{ doc['version_added_collection'] | rst_ify }@
 {%   endif %}
 {% endif %}
@@ -439,19 +439,19 @@ Status
 .. Deprecated note
 
 {% if (doc['deprecated']['removed_from_collection'] or collection) != collection %}
-{%   if 'removed_at_date' in doc['deprecated'] %}
+{%   if doc['deprecated']['removed_at_date'] %}
 - This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
   of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
-{%   elif 'removed_in' in doc['deprecated'] %}
+{%   elif doc['deprecated']['removed_in'] %}
 - This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | string | rst_ify }@
   of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
 {%   else %}
 - This @{ plugin_type }@ will be removed in a future release of @{ doc['deprecated']['removed_from_collection'] | rst_ify }@.
 {%   endif %}
 {% else %}
-{%   if 'removed_at_date' in doc['deprecated'] %}
+{%   if doc['deprecated']['removed_at_date'] %}
 - This @{ plugin_type }@ will be removed in a major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@.
-{%   elif 'removed_in' in doc['deprecated'] %}
+{%   elif doc['deprecated']['removed_in'] %}
 - This @{ plugin_type }@ will be removed in version @{ doc['deprecated']['removed_in'] | string | rst_ify }@.
 {%   else %}
 - This @{ plugin_type }@ will be removed in a future release.
