@@ -77,7 +77,7 @@ DEPRECATED
 {% if doc['deprecated']['removed_at_date'] %}
 :Removed in: major release after @{ doc['deprecated']['removed_at_date'] | rst_ify }@
 {% elif doc['deprecated']['removed_in'] %}
-:Removed in: version: @{ doc['deprecated']['removed_in'] | rst_ify }@
+:Removed in: version @{ doc['deprecated']['removed_in'] | rst_ify }@
 {% else %}
 :Removed in: a future release
 {% endif %}
@@ -170,6 +170,24 @@ Parameters
                         {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
                           of @{ doc['version_added_collection'] | escape }@
                         {% endif %}
+                      </div>
+                    {% endif %}
+                    {% if plugin_type != 'module' and value['deprecated'] %}
+                      <div>
+                        {% if value['deprecated']['removed_at_date'] %}
+                          Removed in: major release after @{ value['deprecated']['removed_at_date'] | escape }@
+                        {% elif value['deprecated']['removed_in'] %}
+                          Removed in: version @{ value['deprecated']['removed_in'] | escape }@
+                        {% else %}
+                          Removed in: a future release
+                        {% endif %}
+                        {% if value['deprecated']['removed_from_collection'] and value['deprecated']['removed_from_collection'] != collection %}
+                          of @{ value['deprecated']['removed_from_collection'] | escape }@
+                        {% endif %}
+                        <br>
+                        Why: @{ value['deprecated']['why'] | escape }@
+                        <br>
+                        Alternative: @{ value['deprecated']['alternative'] | escape }@
                       </div>
                     {% endif %}
                 </td>
