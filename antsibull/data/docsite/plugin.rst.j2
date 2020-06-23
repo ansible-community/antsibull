@@ -168,7 +168,7 @@ Parameters
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
                         {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
-                          of @{ doc['version_added_collection'] | rst_ify }@
+                          of @{ doc['version_added_collection'] | escape }@
                         {% endif %}
                       </div>
                     {% endif %}
@@ -345,7 +345,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
                         {% if value['version_added_collection' and value['version_added_collection' != collection %}
-                          of @{ doc['version_added_collection'] | rst_ify }@
+                          of @{ doc['version_added_collection'] | escape }@
                         {% endif %}
                       </div>
                     {% endif %}
