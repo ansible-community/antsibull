@@ -61,8 +61,8 @@ def copy_boilerplate_files(package_dir):
     with open(os.path.join(package_dir, 'COPYING'), 'wb') as f:
         f.write(gpl_license)
 
-    readme = pkgutil.get_data('antsibull.data', 'acd-readme.txt')
-    with open(os.path.join(package_dir, 'README'), 'wb') as f:
+    readme = pkgutil.get_data('antsibull.data', 'acd-readme.rst')
+    with open(os.path.join(package_dir, 'README.rst'), 'wb') as f:
         f.write(readme)
 
 
