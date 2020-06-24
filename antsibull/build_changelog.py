@@ -154,7 +154,7 @@ class AnsibleBaseChangelogCollector:
                     changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
                     return ChangesData(self.config, '/', changelog_data)
         if os.path.isfile(path) and path.endswith('.tar.gz'):
-            changelog = read_changelog_file(path, x=True)
+            changelog = read_changelog_file(path, is_ansible_base=True)
             if changelog is None:
                 return None
             changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
@@ -214,95 +214,175 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                 await asyncio.gather(*requestors)
 
 
-def append_changelog(builder: RstBuilder, version: PypiVer, version_str: str,
-                     prev_version: t.Optional[PypiVer],
-                     base_versions: t.Dict[PypiVer, str],
-                     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
-                     base_collector: AnsibleBaseChangelogCollector,
-                     collectors: t.List[CollectionChangelogCollector],
-                     ):
-    builder.add_section('v{0}'.format(version_str), 0)
+class ChangelogEntry:
+    version: PypiVer
+    version_str: str
 
-    if base_collector.changelog:
-        builder.add_section('Ansible Base', 1)
+    prev_version: t.Optional[PypiVer]
+    base_versions: t.Dict[PypiVer, str]
+    versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]]
+
+    base_collector: AnsibleBaseChangelogCollector
+    collectors: t.List[CollectionChangelogCollector]
+
+    ansible_base_version: str
+    prev_ansible_base_version: t.Optional[str]
+
+    removed_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
+    added_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
+    unchanged_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
+    changed_collections: t.List[t.Tuple[CollectionChangelogCollector, str, t.Optional[str]]]
+
+    def __init__(self, version: PypiVer, version_str: str,
+                 prev_version: t.Optional[PypiVer],
+                 base_versions: t.Dict[PypiVer, str],
+                 versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
+                 base_collector: AnsibleBaseChangelogCollector,
+                 collectors: t.List[CollectionChangelogCollector]):
+        self.version = version
+        self.version_str = version_str
+        self.prev_version = prev_version
+        self.base_versions = base_versions
+        self.versions_per_collection = versions_per_collection
+        self.base_collector = base_collector
+        self.collectors = collectors
+
+        self.ansible_base_version = base_versions[version]
+        self.prev_ansible_base_version = base_versions.get(prev_version)
+
+        self.removed_collections = []
+        self.added_collections = []
+        self.unchanged_collections = []
+        self.changed_collections = []
+        for collector in collectors:
+            if version not in versions_per_collection[collector.collection]:
+                print(f"WARNING: {collector.collection} is not included in Ansible {version}")
+
+                if prev_version and prev_version in versions_per_collection[collector.collection]:
+                    self.removed_collections.append((
+                        collector, versions_per_collection[collector.collection][prev_version]))
+
+                continue
+
+            collection_version: str = versions_per_collection[collector.collection][version]
+
+            prev_collection_version: t.Optional[str] = (
+                versions_per_collection[collector.collection].get(prev_version)
+            )
+            if prev_version:
+                if not prev_collection_version:
+                    self.added_collections.append((collector, collection_version))
+                elif prev_collection_version == collection_version:
+                    self.unchanged_collections.append((collector, collection_version))
+                    continue
+
+            self.changed_collections.append((
+                collector, collection_version, prev_collection_version))
+
+
+def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
+    builder.add_section('Ansible Base', 1)
+
+    builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
+                        f"version {changelog_entry.ansible_base_version}.")
+    same_version = False
+    if changelog_entry.prev_ansible_base_version:
+        if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
+            builder.add_raw_rst("This is the same version of Ansible-base as in "
+                                "the previous Ansible release.\n")
+            same_version = True
+        else:
+            builder.add_raw_rst(f"This is a newer version than version "
+                                f"{changelog_entry.prev_ansible_base_version} contained in the "
+                                f"previous Ansible release.\n")
+
+    if not same_version:
         builder.add_raw_rst('.. contents::')
         builder.add_raw_rst('  :local:')
         builder.add_raw_rst('  :depth: 5\n')
 
-        base_version: str = base_versions[version]
-
-        prev_base_version = base_versions.get(prev_version)
-
         generator = ChangelogGenerator(
-            base_collector.config, base_collector.changelog,
+            changelog_entry.base_collector.config, changelog_entry.base_collector.changelog,
             plugins=None, fragments=None, flatmap=True)
         generator.generate_to(
             builder, 1, squash=True,
-            after_version=prev_base_version,
-            until_version=base_version)
+            after_version=changelog_entry.prev_ansible_base_version,
+            until_version=changelog_entry.ansible_base_version)
 
-    for collector in collectors:
-        if version not in versions_per_collection[collector.collection]:
-            print(f"WARNING: {collector.collection} is not included in Ansible {version}")
 
-            if prev_version and prev_version in versions_per_collection[collector.collection]:
-                builder.add_section(f"{collector.collection.title()} Was Removed", 1)
-                builder.add_raw_rst(f"The collection {collector.collection} was removed "
-                                    f"in Ansible {version}.\n")
-
-            continue
-
-        collection_version: str = versions_per_collection[collector.collection][version]
-
-        prev_collection_version: t.Optional[str] = None
-        if prev_version and prev_version not in versions_per_collection[collector.collection]:
-            builder.add_section(f"{collector.collection.title()} (New)", 1)
-            builder.add_raw_rst(f"The collection {collector.collection} was "
-                                f"added in Ansible {version}.\n")
+def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
+                                collector: CollectionChangelogCollector,
+                                collection_version: str, prev_collection_version: t.Optional[str]):
+    if collector in changelog_entry.added_collections:
+        builder.add_section(f"{collector.collection.title()} (New)", 1)
+        builder.add_raw_rst(f"The collection {collector.collection} was "
+                            f"added in Ansible {changelog_entry.version}.\n")
+    else:
+        builder.add_section(collector.collection.title(), 1)
+        builder.add_raw_rst(f"Ansible {changelog_entry.version} contains "
+                            f"{collector.collection} version {collection_version}.")
+        if changelog_entry.prev_version:
+            builder.add_raw_rst(f"This is a newer version than version "
+                                f"{prev_collection_version} contained in the "
+                                f"previous Ansible release.\n")
         else:
-            builder.add_section(collector.collection.title(), 1)
-            builder.add_raw_rst(f"Ansible {version} contains {collector.collection} "
-                                f"version {collection_version}.")
-            if prev_version:
-                prev_collection_version = (
-                    versions_per_collection[collector.collection][prev_version]
-                )
-                if prev_collection_version == collection_version:
-                    builder.add_raw_rst("This is the same version as in the previous "
-                                        "Ansible release.\n")
-                    continue
-                else:
-                    builder.add_raw_rst(f"This is a newer version than version "
-                                        f"{prev_collection_version} contained in the "
-                                        f"previous Ansible release.\n")
-            else:
-                builder.add_raw_rst('')
+            builder.add_raw_rst('')
 
-        if not collector.changelog:
-            builder.add_raw_rst(f"Unfortunately, {collector.collection} has no Ansible "
-                                f"compatible changelog.\n")
-            # TODO: add link to collection's changelog
-            continue
+    if not collector.changelog:
+        builder.add_raw_rst(f"Unfortunately, {collector.collection} has no Ansible "
+                            f"compatible changelog.\n")
+        # TODO: add link to collection's changelog
+        return
 
-        # TODO: actually check that there are no release information for this version range!
-        if not collector.changelog.releases:
-            builder.add_raw_rst("There are no changes recorded in the changelog, or "
-                                "the collection did not have a changelog in this version.\n")
-            continue
+    # TODO: actually check that there are no release information for this version range!
+    if not collector.changelog.releases:
+        builder.add_raw_rst("There are no changes recorded in the changelog, or "
+                            "the collection did not have a changelog in this version.\n")
+        return
 
-        flatmap = True  # TODO
-        generator = ChangelogGenerator(
-            collector.config, collector.changelog,
-            plugins=None, fragments=None, flatmap=flatmap)
+    flatmap = True  # TODO
+    generator = ChangelogGenerator(
+        collector.config, collector.changelog,
+        plugins=None, fragments=None, flatmap=flatmap)
 
-        builder.add_raw_rst('.. contents::')
-        builder.add_raw_rst('  :local:')
-        builder.add_raw_rst('  :depth: 5\n')
+    builder.add_raw_rst('.. contents::')
+    builder.add_raw_rst('  :local:')
+    builder.add_raw_rst('  :depth: 5\n')
 
-        generator.generate_to(
-            builder, 1, squash=True,
-            after_version=prev_collection_version,
-            until_version=collection_version)
+    generator.generate_to(
+        builder, 1, squash=True,
+        after_version=prev_collection_version,
+        until_version=collection_version)
+
+
+def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
+    builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
+
+    if changelog_entry.removed_collections:
+        builder.add_section('Removed Collections', 1)
+        for collector, collection_version in changelog_entry.removed_collections:
+            builder.add_list_item(f"{collector.collection} "
+                                  f"(previously included version: {collection_version})")
+        builder.add_raw_rst('')
+    if changelog_entry.added_collections:
+        builder.add_section('Added Collections', 1)
+        for collector, collection_version in changelog_entry.added_collections:
+            builder.add_list_item(f"{collector.collection} (version {collection_version})")
+        builder.add_raw_rst('')
+    if changelog_entry.unchanged_collections:
+        builder.add_section('Unchanged Collections', 1)
+        for collector, collection_version in changelog_entry.unchanged_collections:
+            builder.add_list_item(f"{collector.collection} (still version {collection_version})")
+        builder.add_raw_rst('')
+
+    if changelog_entry.base_collector.changelog:
+        append_ansible_base_changelog(builder, changelog_entry)
+
+    for (
+            collector, collection_version, prev_collection_version
+    ) in changelog_entry.changed_collections:
+        append_collection_changelog(builder, changelog_entry, collector,
+                                    collection_version, prev_collection_version)
 
 
 def build_changelog(args):
@@ -343,10 +423,12 @@ def build_changelog(args):
         else:
             prev_version = None
 
-        append_changelog(
-            builder, version, version_str, prev_version,
+        changelog_entry = ChangelogEntry(
+            version, version_str, prev_version,
             base_versions, versions_per_collection,
             base_collector, collectors)
+
+        append_changelog(builder, changelog_entry)
 
     path = os.path.join(args.dest_dir, f"CHANGELOG-v{acd_version.major}.{acd_version.minor}.rst")
     with open(path, 'wb') as changelog_fd:
