@@ -436,7 +436,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
                         added in @{value['version_added']}@
-                        {% if value['version_added_collection' and value['version_added_collection' != collection %}
+                        {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
                           of @{ doc['version_added_collection'] | escape }@
                         {% endif %}
                       </div>
