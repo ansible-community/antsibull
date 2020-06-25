@@ -36,7 +36,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_YAML_FILENAME_EXT",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -45,7 +45,7 @@
                                 "key": "defaults",
                                 "section": "yaml_valid_extensions",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -53,7 +53,7 @@
                         "type": "list",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "stage": {
                         "aliases": [],
@@ -77,7 +77,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_VARS_PLUGIN_STAGE",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -86,7 +86,7 @@
                                 "key": "stage",
                                 "section": "vars_host_group_vars",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,

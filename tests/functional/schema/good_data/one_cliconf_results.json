@@ -29,7 +29,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_EOS_USE_SESSIONS",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [],
@@ -45,7 +45,7 @@
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
@@ -53,7 +53,7 @@
                 "short_description": "Use eos cliconf to run command on Arista EOS platform",
                 "todo": [],
                 "version_added": "historical",
-                "version_added_collection": null
+                "version_added_collection": ""
             },
             "examples": "",
             "metadata": {

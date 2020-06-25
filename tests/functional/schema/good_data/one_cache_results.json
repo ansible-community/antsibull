@@ -29,7 +29,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_PREFIX",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -38,7 +38,7 @@
                                 "key": "fact_caching_prefix",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -46,7 +46,7 @@
                         "type": "str",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "_timeout": {
                         "aliases": [],
@@ -62,7 +62,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_TIMEOUT",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -71,7 +71,7 @@
                                 "key": "fact_caching_timeout",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -79,7 +79,7 @@
                         "type": "int",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "_uri": {
                         "aliases": [],
@@ -95,7 +95,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_CACHE_PLUGIN_CONNECTION",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -104,7 +104,7 @@
                                 "key": "fact_caching_connection",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": true,
@@ -112,7 +112,7 @@
                         "type": "str",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
@@ -120,7 +120,7 @@
                 "short_description": "JSON formatted files.",
                 "todo": [],
                 "version_added": "historical",
-                "version_added_collection": null
+                "version_added_collection": ""
             },
             "examples": "",
             "metadata": {

@@ -31,7 +31,7 @@
                         "type": "str",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
@@ -39,7 +39,7 @@
                 "short_description": "Use iosxr netconf plugin to run netconf commands on Cisco IOSXR platform",
                 "todo": [],
                 "version_added": "historical",
-                "version_added_collection": null
+                "version_added_collection": ""
             },
             "examples": "",
             "metadata": {

@@ -30,7 +30,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_ADMIN_USERS",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -39,7 +39,7 @@
                                 "key": "admin_users",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -50,11 +50,11 @@
                                 "deprecated": {},
                                 "name": "ansible_admin_users",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "async_dir": {
                         "aliases": [],
@@ -70,7 +70,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_ASYNC_DIR",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -79,7 +79,7 @@
                                 "key": "async_dir",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -90,11 +90,11 @@
                                 "deprecated": {},
                                 "name": "ansible_async_dir",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "environment": {
                         "aliases": [],
@@ -112,7 +112,7 @@
                         "type": "dict",
                         "vars": [],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "remote_tmp": {
                         "aliases": [],
@@ -128,13 +128,13 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_REMOTE_TEMP",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             },
                             {
                                 "deprecated": {},
                                 "name": "ANSIBLE_REMOTE_TMP",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -143,7 +143,7 @@
                                 "key": "remote_tmp",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -154,11 +154,11 @@
                                 "deprecated": {},
                                 "name": "ansible_remote_tmp",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "system_tmpdirs": {
                         "aliases": [],
@@ -177,7 +177,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_SYSTEM_TMPDIRS",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -186,7 +186,7 @@
                                 "key": "system_tmpdirs",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -197,11 +197,11 @@
                                 "deprecated": {},
                                 "name": "ansible_system_tmpdirs",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
