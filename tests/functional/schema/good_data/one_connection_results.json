@@ -30,7 +30,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_BECOME",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -39,7 +39,7 @@
                                 "key": "become",
                                 "section": "privilege_escalation",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -50,11 +50,11 @@
                                 "deprecated": {},
                                 "name": "ansible_become",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "become_method": {
                         "aliases": [],
@@ -70,7 +70,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_BECOME_METHOD",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -79,7 +79,7 @@
                                 "key": "become_method",
                                 "section": "privilege_escalation",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -90,11 +90,11 @@
                                 "deprecated": {},
                                 "name": "ansible_become_method",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "host": {
                         "aliases": [],
@@ -115,11 +115,11 @@
                                 "deprecated": {},
                                 "name": "ansible_host",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "network_os": {
                         "aliases": [],
@@ -140,11 +140,11 @@
                                 "deprecated": {},
                                 "name": "ansible_network_os",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "password": {
                         "aliases": [],
@@ -165,23 +165,23 @@
                                 "deprecated": {},
                                 "name": "ansible_password",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             },
                             {
                                 "deprecated": {},
                                 "name": "ansible_httpapi_pass",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             },
                             {
                                 "deprecated": {},
                                 "name": "ansible_httpapi_password",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "persistent_command_timeout": {
                         "aliases": [],
@@ -197,7 +197,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_PERSISTENT_COMMAND_TIMEOUT",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -206,7 +206,7 @@
                                 "key": "command_timeout",
                                 "section": "persistent_connection",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -217,11 +217,11 @@
                                 "deprecated": {},
                                 "name": "ansible_command_timeout",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "persistent_connect_timeout": {
                         "aliases": [],
@@ -237,7 +237,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_PERSISTENT_CONNECT_TIMEOUT",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -246,7 +246,7 @@
                                 "key": "connect_timeout",
                                 "section": "persistent_connection",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -257,11 +257,11 @@
                                 "deprecated": {},
                                 "name": "ansible_connect_timeout",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "persistent_log_messages": {
                         "aliases": [],
@@ -278,7 +278,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_PERSISTENT_LOG_MESSAGES",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -287,7 +287,7 @@
                                 "key": "log_messages",
                                 "section": "persistent_connection",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -298,11 +298,11 @@
                                 "deprecated": {},
                                 "name": "ansible_persistent_log_messages",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "port": {
                         "aliases": [],
@@ -319,7 +319,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_REMOTE_PORT",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -328,7 +328,7 @@
                                 "key": "remote_port",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -339,11 +339,11 @@
                                 "deprecated": {},
                                 "name": "ansible_httpapi_port",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "remote_user": {
                         "aliases": [],
@@ -360,7 +360,7 @@
                                 "deprecated": {},
                                 "name": "ANSIBLE_REMOTE_USER",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "ini": [
@@ -369,7 +369,7 @@
                                 "key": "remote_user",
                                 "section": "defaults",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "required": false,
@@ -380,11 +380,11 @@
                                 "deprecated": {},
                                 "name": "ansible_user",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "use_proxy": {
                         "aliases": [],
@@ -405,11 +405,11 @@
                                 "deprecated": {},
                                 "name": "ansible_httpapi_use_proxy",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "use_ssl": {
                         "aliases": [],
@@ -430,11 +430,11 @@
                                 "deprecated": {},
                                 "name": "ansible_httpapi_use_ssl",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "validate_certs": {
                         "aliases": [],
@@ -455,11 +455,11 @@
                                 "deprecated": {},
                                 "name": "ansible_httpapi_validate_certs",
                                 "version_added": "historical",
-                                "version_added_collection": null
+                                "version_added_collection": ""
                             }
                         ],
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
@@ -467,7 +467,7 @@
                 "short_description": "Use httpapi to run command on network appliances",
                 "todo": [],
                 "version_added": "historical",
-                "version_added_collection": null
+                "version_added_collection": ""
             },
             "examples": "",
             "metadata": {

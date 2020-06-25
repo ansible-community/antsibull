@@ -55,7 +55,7 @@
 
 {% if doc['version_added'] is still_relevant -%}
 .. versionadded:: @{ doc['version_added'] }@
-{%   if doc['version_added_collection'] != collection %}
+{%   if doc['version_added_collection'] and doc['version_added_collection'] != collection %}
                   of @{ doc['version_added_collection'] | rst_ify }@
 {%   endif %}
 {% endif %}

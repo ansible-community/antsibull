@@ -38,7 +38,7 @@
                         "suboptions": {},
                         "type": "list",
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     },
                     "name": {
                         "aliases": [
@@ -55,7 +55,7 @@
                         "suboptions": {},
                         "type": "str",
                         "version_added": "historical",
-                        "version_added_collection": null
+                        "version_added_collection": ""
                     }
                 },
                 "requirements": [],
