@@ -23,26 +23,33 @@ if TYPE_CHECKING:
 
 
 #: Clear Ansible environment variables that set paths where plugins could be found.
-ANSIBLE_PATH_ENVVARS: Dict[str, str] = {'ANSIBLE_COLLECTIONS_PATHS': "/dev/null",
-                                        'ANSIBLE_ACTION_PLUGINS': "/dev/null",
-                                        'ANSIBLE_CACHE_PLUGINS': "/dev/null",
-                                        'ANSIBLE_CALLBACK_PLUGINS': "/dev/null",
-                                        'ANSIBLE_CLICONF_PLUGINS': "/dev/null",
-                                        'ANSIBLE_CONNECTION_PLUGINS': "/dev/null",
-                                        'ANSIBLE_FILTER_PLUGINS': "/dev/null",
-                                        'ANSIBLE_HTTPAPI_PLUGINS': "/dev/null",
-                                        'ANSIBLE_INVENTORY_PLUGINS': "/dev/null",
-                                        'ANSIBLE_LOOKUP_PLUGINS': "/dev/null",
-                                        'ANSIBLE_LIBRARY': "/dev/null",
-                                        'ANSIBLE_MODULE_UTILS': "/dev/null",
-                                        'ANSIBLE_NETCONF_PLUGINS': "/dev/null",
-                                        'ANSIBLE_ROLES_PATH': "/dev/null",
-                                        'ANSIBLE_STRATEGY_PLUGINS': "/dev/null",
-                                        'ANSIBLE_TERMINAL_PLUGINS': "/dev/null",
-                                        'ANSIBLE_TEST_PLUGINS': "/dev/null",
-                                        'ANSIBLE_VARS_PLUGINS': "/dev/null",
-                                        'ANSIBLE_DOC_FRAGMENT_PLUGINS': "/dev/null",
-                                        }
+ANSIBLE_PATH_ENVIRON: Dict[str, str] = os.environ.copy()
+ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATHS': '/dev/null',
+                             'ANSIBLE_ACTION_PLUGINS': '/dev/null',
+                             'ANSIBLE_CACHE_PLUGINS': '/dev/null',
+                             'ANSIBLE_CALLBACK_PLUGINS': '/dev/null',
+                             'ANSIBLE_CLICONF_PLUGINS': '/dev/null',
+                             'ANSIBLE_CONNECTION_PLUGINS': '/dev/null',
+                             'ANSIBLE_FILTER_PLUGINS': '/dev/null',
+                             'ANSIBLE_HTTPAPI_PLUGINS': '/dev/null',
+                             'ANSIBLE_INVENTORY_PLUGINS': '/dev/null',
+                             'ANSIBLE_LOOKUP_PLUGINS': '/dev/null',
+                             'ANSIBLE_LIBRARY': '/dev/null',
+                             'ANSIBLE_MODULE_UTILS': '/dev/null',
+                             'ANSIBLE_NETCONF_PLUGINS': '/dev/null',
+                             'ANSIBLE_ROLES_PATH': '/dev/null',
+                             'ANSIBLE_STRATEGY_PLUGINS': '/dev/null',
+                             'ANSIBLE_TERMINAL_PLUGINS': '/dev/null',
+                             'ANSIBLE_TEST_PLUGINS': '/dev/null',
+                             'ANSIBLE_VARS_PLUGINS': '/dev/null',
+                             'ANSIBLE_DOC_FRAGMENT_PLUGINS': '/dev/null',
+                             })
+try:
+    del ANSIBLE_PATH_ENVIRON['PYTHONPATH']
+except KeyError:
+    # We just wanted to make sure there was no PYTHONPATH set...
+    # all python libs will come from the venv
+    pass
 
 
 class ParsingError(Exception):
@@ -146,11 +153,11 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                 {information from ansible-doc --json.  See the ansible-doc documentation for more
                  info.}
     """
+    env = ANSIBLE_PATH_ENVIRON.copy()
+    env['ANSIBLE_COLLECTIONS_PATHS'] = collection_dir
+
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
     # found as providers of extra plugins.
-    env = os.environ.copy()
-    env.update(ANSIBLE_PATH_ENVVARS)
-    env['ANSIBLE_COLLECTIONS_PATHS'] = collection_dir
 
     venv_ansible_doc = venv.get_command('ansible-doc')
     venv_ansible_doc = venv_ansible_doc.bake('-vvv', _env=env)
