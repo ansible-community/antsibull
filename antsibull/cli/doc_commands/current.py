@@ -40,7 +40,7 @@ def generate_docs(args: 'argparse.Namespace') -> int:
     flog.debug('Finished parsing info from plugins')
 
     """
-    # Turn these into some sort of decorator that will load choose to dump or load the values
+    # Turn these into some sort of decorator that will choose to dump or load the values
     # if a command line arg is specified.
     with open('dump_raw_plugin_info.json', 'w') as f:
         import json
@@ -75,13 +75,14 @@ def generate_docs(args: 'argparse.Namespace') -> int:
     flog.debug('Finished loading errors')
     """
 
-    asyncio_run(output_all_plugin_rst(plugin_info, nonfatal_errors, args.dest_dir))
-    flog.debug('Finished writing plugin docs')
-
     collection_info = get_collection_contents(plugin_info, nonfatal_errors)
     flog.debug('Finished writing collection data')
 
     asyncio_run(output_indexes(collection_info, args.dest_dir))
     flog.debug('Finished writing indexes')
+
+    asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
+                                      nonfatal_errors, args.dest_dir))
+    flog.debug('Finished writing plugin docs')
 
     return 0
