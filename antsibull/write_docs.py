@@ -14,21 +14,25 @@ import asyncio_pool
 from jinja2 import Template
 
 from .constants import THREAD_MAX
-from .docs_parsing.fqcn import get_fqcn_parts
 from .jinja2.environment import doc_environment
 
 #: Mapping of plugins to nonfatal errors.  This is the type to use when accepting the plugin.
 #: The mapping is of plugin_type: plugin_name: [error_msgs]
 PluginErrorsT = t.Mapping[str, t.Mapping[str, t.Sequence[str]]]
 
+#: Mapping to collections to plugins.
+#: The mapping is collection_name: plugin_type: plugin_name: plugin_short_description
+CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
-async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[str, t.Any],
-                    nonfatal_errors: PluginErrorsT, plugin_tmpl: Template, error_tmpl: Template,
-                    dest_dir: str) -> None:
+
+async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
+                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: PluginErrorsT,
+                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str) -> None:
     """
     Write the rst page for one plugin.
 
-    :arg plugin_name: FQCN for the plugin.
+    :arg collection_name: Dotted colection name.
+    :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg plugin_record: The record for the plugin.  doc, examples, and return are the
         toplevel fields.
@@ -40,8 +44,8 @@ async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[st
         :file:`ansible-checkout/docs/docsite/rst/`.  The directory structure underneath this
         directory will be created if needed.
     """
-    namespace, collection, plugin_short_name = get_fqcn_parts(plugin_name)
-    collection_name = '.'.join((namespace, collection))
+    namespace, collection = collection_name.split('.')
+    plugin_name = '.'.join((collection_name, plugin_short_name))
 
     if not plugin_record:
         plugin_contents = error_tmpl.render(
@@ -69,12 +73,15 @@ async def write_rst(plugin_name: str, plugin_type: str, plugin_record: t.Dict[st
         await f.write(plugin_contents)
 
 
-async def output_all_plugin_rst(plugin_info: t.Dict[str, t.Any],
+async def output_all_plugin_rst(collection_info: CollectionInfoT,
+                                plugin_info: t.Dict[str, t.Any],
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str) -> None:
     """
     Output rst files for each plugin.
 
+    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
+        collection_name to short_description.
     :arg plugin_info: Documentation information for all of the plugins.
     :arg nonfatal_errors: Mapping of plugins to nonfatal errors.  Using this to note on the docs
         pages when documentation wasn't formatted such that we could use it.
@@ -88,12 +95,15 @@ async def output_all_plugin_rst(plugin_info: t.Dict[str, t.Any],
 
     writers = []
     async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
-        for plugin_type, plugins_by_type in plugin_info.items():
-            for plugin_name, plugin_record in plugins_by_type.items():
-                writers.append(await pool.spawn(
-                    write_rst(plugin_name, plugin_type, plugin_record,
-                              nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
-                              error_tmpl, dest_dir)))
+        for collection_name, plugins_by_type in collection_info.items():
+            for plugin_type, plugins in plugins_by_type.items():
+                for plugin_short_name, dummy_ in plugins.items():
+                    plugin_name = '.'.join((collection_name, plugin_short_name))
+                    writers.append(await pool.spawn(
+                        write_rst(collection_name, plugin_short_name, plugin_type,
+                                  plugin_info[plugin_type].get(plugin_name),
+                                  nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
+                                  error_tmpl, dest_dir)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)
@@ -143,7 +153,7 @@ async def write_plugin_lists(collection_name: str,
         await f.write(index_contents)
 
 
-async def output_indexes(collection_info: t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]],
+async def output_indexes(collection_info: CollectionInfoT,
                          dest_dir: str) -> None:
     """
     Generate index pages for the collections.
