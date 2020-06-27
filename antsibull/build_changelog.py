@@ -6,7 +6,6 @@
 
 import asyncio
 from collections import defaultdict
-from functools import partial
 import glob
 import os
 import os.path
@@ -61,8 +60,10 @@ def read_changelog_file(tarball_path: str, is_ansible_base=False) -> t.Optional[
             else:
                 found = file.name in ('changelogs/changelog.yaml', 'changelog.yaml')
             if found:
-                with tar.extractfile(file) as file_p:
-                    return file_p.read()
+                file_p = tar.extractfile(file)
+                if file_p:
+                    with file_p:
+                        return file_p.read()
     return None
 
 
@@ -143,7 +144,7 @@ class AnsibleBaseChangelogCollector:
         self.changelog = None
 
     async def _get_changelog(self, version: PypiVer,
-                             base_downloader: t.Callable[[str], str]
+                             base_downloader: t.Callable[[str], t.Awaitable[str]]
                              ) -> t.Optional[ChangesData]:
         path = await base_downloader(str(version))
         if os.path.isdir(path):
@@ -161,7 +162,7 @@ class AnsibleBaseChangelogCollector:
             return ChangesData(self.config, '/', changelog_data)
         return None
 
-    async def download(self, base_downloader: t.Callable[[str], str]):
+    async def download(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
         changelog = await self._get_changelog(self.latest, base_downloader)
         if changelog is None:
             return
@@ -200,7 +201,9 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
             async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
                 downloader = CollectionDownloader(aio_session, tmp_dir,
                                                   collection_cache=collection_cache)
-                base_downloader = partial(get_ansible_base, aio_session, tmpdir=tmp_dir)
+
+                async def base_downloader(version):
+                    return await get_ansible_base(aio_session, version, tmp_dir)
 
                 requestors = [
                     await pool.spawn(collector.download(downloader)) for collector in collectors
@@ -248,7 +251,7 @@ class ChangelogEntry:
         self.collectors = collectors
 
         self.ansible_base_version = base_versions[version]
-        self.prev_ansible_base_version = base_versions.get(prev_version)
+        self.prev_ansible_base_version = base_versions.get(prev_version) if prev_version else None
 
         self.removed_collections = []
         self.added_collections = []
@@ -268,6 +271,7 @@ class ChangelogEntry:
 
             prev_collection_version: t.Optional[str] = (
                 versions_per_collection[collector.collection].get(prev_version)
+                if prev_version else None
             )
             if prev_version:
                 if not prev_collection_version:
@@ -328,21 +332,22 @@ def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogE
         else:
             builder.add_raw_rst('')
 
-    if not collector.changelog:
+    changelog = collector.changelog
+    if not changelog:
         builder.add_raw_rst(f"Unfortunately, {collector.collection} has no Ansible "
                             f"compatible changelog.\n")
         # TODO: add link to collection's changelog
         return
 
     # TODO: actually check that there are no release information for this version range!
-    if not collector.changelog.releases:
+    if not changelog.releases:
         builder.add_raw_rst("There are no changes recorded in the changelog, or "
                             "the collection did not have a changelog in this version.\n")
         return
 
     flatmap = True  # TODO
     generator = ChangelogGenerator(
-        collector.config, collector.changelog,
+        collector.config, changelog,
         plugins=None, fragments=None, flatmap=flatmap)
 
     builder.add_raw_rst('.. contents::')
