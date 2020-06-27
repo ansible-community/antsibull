@@ -38,7 +38,7 @@ def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: Changelo
     if not same_version and generator:
         builder.add_raw_rst('.. contents::')
         builder.add_raw_rst('  :local:')
-        builder.add_raw_rst('  :depth: 5\n')
+        builder.add_raw_rst('  :depth: 1\n')
 
         generator.generate_to(
             builder, 1, squash=True,
@@ -72,20 +72,23 @@ def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogE
         # TODO: add link to collection's changelog
         return
 
-    # TODO: actually check that there are no release information for this version range!
-    if not changelog.releases:
-        builder.add_raw_rst("There are no changes recorded in the changelog, or "
-                            "the collection did not have a changelog in this version.\n")
+    release_entries = generator.collect(
+        squash=True, after_version=prev_collection_version, until_version=collection_version)
+
+    if not release_entries:
+        builder.add_raw_rst("The collection did not have a changelog in this version.\n")
+        return
+    if release_entries[0].empty:
+        builder.add_raw_rst("There are no changes recorded in the changelog.\n")
         return
 
     builder.add_raw_rst('.. contents::')
     builder.add_raw_rst('  :local:')
-    builder.add_raw_rst('  :depth: 5\n')
+    builder.add_raw_rst('  :depth: 1\n')
 
-    generator.generate_to(
-        builder, 1, squash=True,
-        after_version=prev_collection_version,
-        until_version=collection_version)
+    for release in release_entries:
+        generator.append_changelog_entry(
+            builder, release, start_level=1, add_version=False)
 
 
 def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
@@ -118,35 +121,6 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
                                     collection_version, prev_collection_version)
 
 
-def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry):
-    def add_title():
-        yield
-        builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
-        while True:
-            yield
-
-    maybe_add_title = add_title()
-
-    if changelog_entry.removed_collections:
-        next(maybe_add_title)
-        builder.add_section('Removed Collections', 1)
-        for collector, collection_version in changelog_entry.removed_collections:
-            builder.add_list_item(f"{collector.collection} "
-                                  f"(previously included version: {collection_version})")
-        builder.add_raw_rst('')
-
-    if changelog_entry.base_collector.changelog:
-        next(maybe_add_title)
-        append_ansible_base_changelog(builder, changelog_entry)
-
-    for (
-            collector, collection_version, prev_collection_version
-    ) in changelog_entry.changed_collections:
-        next(maybe_add_title)
-        append_collection_changelog(builder, changelog_entry, collector,
-                                    collection_version, prev_collection_version)
-
-
 def write_changelog(path: str, acd_version: PypiVer, changelog: t.List[ChangelogEntry]):
     builder = RstBuilder()
     builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Release Notes")
@@ -157,6 +131,70 @@ def write_changelog(path: str, acd_version: PypiVer, changelog: t.List[Changelog
 
     with open(path, 'wb') as changelog_fd:
         changelog_fd.write(builder.generate().encode('utf-8'))
+
+
+def append_porting_guide_section(builder: RstBuilder, changelog_entry: ChangelogEntry,
+                                 maybe_add_title: t.Generator[t.List[None], None, None],
+                                 section: str) -> None:
+    def add_section_title():
+        builder.add_section(section.replace('_', ' ').title(), 1)
+        while True:
+            yield
+
+    maybe_add_section_title = add_section_title()
+
+    def check_changelog(
+            name: str,
+            collector: t.Union[AnsibleBaseChangelogCollector, CollectionChangelogCollector],
+            version: str,
+            prev_version: t.Optional[str]):
+        changelog = collector.changelog
+        generator = collector.changelog_generator
+        if not changelog or not generator:
+            return
+        entries = generator.collect(
+            squash=True, after_version=prev_version, until_version=version)
+        if not entries or entries[0].has_no_changes([section]):
+            return
+        next(maybe_add_title)
+        next(maybe_add_section_title)
+        builder.add_section(name, 2)
+        entries[0].add_section_content(builder, section)
+        builder.add_raw_rst('')
+
+    check_changelog(
+        'Ansible Base',
+        changelog_entry.base_collector,
+        changelog_entry.ansible_base_version,
+        changelog_entry.prev_ansible_base_version)
+    for (
+            collector, collection_version, prev_collection_version
+    ) in changelog_entry.changed_collections:
+        check_changelog(
+            collector.collection, collector, collection_version, prev_collection_version)
+
+
+def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry):
+    def add_title():
+        builder.add_section('Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
+        while True:
+            yield
+
+    maybe_add_title = add_title()
+
+    for section in ['breaking_changes', 'major_changes']:
+        append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
+
+    if changelog_entry.removed_collections:
+        next(maybe_add_title)
+        builder.add_section('Removed Collections', 1)
+        for collector, collection_version in changelog_entry.removed_collections:
+            builder.add_list_item(f"{collector.collection} "
+                                  f"(previously included version: {collection_version})")
+        builder.add_raw_rst('')
+
+    for section in ['removed_features', 'deprecated_features']:
+        append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
 
 
 def insert_after_heading(lines: t.List[str], content: str):
@@ -180,6 +218,7 @@ def write_porting_guide(path: str, acd_version: PypiVer,
     base_porting_guide = base_collector.porting_guide
     if base_porting_guide:
         lines = base_porting_guide.decode('utf-8').splitlines()
+        lines.append('')
         # insert_after_heading(lines, '\n.. contents::\n  :local:\n  :depth: 2')
         for line in lines:
             builder.add_raw_rst(line)
