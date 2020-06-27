@@ -24,7 +24,7 @@ if t.TYPE_CHECKING:
 #: URL to checkout ansible-base from.
 ANSIBLE_BASE_URL = 'https://github.com/ansible/ansible'
 #: URL to pypi.
-PYPI_SERVER_URL = 'https://test.pypi.org/'
+PYPI_SERVER_URL = 'https://pypi.org/'
 
 
 class UnknownVersion(Exception):
