@@ -244,7 +244,7 @@ def build_changelog(args):
         os.path.join(args.dest_dir, changelog_filename),
         acd_version, changelog)
 
-    porting_guide_filename = f"porting_guide_v{acd_version.major}.{acd_version.minor}.rst"
+    porting_guide_filename = f"porting_guide_{acd_version.major}.{acd_version.minor}.rst"
     write_porting_guide(
         os.path.join(args.dest_dir, porting_guide_filename),
         acd_version, changelog, base_collector)
