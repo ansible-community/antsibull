@@ -52,19 +52,34 @@ async def download_collections(deps, download_dir, collection_cache=None):
     return included_versions
 
 
-def read_changelog_file(tarball_path: str, is_ansible_base=False) -> t.Optional[bytes]:
+def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> t.Optional[bytes]:
     with tarfile.open(tarball_path, "r:gz") as tar:
         for file in tar:
-            if is_ansible_base:
-                found = file.name.endswith('changelogs/changelog.yaml')
-            else:
-                found = file.name in ('changelogs/changelog.yaml', 'changelog.yaml')
-            if found:
+            if matcher(file.name):
                 file_p = tar.extractfile(file)
                 if file_p:
                     with file_p:
                         return file_p.read()
     return None
+
+
+def read_changelog_file(tarball_path: str, is_ansible_base=False) -> t.Optional[bytes]:
+    def matcher(filename: str) -> bool:
+        if is_ansible_base:
+            return filename.endswith('changelogs/changelog.yaml')
+        else:
+            return filename in ('changelogs/changelog.yaml', 'changelog.yaml')
+
+    return read_file(tarball_path, matcher)
+
+
+def get_porting_guide_filename(version: PypiVer):
+    return f"docs/docsite/rst/porting_guides/porting_guide_{version}.rst"
+
+
+def read_porting_guide_file(tarball_path: str, version: PypiVer) -> t.Optional[bytes]:
+    filename = get_porting_guide_filename(version)
+    return read_file(tarball_path, lambda fn: fn == filename)
 
 
 class CollectionChangelogCollector:
@@ -75,7 +90,7 @@ class CollectionChangelogCollector:
 
     changelog: t.Optional[ChangesData]
 
-    def __init__(self, collection: str, versions: t.List[str]):
+    def __init__(self, collection: str, versions: t.ValuesView[str]):
         self.collection = collection
         self.versions = sorted(SemVer(version) for version in versions)
         self.earliest = self.versions[0]
@@ -130,8 +145,9 @@ class AnsibleBaseChangelogCollector:
     latest: PypiVer
 
     changelog: t.Optional[ChangesData]
+    porting_guide: t.Optional[bytes]
 
-    def __init__(self, versions: t.List[str]):
+    def __init__(self, versions: t.ValuesView[str]):
         self.versions = sorted(PypiVer(version) for version in versions)
         self.earliest = self.versions[0]
         self.latest = self.versions[-1]
@@ -142,28 +158,41 @@ class AnsibleBaseChangelogCollector:
 
         self.changelog_data = None
         self.changelog = None
+        self.porting_guide = None
 
-    async def _get_changelog(self, version: PypiVer,
-                             base_downloader: t.Callable[[str], t.Awaitable[str]]
-                             ) -> t.Optional[ChangesData]:
+    async def _get_files(self, version: PypiVer,
+                         base_downloader: t.Callable[[str], t.Awaitable[str]]
+                         ) -> t.Tuple[t.Optional[ChangesData], t.Optional[bytes]]:
         path = await base_downloader(str(version))
         if os.path.isdir(path):
+            pg_path, pg_filename = os.path.split(get_porting_guide_filename(version))
+            changelog = None
+            porting_guide = None
             for root, _, files in os.walk(path):
                 if 'changelog.yaml' in files:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
                         changelog = f.read()
                     changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-                    return ChangesData(self.config, '/', changelog_data)
+                    changelog = ChangesData(self.config, '/', changelog_data)
+                if pg_filename in files:
+                    print(path, os.path.join(path, pg_path), root)
+                    if os.path.join(path, pg_path) == root:
+                        with open(os.path.join(path, pg_path), 'rb') as f:
+                            porting_guide = f.read()
+            return changelog_data, porting_guide
         if os.path.isfile(path) and path.endswith('.tar.gz'):
             changelog = read_changelog_file(path, is_ansible_base=True)
+            porting_guide = read_porting_guide_file(path, version)
             if changelog is None:
-                return None
+                return (None, porting_guide)
             changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-            return ChangesData(self.config, '/', changelog_data)
-        return None
+            return (ChangesData(self.config, '/', changelog_data), porting_guide)
+        return None, None
 
     async def download(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
-        changelog = await self._get_changelog(self.latest, base_downloader)
+        changelog, porting_guide = await self._get_files(self.latest, base_downloader)
+        if porting_guide:
+            self.porting_guide = porting_guide
         if changelog is None:
             return
 
@@ -175,7 +204,7 @@ class AnsibleBaseChangelogCollector:
             ancestor_ver = PypiVer(ancestor)
             if ancestor_ver < self.earliest:
                 break
-            changelog = await self._get_changelog(ancestor_ver, base_downloader)
+            changelog, _ = await self._get_files(ancestor_ver, base_downloader)
             if changelog is None:
                 break
             changelog.prune_versions(versions_after=None, versions_until=ancestor)
@@ -185,12 +214,20 @@ class AnsibleBaseChangelogCollector:
         self.changelog = ChangesData.concatenate(changelogs)
 
     async def download_github(self, aio_session: 'aiohttp.client.ClientSession'):
-        query_url = (f"https://raw.githubusercontent.com/ansible/ansible/"
-                     f"stable-{self.latest.major}.{self.latest.minor}/changelogs/changelog.yaml")
+        branch_url = (f"https://raw.githubusercontent.com/ansible/ansible/"
+                      f"stable-{self.latest.major}.{self.latest.minor}/")
+
+        # Changelog
+        query_url = f"{branch_url}/changelogs/changelog.yaml"
         async with aio_session.get(query_url) as response:
             changelog = await response.read()
         changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
         self.changelog = ChangesData(self.config, '/', changelog_data)
+
+        # Porting Guide
+        query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
+        async with aio_session.get(query_url) as response:
+            self.porting_guide = await response.read()
 
 
 async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
@@ -390,15 +427,90 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
                                     collection_version, prev_collection_version)
 
 
-def build_changelog(args):
-    # args.dest_dir
+def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry):
+    def add_title():
+        yield
+        builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
+        while True:
+            yield
 
-    versions: t.List[t.Tuple[str, PypiVer, DependencyFileData]] = []
+    maybe_add_title = add_title()
 
-    acd_version = args.acd_version
+    if changelog_entry.removed_collections:
+        next(maybe_add_title)
+        builder.add_section('Removed Collections', 1)
+        for collector, collection_version in changelog_entry.removed_collections:
+            builder.add_list_item(f"{collector.collection} "
+                                  f"(previously included version: {collection_version})")
+        builder.add_raw_rst('')
+
+    if changelog_entry.base_collector.changelog:
+        next(maybe_add_title)
+        append_ansible_base_changelog(builder, changelog_entry)
+
+    for (
+            collector, collection_version, prev_collection_version
+    ) in changelog_entry.changed_collections:
+        next(maybe_add_title)
+        append_collection_changelog(builder, changelog_entry, collector,
+                                    collection_version, prev_collection_version)
+
+
+def write_changelog(path: str, acd_version: PypiVer, changelog: t.List[ChangelogEntry]):
+    builder = RstBuilder()
+    builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Release Notes")
+    builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
+
+    for changelog_entry in changelog:
+        append_changelog(builder, changelog_entry)
+
+    with open(path, 'wb') as changelog_fd:
+        changelog_fd.write(builder.generate().encode('utf-8'))
+
+
+def insert_after_heading(lines: t.List[str], content: str):
+    has_heading = False
+    for index, line in enumerate(lines):
+        if line.startswith('***') and line == '*' * len(line):
+            has_heading = True
+        elif has_heading:
+            if line:
+                has_heading = False
+            else:
+                # First empty line after top-level heading: insert TOC
+                lines.insert(index, content)
+                return
+
+
+def write_porting_guide(path: str, acd_version: PypiVer,
+                        porting_guide: t.List[ChangelogEntry],
+                        base_collector: AnsibleBaseChangelogCollector):
+    builder = RstBuilder()
+    base_porting_guide = base_collector.porting_guide
+    if base_porting_guide:
+        lines = base_porting_guide.decode('utf-8').splitlines()
+        # insert_after_heading(lines, '\n.. contents::\n  :local:\n  :depth: 2')
+        for line in lines:
+            builder.add_raw_rst(line)
+    else:
+        builder.add_raw_rst(f".. _porting_{acd_version.major}.{acd_version.minor}_guide:\n")
+        builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Porting Guide")
+        builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
+
+    for porting_guide_entry in porting_guide:
+        append_porting_guide(builder, porting_guide_entry)
+
+    with open(path, 'wb') as porting_guide_fd:
+        porting_guide_fd.write(builder.generate().encode('utf-8'))
+
+
+def get_changelog_data(
+        acd_version: PypiVer, deps_dir: str, collection_cache: str
+        ) -> t.Tuple[t.List[ChangelogEntry], AnsibleBaseChangelogCollector]:
     base_versions: t.Dict[PypiVer, str] = dict()
+    versions: t.List[t.Tuple[str, PypiVer, DependencyFileData]] = []
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
-    for path in glob.glob(os.path.join(args.deps_dir, '*.deps'), recursive=False):
+    for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
         deps_file = DepsFile(path)
         deps = deps_file.parse()
         version = PypiVer(deps.ansible_version)
@@ -416,11 +528,9 @@ def build_changelog(args):
         CollectionChangelogCollector(collection, versions_per_collection[collection].values())
         for collection in sorted(versions_per_collection.keys())
     ]
-    asyncio.run(collect_changelogs(collectors, base_collector, args.collection_cache))
+    asyncio.run(collect_changelogs(collectors, base_collector, collection_cache))
 
-    builder = RstBuilder()
-    builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Release Notes")
-    builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
+    changelog = []
 
     for index, (version_str, version, deps) in enumerate(reversed(versions)):
         if index + 1 < len(versions):
@@ -428,13 +538,25 @@ def build_changelog(args):
         else:
             prev_version = None
 
-        changelog_entry = ChangelogEntry(
+        changelog.append(ChangelogEntry(
             version, version_str, prev_version,
             base_versions, versions_per_collection,
-            base_collector, collectors)
+            base_collector, collectors))
 
-        append_changelog(builder, changelog_entry)
+    return changelog, base_collector
 
-    path = os.path.join(args.dest_dir, f"CHANGELOG-v{acd_version.major}.{acd_version.minor}.rst")
-    with open(path, 'wb') as changelog_fd:
-        changelog_fd.write(builder.generate().encode('utf-8'))
+
+def build_changelog(args):
+    acd_version = args.acd_version
+    changelog, base_collector = get_changelog_data(
+        acd_version, args.deps_dir, args.collection_cache)
+
+    changelog_filename = f"CHANGELOG-v{acd_version.major}.{acd_version.minor}.rst"
+    write_changelog(
+        os.path.join(args.dest_dir, changelog_filename),
+        acd_version, changelog)
+
+    porting_guide_filename = f"porting_guide_v{acd_version.major}.{acd_version.minor}.rst"
+    write_porting_guide(
+        os.path.join(args.dest_dir, porting_guide_filename),
+        acd_version, changelog, base_collector)
