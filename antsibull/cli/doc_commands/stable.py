@@ -218,7 +218,8 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
 def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       collection_dir: str,
                                       dest_dir: str,
-                                      flog) -> None:
+                                      flog,
+                                      collection_names: t.Optional[t.List[str]] = None) -> None:
     """
     Create documentation for a set of installed collections.
 
@@ -226,10 +227,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     :arg collection_dir: The directory in which the collections have been installed.
     :arg dest_dir: The directory into which the documentation is written.
     :arg flog: A logger instance.
+    :arg collection_names: Optional list of collection names. If specified, only documentation
+                           for these collections will be collected and generated.
     """
 
     # Get the info from the plugins
-    plugin_info = asyncio_run(get_ansible_plugin_info(venv, collection_dir))
+    plugin_info = asyncio_run(get_ansible_plugin_info(
+        venv, collection_dir, collection_names=collection_names))
     flog.notice('Finished parsing info from plugins')
     # flog.fields(plugin_info=plugin_info).debug('Plugin data')
 

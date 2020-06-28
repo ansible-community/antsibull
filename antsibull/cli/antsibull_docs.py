@@ -19,7 +19,14 @@ from ..args import InvalidArgumentError, get_common_parser, normalize_common_opt
 from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import UnableToCheck, writable_via_acls
-from .doc_commands import collection, current, devel, plugin, stable
+from .doc_commands import (
+    collection,
+    current,
+    current_collection,
+    devel,
+    plugin,
+    stable,
+)
 
 
 mlog = log.fields(mod=__name__)
@@ -30,6 +37,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'stable': stable.generate_docs,
                                  'current': current.generate_docs,
                                  'collection': collection.generate_docs,
+                                 'current-collection': current_collection.generate_docs,
                                  'plugin': plugin.generate_docs,
                                  }
 
@@ -92,7 +100,7 @@ def _normalize_stable_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_current_options(args: argparse.Namespace) -> None:
-    if args.command != 'current':
+    if args.command not in ('current', 'current-collection'):
         return
 
     if not os.path.isdir(args.collection_dir) or not os.path.isdir(
@@ -176,11 +184,20 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    help='The version of the collection to document.  The special'
                                    ' version, "@latest" can be used to download and document the'
                                    ' latest version from galaxy')
-    collection_parser.add_argument(nargs='+', dest='collections', action='append', default=[],
+    collection_parser.add_argument(nargs='+', dest='collections',
                                    help='One or more collections to document.  If the names are'
                                    ' directories on disk, they will be parsed as expanded'
                                    ' collections. Otherwise, if they could be collection'
                                    ' names, they will be downloaded from galaxy')
+
+    current_collection_parser = subparsers.add_parser('current-collection',
+                                                      parents=[common_parser],
+                                                      description='Generate documentation for a'
+                                                      ' single currently installed collection')
+    current_collection_parser.add_argument('--collection-dir', required=True,
+                                           help='Path to the directory containing ansible_collections')
+    current_collection_parser.add_argument(nargs='+', dest='collections',
+                                           help='One or more collections to document.')
 
     file_parser = subparsers.add_parser('plugin',
                                         parents=[docs_parser],

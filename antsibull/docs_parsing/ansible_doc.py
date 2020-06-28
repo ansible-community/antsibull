@@ -9,7 +9,7 @@ import os
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 
 import sh
 
@@ -58,7 +58,8 @@ class ParsingError(Exception):
 
 
 async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
-                           max_workers: int) -> Dict[str, Any]:
+                           max_workers: int,
+                           collection_names: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     Retrieve info about all Ansible plugins of a particular type.
 
@@ -80,12 +81,24 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     :returns: Mapping of fqcn's to plugin_info.
     """
     # Get the list of plugins
-    ansible_doc_list_cmd = ansible_doc('--list', '--t', plugin_type, '--json')
+    ansible_doc_list_cmd_list = ['--list', '--t', plugin_type, '--json']
+    if collection_names and len(collection_names) == 1:
+        # Ansible-doc list allows to filter by one collection
+        ansible_doc_list_cmd_list.append(collection_names[0])
+    ansible_doc_list_cmd = ansible_doc(*ansible_doc_list_cmd_list)
     raw_plugin_list = ansible_doc_list_cmd.stdout.decode('utf-8', errors='surrogateescape')
     # Note: Keep ansible_doc_list_cmd around until we know if we need to use it in an error message.
     plugin_map = json.loads(_filter_non_json_lines(raw_plugin_list)[0])
     del raw_plugin_list
     del ansible_doc_list_cmd
+
+    # Filter plugin map
+    if collection_names is not None:
+        prefixes = ['{name}.'.format(name=collection) for collection in collection_names]
+        plugin_map = {
+            key: value for key, value in plugin_map.items()
+            if any(key.startswith(prefix) for prefix in prefixes)
+        }
 
     loop = best_get_loop()
 
@@ -141,12 +154,16 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
 
 async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
-                                  collection_dir: str) -> Dict[str, Dict[str, Any]]:
+                                  collection_dir: str,
+                                  collection_names: Optional[List[str]] = None
+                                  ) -> Dict[str, Dict[str, Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
     :arg venv: A VenvRunner into which Ansible has been installed.
     :arg collection_dir: Directory in which the collections have been installed.
+    :arg collection_names: Optional list of collections. If specified, will only collect
+                           information for plugins in these collections.
     :returns: A nested directory structure that looks like::
 
         plugin_type:
@@ -185,7 +202,7 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
         else:
             max_workers = other_workers
         extractors[plugin_type] = create_task(
-            _get_plugin_info(plugin_type, venv_ansible_doc, max_workers))
+            _get_plugin_info(plugin_type, venv_ansible_doc, max_workers, collection_names))
 
     results = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
