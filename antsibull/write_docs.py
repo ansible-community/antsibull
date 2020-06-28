@@ -179,13 +179,16 @@ async def write_plugin_lists(collection_name: str,
 
 
 async def output_indexes(collection_info: CollectionInfoT,
-                         dest_dir: str) -> None:
+                         dest_dir: str,
+                         toplevel_collection_index: t.Optional[bool] = True) -> None:
     """
     Generate index pages for the collections.
 
     :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
         collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
+    :arg toplevel_collection_index: If set to ``False``, the top-level collections index will
+                                    not be built.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
@@ -206,9 +209,10 @@ async def output_indexes(collection_info: CollectionInfoT,
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        writers.append(await pool.spawn(
-            write_collection_list(collection_info.keys(), collection_list_tmpl,
-                                  collection_toplevel)))
+        if toplevel_collection_index:
+            writers.append(await pool.spawn(
+                write_collection_list(collection_info.keys(), collection_list_tmpl,
+                                      collection_toplevel)))
 
         for collection_name, plugin_maps in collection_info.items():
             collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))

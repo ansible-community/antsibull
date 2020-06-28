@@ -277,7 +277,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_info = get_collection_contents(plugin_info, nonfatal_errors)
     flog.debug('Finished getting collection data')
 
-    asyncio_run(output_indexes(collection_info, dest_dir))
+    # Only build top-level index if no collection names were specified
+    asyncio_run(output_indexes(collection_info, dest_dir, collection_names is None))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
