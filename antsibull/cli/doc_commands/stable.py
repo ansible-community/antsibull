@@ -26,7 +26,7 @@ from ...docs_parsing.fqcn import get_fqcn_parts
 from ...galaxy import CollectionDownloader
 from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
-from ...venv import VenvRunner
+from ...venv import VenvRunner, FakeVenvRunner
 from ...write_docs import output_all_plugin_rst, output_indexes
 
 if t.TYPE_CHECKING:
@@ -215,6 +215,72 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
     return collection_plugins
 
 
+def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
+                                      collection_dir: str,
+                                      dest_dir: str,
+                                      flog) -> None:
+    """
+    Create documentation for a set of installed collections.
+
+    :arg venv: The venv in which ansible-base is installed.
+    :arg collection_dir: The directory in which the collections have been installed.
+    :arg dest_dir: The directory into which the documentation is written.
+    :arg flog: A logger instance.
+    """
+
+    # Get the info from the plugins
+    plugin_info = asyncio_run(get_ansible_plugin_info(venv, collection_dir))
+    flog.notice('Finished parsing info from plugins')
+    # flog.fields(plugin_info=plugin_info).debug('Plugin data')
+
+    """
+    # Turn these into some sort of decorator that will choose to dump or load the values
+    # if a command line arg is specified.
+    with open('dump_raw_plugin_info.json', 'w') as f:
+        import json
+        json.dump(plugin_info, f)
+    flog.debug('Finished dumping raw plugin_info')
+    with open('dump_formatted_plugin_info.json', 'r') as f:
+        import json
+        plugin_info = json.load(f)
+    """
+
+    plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
+    flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
+    augment_docs(plugin_info)
+    flog.notice('Finished calculating new data')
+
+    """
+    with open('dump_normalized_plugin_info.json', 'w') as f:
+        json.dump(plugin_info, f)
+    flog.debug('Finished dumping normalized data')
+    with open('dump_errors.json', 'w') as f:
+        json.dump(nonfatal_errors, f)
+    flog.debug('Finished dump errors')
+    with open('dump_normalized_plugin_info.json', 'r') as f:
+        import json
+        plugin_info = json.load(f)
+    flog.debug('Finished loading normalized data')
+    with open('dump_errors.json', 'r') as f:
+        from collections import defaultdict
+        nonfatal_errors = json.load(f)
+        nonfatal_errors = defaultdict(lambda: defaultdict(list), nonfatal_errors)
+        for key, value in nonfatal_errors.items():
+            nonfatal_errors[key] = defaultdict(list, value)
+    flog.debug('Finished loading errors')
+    """
+
+    collection_info = get_collection_contents(plugin_info, nonfatal_errors)
+    flog.debug('Finished getting collection data')
+
+    asyncio_run(output_indexes(collection_info, dest_dir))
+    flog.notice('Finished writing indexes')
+
+    asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
+                                      nonfatal_errors, dest_dir))
+    flog.debug('Finished writing plugin docs')
+
+
 def generate_docs() -> int:
     """
     Create documentation for the stable subcommand.
@@ -279,60 +345,6 @@ def generate_docs() -> int:
             venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-base')
 
-        # Get the info from the plugins
-        plugin_info = asyncio_run(get_ansible_plugin_info(venv, collection_dir))
-        flog.notice('Finished parsing info from plugins')
-        # flog.fields(plugin_info=plugin_info).debug('Plugin data')
-
-        """
-        # Turn these into some sort of decorator that will choose to dump or load the values
-        # if a command line arg is specified.
-        with open('dump_raw_plugin_info.json', 'w') as f:
-            import json
-            json.dump(plugin_info, f)
-        flog.debug('Finished dumping raw plugin_info')
-
-        with open('dump_formatted_plugin_info.json', 'r') as f:
-            import json
-            plugin_info = json.load(f)
-        """
-
-        plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
-        flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
-        augment_docs(plugin_info)
-        flog.notice('Finished calculating new data')
-
-        """
-        with open('dump_normalized_plugin_info.json', 'w') as f:
-            json.dump(plugin_info, f)
-        flog.debug('Finished dumping normalized data')
-
-        with open('dump_errors.json', 'w') as f:
-            json.dump(nonfatal_errors, f)
-        flog.debug('Finished dump errors')
-
-        with open('dump_normalized_plugin_info.json', 'r') as f:
-            import json
-            plugin_info = json.load(f)
-        flog.debug('Finished loading normalized data')
-
-        with open('dump_errors.json', 'r') as f:
-            from collections import defaultdict
-            nonfatal_errors = json.load(f)
-            nonfatal_errors = defaultdict(lambda: defaultdict(list), nonfatal_errors)
-            for key, value in nonfatal_errors.items():
-                nonfatal_errors[key] = defaultdict(list, value)
-        flog.debug('Finished loading errors')
-        """
-
-        collection_info = get_collection_contents(plugin_info, nonfatal_errors)
-        flog.debug('Finished getting collection data')
-
-        asyncio_run(output_indexes(collection_info, app_ctx.extra['dest_dir']))
-        flog.notice('Finished writing indexes')
-
-        asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
-                                          nonfatal_errors, app_ctx.extra['dest_dir']))
-        flog.debug('Finished writing plugin docs')
+        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
 
     return 0
