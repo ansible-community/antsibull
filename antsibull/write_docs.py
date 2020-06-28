@@ -31,7 +31,8 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: PluginErrorsT,
-                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str) -> None:
+                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
+                    path_override: t.Optional[str] = None) -> None:
     """
     Write the rst page for one plugin.
 
@@ -80,12 +81,15 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
             returndocs=plugin_record['return'],
             nonfatal_errors=nonfatal_errors)
 
-    collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
-    # This is dangerous but the code that takes dest_dir from the user checks
-    # permissions on it to make it as safe as possible.
-    os.makedirs(collection_dir, mode=0o755, exist_ok=True)
+    if path_override is not None:
+        plugin_file = path_override
+    else:
+        collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
+        # This is dangerous but the code that takes dest_dir from the user checks
+        # permissions on it to make it as safe as possible.
+        os.makedirs(collection_dir, mode=0o755, exist_ok=True)
 
-    plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
+        plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
     async with aiofiles.open(plugin_file, 'w') as f:
         await f.write(plugin_contents)

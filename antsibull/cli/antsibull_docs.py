@@ -23,6 +23,7 @@ from .doc_commands import (
     collection,
     current,
     current_collection,
+    current_plugin,
     devel,
     plugin,
     stable,
@@ -39,6 +40,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'collection': collection.generate_docs,
                                  'current-collection': current_collection.generate_docs,
                                  'plugin': plugin.generate_docs,
+                                 'current-plugin': current_plugin.generate_docs,
                                  }
 
 #: The filename for the file which lists raw collection names
@@ -195,7 +197,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                                       description='Generate documentation for a'
                                                       ' single currently installed collection')
     current_collection_parser.add_argument('--collection-dir', required=True,
-                                           help='Path to the directory containing ansible_collections')
+                                           help='Path to the directory containing'
+                                                ' ansible_collections')
     current_collection_parser.add_argument(nargs='+', dest='collections',
                                            help='One or more collections to document.')
 
@@ -203,10 +206,22 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                         parents=[docs_parser],
                                         description='Generate documentation for a single plugin')
     file_parser.add_argument(nargs=1, dest='plugin', action='store',
-                             choices=DOCUMENTABLE_PLUGINS,
                              help='A single file to document.')
     file_parser.add_argument('--plugin-type', action='store', default='module',
+                             choices=DOCUMENTABLE_PLUGINS,
                              help='The type of the plugin')
+
+    current_file_parser = subparsers.add_parser('current-plugin',
+                                                parents=[common_parser],
+                                                description='Generate documentation for'
+                                                            ' a single plugin')
+    current_file_parser.add_argument(nargs=1, dest='plugin', action='store',
+                                     help='A single file to document.')
+    current_file_parser.add_argument('--plugin-type', action='store', default='module',
+                                     choices=DOCUMENTABLE_PLUGINS,
+                                     help='The type of the plugin')
+    current_file_parser.add_argument('--output', action='store', required=True,
+                                     help='The filename to write the result to')
 
     flog.debug('Argument parser setup')
 
