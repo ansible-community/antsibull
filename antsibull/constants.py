@@ -7,22 +7,13 @@
 from typing import FrozenSet
 
 
-#: Number of bytes to read or write in one chunk
-CHUNKSIZE = 4096
-
 #: All the types of ansible plugins
 PLUGIN_TYPES: FrozenSet[str] = frozenset(('become', 'cache', 'callback', 'cliconf', 'connection',
                                           'httpapi', 'inventory', 'lookup', 'shell', 'strategy',
-                                          'vars', 'module', 'module_utils'))
+                                          'vars', 'module', 'module_utils',))
 
 #: The subset of PLUGINS which we build documentation for
 DOCUMENTABLE_PLUGINS: FrozenSet[str] = frozenset(('become', 'cache', 'callback', 'cliconf',
                                                   'connection', 'httpapi', 'inventory', 'lookup',
                                                   'netconf', 'shell', 'vars', 'module',
                                                   'strategy',))
-
-#: A good maximum number of concurrent threads to allow
-THREAD_MAX: int = 64
-
-#: A good maximum number of concurrent processes to allow
-PROCESS_MAX: int = 7

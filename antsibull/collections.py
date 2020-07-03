@@ -10,8 +10,8 @@ from typing import List
 
 import sh
 
+from . import app_context
 from .compat import best_get_loop
-from .constants import THREAD_MAX
 
 
 class CollectionFormatError(Exception):
@@ -21,7 +21,8 @@ class CollectionFormatError(Exception):
 async def install_together(collection_tarballs: List[str],
                            ansible_collections_dir: str) -> None:
     loop = best_get_loop()
-    executor = ThreadPoolExecutor(max_workers=THREAD_MAX)
+    lib_ctx = app_context.lib_ctx.get()
+    executor = ThreadPoolExecutor(max_workers=lib_ctx.thread_max)
 
     installers = []
     for pathname in collection_tarballs:
@@ -49,7 +50,8 @@ async def install_separately(collection_tarballs: List[str], collection_dir: str
         return collection_dirs
 
     loop = asyncio.get_running_loop()
-    executor = ThreadPoolExecutor(max_workers=THREAD_MAX)
+    lib_ctx = app_context.lib_ctx.get()
+    executor = ThreadPoolExecutor(max_workers=lib_ctx.thread_max)
 
     for pathname in collection_tarballs:
         filename = os.path.basename(pathname)

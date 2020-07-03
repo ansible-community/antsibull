@@ -37,6 +37,7 @@ perky = "*"
 antsibull-changelog = "*"
 # 0.5.0 introduces dict_config
 twiggy = ">= 0.5.0"
+aiocontextvars = {version = "*", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
 asynctest = "^0.13.0"

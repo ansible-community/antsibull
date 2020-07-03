@@ -13,8 +13,9 @@ from typing import TYPE_CHECKING, Any, Dict, Union
 
 import sh
 
+from .. import app_context
 from ..compat import best_get_loop
-from ..constants import DOCUMENTABLE_PLUGINS, THREAD_MAX
+from ..constants import DOCUMENTABLE_PLUGINS
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
 
@@ -57,7 +58,7 @@ class ParsingError(Exception):
 
 
 async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
-                           max_workers: int = THREAD_MAX) -> Dict[str, Any]:
+                           max_workers: int) -> Dict[str, Any]:
     """
     Retrieve info about all Ansible plugins of a particular type.
 
@@ -164,15 +165,16 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
 
     # We invoke _get_plugin_info once for each documentable plugin type.  Within _get_plugin_info,
     # new threads are spawned to handle waiting for ansible-doc to parse files and give us results.
-    # To keep ourselves under THREAD_MAX, we need to divide the number of threads we're allowed over
+    # To keep ourselves under thread_max, we need to divide the number of threads we're allowed over
     # each call of _get_plugin_info.
-    # Why use THREAD_MAX instead of process max?  Even though this ultimately invokes separate
+    # Why use thread_max instead of process_max?  Even though this ultimately invokes separate
     # ansible-doc processes, the limiting factor is IO as ansible-doc reads from disk.  So it makes
-    # sense to scale up to THREAD_MAX instead of PROCESS_MAX.
+    # sense to scale up to thread_max instead of process_max.
 
     # Allocate more for modules because the vast majority of plugins are modules
-    module_workers = max(int(.7 * THREAD_MAX), 1)
-    other_workers = int((THREAD_MAX - module_workers) / (len(DOCUMENTABLE_PLUGINS) - 1))
+    lib_ctx = app_context.lib_ctx.get()
+    module_workers = max(int(.7 * lib_ctx.thread_max), 1)
+    other_workers = int((lib_ctx.thread_max - module_workers) / (len(DOCUMENTABLE_PLUGINS) - 1))
     if other_workers < 1:
         other_workers = 1
 

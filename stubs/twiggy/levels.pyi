@@ -1,3 +1,0 @@
-
-DEBUG: LogLevel
-DISABLED: LogLevel

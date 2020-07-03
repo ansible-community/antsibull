@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 
 import semantic_version as semver
 
-from .constants import CHUNKSIZE
+from . import app_context
 from .hashing import verify_hash
 
 # The type checker can handle finding aiohttp.client but flake8 cannot :-(
@@ -19,8 +19,8 @@ if t.TYPE_CHECKING:
     import aiohttp.client
 
 
-#: URL to galaxy.
-GALAXY_SERVER_URL = 'https://galaxy.ansible.com/'
+#: URL to galaxy. (Get the default from the context default)
+_GALAXY_SERVER_URL = str(app_context.AppContext().galaxy_url)
 
 
 class NoSuchCollection(Exception):
@@ -48,7 +48,7 @@ class GalaxyClient:
     """Class for querying the Galaxy REST API."""
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
-                 galaxy_server: str = GALAXY_SERVER_URL) -> None:
+                 galaxy_server: str = _GALAXY_SERVER_URL) -> None:
         """
         Create a GalaxyClient object to query the Galaxy Server.
 
@@ -155,7 +155,7 @@ class CollectionDownloader(GalaxyClient):
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
                  download_dir: str,
-                 galaxy_server: str = GALAXY_SERVER_URL,
+                 galaxy_server: str = _GALAXY_SERVER_URL,
                  collection_cache: t.Optional[str] = None) -> None:
         """
         Create an object to download collections from galaxy.
@@ -163,10 +163,10 @@ class CollectionDownloader(GalaxyClient):
         :arg aio_session: :obj:`aiohttp.ClientSession` with which to perform all
             requests to galaxy.
         :arg download_dir: Directory to download into.
+        :kwarg galaxy_server: URL to the galaxy server.
         :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
             These tarballs will be used instead of downloading new tarballs provided that the
             versions match the criteria (latest compatible version known to galaxy).
-        :kwarg galaxy_server: URL to the galaxy server.
         """
         super().__init__(aio_session, galaxy_server)
         self.download_dir = download_dir
@@ -204,11 +204,12 @@ class CollectionDownloader(GalaxyClient):
                 raise NoSuchCollection(f'No collection found at: {release_url}')
 
             with open(download_filename, 'wb') as f:
-                # TODO: PY3.8: while chunk := await response.content.read(CHUNKSIZE):
-                chunk = await response.content.read(CHUNKSIZE)
+                lib_ctx = app_context.lib_ctx.get()
+                # TODO: PY3.8: while chunk := await response.content.read(lib_ctx.chunksize):
+                chunk = await response.content.read(lib_ctx.chunksize)
                 while chunk:
                     f.write(chunk)
-                    chunk = await response.content.read(CHUNKSIZE)
+                    chunk = await response.content.read(lib_ctx.chunksize)
 
         # Verify the download
         if not await verify_hash(download_filename, sha256sum):
