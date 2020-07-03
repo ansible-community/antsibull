@@ -14,17 +14,17 @@ import aiofiles
 import sh
 from packaging.version import Version as PypiVer
 
+from . import app_context
 from .compat import best_get_loop
-from .constants import CHUNKSIZE
 
 if t.TYPE_CHECKING:
     import aiohttp.client
 
 
 #: URL to checkout ansible-base from.
-ANSIBLE_BASE_URL = 'https://github.com/ansible/ansible'
+_ANSIBLE_BASE_URL = str(app_context.AppContext().ansible_base_url)
 #: URL to pypi.
-PYPI_SERVER_URL = 'https://pypi.org/'
+_PYPI_SERVER_URL = str(app_context.AppContext().pypi_url)
 
 
 class UnknownVersion(Exception):
@@ -35,7 +35,7 @@ class AnsibleBasePyPiClient:
     """Class to retrieve information about AnsibleBase from Pypi."""
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
-                 pypi_server_url: str = PYPI_SERVER_URL) -> None:
+                 pypi_server_url: str = _PYPI_SERVER_URL) -> None:
         """
         Initialize the AnsibleBasePypi class.
 
@@ -101,16 +101,17 @@ class AnsibleBasePyPiClient:
                 break
         else:  # for-else: http://bit.ly/1ElPkyg
             raise UnknownVersion(f'ansible-base {ansible_base_version} does not'
-                                 ' exist on {pypi_server_url}')
+                                 ' exist on {self.pypi_server_url}')
 
         tar_filename = os.path.join(download_dir, tar_filename)
         async with self.aio_session.get(pypi_url) as response:
             async with aiofiles.open(tar_filename, 'wb') as f:
-                # TODO: PY3.8: while chunk := await response.read(CHUNKSIZE):
-                chunk = await response.content.read(CHUNKSIZE)
+                lib_ctx = app_context.lib_ctx.get()
+                # TODO: PY3.8: while chunk := await response.read(lib_ctx.chunksize):
+                chunk = await response.content.read(lib_ctx.chunksize)
                 while chunk:
                     await f.write(chunk)
-                    chunk = await response.content.read(CHUNKSIZE)
+                    chunk = await response.content.read(lib_ctx.chunksize)
 
         return tar_filename
 
@@ -189,7 +190,7 @@ def cache_is_correct_version(ansible_base_cache: t.Optional[str],
 
 
 @lru_cache(None)
-async def checkout_from_git(download_dir: str, repo_url: str = ANSIBLE_BASE_URL) -> str:
+async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_BASE_URL) -> str:
     """
     Checkout the ansible-base git repo.
 

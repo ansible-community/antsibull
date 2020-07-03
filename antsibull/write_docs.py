@@ -13,7 +13,7 @@ import asyncio_pool
 
 from jinja2 import Template
 
-from .constants import THREAD_MAX
+from . import app_context
 from .jinja2.environment import doc_environment
 
 #: Mapping of plugins to nonfatal errors.  This is the type to use when accepting the plugin.
@@ -94,7 +94,8 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     writers = []
-    async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+    lib_ctx = app_context.lib_ctx.get()
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         for collection_name, plugins_by_type in collection_info.items():
             for plugin_type, plugins in plugins_by_type.items():
                 for plugin_short_name, dummy_ in plugins.items():
@@ -168,7 +169,8 @@ async def output_indexes(collection_info: CollectionInfoT,
     collection_plugins_tmpl = env.get_template('plugins_by_collection.rst.j2')
 
     writers = []
-    async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+    lib_ctx = app_context.lib_ctx.get()
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         collection_toplevel = os.path.join(dest_dir, 'collections')
         writers.append(await pool.spawn(
             write_collection_list(collection_info.keys(), collection_list_tmpl,

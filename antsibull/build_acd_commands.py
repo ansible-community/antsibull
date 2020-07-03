@@ -19,8 +19,8 @@ import sh
 from jinja2 import Template
 from packaging.version import Version as PypiVer
 
+from . import app_context
 from .collections import install_separately, install_together
-from .constants import THREAD_MAX
 from .dependency_files import BuildFile, DepsFile
 from .galaxy import CollectionDownloader
 
@@ -30,12 +30,14 @@ from .galaxy import CollectionDownloader
 #
 
 
-async def download_collections(deps, download_dir, collection_cache=None):
+async def download_collections(deps, galaxy_url, download_dir, collection_cache=None):
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+        lib_ctx = app_context.lib_ctx.get()
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             downloader = CollectionDownloader(aio_session, download_dir,
-                                              collection_cache=collection_cache)
+                                              collection_cache=collection_cache,
+                                              galaxy_server=galaxy_url)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
                     downloader.download_latest_matching(collection_name, version_spec))
@@ -144,41 +146,51 @@ def write_build_script(acd_version, ansible_base_version, package_dir):
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_command(args):
-    build_file = BuildFile(args.build_file)
+def build_single_command():
+    app_ctx = app_context.app_ctx.get()
+
+    build_file = BuildFile(app_ctx.extra['build_file'])
     build_acd_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
-    if not str(args.acd_version).startswith(build_acd_version):
-        print(f'{args.build_file} is for version {build_acd_version} but we need'
-              ' {args.acd_version.major}.{arg.acd_version.minor}')
+    if not str(app_ctx.extra['acd_version']).startswith(build_acd_version):
+        print(f'{app_ctx.extra["build_file"]} is for version {build_acd_version} but we need'
+              f' {app_ctx.extra["acd_version"].major}.{app_ctx.extra["acd_version"].minor}')
         return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio.run(
-            download_collections(deps, download_dir, args.collection_cache))
+        included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
+                                                             download_dir,
+                                                             app_ctx.extra['collection_cache']))
 
-        package_dir = os.path.join(tmp_dir, f'ansible-{args.acd_version}')
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
 
-        collections_to_install = [p for f in os.listdir(download_dir)
-                                  if os.path.isfile(p := os.path.join(download_dir, f))]
-        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
-        write_build_script(args.acd_version, ansible_base_version, package_dir)
-        write_python_build_files(args.acd_version, ansible_base_version, '',
-                                 package_dir, args.debian)
-        if args.debian:
-            write_debian_directory(args.acd_version, package_dir)
-        make_dist(package_dir, args.dest_dir)
+        # TODO: PY3.8:
+        # collections_to_install = [p for f in os.listdir(download_dir)
+        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
+        collections_to_install = []
+        for collection in os.listdir(download_dir):
+            path = os.path.join(download_dir, collection)
+            if os.path.isfile(path):
+                collections_to_install.append(path)
 
-    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
+        write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
+        write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version, '',
+                                 package_dir, app_ctx.extra['debian'])
+        if app_ctx.extra['debian']:
+            write_debian_directory(app_ctx.extra['acd_version'], package_dir)
+        make_dist(package_dir, app_ctx.extra['dest_dir'])
+
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(args.acd_version, ansible_base_version, included_versions)
+    deps_file.write(app_ctx.extra['acd_version'], ansible_base_version, included_versions)
 
     return 0
 
@@ -236,7 +248,8 @@ async def make_collection_dist(name, version, package_dir, dest_dir):
 
 async def make_collection_dists(dest_dir, collection_dirs):
     dist_creators = []
-    async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+    lib_ctx = app_context.lib_ctx.get()
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         for collection_dir in collection_dirs:
             dir_name_only = os.path.basename(collection_dir)
             dummy_, dummy_, name, version = dir_name_only.split('-', 3)
@@ -247,14 +260,16 @@ async def make_collection_dists(dest_dir, collection_dirs):
         await asyncio.gather(*dist_creators)
 
 
-def build_multiple_command(args):
-    build_file = BuildFile(args.build_file)
+def build_multiple_command():
+    app_ctx = app_context.app_ctx.get()
+
+    build_file = BuildFile(app_ctx.extra['build_file'])
     build_acd_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
-    if not str(args.acd_version).startswith(build_acd_version):
-        print(f'{args.build_file} is for version {build_acd_version} but we need'
-              f' {args.acd_version.major}.{args.acd_version.minor}')
+    if not str(app_ctx.extra['acd_version']).startswith(build_acd_version):
+        print(f'{app_ctx.extra["build_file"]} is for version {build_acd_version} but we need'
+              f' {app_ctx.extra["acd_version"].major}.{app_ctx.extra["acd_version"].minor}')
         return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -262,14 +277,22 @@ def build_multiple_command(args):
         os.mkdir(download_dir, mode=0o700)
 
         included_versions = asyncio.run(
-            download_collections(deps, download_dir, args.collection_cache))
-        collections_to_install = [p for f in os.listdir(download_dir)
-                                  if os.path.isfile(p := os.path.join(download_dir, f))]
+            download_collections(deps, app_ctx.galaxy_url, download_dir,
+                                 app_ctx.extra['collection_cache']))
+        # TODO: PY3.8:
+        # collections_to_install = [p for f in os.listdir(download_dir)
+        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
+        collections_to_install = []
+        for collection in os.listdir(download_dir):
+            path = os.path.join(download_dir, collection)
+            if os.path.isfile(path):
+                collections_to_install.append(path)
+
         collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
-        asyncio.run(make_collection_dists(args.dest_dir, collection_dirs))
+        asyncio.run(make_collection_dists(app_ctx.extra['dest_dir'], collection_dirs))
 
         # Create the ansible package that deps on the collections we just wrote
-        package_dir = os.path.join(tmp_dir, f'ansible-{args.acd_version}')
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
@@ -279,15 +302,15 @@ def build_multiple_command(args):
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
         collection_deps = '\n' + ',\n'.join(collection_deps)
-        write_build_script(args.acd_version, ansible_base_version, package_dir)
-        write_python_build_files(args.acd_version, ansible_base_version,
+        write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
+        write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version,
                                  collection_deps, package_dir)
 
-        make_dist(package_dir, args.dest_dir)
+        make_dist(package_dir, app_ctx.extra['dest_dir'])
 
     # Write the deps file
-    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(args.acd_version, ansible_base_version, included_versions)
+    deps_file.write(app_ctx.extra['acd_version'], ansible_base_version, included_versions)
 
     return 0

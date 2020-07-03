@@ -5,18 +5,24 @@
 """Entrypoint to the antsibull-docs script."""
 
 import argparse
+import os
 import os.path
 import stat
 import sys
 from typing import Callable, Dict, List
 
-# import twiggy
+import twiggy
 
-# from ..config import load_config
+from .. import app_context
+from ..app_logging import log
+from ..args import InvalidArgumentError, get_common_parser, normalize_common_options
+from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import UnableToCheck, writable_via_acls
 from .doc_commands import collection, current, devel, plugin, stable
 
+
+mlog = log.fields(mod=__name__)
 
 #: Mapping from command line subcommand names to functions which implement those
 #: The functions need to take a single argument, the processed list of args.
@@ -31,11 +37,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
 DEFAULT_PIECES_FILE: str = 'acd.in'
 
 
-class InvalidArgumentError(Exception):
-    """A problem parsing or validating a command line argument."""
-
-
-def _normalize_common_options(args: argparse.Namespace) -> None:
+def _normalize_docs_options(args: argparse.Namespace) -> None:
     if args.command is None:
         raise InvalidArgumentError('Please specify a subcommand to run')
 
@@ -116,14 +118,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     :returns: A :python:obj:`argparse.Namespace`
     :raises InvalidArgumentError: Whenever there's something wrong with the arguments.
     """
-    # TODO: Need a function to return a parser with options that all antsibull
-    # scripts use. Then we can add it as a parent to the common_parser.  First use case:
-    # config file.
-    # antsibull_parser =
+    flog = mlog.fields(func='parse_args')
+    flog.fields(program_name=program_name, raw_args=args).info('Enter')
 
-    common_parser = argparse.ArgumentParser(add_help=False)
-    common_parser.add_argument('--dest-dir', default='.',
-                               help='Directory to write the output to')
+    common_parser = get_common_parser()
+
+    docs_parser = argparse.ArgumentParser(add_help=False, parents=[common_parser])
+    docs_parser.add_argument('--dest-dir', default='.',
+                             help='Directory to write the output to')
 
     cache_parser = argparse.ArgumentParser(add_help=False)
     cache_parser.add_argument('--ansible-base-cache', default=None,
@@ -144,14 +146,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        help='for help use  SUBCOMMANDS -h')
 
     # Document the next version of ansible
-    devel_parser = subparsers.add_parser('devel', parents=[common_parser, cache_parser],
+    devel_parser = subparsers.add_parser('devel', parents=[docs_parser, cache_parser],
                                          description='Generate documentation for the next major'
                                          ' release of Ansible')
     devel_parser.add_argument('--pieces-file', default=DEFAULT_PIECES_FILE,
                               help='File containing a list of collections to include')
 
     stable_parser = subparsers.add_parser('stable',
-                                          parents=[common_parser, cache_parser],
+                                          parents=[docs_parser, cache_parser],
                                           description='Generate documentation for a current'
                                           ' version of ansible')
     stable_parser.add_argument('--deps-file', required=True,
@@ -159,7 +161,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                ' versions which were included in this version of Ansible')
 
     current_parser = subparsers.add_parser('current',
-                                           parents=[common_parser],
+                                           parents=[docs_parser],
                                            description='Generate documentation for the current'
                                            ' installed version of ansible and the current installed'
                                            ' collections')
@@ -167,7 +169,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                 help='Path to the directory containing ansible_collections')
 
     collection_parser = subparsers.add_parser('collection',
-                                              parents=[common_parser],
+                                              parents=[docs_parser],
                                               description='Generate documentation for a single'
                                               ' collection')
     collection_parser.add_argument('--collection-version', default='@latest',
@@ -181,7 +183,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' names, they will be downloaded from galaxy')
 
     file_parser = subparsers.add_parser('plugin',
-                                        parents=[common_parser],
+                                        parents=[docs_parser],
                                         description='Generate documentation for a single plugin')
     file_parser.add_argument(nargs=1, dest='plugin', action='store',
                              choices=DOCUMENTABLE_PLUGINS,
@@ -189,14 +191,19 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     file_parser.add_argument('--plugin-type', action='store', default='module',
                              help='The type of the plugin')
 
+    flog.debug('Argument parser setup')
+
     args: argparse.Namespace = parser.parse_args(args)
+    flog.fields(args=args).debug('Arguments parsed')
 
     # Validation and coercion
-    _normalize_common_options(args)
+    normalize_common_options(args)
+    _normalize_docs_options(args)
     _normalize_devel_options(args)
     _normalize_stable_options(args)
     _normalize_current_options(args)
     _normalize_plugin_options(args)
+    flog.fields(args=args).debug('Arguments normalized')
 
     # Note: collections aren't validated as existing files or collection names here because talking
     # to galaxy to validate the collection names goes beyond the scope of what parsing and
@@ -213,19 +220,27 @@ def run(args: List[str]) -> int:
     :returns: A program return code.  0 for success, integers for any errors.  These are documented
         in :func:`main`.
     """
+    flog = mlog.fields(func='run')
+    flog.fields(raw_args=args).info('Enter')
+
     program_name = os.path.basename(args[0])
     try:
         args: argparse.Namespace = parse_args(program_name, args[1:])
     except InvalidArgumentError as e:
         print(e)
         return 2
+    flog.fields(args=args).info('Arguments parsed')
 
-    # Need to finish implementing config loading
-    # cfg = load_config(args.cfg_file)
-    # if cfg['logging_cfg']:
-    #    twiggy.dict_config(cfg['logging_cfg'])
+    cfg = load_config(args.config_file)
+    flog.fields(config=cfg).info('Config loaded')
 
-    return ARGS_MAP[args.command](args)
+    context_data = app_context.create_contexts(args=args, cfg=cfg)
+    with app_context.app_and_lib_context(context_data) as (app_ctx, dummy_):
+        twiggy.dict_config(app_ctx.logging_cfg.dict())
+        flog.debug('Set logging config')
+
+        flog.fields(command=args.command).info('Action')
+        return ARGS_MAP[args.command]()
 
 
 def main() -> int:

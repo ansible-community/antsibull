@@ -8,7 +8,7 @@ import hashlib
 
 import aiofiles
 
-from .constants import CHUNKSIZE
+from . import app_context
 
 
 async def verify_hash(filename: str, hash: str, algorithm: str = 'sha256') -> bool:
@@ -23,11 +23,12 @@ async def verify_hash(filename: str, hash: str, algorithm: str = 'sha256') -> bo
     """
     hasher = getattr(hashlib, algorithm)()
     async with aiofiles.open(filename, 'rb') as f:
-        # TODO: PY3.8: while chunk := await f.read(CHUNKSIZE):
-        chunk = await f.read(CHUNKSIZE)
+        ctx = app_context.lib_ctx.get()
+        # TODO: PY3.8: while chunk := await f.read(ctx.chunksize):
+        chunk = await f.read(ctx.chunksize)
         while chunk:
             hasher.update(chunk)
-            chunk = await f.read(CHUNKSIZE)
+            chunk = await f.read(ctx.chunksize)
     if hasher.hexdigest() != hash:
         return False
 

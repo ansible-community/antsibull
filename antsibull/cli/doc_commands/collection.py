@@ -3,6 +3,6 @@
 # Copyright: Ansible Project, 2020
 
 
-def generate_docs(args) -> int:
+def generate_docs() -> int:
     raise NotImplementedError('Priority to implement subcommands is stable, devel, plugin, and'
                               ' then collection commands')

@@ -10,8 +10,8 @@ import aiohttp
 import asyncio_pool
 import semantic_version as semver
 
+from . import app_context
 from .ansible_base import AnsibleBasePyPiClient
-from .constants import THREAD_MAX
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
 
@@ -20,14 +20,15 @@ def display_exception(loop, context):
     print(context.get('exception'))
 
 
-async def get_version_info(collections):
+async def get_version_info(collections, pypi_server_url):
     loop = asyncio.get_running_loop()
     loop.set_exception_handler(display_exception)
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
-        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
-            pypi_client = AnsibleBasePyPiClient(aio_session)
+        lib_ctx = app_context.lib_ctx.get()
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+            pypi_client = AnsibleBasePyPiClient(aio_session, pypi_server_url=pypi_server_url)
             requestors['_ansible_base'] = await pool.spawn(pypi_client.get_versions())
             galaxy_client = GalaxyClient(aio_session)
 
@@ -70,15 +71,16 @@ def find_latest_compatible(ansible_base_version, raw_dependency_versions):
     return reduced_versions
 
 
-def new_acd_command(args):
-    collections = parse_pieces_file(args.pieces_file)
-    dependencies = asyncio.run(get_version_info(collections))
+def new_acd_command():
+    app_ctx = app_context.app_ctx.get()
+    collections = parse_pieces_file(app_ctx.extra['pieces_file'])
+    dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
 
     ansible_base_version = dependencies.pop('_ansible_base')[0]
     dependencies = find_latest_compatible(ansible_base_version, dependencies)
 
-    build_filename = os.path.join(args.dest_dir, args.build_file)
+    build_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
-    build_file.write(args.acd_version, ansible_base_version, dependencies)
+    build_file.write(app_ctx.extra['acd_version'], ansible_base_version, dependencies)
 
     return 0

@@ -3,8 +3,7 @@
 # Copyright: Ansible Project, 2020
 """Entrypoint to the antsibull-docs script."""
 
-import typing as t
-
+from ... import app_context
 from ...compat import asyncio_run
 from ...docs_parsing.ansible_doc import get_ansible_plugin_info
 from ...logging import log
@@ -12,31 +11,29 @@ from ...venv import FakeVenvRunner
 from ...write_docs import output_indexes, output_all_plugin_rst
 from .stable import normalize_all_plugin_info, get_collection_contents
 
-if t.TYPE_CHECKING:
-    import argparse
-
 
 mlog = log.fields(mod=__name__)
 
 
-def generate_docs(args: 'argparse.Namespace') -> int:
+def generate_docs() -> int:
     """
     Create documentation for the current subcommand.
 
     Current documentation creates documentation for the currently installed version of Ansible,
     as well as the currently installed collections.
 
-    :arg args: The parsed comand line args.
     :returns: A return code for the program.  See :func:`antsibull.cli.antsibull_docs.main` for
         details on what each code means.
     """
     flog = mlog.fields(func='generate_docs')
     flog.debug('Begin processing docs')
 
+    app_ctx = app_context.app_ctx.get()
+
     venv = FakeVenvRunner()
 
     # Get the list of plugins
-    plugin_info = asyncio_run(get_ansible_plugin_info(venv, args.collection_dir))
+    plugin_info = asyncio_run(get_ansible_plugin_info(venv, app_ctx.extra['collection_dir']))
     flog.debug('Finished parsing info from plugins')
 
     """
@@ -78,11 +75,11 @@ def generate_docs(args: 'argparse.Namespace') -> int:
     collection_info = get_collection_contents(plugin_info, nonfatal_errors)
     flog.debug('Finished writing collection data')
 
-    asyncio_run(output_indexes(collection_info, args.dest_dir))
+    asyncio_run(output_indexes(collection_info, app_ctx.extra['dest_dir']))
     flog.debug('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
-                                      nonfatal_errors, args.dest_dir))
+                                      nonfatal_errors, app_ctx.extra['dest_dir']))
     flog.debug('Finished writing plugin docs')
 
     return 0

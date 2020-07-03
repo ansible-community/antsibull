@@ -15,11 +15,11 @@ import aiohttp
 import asyncio_pool
 from pydantic import ValidationError
 
+from ... import app_context
 from ...ansible_base import get_ansible_base
 from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
-from ...constants import PROCESS_MAX, THREAD_MAX
 from ...dependency_files import DepsFile
 from ...docs_parsing.ansible_doc import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
@@ -30,7 +30,6 @@ from ...venv import VenvRunner
 from ...write_docs import output_all_plugin_rst, output_indexes
 
 if t.TYPE_CHECKING:
-    import argparse
     import semantic_version as semver
 
 
@@ -43,6 +42,7 @@ PluginErrorsRT = t.DefaultDict[str, t.DefaultDict[str, t.List[str]]]
 async def retrieve(ansible_base_version: str,
                    collections: t.Mapping[str, str],
                    tmp_dir: str,
+                   galaxy_server: str,
                    ansible_base_cache: t.Optional[str] = None,
                    collection_cache: t.Optional[str] = None) -> t.Dict[str, 'semver.Version']:
     """
@@ -51,6 +51,7 @@ async def retrieve(ansible_base_version: str,
     :arg ansible_base_version: Version of ansible-base to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into
+    :arg galaxy_server: URL to the galaxy server.
     :kwarg ansible_base_cache: If given, a path to an Ansible-base checkout or expanded sdist.
         This will be used instead of downloading an ansible-base package if the version matches
         with ``ansible_base_version``.
@@ -64,13 +65,16 @@ async def retrieve(ansible_base_version: str,
     os.mkdir(collection_dir, mode=0o700)
 
     requestors = {}
+
+    lib_ctx = app_context.lib_ctx.get()
     async with aiohttp.ClientSession() as aio_session:
-        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             requestors['_ansible_base'] = await pool.spawn(
                 get_ansible_base(aio_session, ansible_base_version, tmp_dir,
                                  ansible_base_cache=ansible_base_cache))
 
             downloader = CollectionDownloader(aio_session, collection_dir,
+                                              galaxy_server=galaxy_server,
                                               collection_cache=collection_cache)
             for collection, version in collections.items():
                 requestors[collection] = await pool.spawn(
@@ -145,7 +149,8 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
                     - error string
     """
     loop = best_get_loop()
-    executor = ProcessPoolExecutor(max_workers=PROCESS_MAX)
+    lib_ctx = app_context.lib_ctx.get()
+    executor = ProcessPoolExecutor(max_workers=lib_ctx.process_max)
 
     # Normalize each plugin in a subprocess since normalization is CPU bound
     normalizers = {}
@@ -210,7 +215,7 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
     return collection_plugins
 
 
-def generate_docs(args: 'argparse.Namespace') -> int:
+def generate_docs() -> int:
     """
     Create documentation for the stable subcommand.
 
@@ -218,24 +223,30 @@ def generate_docs(args: 'argparse.Namespace') -> int:
     versions of collections included in the last Ansible release to generate rst files documenting
     those collections.
 
-    :arg args: The parsed comand line args.
     :returns: A return code for the program.  See :func:`antsibull.cli.antsibull_docs.main` for
         details on what each code means.
     """
     flog = mlog.fields(func='generate_docs')
-    flog.debug('Begin processing docs')
+    flog.notice('Begin generating docs')
+
+    app_ctx = app_context.app_ctx.get()
 
     # Parse the deps file
-    deps_file = DepsFile(args.deps_file)
+    flog.fields(deps_file=app_ctx.extra['deps_file']).info('Parse deps file')
+    deps_file = DepsFile(app_ctx.extra['deps_file'])
     dummy_, ansible_base_version, collections = deps_file.parse()
     flog.debug('Finished parsing deps file')
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # Retrieve ansible-base and the collections
-        collection_tarballs = asyncio_run(retrieve(ansible_base_version, collections, tmp_dir,
-                                                   ansible_base_cache=args.ansible_base_cache,
-                                                   collection_cache=args.collection_cache))
-        flog.debug('Finished retrieving tarballs')
+        flog.fields(tmp_dir=tmp_dir).info('created tmpdir')
+        collection_tarballs = asyncio_run(
+            retrieve(ansible_base_version, collections, tmp_dir,
+                     galaxy_server=app_ctx.galaxy_url,
+                     ansible_base_cache=app_ctx.extra['ansible_base_cache'],
+                     collection_cache=app_ctx.extra['collection_cache']))
+        # flog.fields(tarballs=collection_tarballs).debug('Download complete')
+        flog.notice('Finished retrieving tarballs')
 
         # Get the ansible-base location
         try:
@@ -244,6 +255,7 @@ def generate_docs(args: 'argparse.Namespace') -> int:
         except KeyError:
             print('ansible-base did not download successfully')
             return 3
+        flog.fields(ansible_base_path=ansible_base_path).info('ansible-base location')
 
         # Install the collections to a directory
 
@@ -253,10 +265,11 @@ def generate_docs(args: 'argparse.Namespace') -> int:
         collection_install_dir = os.path.join(collection_dir, 'ansible_collections')
         # Safe to recursively mkdir because we created the tmp_dir
         os.makedirs(collection_install_dir, mode=0o700)
+        flog.fields(collection_install_dir=collection_install_dir).debug('collection install dir')
 
         # Install the collections
         asyncio_run(install_together(collection_tarballs.values(), collection_install_dir))
-        flog.debug('Finished installing collections')
+        flog.notice('Finished installing collections')
 
         # Create venv for ansible-base
         venv = VenvRunner('ansible-base-venv', tmp_dir)
@@ -264,11 +277,12 @@ def generate_docs(args: 'argparse.Namespace') -> int:
             venv.install_package(ansible_base_path, from_project_path=True)
         else:
             venv.install_package(ansible_base_path)
-        flog.debug('Finished installing ansible-base')
+        flog.fields(venv=venv).notice('Finished installing ansible-base')
 
-        # Get the data on every plugin
+        # Get the info from the plugins
         plugin_info = asyncio_run(get_ansible_plugin_info(venv, collection_dir))
-        flog.debug('Finished parsing info from plugins')
+        flog.notice('Finished parsing info from plugins')
+        # flog.fields(plugin_info=plugin_info).debug('Plugin data')
 
         """
         # Turn these into some sort of decorator that will choose to dump or load the values
@@ -284,8 +298,9 @@ def generate_docs(args: 'argparse.Namespace') -> int:
         """
 
         plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
-        flog.debug('Finished normalizing data')
+        flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
         augment_docs(plugin_info)
+        flog.notice('Finished calculating new data')
 
         """
         with open('dump_normalized_plugin_info.json', 'w') as f:
@@ -311,13 +326,13 @@ def generate_docs(args: 'argparse.Namespace') -> int:
         """
 
         collection_info = get_collection_contents(plugin_info, nonfatal_errors)
-        flog.debug('Finished extracting collection data')
+        flog.debug('Finished getting collection data')
 
-        asyncio_run(output_indexes(collection_info, args.dest_dir))
-        flog.debug('Finished writing indexes')
+        asyncio_run(output_indexes(collection_info, app_ctx.extra['dest_dir']))
+        flog.notice('Finished writing indexes')
 
         asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
-                                          nonfatal_errors, args.dest_dir))
+                                          nonfatal_errors, app_ctx.extra['dest_dir']))
         flog.debug('Finished writing plugin docs')
 
     return 0
