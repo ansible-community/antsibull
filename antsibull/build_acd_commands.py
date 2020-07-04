@@ -10,6 +10,7 @@ import os.path
 import pkgutil
 import shutil
 import tempfile
+import typing as t
 from functools import partial
 
 import aiofiles
@@ -20,6 +21,8 @@ from jinja2 import Template
 from packaging.version import Version as PypiVer
 
 from . import app_context
+from .build_changelog import ReleaseNotes
+from .changelog import get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader
@@ -68,12 +71,16 @@ def copy_boilerplate_files(package_dir):
         f.write(readme)
 
 
-def write_manifest(package_dir, debian=False):
+def write_manifest(package_dir, release_notes: t.Optional[ReleaseNotes] = None,
+                   debian: bool = False):
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
     with open(manifest_file, 'w') as f:
         f.write('include COPYING\n')
         f.write('include README\n')
         f.write('include build-ansible.sh\n')
+        if release_notes:
+            f.write('include {0}\n'.format(release_notes.changelog_filename))
+            f.write('include {0}\n'.format(release_notes.porting_guide_filename))
         if debian:
             f.write('include debian/*\n')
         f.write('recursive-include ansible_collections/ **\n')
@@ -92,9 +99,9 @@ def write_setup(acd_version, ansible_base_version, collection_deps, package_dir)
 
 
 def write_python_build_files(acd_version, ansible_base_version, collection_deps, package_dir,
-                             debian=False):
+                             release_notes: t.Optional[ReleaseNotes] = None, debian: bool = False):
     copy_boilerplate_files(package_dir)
-    write_manifest(package_dir, debian)
+    write_manifest(package_dir, release_notes, debian)
     write_setup(acd_version, ansible_base_version, collection_deps, package_dir)
 
 
@@ -162,30 +169,31 @@ def build_single_command():
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-<<<<<<< HEAD
+        # Download included collections
         included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
                                                              download_dir,
                                                              app_ctx.extra['collection_cache']))
-
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
-=======
-        # Download included collections
-        included_versions = asyncio.run(
-            download_collections(deps, download_dir, args.collection_cache))
 
         new_dependencies = DependencyFileData(
             str(args.acd_version),
             str(ansible_base_version),
             {collection: str(version) for collection, version in included_versions.items()})
 
+        # Get changelog and porting guide data
+        deps_dir = os.path.dirname(os.path.join(args.dest_dir, args.deps_file))
+        changelog = get_changelog(
+            args.acd_version,
+            deps_dir=deps_dir,
+            deps_data=[new_dependencies],
+            collection_cache=args.collection_cache)
+
         # Create package and collections directories
-        package_dir = os.path.join(tmp_dir, f'ansible-{args.acd_version}')
->>>>>>> 7a0a573... Improve comments, fix type bugs that pyre missed.
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
 
-<<<<<<< HEAD
+        # Install collections
         # TODO: PY3.8:
         # collections_to_install = [p for f in os.listdir(download_dir)
         #                           if os.path.isfile(p := os.path.join(download_dir, f))]
@@ -196,6 +204,12 @@ def build_single_command():
                 collections_to_install.append(path)
 
         asyncio.run(install_together(collections_to_install, ansible_collections_dir))
+
+        # Compose and write release notes
+        release_notes = ReleaseNotes.build(changelog)
+        release_notes.write_to(package_dir)
+
+        # Write build scripts and files
         write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
         write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version, '',
                                  package_dir, app_ctx.extra['debian'])
@@ -205,28 +219,10 @@ def build_single_command():
 
     deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(app_ctx.extra['acd_version'], ansible_base_version, included_versions)
-=======
-        # Install collections
-        collections_to_install = [p for f in os.listdir(download_dir)
-                                  if os.path.isfile(p := os.path.join(download_dir, f))]
-        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
-
-        # Write build scripts and files
-        write_build_script(args.acd_version, ansible_base_version, package_dir)
-        write_python_build_files(args.acd_version, ansible_base_version, '',
-                                 package_dir, args.debian)
-        if args.debian:
-            write_debian_directory(args.acd_version, package_dir)
-        make_dist(package_dir, args.dest_dir)
-
-    deps_filename = os.path.join(args.dest_dir, args.deps_file)
-    deps_file = DepsFile(deps_filename)
     deps_file.write(
         new_dependencies.ansible_version,
         new_dependencies.ansible_base_version,
         new_dependencies.deps)
->>>>>>> 7a0a573... Improve comments, fix type bugs that pyre missed.
 
     return 0
 

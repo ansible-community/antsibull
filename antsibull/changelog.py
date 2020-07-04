@@ -330,17 +330,29 @@ class Changelog:
 
 
 def get_changelog(
-        acd_version: PypiVer, deps_dir: str, collection_cache: t.Optional[str]
+        acd_version: PypiVer,
+        deps_dir: t.Optional[str],
+        deps_data: t.Optional[t.List[DependencyFileData]] = None,
+        collection_cache: t.Optional[str] = None,
         ) -> Changelog:
+    dependencies: t.Dict[str, DependencyFileData] = {}
+    if deps_dir is not None:
+        for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
+            deps_file = DepsFile(path)
+            deps = deps_file.parse()
+            version = PypiVer(deps.ansible_version)
+            if version > acd_version:
+                print(f"Ignoring {path}, since {deps.ansible_version} is newer than {acd_version}")
+            dependencies[deps.ansible_version] = deps
+    if deps_data:
+        for deps in deps_data:
+            dependencies[deps.ansible_version] = deps
+
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.List[t.Tuple[str, PypiVer, DependencyFileData]] = []
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
-    for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
-        deps_file = DepsFile(path)
-        deps = deps_file.parse()
+    for deps in dependencies.values():
         version = PypiVer(deps.ansible_version)
-        if version > acd_version:
-            print(f"Ignoring {path}, since {deps.ansible_version} is newer than {acd_version}")
         versions.append((deps.ansible_version, version, deps))
         base_versions[version] = deps.ansible_base_version
         for collection_name, collection_version in deps.deps.items():

@@ -202,7 +202,7 @@ def insert_after_heading(lines: t.List[str], content: str):
                 return
 
 
-class Documentation:
+class ReleaseNotes:
     changelog_filename: str
     changelog_bytes: bytes
 
@@ -254,30 +254,31 @@ class Documentation:
         return builder.generate().encode('utf-8')
 
     @staticmethod
-    def build(changelog: Changelog) -> 'Documentation':
-        return Documentation(
+    def build(changelog: Changelog) -> 'ReleaseNotes':
+        return ReleaseNotes(
             f"CHANGELOG-v{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
-            Documentation._get_changelog_bytes(changelog),
+            ReleaseNotes._get_changelog_bytes(changelog),
             f"porting_guide_{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
-            Documentation._get_porting_guide_bytes(changelog),
+            ReleaseNotes._get_porting_guide_bytes(changelog),
         )
+
+    def write_to(self, dest_dir: str) -> None:
+        path = os.path.join(dest_dir, self.changelog_filename)
+        with open(path, 'wb') as changelog_fd:
+            changelog_fd.write(self.changelog_bytes)
+
+        path = os.path.join(dest_dir, self.porting_guide_filename)
+        with open(path, 'wb') as porting_guide_fd:
+            porting_guide_fd.write(self.porting_guide_bytes)
 
 
 def build_changelog(args: t.Any):
-    '''Create documentation CLI command.'''
+    '''Create changelog and porting guide CLI command.'''
     acd_version: PypiVer = args.acd_version
     deps_dir: str = args.deps_dir
     dest_dir: str = args.dest_dir
     collection_cache: t.Optional[str] = args.collection_cache
 
-    changelog = get_changelog(acd_version, deps_dir, collection_cache)
+    changelog = get_changelog(acd_version, deps_dir=deps_dir, collection_cache=collection_cache)
 
-    documentation = Documentation.build(changelog)
-
-    path = os.path.join(dest_dir, documentation.changelog_filename)
-    with open(path, 'wb') as changelog_fd:
-        changelog_fd.write(documentation.changelog_bytes)
-
-    path = os.path.join(dest_dir, documentation.porting_guide_filename)
-    with open(path, 'wb') as porting_guide_fd:
-        porting_guide_fd.write(documentation.porting_guide_bytes)
+    ReleaseNotes.build(changelog).write_to(dest_dir)
