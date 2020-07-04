@@ -16,6 +16,7 @@ from packaging.version import Version as PypiVer
 
 from . import app_context
 from .compat import best_get_loop
+from .utils.http import retry_get
 
 if t.TYPE_CHECKING:
     import aiohttp.client
@@ -57,7 +58,7 @@ class AnsibleBasePyPiClient:
         """
         # Retrieve the ansible-base package info from pypi
         query_url = urljoin(self.pypi_server_url, 'pypi/ansible-base/json')
-        async with self.aio_session.get(query_url) as response:
+        async with await retry_get(self.aio_session, query_url) as response:
             pkg_info = await response.json()
         return pkg_info
 
@@ -104,7 +105,7 @@ class AnsibleBasePyPiClient:
                                  ' exist on {self.pypi_server_url}')
 
         tar_filename = os.path.join(download_dir, tar_filename)
-        async with self.aio_session.get(pypi_url) as response:
+        async with await retry_get(self.aio_session, pypi_url) as response:
             async with aiofiles.open(tar_filename, 'wb') as f:
                 lib_ctx = app_context.lib_ctx.get()
                 # TODO: PY3.8: while chunk := await response.read(lib_ctx.chunksize):

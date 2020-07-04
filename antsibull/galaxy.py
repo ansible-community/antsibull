@@ -13,6 +13,7 @@ import semantic_version as semver
 
 from . import app_context
 from .hashing import verify_hash
+from .utils.http import retry_get
 
 # The type checker can handle finding aiohttp.client but flake8 cannot :-(
 if t.TYPE_CHECKING:
@@ -71,7 +72,8 @@ class GalaxyClient:
         :arg version_url: url to the page to retrieve.
         :returns: List of the all the versions of the collection.
         """
-        async with self.aio_session.get(versions_url, params=self.params) as response:
+        async with await retry_get(self.aio_session, versions_url, params=self.params,
+                                   acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {versions_url}')
             collection_info = await response.json()
@@ -114,7 +116,8 @@ class GalaxyClient:
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server, f'api/v2/collections/{collection}/')
 
-        async with self.aio_session.get(galaxy_url, params=self.params) as response:
+        async with await retry_get(self.aio_session, galaxy_url, params=self.params,
+                                   acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {galaxy_url}')
             collection_info = await response.json()
@@ -142,7 +145,8 @@ class GalaxyClient:
         galaxy_url = urljoin(self.galaxy_server,
                              f'api/v2/collections/{collection}/versions/{version}/')
 
-        async with self.aio_session.get(galaxy_url, params=self.params) as response:
+        async with await retry_get(self.aio_session, galaxy_url, params=self.params,
+                                   acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {galaxy_url}')
             collection_info = await response.json()
@@ -199,7 +203,8 @@ class CollectionDownloader(GalaxyClient):
                     shutil.copyfile(cached_copy, download_filename)
                 return download_filename
 
-        async with self.aio_session.get(release_url) as response:
+        async with await retry_get(self.aio_session, release_url,
+                                   acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {release_url}')
 
