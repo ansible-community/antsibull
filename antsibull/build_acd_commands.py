@@ -21,7 +21,7 @@ from packaging.version import Version as PypiVer
 
 from . import app_context
 from .collections import install_separately, install_together
-from .dependency_files import BuildFile, DepsFile
+from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader
 
 
@@ -162,15 +162,30 @@ def build_single_command():
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
+<<<<<<< HEAD
         included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
                                                              download_dir,
                                                              app_ctx.extra['collection_cache']))
 
         package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
+=======
+        # Download included collections
+        included_versions = asyncio.run(
+            download_collections(deps, download_dir, args.collection_cache))
+
+        new_dependencies = DependencyFileData(
+            str(args.acd_version),
+            str(ansible_base_version),
+            {collection: str(version) for collection, version in included_versions.items()})
+
+        # Create package and collections directories
+        package_dir = os.path.join(tmp_dir, f'ansible-{args.acd_version}')
+>>>>>>> 7a0a573... Improve comments, fix type bugs that pyre missed.
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
 
+<<<<<<< HEAD
         # TODO: PY3.8:
         # collections_to_install = [p for f in os.listdir(download_dir)
         #                           if os.path.isfile(p := os.path.join(download_dir, f))]
@@ -191,6 +206,27 @@ def build_single_command():
     deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     deps_file.write(app_ctx.extra['acd_version'], ansible_base_version, included_versions)
+=======
+        # Install collections
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
+        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
+
+        # Write build scripts and files
+        write_build_script(args.acd_version, ansible_base_version, package_dir)
+        write_python_build_files(args.acd_version, ansible_base_version, '',
+                                 package_dir, args.debian)
+        if args.debian:
+            write_debian_directory(args.acd_version, package_dir)
+        make_dist(package_dir, args.dest_dir)
+
+    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+    deps_file = DepsFile(deps_filename)
+    deps_file.write(
+        new_dependencies.ansible_version,
+        new_dependencies.ansible_base_version,
+        new_dependencies.deps)
+>>>>>>> 7a0a573... Improve comments, fix type bugs that pyre missed.
 
     return 0
 
