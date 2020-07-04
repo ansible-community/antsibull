@@ -13,8 +13,11 @@ from packaging.version import Version as PypiVer
 from antsibull_changelog.rst import RstBuilder
 
 from .changelog import (
-    ChangelogEntry, CollectionChangelogCollector, AnsibleBaseChangelogCollector,
-    get_changelog_data,
+    Changelog,
+    ChangelogEntry,
+    CollectionChangelogCollector,
+    AnsibleBaseChangelogCollector,
+    get_changelog,
 )
 
 
@@ -121,18 +124,6 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
                                     collection_version, prev_collection_version)
 
 
-def write_changelog(path: str, acd_version: PypiVer, changelog: t.List[ChangelogEntry]):
-    builder = RstBuilder()
-    builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Release Notes")
-    builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
-
-    for changelog_entry in changelog:
-        append_changelog(builder, changelog_entry)
-
-    with open(path, 'wb') as changelog_fd:
-        changelog_fd.write(builder.generate().encode('utf-8'))
-
-
 def append_porting_guide_section(builder: RstBuilder, changelog_entry: ChangelogEntry,
                                  maybe_add_title: t.Generator[t.List[None], None, None],
                                  section: str) -> None:
@@ -211,40 +202,82 @@ def insert_after_heading(lines: t.List[str], content: str):
                 return
 
 
-def write_porting_guide(path: str, acd_version: PypiVer,
-                        porting_guide: t.List[ChangelogEntry],
-                        base_collector: AnsibleBaseChangelogCollector):
-    builder = RstBuilder()
-    base_porting_guide = base_collector.porting_guide
-    if base_porting_guide:
-        lines = base_porting_guide.decode('utf-8').splitlines()
-        lines.append('')
-        # insert_after_heading(lines, '\n.. contents::\n  :local:\n  :depth: 2')
-        for line in lines:
-            builder.add_raw_rst(line)
-    else:
-        builder.add_raw_rst(f".. _porting_{acd_version.major}.{acd_version.minor}_guide:\n")
-        builder.set_title(f"Ansible {acd_version.major}.{acd_version.minor} Porting Guide")
+class Documentation:
+    changelog_filename: str
+    changelog_bytes: bytes
+
+    porting_guide_filename: str
+    porting_guide_bytes: bytes
+
+    def __init__(self, changelog_filename: str, changelog_bytes: bytes,
+                 porting_guide_filename: str, porting_guide_bytes: bytes):
+        self.changelog_filename = changelog_filename
+        self.changelog_bytes = changelog_bytes
+
+        self.porting_guide_filename = porting_guide_filename
+        self.porting_guide_bytes = porting_guide_bytes
+
+    @staticmethod
+    def _get_changelog_bytes(changelog: Changelog) -> bytes:
+        builder = RstBuilder()
+        builder.set_title(
+            f"Ansible {changelog.acd_version.major}.{changelog.acd_version.minor} Release Notes")
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-    for porting_guide_entry in porting_guide:
-        append_porting_guide(builder, porting_guide_entry)
+        for changelog_entry in changelog.entries:
+            append_changelog(builder, changelog_entry)
 
+        return builder.generate().encode('utf-8')
+
+    @staticmethod
+    def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
+        builder = RstBuilder()
+        base_porting_guide = changelog.base_collector.porting_guide
+        if base_porting_guide:
+            lines = base_porting_guide.decode('utf-8').splitlines()
+            lines.append('')
+            # insert_after_heading(lines, '\n.. contents::\n  :local:\n  :depth: 2')
+            for line in lines:
+                builder.add_raw_rst(line)
+        else:
+            builder.add_raw_rst(
+                f".. _porting_{changelog.acd_version.major}."
+                f"{changelog.acd_version.minor}_guide:\n")
+            builder.set_title(
+                f"Ansible {changelog.acd_version.major}.{changelog.acd_version.minor}"
+                f" Porting Guide")
+            builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
+
+        for porting_guide_entry in changelog.entries:
+            append_porting_guide(builder, porting_guide_entry)
+
+        return builder.generate().encode('utf-8')
+
+    @staticmethod
+    def build(changelog: Changelog) -> 'Documentation':
+        return Documentation(
+            f"CHANGELOG-v{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
+            Documentation._get_changelog_bytes(changelog),
+            f"porting_guide_{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
+            Documentation._get_porting_guide_bytes(changelog),
+        )
+
+
+def build_changelog(args: t.Any):
+    '''Create documentation CLI command.'''
+    acd_version: PypiVer = args.acd_version
+    deps_dir: str = args.deps_dir
+    dest_dir: str = args.dest_dir
+    collection_cache: t.Optional[str] = args.collection_cache
+
+    changelog = get_changelog(acd_version, deps_dir, collection_cache)
+
+    documentation = Documentation.build(changelog)
+
+    path = os.path.join(dest_dir, documentation.changelog_filename)
+    with open(path, 'wb') as changelog_fd:
+        changelog_fd.write(documentation.changelog_bytes)
+
+    path = os.path.join(dest_dir, documentation.porting_guide_filename)
     with open(path, 'wb') as porting_guide_fd:
-        porting_guide_fd.write(builder.generate().encode('utf-8'))
-
-
-def build_changelog(args):
-    acd_version = args.acd_version
-    changelog, base_collector = get_changelog_data(
-        acd_version, args.deps_dir, args.collection_cache)
-
-    changelog_filename = f"CHANGELOG-v{acd_version.major}.{acd_version.minor}.rst"
-    write_changelog(
-        os.path.join(args.dest_dir, changelog_filename),
-        acd_version, changelog)
-
-    porting_guide_filename = f"porting_guide_{acd_version.major}.{acd_version.minor}.rst"
-    write_porting_guide(
-        os.path.join(args.dest_dir, porting_guide_filename),
-        acd_version, changelog, base_collector)
+        porting_guide_fd.write(documentation.porting_guide_bytes)

@@ -29,28 +29,6 @@ from .dependency_files import DepsFile, DependencyFileData
 from .galaxy import CollectionDownloader
 
 
-async def download_collections(deps, download_dir, collection_cache=None):
-    requestors = {}
-    async with aiohttp.ClientSession() as aio_session:
-        async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
-            downloader = CollectionDownloader(aio_session, download_dir,
-                                              collection_cache=collection_cache)
-            for collection_name, version_spec in deps.items():
-                requestors[collection_name] = await pool.spawn(
-                    downloader.download_latest_matching(collection_name, version_spec))
-
-            included_versions = {}
-            responses = await asyncio.gather(*requestors.values())
-
-    # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
-    # used requestors.values() to generate responses, requestors and responses therefor have
-    # a matching order.
-    for collection_name, results in zip(requestors, responses):
-        included_versions[collection_name] = results.version
-
-    return included_versions
-
-
 def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> t.Optional[bytes]:
     with tarfile.open(tarball_path, "r:gz") as tar:
         for file in tar:
@@ -337,9 +315,23 @@ class ChangelogEntry:
                 collector, collection_version, prev_collection_version))
 
 
-def get_changelog_data(
-        acd_version: PypiVer, deps_dir: str, collection_cache: str
-        ) -> t.Tuple[t.List[ChangelogEntry], AnsibleBaseChangelogCollector]:
+class Changelog:
+    acd_version: PypiVer
+    entries: t.List[ChangelogEntry]
+    base_collector: AnsibleBaseChangelogCollector
+
+    def __init__(self,
+                 acd_version: PypiVer,
+                 entries: t.List[ChangelogEntry],
+                 base_collector: AnsibleBaseChangelogCollector):
+        self.acd_version = acd_version
+        self.entries = entries
+        self.base_collector = base_collector
+
+
+def get_changelog(
+        acd_version: PypiVer, deps_dir: str, collection_cache: t.Optional[str]
+        ) -> Changelog:
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.List[t.Tuple[str, PypiVer, DependencyFileData]] = []
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
@@ -376,4 +368,4 @@ def get_changelog_data(
             base_versions, versions_per_collection,
             base_collector, collectors))
 
-    return changelog, base_collector
+    return Changelog(acd_version, changelog, base_collector)
