@@ -38,7 +38,6 @@ def still_relevant(version, cutoff=TOO_OLD_TO_BE_NOTABLE):
     if version == 'historical':
         return False
 
-    # In case it was specified as a string or float in yaml
     try:
         version = LooseVersion(version)
     except ValueError as e:

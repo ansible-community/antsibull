@@ -25,8 +25,8 @@ def detect_bad_upgrade():
             ### ERROR ###
 
             The currently installed ansible is of an unknown version.  Since upgrading directly
-            from ansible-2.9 or less to ansible-2.10 with pip is unsupported, please uninstall
-            the old version and install the new version:
+            from ansible-2.9 or less to ansible-2.10 with pip is known to cause problems, please
+            uninstall the old version and install the new version:
 
                 pip uninstall ansible
                 pip install ansible
@@ -52,7 +52,7 @@ def detect_bad_upgrade():
             ### ERROR ###
 
             Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is
-            unsupported.  Please uninstall the old version and install the new version:
+            known to cause problems.  Please uninstall the old version and install the new version:
 
                 pip uninstall ansible
                 pip install ansible
