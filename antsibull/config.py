@@ -72,20 +72,34 @@ class LoggingModel(BaseModel):
 
 
 #: Default logging configuration
-DEFAULT_LOGGING_CONFIG = LoggingModel.parse_obj({'version': '1.0',
-                                                 'outputs': {
-                                                     'logfile': {
-                                                         'output': 'twiggy.outputs.StreamOutput'
-                                                     }
-                                                 },
-                                                 'emitters': {
-                                                     'all': {
-                                                         'level': 'WARNING',
-                                                         'output_name': 'logfile',
-                                                         'filters': []
-                                                     }
-                                                 }
-                                                 })
+DEFAULT_LOGGING_CONFIG = LoggingModel.parse_obj(
+    {'version': '1.0',
+     'outputs': {
+         'logfile': {
+             'output': 'twiggy.outputs.FileOutput',
+             'args': [
+                 '/srv/ansible/antsibull.log'
+             ]
+         },
+         'stderr': {
+             'output': 'twiggy.outputs.StreamOutput'
+         },
+     },
+     'emitters': {
+         'all': {
+             'level': 'WARNING',
+             'output_name': 'logfile',
+             'filters': []
+         },
+         'plugin_problems': {
+             'level': 'ERROR',
+             'output_name': 'stderr',
+             'filters': [
+                 {'filter': 'antsibull.logging.plugin_filter'}
+             ]
+         },
+     }
+     })
 
 
 class ConfigModel(BaseModel):
