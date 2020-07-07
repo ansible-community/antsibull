@@ -15,6 +15,10 @@ from jinja2 import Template
 
 from . import app_context
 from .jinja2.environment import doc_environment
+from .logging import log
+
+
+mlog = log.fields(mod=__name__)
 
 #: Mapping of plugins to nonfatal errors.  This is the type to use when accepting the plugin.
 #: The mapping is of plugin_type: plugin_name: [error_msgs]
@@ -44,15 +48,29 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
         :file:`ansible-checkout/docs/docsite/rst/`.  The directory structure underneath this
         directory will be created if needed.
     """
+    flog = mlog.fields(func='write_rst')
+    flog.debug('Enter')
+
     namespace, collection = collection_name.split('.')
     plugin_name = '.'.join((collection_name, plugin_short_name))
 
     if not plugin_record:
+        flog.fields(plugin_type=plugin_type,
+                    plugin_name=plugin_name,
+                    nonfatal_errors=nonfatal_errors
+                    ).error('{plugin_name} did not return correct DOCUMENTATION.  An error page'
+                            ' will be generated.', plugin_name=plugin_name)
         plugin_contents = error_tmpl.render(
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
             nonfatal_errors=nonfatal_errors)
     else:
+        if nonfatal_errors:
+            flog.fields(plugin_type=plugin_type,
+                        plugin_name=plugin_name,
+                        nonfatal_errors=nonfatal_errors
+                        ).error('{plugin_name} did not return correct RETURN or EXAMPLES.',
+                                plugin_name=plugin_name)
         plugin_contents = plugin_tmpl.render(
             collection=collection_name,
             plugin_type=plugin_type,
@@ -71,6 +89,8 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
 
     async with aiofiles.open(plugin_file, 'w') as f:
         await f.write(plugin_contents)
+
+    flog.debug('Leave')
 
 
 async def output_all_plugin_rst(collection_info: CollectionInfoT,
@@ -163,6 +183,9 @@ async def output_indexes(collection_info: CollectionInfoT,
         collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     """
+    flog = mlog.fields(func='output_indexes')
+    flog.debug('Enter')
+
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
     collection_list_tmpl = env.get_template('list_of_collections.rst.j2')
@@ -172,6 +195,9 @@ async def output_indexes(collection_info: CollectionInfoT,
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         collection_toplevel = os.path.join(dest_dir, 'collections')
+        flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+            'collection_toplevel exists?')
+        os.mkdir(collection_toplevel)
         writers.append(await pool.spawn(
             write_collection_list(collection_info.keys(), collection_list_tmpl,
                                   collection_toplevel)))
@@ -183,3 +209,5 @@ async def output_indexes(collection_info: CollectionInfoT,
                                    collection_dir)))
 
         await asyncio.gather(*writers)
+
+    flog.debug('Leave')

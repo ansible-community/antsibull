@@ -71,4 +71,16 @@ log.min_level = twiggy.levels.DISABLED
 mlog = log.fields(mod=__name__)
 mlog.debug('logging loaded')
 
-__all__ = ('log',)
+
+def plugin_filter():
+    """
+    Filter out messages which come from plugin error output.
+
+    :arg msg: A :twiggy:obj:`twiggy.message.Message` object which would be filtered
+    """
+    def wrapped(msg):
+        return msg.fields['func'] == 'write_rst' and msg.fields['mod'] == 'antsibull.write_docs'
+    return wrapped
+
+
+__all__ = ('log', 'plugin_filter')
