@@ -13,21 +13,28 @@ def _dummy():
 
 
 if sys.version_info < (3, 7):
-    #: In Python3.7+, :python:meth:`asyncio.get_running_loop` is the preferred way to get the loop.
+    #: In Python3.7+, :python:func:`asyncio.get_running_loop` is the preferred way to get the loop.
     #: It gets the loop currently running.  When that's not available, we can use
-    #: :meth:`asyncio.get_event_loop` which gets the default loop.  These are close to the same in
-    #: our code since we use the default loop.  Just remember not to run it outside of an event
-    #: loop.
+    #: :pyhton:func:`asyncio.get_event_loop` which gets the default loop.  These are close to the
+    #: same in our code since we use the default loop.  Just remember not to run it outside of an
+    #: event loop.
     best_get_loop = asyncio.get_event_loop
+
     _loop = asyncio.get_event_loop()
-    #: In Python3.7+, :python:meth:`asyncio.run` is the preferred way to enter an asyncio event loop
+    #: In Python3.7+, :python:func:`asyncio.run` is the preferred way to enter an asyncio event loop
     #: and start to execute asynchronous code.  In earlier Pythons,
-    #: :python:meth:`run_until_complete` can be used in almost the same manner since we are using
+    #: :python:func:`run_until_complete` can be used in almost the same manner since we are using
     #: the default event loop.
     asyncio_run = _loop.run_until_complete
+
+    #: In Python3.7+, :python:func:`asyncio.create_task` is the preferred way to schedule additional
+    #: coroutines for execution.  In earlier Pythons, :python:func:`asyncio.ensure_future` can be
+    #: used, it's just not as readable.
+    create_task = asyncio.ensure_future
 else:
     best_get_loop = asyncio.get_running_loop
     asyncio_run = asyncio.run
+    create_task = asyncio.create_task
 
 
 __all__ = ('asyncio_run', 'best_get_loop')
