@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Dict, Union
 import sh
 
 from .. import app_context
-from ..compat import best_get_loop
+from ..compat import best_get_loop, create_task
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
@@ -184,7 +184,7 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
             max_workers = module_workers
         else:
             max_workers = other_workers
-        extractors[plugin_type] = asyncio.create_task(
+        extractors[plugin_type] = create_task(
             _get_plugin_info(plugin_type, venv_ansible_doc, max_workers))
 
     results = await asyncio.gather(*extractors.values(), return_exceptions=True)
