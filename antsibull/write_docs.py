@@ -193,11 +193,15 @@ async def output_indexes(collection_info: CollectionInfoT,
 
     writers = []
     lib_ctx = app_context.lib_ctx.get()
+
+    collection_toplevel = os.path.join(dest_dir, 'collections')
+    flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+        'collection_toplevel exists?')
+    # This is only safe because we made sure that the top of the directory tree we're writing to
+    # (docs/docsite/rst) is only writable by us.
+    os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        collection_toplevel = os.path.join(dest_dir, 'collections')
-        flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
-            'collection_toplevel exists?')
-        os.mkdir(collection_toplevel)
         writers.append(await pool.spawn(
             write_collection_list(collection_info.keys(), collection_list_tmpl,
                                   collection_toplevel)))
