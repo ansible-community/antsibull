@@ -63,6 +63,24 @@ class LogOutputModel(BaseModel):
     format: t.Union[str, t.Callable] = twiggy.formats.line_format
     kwargs: t.Mapping[str, t.Any] = {}
 
+    @p.validator('args')
+    def expand_home_dir_args(cls, args_field: t.MutableSequence,
+                             values: t.Mapping) -> t.MutableSequence:
+        """Expand tilde in the arguments of specific outputs."""
+        if values['output'] in ('twiggy.outputs.FileOutput', twiggy.outputs.FileOutput):
+            if args_field:
+                args_field[0] = os.path.expanduser(args_field[0])
+        return args_field
+
+    @p.validator('kwargs')
+    def expand_home_dir_kwargs(cls, kwargs_field: t.MutableMapping,
+                               values: t.Mapping) -> t.MutableMapping:
+        """Expand tilde in the keyword arguments of specific outputs."""
+        if values['output'] in ('twiggy.outputs.FileOutput', twiggy.outputs.FileOutput):
+            if 'name' in kwargs_field:
+                kwargs_field['name'] = os.path.expanduser(kwargs_field['name'])
+        return kwargs_field
+
 
 class LoggingModel(BaseModel):
     emitters: t.Optional[t.Dict[str, LogEmitterModel]] = {}
@@ -78,11 +96,12 @@ DEFAULT_LOGGING_CONFIG = LoggingModel.parse_obj(
          'logfile': {
              'output': 'twiggy.outputs.FileOutput',
              'args': [
-                 '/srv/ansible/antsibull.log'
+                 '~/antsibull.log'
              ]
          },
          'stderr': {
-             'output': 'twiggy.outputs.StreamOutput'
+             'output': 'twiggy.outputs.StreamOutput',
+             'format': 'twiggy.formats.shell_format'
          },
      },
      'emitters': {
