@@ -44,7 +44,7 @@ If you want logging but don't want to mess with it too deeply, you can use
         files and enters them.
     :WARNING: Something happened that was unexpected to the program but the user has a choice
         whether to address or not.  For instance, if the program fails to find a config file
-        in a default location but it will operate from hardcoded defaults in that case, this
+        in an expected location but it will operate from hardcoded defaults in that case, this
         would be a warning.
     :NOTICE: Something significant happened that would be important information for an end user.
         For instance, in a data processing pipeline, this could be used to record when each major
