@@ -4,6 +4,7 @@
             "doc": {
                 "aliases": [],
                 "author": [],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Lookup metadata for a playbook from the key value store in a Consul cluster. Values can be easily set in the kv store with simple rest commands",

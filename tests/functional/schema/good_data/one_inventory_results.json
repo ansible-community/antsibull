@@ -6,6 +6,7 @@
                 "author": [
                     "Sloane Hertel (@s-hertel)"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Get inventory hosts from Amazon Web Services EC2.",

@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Networking Team"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This eos plugin provides low level abstraction apis for sending and receiving CLI commands from Arista EOS network devices."

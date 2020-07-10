@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Core Team"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Task execution is as fast as possible per batch as defined by C(serial) (default all). Ansible will not wait for other hosts to finish the current task before queuing more tasks for other hosts. All hosts are still attempted for the current task, but it prevents blocking new tasks for hosts that have already finished.",

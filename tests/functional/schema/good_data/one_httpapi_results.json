@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Networking Team"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This HttpApi plugin provides methods to connect to Restconf API endpoints."

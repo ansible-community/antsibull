@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Core (@ansible-core)"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This cache uses JSON formatted, per host, files saved to the filesystem."
