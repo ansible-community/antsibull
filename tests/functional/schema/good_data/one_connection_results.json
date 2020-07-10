@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Networking Team"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This connection plugin provides a connection to remote devices over a HTTP(S)-based api."

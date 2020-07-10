@@ -4,6 +4,7 @@
             "doc": {
                 "aliases": [],
                 "author": [],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Ansible callback plugin for collecting the AWS actions completed by all boto3 modules using AnsibleAWSModule in a playbook. Botocore endpoint logs need to be enabled for those modules, which can be done easily by setting debug_botocore_endpoint_logs to True for group/aws using module_defaults."

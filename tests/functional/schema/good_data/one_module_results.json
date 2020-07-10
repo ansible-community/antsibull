@@ -7,6 +7,7 @@
                     "Ansible Core Team",
                     "Seth Vidal (@skvidal)"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Use variables to create new hosts and groups in inventory for use in later plays of the same playbook.",

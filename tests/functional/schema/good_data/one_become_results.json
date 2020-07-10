@@ -6,6 +6,7 @@
                 "author": [
                     "ansible (@core)"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This become plugins allows elevated permissions on a remote network device."

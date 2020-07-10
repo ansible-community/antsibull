@@ -4,6 +4,7 @@
             "doc": {
                 "aliases": [],
                 "author": [],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "Loads YAML vars into corresponding groups/hosts in group_vars/ and host_vars/ directories.",

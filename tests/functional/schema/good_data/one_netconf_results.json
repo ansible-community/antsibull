@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Networking Team"
                 ],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This iosxr plugin provides low level abstraction apis for sending and receiving netconf commands from Cisco iosxr network devices."

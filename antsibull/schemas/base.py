@@ -154,6 +154,9 @@ DATE_F = p.Field(default='', regex='^([0-9]{4}-[0-9]{2}-[0-9]{2})$')
 REQUIRED_COLLECTION_NAME_F = p.Field(..., regex='^([^.]+\\.[^.]+)$')
 COLLECTION_NAME_F = p.Field(default='', regex='^([^.]+\\.[^.]+)$')
 
+# As soon as we get 70026 backported, make this required (...)
+REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F = p.Field('', regex='^([^.]+\\.[^.]+)?$')
+
 #: Constrained string listing the possible types of a return field
 RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str)$')
 
@@ -388,6 +391,7 @@ class SeeAlsoLinkSchema(BaseModel):
 
 
 class DocSchema(BaseModel):
+    collection: str = REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F
     description: t.List[str]
     name: str
     short_description: str

@@ -4,6 +4,7 @@
             "doc": {
                 "aliases": [],
                 "author": [],
+                "collection": "",
                 "deprecated": {},
                 "description": [
                     "This shell plugin is the one you want to use on most Unix systems, it is the most compatible and widely installed shell."
