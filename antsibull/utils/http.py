@@ -21,7 +21,7 @@ async def retry_get(aio_session: 'aiohttp.client.ClientSession',
                     *args,
                     acceptable_error_codes: t.Optional[t.Iterable[int]] = None,
                     max_retries: int = 10,
-                    **kwargs):
+                    **kwargs) -> None:
     error_codes = []
     for retry in range(max_retries):
         response = await aio_session.get(*args, **kwargs)
