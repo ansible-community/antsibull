@@ -4,6 +4,7 @@
 """General functions for working with aiohttp."""
 
 import asyncio
+import contextlib
 import typing as t
 
 import aiohttp
@@ -17,21 +18,22 @@ def _format_call(command: str, args: t.Tuple[t.Any, ...], kwargs: t.Mapping[str,
     )
 
 
+@contextlib.asynccontextmanager
 async def retry_get(aio_session: 'aiohttp.client.ClientSession',
                     *args,
                     acceptable_error_codes: t.Optional[t.Iterable[int]] = None,
                     max_retries: int = 10,
-                    **kwargs) -> None:
+                    **kwargs) -> t.AsyncGenerator[aiohttp.ClientResponse, None]:
     error_codes = []
     for retry in range(max_retries):
-        response = await aio_session.get(*args, **kwargs)
-
-        status_code = response.status
-        if status_code < 400:
-            return response
-        if acceptable_error_codes is not None and status_code in acceptable_error_codes:
-            return response
-        response.close()
+        async with aio_session.get(*args, **kwargs) as response:
+            status_code = response.status
+            if status_code < 400:
+                yield response
+                return
+            if acceptable_error_codes is not None and status_code in acceptable_error_codes:
+                yield response
+                return
 
         error_codes.append(status_code)
 
