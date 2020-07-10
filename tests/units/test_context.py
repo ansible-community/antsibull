@@ -37,6 +37,7 @@ def test_default():
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 64
+    assert lib_ctx.max_retries == 10
 
     app_ctx = ap.app_ctx.get()
     assert app_ctx.extra == ap.ContextDict()
@@ -56,6 +57,7 @@ def test_create_contexts_with_cfg():
     assert lib_ctx.chunksize == 1
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 64
+    assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ap.ContextDict({'unknown': True})
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
@@ -64,7 +66,7 @@ def test_create_contexts_with_cfg():
 
 
 def test_create_contexts_with_args():
-    """Test that the creats_context function sets values from cli args"""
+    """Test that the create_context function sets values from cli args"""
     args = {'process_max': 2, 'pypi_url': 'https://test.pypi.org/', 'unknown': True}
     args = argparse.Namespace(**args)
     app_ctx, lib_ctx, args, cfg = ap.create_contexts(args=args)
@@ -75,6 +77,7 @@ def test_create_contexts_with_args():
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max == 2
     assert lib_ctx.thread_max == 64
+    assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ap.ContextDict({'unknown': True})
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
@@ -96,6 +99,7 @@ def test_create_contexts_with_args_and_cfg():
     assert lib_ctx.chunksize == 3
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 2
+    assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ap.ContextDict({'unknown': False, 'cfg': 1, 'args': 2})
     assert app_ctx.galaxy_url == 'https://dev.galaxy.ansible.com/'
@@ -117,6 +121,7 @@ def test_create_contexts_without_extra():
     assert lib_ctx.chunksize == 7
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 10
+    assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ap.ContextDict()
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
@@ -158,6 +163,7 @@ def test_context_overrides():
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 64
+    assert lib_ctx.max_retries == 10
 
 
 def test_manager_creates_new_context():
@@ -220,3 +226,4 @@ def test_app_and_lib_context():
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
     assert lib_ctx.thread_max == 64
+    assert lib_ctx.max_retries == 10

@@ -9,6 +9,8 @@ import typing as t
 
 import aiohttp
 
+from .. import app_context
+
 
 def _format_call(command: str, args: t.Tuple[t.Any, ...], kwargs: t.Mapping[str, t.Any]) -> str:
     arguments = [repr(a) for a in args] + ['{0}={1}'.format(k, repr(v)) for k, v in kwargs.items()]
@@ -22,8 +24,17 @@ def _format_call(command: str, args: t.Tuple[t.Any, ...], kwargs: t.Mapping[str,
 async def retry_get(aio_session: 'aiohttp.client.ClientSession',
                     *args,
                     acceptable_error_codes: t.Optional[t.Iterable[int]] = None,
-                    max_retries: int = 10,
+                    max_retries: t.Optional[int] = None,
                     **kwargs) -> t.AsyncGenerator[aiohttp.ClientResponse, None]:
+    # Handle default value for max_retries
+    lib_ctx = app_context.lib_ctx.get()
+    if max_retries is None:
+        max_retries = lib_ctx.max_retries
+
+    # Make sure max_retries is at least 1
+    max_retries = max(max_retries, 1)
+
+    # Run HTTP requests
     error_codes = []
     for retry in range(max_retries):
         async with aio_session.get(*args, **kwargs) as response:

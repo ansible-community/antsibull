@@ -132,6 +132,7 @@ class ConfigModel(BaseModel):
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
     thread_max: int = 80
+    max_retries: int = 10
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
