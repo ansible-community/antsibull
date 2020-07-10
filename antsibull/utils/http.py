@@ -55,6 +55,8 @@ async def retry_get(aio_session: 'aiohttp.client.ClientSession',
             status_code,
             ', finally failed.' if failed else ', retrying...'
         ))
+        if failed:
+            break
 
         await asyncio.sleep(retry * 0.5)
 
