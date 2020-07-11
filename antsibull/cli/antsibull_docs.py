@@ -208,6 +208,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     args: argparse.Namespace = parser.parse_args(args)
     flog.fields(args=args).debug('Arguments parsed')
 
+    if args.command is None:
+        parser.print_help()
+        raise InvalidArgumentError('Please specify a subcommand')
+
     # Validation and coercion
     normalize_common_options(args)
     _normalize_docs_options(args)
