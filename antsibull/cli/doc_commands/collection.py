@@ -44,4 +44,4 @@ def generate_docs() -> int:
 
     raise NotImplementedError('Priority to implement subcommands is stable, devel, plugin, and'
                               ' then collection commands. Only --use-current is implemented'
-                              ' for the collection command right now.')
+                              ' for the collection subcommand right now.')

@@ -19,14 +19,8 @@ from ..args import InvalidArgumentError, get_common_parser, normalize_common_opt
 from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import UnableToCheck, writable_via_acls
-from .doc_commands import (
-    collection,
-    current,
-    current_plugin,
-    devel,
-    plugin,
-    stable,
-)
+from ..docs_parsing.fqcn import is_fqcn
+from .doc_commands import collection, current, devel, plugin, stable
 
 
 mlog = log.fields(mod=__name__)
@@ -38,7 +32,6 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'current': current.generate_docs,
                                  'collection': collection.generate_docs,
                                  'plugin': plugin.generate_docs,
-                                 'current-plugin': current_plugin.generate_docs,
                                  }
 
 #: The filename for the file which lists raw collection names
@@ -100,7 +93,7 @@ def _normalize_stable_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_current_options(args: argparse.Namespace) -> None:
-    if args.command not in ('current', 'current-collection'):
+    if args.command != 'current':
         return
 
     if args.collection_dir is not None:
@@ -114,8 +107,10 @@ def _normalize_plugin_options(args: argparse.Namespace) -> None:
     if args.command != 'plugin':
         return
 
-    if not os.path.isfile(args.plugin):
-        raise InvalidArgumentError(f'The plugin file, {args.plugin}, must exist.')
+    for plugin in args.plugin:
+        if not is_fqcn(plugin) and not os.path.isfile(plugin):
+            raise InvalidArgumentError(f'The plugin, {plugin}, must be an existing file,'
+                                       f' or it must be a FQCN.')
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -202,22 +197,12 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                         parents=[docs_parser],
                                         description='Generate documentation for a single plugin')
     file_parser.add_argument(nargs=1, dest='plugin', action='store',
-                             help='A single file to document.')
+                             help='A single file to document. Either a path to a file, or a FQCN.'
+                             ' In the latter case, the plugin is assumed to be installed for'
+                             ' the current ansible version.')
     file_parser.add_argument('--plugin-type', action='store', default='module',
                              choices=DOCUMENTABLE_PLUGINS,
                              help='The type of the plugin')
-
-    current_file_parser = subparsers.add_parser('current-plugin',
-                                                parents=[common_parser],
-                                                description='Generate documentation for'
-                                                            ' a single plugin')
-    current_file_parser.add_argument(nargs=1, dest='plugin', action='store',
-                                     help='A single file to document.')
-    current_file_parser.add_argument('--plugin-type', action='store', default='module',
-                                     choices=DOCUMENTABLE_PLUGINS,
-                                     help='The type of the plugin')
-    current_file_parser.add_argument('--output', action='store', required=True,
-                                     help='The filename to write the result to')
 
     flog.debug('Argument parser setup')
 

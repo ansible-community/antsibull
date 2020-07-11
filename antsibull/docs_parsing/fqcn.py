@@ -23,6 +23,8 @@ import typing as t
 NAMESPACE_RE_STR = '[a-z0-9][a-z0-9_]+'
 #: Format of a FQCN
 FQCN_RE = re.compile(fr'({NAMESPACE_RE_STR})\.({NAMESPACE_RE_STR})\.(.*)')
+FQCN_STRICT_RE = re.compile(
+    fr'({NAMESPACE_RE_STR})\.({NAMESPACE_RE_STR})\.({NAMESPACE_RE_STR}(?:\.{NAMESPACE_RE_STR})*)')
 
 
 def get_fqcn_parts(fqcn: str) -> t.Tuple[str, str, str]:
@@ -37,3 +39,13 @@ def get_fqcn_parts(fqcn: str) -> t.Tuple[str, str, str]:
     if not match:
         raise ValueError(f'{fqcn} could not be parsed into fqcn parts')
     return match.groups()
+
+
+def is_fqcn(value: str) -> bool:
+    """
+    Return whether ``value`` is a Fully Qualified Collection Name (FQCN).
+
+    :arg value: The value to test.
+    :returns: ``True`` if the value is a FQCN, ``False`` if it is not.
+    """
+    return bool(FQCN_STRICT_RE.match(value))
