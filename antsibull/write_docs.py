@@ -30,7 +30,7 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
 async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
-                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: PluginErrorsT,
+                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                     plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
                     path_override: t.Optional[str] = None) -> None:
     """

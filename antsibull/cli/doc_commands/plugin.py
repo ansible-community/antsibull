@@ -83,11 +83,6 @@ def generate_docs() -> int:
     flog.debug('Finished parsing info from plugin')
 
     plugin_info, errors = normalize_plugin_info(plugin_type, plugin_info)
-    errors_info = {
-        plugin_type: {
-            plugin_name: errors,
-        }
-    }
     flog.debug('Finished normalizing data')
 
     # The cast is needed to make pyre happy. It seems to not being able to
@@ -109,7 +104,7 @@ def generate_docs() -> int:
 
     asyncio_run(write_rst(
         '.'.join([namespace, collection]), plugin, plugin_type,
-        plugin_info, errors_info, plugin_tmpl, error_tmpl, '',
+        plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path))
     flog.debug('Finished writing plugin docs')
 
