@@ -22,7 +22,6 @@ from ..filesystem import UnableToCheck, writable_via_acls
 from .doc_commands import (
     collection,
     current,
-    current_collection,
     current_plugin,
     devel,
     plugin,
@@ -38,7 +37,6 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'stable': stable.generate_docs,
                                  'current': current.generate_docs,
                                  'collection': collection.generate_docs,
-                                 'current-collection': current_collection.generate_docs,
                                  'plugin': plugin.generate_docs,
                                  'current-plugin': current_plugin.generate_docs,
                                  }
@@ -185,22 +183,17 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     collection_parser.add_argument('--collection-version', default='@latest',
                                    help='The version of the collection to document.  The special'
                                    ' version, "@latest" can be used to download and document the'
-                                   ' latest version from galaxy')
+                                   ' latest version from galaxy.')
+    collection_parser.add_argument('--use-current', action='store_true',
+                                   help='Assumes that all arguments are collection names, and'
+                                   ' these collections have been installed with the current'
+                                   ' version of ansible. Specified --collection-version will be'
+                                   ' ignored.')
     collection_parser.add_argument(nargs='+', dest='collections',
                                    help='One or more collections to document.  If the names are'
                                    ' directories on disk, they will be parsed as expanded'
                                    ' collections. Otherwise, if they could be collection'
-                                   ' names, they will be downloaded from galaxy')
-
-    current_collection_parser = subparsers.add_parser('current-collection',
-                                                      parents=[common_parser],
-                                                      description='Generate documentation for a'
-                                                      ' single currently installed collection')
-    current_collection_parser.add_argument('--collection-dir', required=True,
-                                           help='Path to the directory containing'
-                                                ' ansible_collections')
-    current_collection_parser.add_argument(nargs='+', dest='collections',
-                                           help='One or more collections to document.')
+                                   ' names, they will be downloaded from galaxy.')
 
     file_parser = subparsers.add_parser('plugin',
                                         parents=[docs_parser],

@@ -154,7 +154,7 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
 
 async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
-                                  collection_dir: str,
+                                  collection_dir: Optional[str],
                                   collection_names: Optional[List[str]] = None
                                   ) -> Dict[str, Dict[str, Any]]:
     """
@@ -162,6 +162,8 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
 
     :arg venv: A VenvRunner into which Ansible has been installed.
     :arg collection_dir: Directory in which the collections have been installed.
+                         If ``None``, the collections are assumed to be in the current
+                         search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
     :returns: A nested directory structure that looks like::
@@ -172,7 +174,12 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                  info.}
     """
     env = ANSIBLE_PATH_ENVIRON.copy()
-    env['ANSIBLE_COLLECTIONS_PATHS'] = collection_dir
+    if collection_dir is not None:
+        env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
+    else:
+        del env['ANSIBLE_COLLECTIONS_PATH']
+        if 'ANSIBLE_COLLECTIONS_PATH' in os.environ:
+            env['ANSIBLE_COLLECTIONS_PATH'] = os.environ['ANSIBLE_COLLECTIONS_PATH']
 
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
     # found as providers of extra plugins.

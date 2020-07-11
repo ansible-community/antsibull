@@ -216,7 +216,7 @@ def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
 
 
 def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
-                                      collection_dir: str,
+                                      collection_dir: t.Optional[str],
                                       dest_dir: str,
                                       flog,
                                       collection_names: t.Optional[t.List[str]] = None) -> None:
@@ -225,6 +225,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
 
     :arg venv: The venv in which ansible-base is installed.
     :arg collection_dir: The directory in which the collections have been installed.
+                         If ``None``, the collections are assumed to be in the current
+                         search path for Ansible.
     :arg dest_dir: The directory into which the documentation is written.
     :arg flog: A logger instance.
     :arg collection_names: Optional list of collection names. If specified, only documentation
