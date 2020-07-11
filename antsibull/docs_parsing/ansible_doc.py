@@ -9,7 +9,7 @@ import os
 import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 
 import sh
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 #: Clear Ansible environment variables that set paths where plugins could be found.
 ANSIBLE_PATH_ENVIRON: Dict[str, str] = os.environ.copy()
-ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATHS': '/dev/null',
+ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATH': '/dev/null',
                              'ANSIBLE_ACTION_PLUGINS': '/dev/null',
                              'ANSIBLE_CACHE_PLUGINS': '/dev/null',
                              'ANSIBLE_CALLBACK_PLUGINS': '/dev/null',
@@ -51,6 +51,12 @@ except KeyError:
     # We just wanted to make sure there was no PYTHONPATH set...
     # all python libs will come from the venv
     pass
+try:
+    del ANSIBLE_PATH_ENVIRON['ANSIBLE_COLLECTIONS_PATHS']
+except KeyError:
+    # ANSIBLE_COLLECTIONS_PATHS is the deprecated name replaced by
+    # ANSIBLE_COLLECTIONS_PATH
+    pass
 
 
 class ParsingError(Exception):
@@ -58,7 +64,8 @@ class ParsingError(Exception):
 
 
 async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
-                           max_workers: int) -> Dict[str, Any]:
+                           max_workers: int,
+                           collection_names: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     Retrieve info about all Ansible plugins of a particular type.
 
@@ -80,12 +87,24 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     :returns: Mapping of fqcn's to plugin_info.
     """
     # Get the list of plugins
-    ansible_doc_list_cmd = ansible_doc('--list', '--t', plugin_type, '--json')
+    ansible_doc_list_cmd_list = ['--list', '--t', plugin_type, '--json']
+    if collection_names and len(collection_names) == 1:
+        # Ansible-doc list allows to filter by one collection
+        ansible_doc_list_cmd_list.append(collection_names[0])
+    ansible_doc_list_cmd = ansible_doc(*ansible_doc_list_cmd_list)
     raw_plugin_list = ansible_doc_list_cmd.stdout.decode('utf-8', errors='surrogateescape')
     # Note: Keep ansible_doc_list_cmd around until we know if we need to use it in an error message.
     plugin_map = json.loads(_filter_non_json_lines(raw_plugin_list)[0])
     del raw_plugin_list
     del ansible_doc_list_cmd
+
+    # Filter plugin map
+    if collection_names is not None:
+        prefixes = ['{name}.'.format(name=collection) for collection in collection_names]
+        plugin_map = {
+            key: value for key, value in plugin_map.items()
+            if any(key.startswith(prefix) for prefix in prefixes)
+        }
 
     loop = best_get_loop()
 
@@ -140,13 +159,36 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
+def _get_environment(collection_dir: Optional[str]) -> Dict[str, str]:
+    env = ANSIBLE_PATH_ENVIRON.copy()
+    if collection_dir is not None:
+        env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
+    else:
+        # Copy ANSIBLE_COLLECTIONS_PATH and ANSIBLE_COLLECTIONS_PATHS from the
+        # original environment.
+        for env_var in ('ANSIBLE_COLLECTIONS_PATH', 'ANSIBLE_COLLECTIONS_PATHS'):
+            try:
+                del env[env_var]
+            except KeyError:
+                pass
+            if env_var in os.environ:
+                env[env_var] = os.environ[env_var]
+    return env
+
+
 async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
-                                  collection_dir: str) -> Dict[str, Dict[str, Any]]:
+                                  collection_dir: Optional[str],
+                                  collection_names: Optional[List[str]] = None
+                                  ) -> Dict[str, Dict[str, Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
     :arg venv: A VenvRunner into which Ansible has been installed.
     :arg collection_dir: Directory in which the collections have been installed.
+                         If ``None``, the collections are assumed to be in the current
+                         search path for Ansible.
+    :arg collection_names: Optional list of collections. If specified, will only collect
+                           information for plugins in these collections.
     :returns: A nested directory structure that looks like::
 
         plugin_type:
@@ -154,8 +196,7 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                 {information from ansible-doc --json.  See the ansible-doc documentation for more
                  info.}
     """
-    env = ANSIBLE_PATH_ENVIRON.copy()
-    env['ANSIBLE_COLLECTIONS_PATHS'] = collection_dir
+    env = _get_environment(collection_dir)
 
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
     # found as providers of extra plugins.
@@ -185,7 +226,7 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
         else:
             max_workers = other_workers
         extractors[plugin_type] = create_task(
-            _get_plugin_info(plugin_type, venv_ansible_doc, max_workers))
+            _get_plugin_info(plugin_type, venv_ansible_doc, max_workers, collection_names))
 
     results = await asyncio.gather(*extractors.values(), return_exceptions=True)
 

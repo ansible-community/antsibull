@@ -19,6 +19,7 @@ from ..args import InvalidArgumentError, get_common_parser, normalize_common_opt
 from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import UnableToCheck, writable_via_acls
+from ..docs_parsing.fqcn import is_fqcn
 from .doc_commands import collection, current, devel, plugin, stable
 
 
@@ -95,18 +96,20 @@ def _normalize_current_options(args: argparse.Namespace) -> None:
     if args.command != 'current':
         return
 
-    if not os.path.isdir(args.collection_dir) or not os.path.isdir(
-            os.path.join(args.collection_dir, 'ansible_collections')):
-        raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
-                                   ' a directory containing a subdirectory ansible_collections')
+    if args.collection_dir is not None:
+        if not os.path.isdir(os.path.join(args.collection_dir, 'ansible_collections')):
+            raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
+                                       ' a directory containing a subdirectory ansible_collections')
 
 
 def _normalize_plugin_options(args: argparse.Namespace) -> None:
     if args.command != 'plugin':
         return
 
-    if not os.path.isfile(args.plugin):
-        raise InvalidArgumentError(f'The plugin file, {args.plugin}, must exist.')
+    for plugin_name in args.plugin:
+        if not is_fqcn(plugin_name) and not os.path.isfile(plugin_name):
+            raise InvalidArgumentError(f'The plugin, {plugin_name}, must be an existing file,'
+                                       f' or it must be a FQCN.')
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -165,8 +168,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                            description='Generate documentation for the current'
                                            ' installed version of ansible and the current installed'
                                            ' collections')
-    current_parser.add_argument('--collection-dir', required=True,
-                                help='Path to the directory containing ansible_collections')
+    current_parser.add_argument('--collection-dir',
+                                help='Path to the directory containing ansible_collections. If not'
+                                ' specified, all collections in the currently configured ansible'
+                                ' search paths will be used')
 
     collection_parser = subparsers.add_parser('collection',
                                               parents=[docs_parser],
@@ -175,20 +180,27 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     collection_parser.add_argument('--collection-version', default='@latest',
                                    help='The version of the collection to document.  The special'
                                    ' version, "@latest" can be used to download and document the'
-                                   ' latest version from galaxy')
-    collection_parser.add_argument(nargs='+', dest='collections', action='append', default=[],
+                                   ' latest version from galaxy.')
+    collection_parser.add_argument('--use-current', action='store_true',
+                                   help='Assumes that all arguments are collection names, and'
+                                   ' these collections have been installed with the current'
+                                   ' version of ansible. Specified --collection-version will be'
+                                   ' ignored.')
+    collection_parser.add_argument(nargs='+', dest='collections',
                                    help='One or more collections to document.  If the names are'
                                    ' directories on disk, they will be parsed as expanded'
                                    ' collections. Otherwise, if they could be collection'
-                                   ' names, they will be downloaded from galaxy')
+                                   ' names, they will be downloaded from galaxy.')
 
     file_parser = subparsers.add_parser('plugin',
                                         parents=[docs_parser],
                                         description='Generate documentation for a single plugin')
     file_parser.add_argument(nargs=1, dest='plugin', action='store',
-                             choices=DOCUMENTABLE_PLUGINS,
-                             help='A single file to document.')
+                             help='A single file to document. Either a path to a file, or a FQCN.'
+                             ' In the latter case, the plugin is assumed to be installed for'
+                             ' the current ansible version.')
     file_parser.add_argument('--plugin-type', action='store', default='module',
+                             choices=DOCUMENTABLE_PLUGINS,
                              help='The type of the plugin')
 
     flog.debug('Argument parser setup')

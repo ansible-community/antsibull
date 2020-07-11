@@ -30,8 +30,9 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
 async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
-                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: PluginErrorsT,
-                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str) -> None:
+                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
+                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
+                    path_override: t.Optional[str] = None) -> None:
     """
     Write the rst page for one plugin.
 
@@ -80,12 +81,15 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
             returndocs=plugin_record['return'],
             nonfatal_errors=nonfatal_errors)
 
-    collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
-    # This is dangerous but the code that takes dest_dir from the user checks
-    # permissions on it to make it as safe as possible.
-    os.makedirs(collection_dir, mode=0o755, exist_ok=True)
+    if path_override is not None:
+        plugin_file = path_override
+    else:
+        collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
+        # This is dangerous but the code that takes dest_dir from the user checks
+        # permissions on it to make it as safe as possible.
+        os.makedirs(collection_dir, mode=0o755, exist_ok=True)
 
-    plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
+        plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
     async with aiofiles.open(plugin_file, 'w') as f:
         await f.write(plugin_contents)
@@ -174,10 +178,39 @@ async def write_plugin_lists(collection_name: str,
         await f.write(index_contents)
 
 
+async def output_collection_index(collection_info: CollectionInfoT,
+                                  dest_dir: str) -> None:
+    """
+    Generate top-level collection index page for the collections.
+
+    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
+        collection_name to short_description.
+    :arg dest_dir: The directory to place the documentation in.
+    """
+    flog = mlog.fields(func='output_collection_index')
+    flog.debug('Enter')
+
+    env = doc_environment(('antsibull.data', 'docsite'))
+    # Get the templates
+    collection_list_tmpl = env.get_template('list_of_collections.rst.j2')
+
+    collection_toplevel = os.path.join(dest_dir, 'collections')
+    flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+        'collection_toplevel exists?')
+    # This is only safe because we made sure that the top of the directory tree we're writing to
+    # (docs/docsite/rst) is only writable by us.
+    os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+
+    await write_collection_list(collection_info.keys(), collection_list_tmpl,
+                                collection_toplevel)
+
+    flog.debug('Leave')
+
+
 async def output_indexes(collection_info: CollectionInfoT,
                          dest_dir: str) -> None:
     """
-    Generate index pages for the collections.
+    Generate collection-level index pages for the collections.
 
     :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
         collection_name to short_description.
@@ -188,7 +221,6 @@ async def output_indexes(collection_info: CollectionInfoT,
 
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
-    collection_list_tmpl = env.get_template('list_of_collections.rst.j2')
     collection_plugins_tmpl = env.get_template('plugins_by_collection.rst.j2')
 
     writers = []
@@ -202,10 +234,6 @@ async def output_indexes(collection_info: CollectionInfoT,
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        writers.append(await pool.spawn(
-            write_collection_list(collection_info.keys(), collection_list_tmpl,
-                                  collection_toplevel)))
-
         for collection_name, plugin_maps in collection_info.items():
             collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
             writers.append(await pool.spawn(
