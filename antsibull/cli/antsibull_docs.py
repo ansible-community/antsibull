@@ -97,8 +97,7 @@ def _normalize_current_options(args: argparse.Namespace) -> None:
         return
 
     if args.collection_dir is not None:
-        if not os.path.isdir(args.collection_dir) or not os.path.isdir(
-                os.path.join(args.collection_dir, 'ansible_collections')):
+        if not os.path.isdir(os.path.join(args.collection_dir, 'ansible_collections')):
             raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
                                        ' a directory containing a subdirectory ansible_collections')
 
