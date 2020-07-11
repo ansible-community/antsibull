@@ -285,4 +285,14 @@ def build_changelog() -> int:
     changelog = get_changelog(acd_version, deps_dir=deps_dir, collection_cache=collection_cache)
 
     ReleaseNotes.build(changelog).write_to(dest_dir)
+
+    missing_changelogs = []
+    for collector in changelog.collection_collectors:
+        if collector.changelog is None:
+            missing_changelogs.append(collector.collection)
+    if missing_changelogs:
+        print(f"{len(missing_changelogs)} out of {len(changelog.collection_collectors)} collections"
+              f" have no compatible changelog:")
+        for changelog in missing_changelogs:
+            print(f"    {changelog}")
     return 0

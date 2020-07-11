@@ -320,14 +320,17 @@ class Changelog:
     acd_version: PypiVer
     entries: t.List[ChangelogEntry]
     base_collector: AnsibleBaseChangelogCollector
+    collection_collectors: t.List[CollectionChangelogCollector]
 
     def __init__(self,
                  acd_version: PypiVer,
                  entries: t.List[ChangelogEntry],
-                 base_collector: AnsibleBaseChangelogCollector):
+                 base_collector: AnsibleBaseChangelogCollector,
+                 collection_collectors: t.List[CollectionChangelogCollector]):
         self.acd_version = acd_version
         self.entries = entries
         self.base_collector = base_collector
+        self.collection_collectors = collection_collectors
 
 
 def get_changelog(
@@ -381,4 +384,4 @@ def get_changelog(
             base_versions, versions_per_collection,
             base_collector, collectors))
 
-    return Changelog(acd_version, changelog, base_collector)
+    return Changelog(acd_version, changelog, base_collector, collectors)
