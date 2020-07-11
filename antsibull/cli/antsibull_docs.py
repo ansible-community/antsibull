@@ -107,9 +107,9 @@ def _normalize_plugin_options(args: argparse.Namespace) -> None:
     if args.command != 'plugin':
         return
 
-    for plugin in args.plugin:
-        if not is_fqcn(plugin) and not os.path.isfile(plugin):
-            raise InvalidArgumentError(f'The plugin, {plugin}, must be an existing file,'
+    for plugin_name in args.plugin:
+        if not is_fqcn(plugin_name) and not os.path.isfile(plugin_name):
+            raise InvalidArgumentError(f'The plugin, {plugin_name}, must be an existing file,'
                                        f' or it must be a FQCN.')
 
 
