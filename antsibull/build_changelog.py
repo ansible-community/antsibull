@@ -22,7 +22,7 @@ from .changelog import (
 )
 
 
-def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
+def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     builder.add_section('Ansible Base', 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
@@ -52,7 +52,7 @@ def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: Changelo
 
 def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
                                 collector: CollectionChangelogCollector,
-                                collection_version: str, prev_collection_version: t.Optional[str]):
+                                collection_version: str, prev_collection_version: t.Optional[str]) -> None:
     if collector in changelog_entry.added_collections:
         builder.add_section(f"{collector.collection} (New)", 1)
         builder.add_raw_rst(f"The collection {collector.collection} was "
@@ -95,7 +95,7 @@ def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogE
             builder, release, start_level=1, add_version=False)
 
 
-def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry):
+def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
 
     if changelog_entry.removed_collections:
@@ -139,7 +139,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
             name: str,
             collector: t.Union[AnsibleBaseChangelogCollector, CollectionChangelogCollector],
             version: str,
-            prev_version: t.Optional[str]):
+            prev_version: t.Optional[str]) -> None:
         changelog = collector.changelog
         generator = collector.changelog_generator
         if not changelog or not generator:
@@ -166,8 +166,8 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
             collector.collection, collector, collection_version, prev_collection_version)
 
 
-def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry):
-    def add_title():
+def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    def add_title() -> None:
         builder.add_section('Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
         while True:
             yield
@@ -189,7 +189,7 @@ def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry):
         append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
 
 
-def insert_after_heading(lines: t.List[str], content: str):
+def insert_after_heading(lines: t.List[str], content: str) -> None:
     has_heading = False
     for index, line in enumerate(lines):
         if line.startswith('***') and line == '*' * len(line):
