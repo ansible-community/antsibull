@@ -54,11 +54,11 @@ def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogE
                                 collector: CollectionChangelogCollector,
                                 collection_version: str, prev_collection_version: t.Optional[str]):
     if collector in changelog_entry.added_collections:
-        builder.add_section(f"{collector.collection.title()} (New)", 1)
+        builder.add_section(f"{collector.collection} (New)", 1)
         builder.add_raw_rst(f"The collection {collector.collection} was "
                             f"added in Ansible {changelog_entry.version}.\n")
     else:
-        builder.add_section(collector.collection.title(), 1)
+        builder.add_section(collector.collection, 1)
         builder.add_raw_rst(f"Ansible {changelog_entry.version} contains "
                             f"{collector.collection} version {collection_version}.")
         if changelog_entry.prev_version:
