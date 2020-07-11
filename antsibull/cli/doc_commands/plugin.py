@@ -47,7 +47,7 @@ def generate_docs() -> int:
                                   ' then collection commands. Only the FQCN form is implemented'
                                   ' for the plugin subcommand right now.')
 
-    output_path = os.path.join(app_ctx.extra['dest_dir'], f'{plugin_name}.rst')
+    output_path = os.path.join(app_ctx.extra['dest_dir'], f'{plugin_name}_{plugin_type}.rst')
 
     try:
         namespace, collection, plugin = get_fqcn_parts(plugin_name)
