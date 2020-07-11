@@ -213,7 +213,7 @@ def build_single_command():
         # Write build scripts and files
         write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
         write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version, '',
-                                 package_dir, app_ctx.extra['debian'])
+                                 package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['acd_version'], package_dir)
         make_dist(package_dir, app_ctx.extra['dest_dir'])
