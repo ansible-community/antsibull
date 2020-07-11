@@ -167,7 +167,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' inside of --dest-dir')
 
     changelog_parser = subparsers.add_parser('build-changelog',
-                                             parents=[common_parser, cache_parser],
+                                             parents=[build_parser, cache_parser],
                                              description='Build the ACD changelog')
     changelog_parser.add_argument('--deps-dir', required=True,
                                   help='Directory which contains the versioning data')

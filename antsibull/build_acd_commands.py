@@ -175,17 +175,18 @@ def build_single_command():
                                                              app_ctx.extra['collection_cache']))
 
         new_dependencies = DependencyFileData(
-            str(args.acd_version),
+            str(app_ctx.extra["acd_version"]),
             str(ansible_base_version),
             {collection: str(version) for collection, version in included_versions.items()})
 
         # Get changelog and porting guide data
-        deps_dir = os.path.dirname(os.path.join(args.dest_dir, args.deps_file))
+        deps_dir = os.path.dirname(
+            os.path.join(app_ctx.extra["dest_dir"], app_ctx.extra["deps_file"]))
         changelog = get_changelog(
-            args.acd_version,
+            app_ctx.extra["acd_version"],
             deps_dir=deps_dir,
             deps_data=[new_dependencies],
-            collection_cache=args.collection_cache)
+            collection_cache=app_ctx.extra["collection_cache"])
 
         # Create package and collections directories
         package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')

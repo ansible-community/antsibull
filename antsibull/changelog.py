@@ -23,8 +23,8 @@ from antsibull_changelog.config import PathsConfig, CollectionDetails, Changelog
 from antsibull_changelog.changes import ChangesData
 from antsibull_changelog.changelog_generator import ChangelogGenerator
 
+from . import app_context
 from .ansible_base import get_ansible_base
-from .constants import THREAD_MAX
 from .dependency_files import DepsFile, DependencyFileData
 from .galaxy import CollectionDownloader
 
@@ -227,9 +227,10 @@ class AnsibleBaseChangelogCollector:
 async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                              base_collector: AnsibleBaseChangelogCollector,
                              collection_cache: t.Optional[str]):
+    lib_ctx = app_context.lib_ctx.get()
     with tempfile.TemporaryDirectory() as tmp_dir:
         async with aiohttp.ClientSession() as aio_session:
-            async with asyncio_pool.AioPool(size=THREAD_MAX) as pool:
+            async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
                 downloader = CollectionDownloader(aio_session, tmp_dir,
                                                   collection_cache=collection_cache)
 

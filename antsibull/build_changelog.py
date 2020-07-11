@@ -12,6 +12,7 @@ from packaging.version import Version as PypiVer
 
 from antsibull_changelog.rst import RstBuilder
 
+from . import app_context
 from .changelog import (
     Changelog,
     ChangelogEntry,
@@ -272,13 +273,16 @@ class ReleaseNotes:
             porting_guide_fd.write(self.porting_guide_bytes)
 
 
-def build_changelog(args: t.Any):
+def build_changelog() -> int:
     '''Create changelog and porting guide CLI command.'''
-    acd_version: PypiVer = args.acd_version
-    deps_dir: str = args.deps_dir
-    dest_dir: str = args.dest_dir
-    collection_cache: t.Optional[str] = args.collection_cache
+    app_ctx = app_context.app_ctx.get()
+
+    acd_version: PypiVer = app_ctx.extra['acd_version']
+    deps_dir: str = app_ctx.extra['deps_dir']
+    dest_dir: str = app_ctx.extra['dest_dir']
+    collection_cache: t.Optional[str] = app_ctx.extra['collection_cache']
 
     changelog = get_changelog(acd_version, deps_dir=deps_dir, collection_cache=collection_cache)
 
     ReleaseNotes.build(changelog).write_to(dest_dir)
+    return 0
