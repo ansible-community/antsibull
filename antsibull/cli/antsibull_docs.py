@@ -103,10 +103,11 @@ def _normalize_current_options(args: argparse.Namespace) -> None:
     if args.command not in ('current', 'current-collection'):
         return
 
-    if not os.path.isdir(args.collection_dir) or not os.path.isdir(
-            os.path.join(args.collection_dir, 'ansible_collections')):
-        raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
-                                   ' a directory containing a subdirectory ansible_collections')
+    if args.collection_dir is not None:
+        if not os.path.isdir(args.collection_dir) or not os.path.isdir(
+                os.path.join(args.collection_dir, 'ansible_collections')):
+            raise InvalidArgumentError(f'The collection directory, {args.collection_dir}, must be'
+                                       ' a directory containing a subdirectory ansible_collections')
 
 
 def _normalize_plugin_options(args: argparse.Namespace) -> None:
@@ -173,8 +174,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                            description='Generate documentation for the current'
                                            ' installed version of ansible and the current installed'
                                            ' collections')
-    current_parser.add_argument('--collection-dir', required=True,
-                                help='Path to the directory containing ansible_collections')
+    current_parser.add_argument('--collection-dir',
+                                help='Path to the directory containing ansible_collections. If not'
+                                ' specified, all collections in the currently configured ansible'
+                                ' search paths will be used')
 
     collection_parser = subparsers.add_parser('collection',
                                               parents=[docs_parser],
