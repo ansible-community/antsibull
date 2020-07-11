@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 #: Clear Ansible environment variables that set paths where plugins could be found.
 ANSIBLE_PATH_ENVIRON: Dict[str, str] = os.environ.copy()
-ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATHS': '/dev/null',
+ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATH': '/dev/null',
                              'ANSIBLE_ACTION_PLUGINS': '/dev/null',
                              'ANSIBLE_CACHE_PLUGINS': '/dev/null',
                              'ANSIBLE_CALLBACK_PLUGINS': '/dev/null',
@@ -50,6 +50,12 @@ try:
 except KeyError:
     # We just wanted to make sure there was no PYTHONPATH set...
     # all python libs will come from the venv
+    pass
+try:
+    del ANSIBLE_PATH_ENVIRON['ANSIBLE_COLLECTIONS_PATHS']
+except KeyError:
+    # ANSIBLE_COLLECTIONS_PATHS is the deprecated name replaced by
+    # ANSIBLE_COLLECTIONS_PATH
     pass
 
 
@@ -153,6 +159,23 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
+def _get_environment(collection_dir: Optional[str]) -> Dict[str, str]:
+    env = ANSIBLE_PATH_ENVIRON.copy()
+    if collection_dir is not None:
+        env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
+    else:
+        # Copy ANSIBLE_COLLECTIONS_PATH and ANSIBLE_COLLECTIONS_PATHS from the
+        # original environment.
+        for env_var in ('ANSIBLE_COLLECTIONS_PATH', 'ANSIBLE_COLLECTIONS_PATHS'):
+            try:
+                del env[env_var]
+            except KeyError:
+                pass
+            if env_var in os.environ:
+                env[env_var] = os.environ[env_var]
+    return env
+
+
 async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: Optional[str],
                                   collection_names: Optional[List[str]] = None
@@ -173,13 +196,7 @@ async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
                 {information from ansible-doc --json.  See the ansible-doc documentation for more
                  info.}
     """
-    env = ANSIBLE_PATH_ENVIRON.copy()
-    if collection_dir is not None:
-        env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
-    else:
-        del env['ANSIBLE_COLLECTIONS_PATH']
-        if 'ANSIBLE_COLLECTIONS_PATH' in os.environ:
-            env['ANSIBLE_COLLECTIONS_PATH'] = os.environ['ANSIBLE_COLLECTIONS_PATH']
+    env = _get_environment(collection_dir)
 
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
     # found as providers of extra plugins.
