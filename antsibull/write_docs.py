@@ -178,24 +178,49 @@ async def write_plugin_lists(collection_name: str,
         await f.write(index_contents)
 
 
-async def output_indexes(collection_info: CollectionInfoT,
-                         dest_dir: str,
-                         toplevel_collection_index: t.Optional[bool] = True) -> None:
+async def output_collection_index(collection_info: CollectionInfoT,
+                                  dest_dir: str) -> None:
     """
-    Generate index pages for the collections.
+    Generate top-level collection index page for the collections.
 
     :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
         collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
-    :arg toplevel_collection_index: If set to ``False``, the top-level collections index will
-                                    not be built.
+    """
+    flog = mlog.fields(func='output_collection_index')
+    flog.debug('Enter')
+
+    env = doc_environment(('antsibull.data', 'docsite'))
+    # Get the templates
+    collection_list_tmpl = env.get_template('list_of_collections.rst.j2')
+
+    collection_toplevel = os.path.join(dest_dir, 'collections')
+    flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+        'collection_toplevel exists?')
+    # This is only safe because we made sure that the top of the directory tree we're writing to
+    # (docs/docsite/rst) is only writable by us.
+    os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+
+    await write_collection_list(collection_info.keys(), collection_list_tmpl,
+                                collection_toplevel)
+
+    flog.debug('Leave')
+
+
+async def output_indexes(collection_info: CollectionInfoT,
+                         dest_dir: str) -> None:
+    """
+    Generate collection-level index pages for the collections.
+
+    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
+        collection_name to short_description.
+    :arg dest_dir: The directory to place the documentation in.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
 
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
-    collection_list_tmpl = env.get_template('list_of_collections.rst.j2')
     collection_plugins_tmpl = env.get_template('plugins_by_collection.rst.j2')
 
     writers = []
@@ -209,11 +234,6 @@ async def output_indexes(collection_info: CollectionInfoT,
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        if toplevel_collection_index:
-            writers.append(await pool.spawn(
-                write_collection_list(collection_info.keys(), collection_list_tmpl,
-                                      collection_toplevel)))
-
         for collection_name, plugin_maps in collection_info.items():
             collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
             writers.append(await pool.spawn(
