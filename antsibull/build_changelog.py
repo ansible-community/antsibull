@@ -10,6 +10,8 @@ import typing as t
 
 from packaging.version import Version as PypiVer
 
+from antsibull_changelog.changelog_generator import ChangelogGenerator
+from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
 from . import app_context
@@ -20,6 +22,12 @@ from .changelog import (
     AnsibleBaseChangelogCollector,
     get_changelog,
 )
+
+
+#
+# Variant 1: Top-level are Ansible Base and collections;
+#            below are changelogs of these collections.
+#
 
 
 def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
@@ -52,7 +60,8 @@ def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: Changelo
 
 def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
                                 collector: CollectionChangelogCollector,
-                                collection_version: str, prev_collection_version: t.Optional[str]) -> None:
+                                collection_version: str,
+                                prev_collection_version: t.Optional[str]) -> None:
     if collector in changelog_entry.added_collections:
         builder.add_section(f"{collector.collection} (New)", 1)
         builder.add_raw_rst(f"The collection {collector.collection} was "
@@ -95,8 +104,199 @@ def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogE
             builder, release, start_level=1, add_version=False)
 
 
+def append_changelog_entries_1(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    '''
+    Top-level are Ansible Base and collections; below are changelogs of these collections.
+    '''
+    if changelog_entry.base_collector.changelog:
+        append_ansible_base_changelog(builder, changelog_entry)
+
+    for (
+            collector, collection_version, prev_collection_version
+    ) in changelog_entry.changed_collections:
+        append_collection_changelog(builder, changelog_entry, collector,
+                                    collection_version, prev_collection_version)
+
+
+#
+# Variant 2: Top-level are collections with no changelog,
+#            and the sections of a single changelog entry.
+#
+
+
+def append_changelog_changes_collections(builder: RstBuilder,
+                                         changelog_entry: ChangelogEntry
+                                         ) -> t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]:
+    result: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]] = []
+
+    if changelog_entry.changed_collections:
+        builder.add_section('Changed Collections', 1)
+        for (
+                collector, collection_version, prev_collection_version
+        ) in changelog_entry.changed_collections:
+            if prev_collection_version is None:
+                msg = f"{collector.collection} was upgraded to version {collection_version}."
+            else:
+                msg = f"{collector.collection} was upgraded from version {prev_collection_version}"
+                msg += f" to version {collection_version}."
+            msg += "\n"
+            generator = collector.changelog_generator
+            if generator:
+                release_entries = generator.collect(
+                    squash=True,
+                    after_version=prev_collection_version,
+                    until_version=collection_version)
+                if not release_entries:
+                    msg += "The collection did not have a changelog in this version."
+                elif release_entries[0].empty:
+                    msg += "There are no changes recorded in the changelog."
+                else:
+                    result.append((
+                        collector.collection,
+                        f"{collector.collection}.",
+                        generator,
+                        release_entries))
+                    msg += "The changes are reported in the combined changelog below."
+            else:
+                msg += "Unfortunately, this collection does not provide changelog data in a format "
+                msg += "that can be processed by the changelog generator."
+                # TODO: add link to collection's changelog
+
+            builder.add_list_item(msg)
+        builder.add_raw_rst('')
+
+    return result
+
+
+def append_changelog_changes_base(builder: RstBuilder,
+                                  changelog_entry: ChangelogEntry
+                                  ) -> t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]:
+    builder.add_section('Ansible Base', 1)
+
+    builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
+                        f"version {changelog_entry.ansible_base_version}.")
+    if changelog_entry.prev_ansible_base_version:
+        if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
+            builder.add_raw_rst("This is the same version of Ansible-base as in "
+                                "the previous Ansible release.\n")
+            return []
+
+        builder.add_raw_rst(f"This is a newer version than version "
+                            f"{changelog_entry.prev_ansible_base_version} contained in the "
+                            f"previous Ansible release.\n")
+
+    generator = changelog_entry.base_collector.changelog_generator
+    if not generator:
+        return []
+
+    release_entries = generator.collect(
+        squash=True,
+        after_version=changelog_entry.prev_ansible_base_version,
+        until_version=changelog_entry.ansible_base_version)
+
+    if not release_entries:
+        builder.add_raw_rst("Ansible-base did not have a changelog in this version.")
+        return []
+
+    if release_entries[0].empty:
+        builder.add_raw_rst("There are no changes recorded in the changelog.")
+        return []
+
+    builder.add_raw_rst("The changes are reported in the combined changelog below.")
+    return [("Ansible Base", "ansible.builtin.", generator, release_entries)]
+
+
+def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
+    common_len = min(len(a), len(b))
+    for i in range(common_len):
+        if a[i] != b[i]:
+            return i
+    return common_len
+
+
+def dump_plugins(builder: RstBuilder, plugins: t.List[t.Tuple[t.List[str], str, str]]) -> None:
+    last_title = []
+    for title, name, description in sorted(plugins):
+        if title != last_title:
+            if last_title:
+                builder.add_raw_rst('')
+            for i in range(common_start(last_title, title), len(title)):
+                builder.add_section(title[i], i + 1)
+            last_title = title
+        builder.add_list_item(f"{name} - {description}")
+
+    if last_title:
+        builder.add_raw_rst('')
+
+
+def add_plugins(builder: RstBuilder,
+                data: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]) -> None:
+    plugins: t.List[t.Tuple[t.List[str], str, str]] = []
+    for name, prefix, _, release_entries in data:
+        for release_entry in release_entries:
+            for plugin_type, plugin_datas in release_entry.plugins.items():
+                for plugin_data in plugin_datas:
+                    plugins.append((
+                        ['New Plugins', plugin_type.title(), name],
+                        prefix + plugin_data['name'],
+                        plugin_data['description']))
+    dump_plugins(builder, plugins)
+
+
+def add_modules(builder: RstBuilder,
+                data: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]) -> None:
+    modules: t.List[t.Tuple[t.List[str], str, str]] = []
+    for name, prefix, _, release_entries in data:
+        for release_entry in release_entries:
+            for module in release_entry.modules:
+                namespace = module['namespace'].split('.') if module['namespace'] else []
+                modules.append((
+                    ['New Modules', name] + [ns.title() for ns in namespace],
+                    prefix + module['name'],
+                    module['description']))
+    dump_plugins(builder, modules)
+
+
+def append_changelog_entries_2(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    '''
+    Top-level are collections with no changelog, and the sections of a single changelog entry.
+    '''
+    data = append_changelog_changes_base(builder, changelog_entry)
+    builder.add_raw_rst('')
+    data.extend(append_changelog_changes_collections(builder, changelog_entry))
+
+    def add_section_title(section_title):
+        builder.add_section(section_title, 1)
+        while True:
+            yield
+
+    for section, section_title in DEFAULT_SECTIONS:
+        maybe_add_section_title = add_section_title(section_title)
+
+        for name, _, _, release_entries in data:
+            if not release_entries or release_entries[0].has_no_changes([section]):
+                continue
+
+            next(maybe_add_section_title)
+            builder.add_section(name, 2)
+            release_entries[0].add_section_content(builder, section)
+            builder.add_raw_rst('')
+
+    add_plugins(builder, data)
+    add_modules(builder, data)
+
+
+#
+# Generic Changelog Code
+#
+
+
 def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
+
+    builder.add_raw_rst('.. contents::')
+    builder.add_raw_rst('  :local:')
+    builder.add_raw_rst('  :depth: 2\n')
 
     if changelog_entry.removed_collections:
         builder.add_section('Removed Collections', 1)
@@ -115,14 +315,13 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
             builder.add_list_item(f"{collector.collection} (still version {collection_version})")
         builder.add_raw_rst('')
 
-    if changelog_entry.base_collector.changelog:
-        append_ansible_base_changelog(builder, changelog_entry)
+    # append_changelog_entries_1(builder, changelog_entry)
+    append_changelog_entries_2(builder, changelog_entry)
 
-    for (
-            collector, collection_version, prev_collection_version
-    ) in changelog_entry.changed_collections:
-        append_collection_changelog(builder, changelog_entry, collector,
-                                    collection_version, prev_collection_version)
+
+#
+# Porting Guide
+#
 
 
 def append_porting_guide_section(builder: RstBuilder, changelog_entry: ChangelogEntry,
@@ -140,9 +339,8 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
             collector: t.Union[AnsibleBaseChangelogCollector, CollectionChangelogCollector],
             version: str,
             prev_version: t.Optional[str]) -> None:
-        changelog = collector.changelog
         generator = collector.changelog_generator
-        if not changelog or not generator:
+        if not generator:
             return
         entries = generator.collect(
             squash=True, after_version=prev_version, until_version=version)
@@ -201,6 +399,11 @@ def insert_after_heading(lines: t.List[str], content: str) -> None:
                 # First empty line after top-level heading: insert TOC
                 lines.insert(index, content)
                 return
+
+
+#
+# Release Notes
+#
 
 
 class ReleaseNotes:
