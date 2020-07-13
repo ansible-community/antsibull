@@ -237,7 +237,8 @@ def add_plugins(builder: RstBuilder,
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
                     plugins.append((
-                        ['New Plugins', plugin_type.title(), name],
+                        # ['New Plugins', plugin_type.title(), name],
+                        ['New Plugins', plugin_type.title()],
                         prefix + plugin_data['name'],
                         plugin_data['description']))
     dump_plugins(builder, plugins)
