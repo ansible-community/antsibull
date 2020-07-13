@@ -291,8 +291,6 @@ class ChangelogEntry:
         self.changed_collections = []
         for collector in collectors:
             if version not in versions_per_collection[collector.collection]:
-                print(f"WARNING: {collector.collection} is not included in Ansible {version}")
-
                 if prev_version and prev_version in versions_per_collection[collector.collection]:
                     self.removed_collections.append((
                         collector, versions_per_collection[collector.collection][prev_version]))
