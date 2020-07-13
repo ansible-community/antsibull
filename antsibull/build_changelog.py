@@ -249,9 +249,9 @@ def add_modules(builder: RstBuilder,
     for name, prefix, _, release_entries in data:
         for release_entry in release_entries:
             for module in release_entry.modules:
-                namespace = module['namespace'].split('.') if module['namespace'] else []
+                namespace = module['namespace'].split('.', 1) if module['namespace'] else []
                 modules.append((
-                    ['New Modules', name] + [ns.title() for ns in namespace],
+                    ['New Modules', name] + [ns.replace('_', ' ').title() for ns in namespace],
                     prefix + module['name'],
                     module['description']))
     dump_plugins(builder, modules)
