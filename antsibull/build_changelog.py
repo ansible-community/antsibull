@@ -10,7 +10,10 @@ import typing as t
 
 from packaging.version import Version as PypiVer
 
-from antsibull_changelog.changelog_generator import ChangelogGenerator
+from antsibull_changelog.changelog_generator import (
+    ChangelogGenerator,
+    ChangelogEntry as ChangelogGeneratorEntry,
+)
 from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
@@ -124,10 +127,12 @@ def append_changelog_entries_1(builder: RstBuilder, changelog_entry: ChangelogEn
 #
 
 
+PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogGeneratorEntry]]]
+
+
 def append_changelog_changes_collections(builder: RstBuilder,
-                                         changelog_entry: ChangelogEntry
-                                         ) -> t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]:
-    result: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]] = []
+                                         changelog_entry: ChangelogEntry) -> PluginDataT:
+    result: PluginDataT = []
 
     if changelog_entry.changed_collections:
         builder.add_section('Changed Collections', 1)
@@ -169,8 +174,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
 
 
 def append_changelog_changes_base(builder: RstBuilder,
-                                  changelog_entry: ChangelogEntry
-                                  ) -> t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]:
+                                  changelog_entry: ChangelogEntry) -> PluginDataT:
     builder.add_section('Ansible Base', 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
@@ -207,6 +211,10 @@ def append_changelog_changes_base(builder: RstBuilder,
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
+    '''
+    Given two sequences a and b, determines maximal index so that
+    all elements up to that index are equal.
+    '''
     common_len = min(len(a), len(b))
     for i in range(common_len):
         if a[i] != b[i]:
@@ -214,7 +222,10 @@ def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
     return common_len
 
 
-def dump_plugins(builder: RstBuilder, plugins: t.List[t.Tuple[t.List[str], str, str]]) -> None:
+PluginDumpT = t.List[t.Tuple[t.List[str], str, str]]
+
+
+def dump_plugins(builder: RstBuilder, plugins: PluginDumpT) -> None:
     last_title = []
     for title, name, description in sorted(plugins):
         if title != last_title:
@@ -229,9 +240,8 @@ def dump_plugins(builder: RstBuilder, plugins: t.List[t.Tuple[t.List[str], str, 
         builder.add_raw_rst('')
 
 
-def add_plugins(builder: RstBuilder,
-                data: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]) -> None:
-    plugins: t.List[t.Tuple[t.List[str], str, str]] = []
+def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
+    plugins: PluginDumpT = []
     for name, prefix, _, release_entries in data:
         for release_entry in release_entries:
             for plugin_type, plugin_datas in release_entry.plugins.items():
@@ -244,9 +254,8 @@ def add_plugins(builder: RstBuilder,
     dump_plugins(builder, plugins)
 
 
-def add_modules(builder: RstBuilder,
-                data: t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogEntry]]]) -> None:
-    modules: t.List[t.Tuple[t.List[str], str, str]] = []
+def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
+    modules: PluginDumpT = []
     for name, prefix, _, release_entries in data:
         for release_entry in release_entries:
             for module in release_entry.modules:
@@ -258,6 +267,13 @@ def add_modules(builder: RstBuilder,
     dump_plugins(builder, modules)
 
 
+def create_title_adder(builder: RstBuilder, title: str,
+                       level: int) -> t.Generator[None, None, None]:
+    builder.add_section(title, level)
+    while True:
+        yield
+
+
 def append_changelog_entries_2(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     '''
     Top-level are collections with no changelog, and the sections of a single changelog entry.
@@ -266,13 +282,8 @@ def append_changelog_entries_2(builder: RstBuilder, changelog_entry: ChangelogEn
     builder.add_raw_rst('')
     data.extend(append_changelog_changes_collections(builder, changelog_entry))
 
-    def add_section_title(section_title):
-        builder.add_section(section_title, 1)
-        while True:
-            yield
-
     for section, section_title in DEFAULT_SECTIONS:
-        maybe_add_section_title = add_section_title(section_title)
+        maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
         for name, _, _, release_entries in data:
             if not release_entries or release_entries[0].has_no_changes([section]):
@@ -326,14 +337,9 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
 
 
 def append_porting_guide_section(builder: RstBuilder, changelog_entry: ChangelogEntry,
-                                 maybe_add_title: t.Generator[t.List[None], None, None],
+                                 maybe_add_title: t.Generator[None, None, None],
                                  section: str) -> None:
-    def add_section_title():
-        builder.add_section(section.replace('_', ' ').title(), 1)
-        while True:
-            yield
-
-    maybe_add_section_title = add_section_title()
+    maybe_add_section_title = create_title_adder(builder, section.replace('_', ' ').title(), 1)
 
     def check_changelog(
             name: str,
@@ -366,12 +372,8 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
 
 def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    def add_title() -> None:
-        builder.add_section('Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
-        while True:
-            yield
-
-    maybe_add_title = add_title()
+    maybe_add_title = create_title_adder(
+        builder, 'Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
 
     for section in ['breaking_changes', 'major_changes']:
         append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
