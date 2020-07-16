@@ -19,6 +19,7 @@ from ..config import load_config
 from ..new_acd import new_acd_command
 from ..build_collection import build_collection_command
 from ..build_acd_commands import build_single_command, build_multiple_command
+from ..build_changelog import build_changelog
 
 
 mlog = log.fields(mod=__name__)
@@ -30,6 +31,7 @@ ARGS_MAP = {'new-acd': new_acd_command,
             'build-single': build_single_command,
             'build-multiple': build_multiple_command,
             'build-collection': build_collection_command,
+            'build-changelog': build_changelog,
             }
 
 
@@ -163,6 +165,12 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' versions which were included in this version of ACD'
                                    f' The default is to look for {DEFAULT_FILE_BASE}-X.Y.Z.deps'
                                    ' inside of --dest-dir')
+
+    changelog_parser = subparsers.add_parser('build-changelog',
+                                             parents=[build_parser, cache_parser],
+                                             description='Build the ACD changelog')
+    changelog_parser.add_argument('--deps-dir', required=True,
+                                  help='Directory which contains the versioning data')
 
     args: argparse.Namespace = parser.parse_args(args)
 
