@@ -460,13 +460,13 @@ class ReleaseNotes:
 
         return builder.generate().encode('utf-8')
 
-    @staticmethod
-    def build(changelog: Changelog) -> 'ReleaseNotes':
-        return ReleaseNotes(
+    @classmethod
+    def build(cls, changelog: Changelog) -> 'ReleaseNotes':
+        return cls(
             f"CHANGELOG-v{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
-            ReleaseNotes._get_changelog_bytes(changelog),
+            cls._get_changelog_bytes(changelog),
             f"porting_guide_{changelog.acd_version.major}.{changelog.acd_version.minor}.rst",
-            ReleaseNotes._get_porting_guide_bytes(changelog),
+            cls._get_porting_guide_bytes(changelog),
         )
 
     def write_changelog_to(self, dest_dir: str) -> None:
