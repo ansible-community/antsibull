@@ -145,7 +145,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage generated documentation for'
                                      ' ansible')
-    subparsers = parser.add_subparsers(title='Subcommands', dest='command',
+    subparsers = parser.add_subparsers(title='Subcommands', dest='command', required=True,
                                        help='for help use  SUBCOMMANDS -h')
 
     # Document the next version of ansible
