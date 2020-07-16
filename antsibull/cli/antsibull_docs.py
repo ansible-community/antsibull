@@ -39,9 +39,6 @@ DEFAULT_PIECES_FILE: str = 'acd.in'
 
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:
-    if args.command is None:
-        raise InvalidArgumentError('Please specify a subcommand to run')
-
     args.dest_dir = os.path.expanduser(os.path.expandvars(args.dest_dir))
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
 
