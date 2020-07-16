@@ -469,11 +469,12 @@ class ReleaseNotes:
             ReleaseNotes._get_porting_guide_bytes(changelog),
         )
 
-    def write_to(self, dest_dir: str) -> None:
+    def write_changelog_to(self, dest_dir: str) -> None:
         path = os.path.join(dest_dir, self.changelog_filename)
         with open(path, 'wb') as changelog_fd:
             changelog_fd.write(self.changelog_bytes)
 
+    def write_porting_guide_to(self, dest_dir: str) -> None:
         path = os.path.join(dest_dir, self.porting_guide_filename)
         with open(path, 'wb') as porting_guide_fd:
             porting_guide_fd.write(self.porting_guide_bytes)
@@ -490,7 +491,9 @@ def build_changelog() -> int:
 
     changelog = get_changelog(acd_version, deps_dir=deps_dir, collection_cache=collection_cache)
 
-    ReleaseNotes.build(changelog).write_to(dest_dir)
+    release_notes = ReleaseNotes.build(changelog)
+    release_notes.write_changelog_to(dest_dir)
+    release_notes.write_porting_guide_to(dest_dir)
 
     missing_changelogs = []
     for collector in changelog.collection_collectors:

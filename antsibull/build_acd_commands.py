@@ -208,7 +208,11 @@ def build_single_command():
 
         # Compose and write release notes
         release_notes = ReleaseNotes.build(changelog)
-        release_notes.write_to(package_dir)
+        release_notes.write_changelog_to(package_dir)
+        # TODO: include porting guide after discussion in DaWG meeting about its relation
+        #       to the ansible-base porting guide, and where things will be placed and
+        #       structured.
+        # release_notes.write_porting_guide_to(package_dir)
 
         # Write build scripts and files
         write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
