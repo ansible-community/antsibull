@@ -36,9 +36,6 @@ ARGS_MAP = {'new-acd': new_acd_command,
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
-    if args.command is None:
-        raise InvalidArgumentError('Please specify a subcommand to run')
-
     args.dest_dir = os.path.expanduser(os.path.expandvars(args.dest_dir))
     if not os.path.isdir(args.dest_dir):
         raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
@@ -130,6 +127,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                      description='Script to manage building ACD')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
                                        help='for help use antsibull-build SUBCOMMANDS -h')
+    subparsers.required = True
 
     new_parser = subparsers.add_parser('new-acd', parents=[build_parser],
                                        description='Generate a new build description from the'

@@ -41,12 +41,13 @@ def run(args: List[str]) -> int:
                             default=0,
                             help='increase verbosity of output')
 
-        subparsers = parser.add_subparsers(metavar='COMMAND')
+        subparsers = parser.add_subparsers(dest='command')
+        subparsers.required = True
 
         changelog_yaml = subparsers.add_parser('changelog-yaml',
                                                parents=[common],
                                                help='changelogs/changelog.yaml linter')
-        changelog_yaml.set_defaults(func=command_lint_changelog)
+        changelog_yaml.set_defaults(command=command_lint_changelog)
 
         changelog_yaml.add_argument('changelog_yaml_path',
                                     metavar='/path/to/changelog.yaml',
@@ -57,14 +58,10 @@ def run(args: List[str]) -> int:
 
         arguments = parser.parse_args(args[1:])
 
-        if getattr(arguments, 'func', None) is None:
-            parser.print_help()
-            return 2
-
         verbosity = arguments.verbose
         setup_logger(verbosity)
 
-        return arguments.func(arguments)
+        return arguments.command(arguments)
     except SystemExit as e:
         return e.code
     except Exception:  # pylint: disable=broad-except

@@ -39,9 +39,6 @@ DEFAULT_PIECES_FILE: str = 'acd.in'
 
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:
-    if args.command is None:
-        raise InvalidArgumentError('Please specify a subcommand to run')
-
     args.dest_dir = os.path.expanduser(os.path.expandvars(args.dest_dir))
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
 
@@ -147,6 +144,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                      ' ansible')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
                                        help='for help use  SUBCOMMANDS -h')
+    subparsers.required = True
 
     # Document the next version of ansible
     devel_parser = subparsers.add_parser('devel', parents=[docs_parser, cache_parser],
