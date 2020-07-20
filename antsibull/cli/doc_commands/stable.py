@@ -43,7 +43,7 @@ async def retrieve(ansible_base_version: str,
                    collections: t.Mapping[str, str],
                    tmp_dir: str,
                    galaxy_server: str,
-                   ansible_base_cache: t.Optional[str] = None,
+                   ansible_base_source: t.Optional[str] = None,
                    collection_cache: t.Optional[str] = None) -> t.Dict[str, 'semver.Version']:
     """
     Download ansible-base and the collections.
@@ -52,7 +52,7 @@ async def retrieve(ansible_base_version: str,
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into
     :arg galaxy_server: URL to the galaxy server.
-    :kwarg ansible_base_cache: If given, a path to an Ansible-base checkout or expanded sdist.
+    :kwarg ansible_base_source: If given, a path to an Ansible-base checkout or expanded sdist.
         This will be used instead of downloading an ansible-base package if the version matches
         with ``ansible_base_version``.
     :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
@@ -71,7 +71,7 @@ async def retrieve(ansible_base_version: str,
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             requestors['_ansible_base'] = await pool.spawn(
                 get_ansible_base(aio_session, ansible_base_version, tmp_dir,
-                                 ansible_base_cache=ansible_base_cache))
+                                 ansible_base_source=ansible_base_source))
 
             downloader = CollectionDownloader(aio_session, collection_dir,
                                               galaxy_server=galaxy_server,
@@ -325,7 +325,7 @@ def generate_docs() -> int:
         collection_tarballs = asyncio_run(
             retrieve(ansible_base_version, collections, tmp_dir,
                      galaxy_server=app_ctx.galaxy_url,
-                     ansible_base_cache=app_ctx.extra['ansible_base_cache'],
+                     ansible_base_source=app_ctx.extra['ansible_base_source'],
                      collection_cache=app_ctx.extra['collection_cache']))
         # flog.fields(tarballs=collection_tarballs).debug('Download complete')
         flog.notice('Finished retrieving tarballs')

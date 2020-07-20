@@ -117,74 +117,74 @@ class AnsibleBasePyPiClient:
         return tar_filename
 
 
-def _get_cache_version(ansible_base_cache: str) -> PypiVer:
-    with open(os.path.join(ansible_base_cache, 'lib', 'ansible', 'release.py')) as f:
+def _get_source_version(ansible_base_source: str) -> PypiVer:
+    with open(os.path.join(ansible_base_source, 'lib', 'ansible', 'release.py')) as f:
         root = ast.parse(f.read())
 
-    # Find the version of the cache
-    cache_version = None
+    # Find the version of the source
+    source_version = None
     # Iterate backwards in case __version__ is assigned to multiple times
     for node in reversed(root.body):
         if isinstance(node, ast.Assign):
             for name in node.targets:
                 # These attributes are dynamic so pyre cannot check them
                 if name.id == '__version__':  # pyre-ignore[16]
-                    cache_version = node.value.s  # pyre-ignore[16]
+                    source_version = node.value.s  # pyre-ignore[16]
                     break
 
-        if cache_version:
+        if source_version:
             break
 
-    if not cache_version:
+    if not source_version:
         raise ValueError('Version was not found')
 
-    return PypiVer(cache_version)
+    return PypiVer(source_version)
 
 
-def cache_is_devel(ansible_base_cache: t.Optional[str]) -> bool:
+def source_is_devel(ansible_base_source: t.Optional[str]) -> bool:
     """
-    :arg ansible_base_cache: A path to an Ansible-base checkout or expanded sdist or None.
+    :arg ansible_base_source: A path to an Ansible-base checkout or expanded sdist or None.
         This will be used instead of downloading an ansible-base package if the version matches
         with ``ansible_base_version``.
-    :returns: True if the cache looks like it is for the devel branch.
+    :returns: True if the source looks like it is for the devel branch.
     """
-    if ansible_base_cache is None:
+    if ansible_base_source is None:
         return False
 
     try:
-        cache_version = _get_cache_version(ansible_base_cache)
+        source_version = _get_source_version(ansible_base_source)
     except Exception:
         return False
 
     dev_version = re.compile('[.]dev[0-9]+$')
-    if dev_version.match(cache_version.public):
+    if dev_version.match(source_version.public):
         return True
 
     return False
 
 
-def cache_is_correct_version(ansible_base_cache: t.Optional[str],
+def source_is_correct_version(ansible_base_source: t.Optional[str],
                              ansible_base_version: PypiVer) -> bool:
     """
-    :arg ansible_base_cache: A path to an Ansible-base checkout or expanded sdist or None.
+    :arg ansible_base_source: A path to an Ansible-base checkout or expanded sdist or None.
         This will be used instead of downloading an ansible-base package if the version matches
         with ``ansible_base_version``.
     :arg ansible_base_version: Version of ansible-base to retrieve.
-    :returns: True if the cache is for a compatible version at or newer than the requested version
+    :returns: True if the source is for a compatible version at or newer than the requested version
     """
-    if ansible_base_cache is None:
+    if ansible_base_source is None:
         return False
 
     try:
-        cache_version = _get_cache_version(ansible_base_cache)
+        source_version = _get_source_version(ansible_base_source)
     except Exception:
         return False
 
-    # If the cache is a compatible version of ansible-base and it is the same or more recent than
+    # If the source is a compatible version of ansible-base and it is the same or more recent than
     # the requested version then allow this.
-    if (cache_version.major == ansible_base_version.major
-            and cache_version.minor == ansible_base_version.minor
-            and cache_version.micro >= ansible_base_version.micro):
+    if (source_version.major == ansible_base_version.major
+            and source_version.minor == ansible_base_version.minor
+            and source_version.micro >= ansible_base_version.micro):
         return True
 
     return False
@@ -209,23 +209,27 @@ async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_BASE_URL
 async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
                            ansible_base_version: str,
                            tmpdir: str,
-                           ansible_base_cache: t.Optional[str] = None) -> str:
+                           ansible_base_source: t.Optional[str] = None) -> str:
     """
     Create an ansible-base directory of the requested version.
 
     :arg aio_session: :obj:`aiohttp.client.ClientSession` to make http requests with.
-    :arg ansible_base_version: Version of ansible-base to retrieve.
+    :arg ansible_base_version: Version of ansible-base to retrieve.  If it is the special string
+        ``@devel``, then we will retrieve ansible-base from its git repository.
     :arg tmpdir: Temporary directory use as a scratch area for downloading to and the place that the
         ansible-base directory should be placed in.
-    :kwarg ansible_base_cache: If given, a path to an Ansible-base checkout or expanded sdist.
+    :kwarg ansible_base_source: If given, a path to an ansible-base checkout or expanded sdist.
         This will be used instead of downloading an ansible-base package if the version matches
         with ``ansible_base_version``.
     """
     if ansible_base_version == '@devel':
-        # is the cache usable?
-        if cache_is_devel(ansible_base_cache):
-            assert ansible_base_cache is not None
-            return ansible_base_cache
+        # is the source usable?
+        if source_is_devel(ansible_base_source):
+            assert ansible_base_source is not None
+            # TODO: In the future we may want to change this to install from the source rather than
+            # passing the source back verbatim.  That way we are assured we aren't modifying the
+            # source.
+            return ansible_base_source
 
         install_file = await checkout_from_git(tmpdir)
     else:
@@ -235,10 +239,13 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
         else:
             ansible_base_version: PypiVer = PypiVer(ansible_base_version)
 
-        # is the cache the asked for version?
-        if cache_is_correct_version(ansible_base_cache, ansible_base_version):
-            assert ansible_base_cache is not None
-            return ansible_base_cache
+        # is the source the asked for version?
+        if source_is_correct_version(ansible_base_source, ansible_base_version):
+            assert ansible_base_source is not None
+            # TODO: In the future we may want to change this to install from the source rather than
+            # passing the source back verbatim.  That way we are assured we aren't modifying the
+            # source.
+            return ansible_base_source
 
         install_file = await pypi_client.retrieve(ansible_base_version.public, tmpdir)
 
