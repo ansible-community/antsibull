@@ -37,9 +37,9 @@ def detect_bad_upgrade():
                 pip install --force-reinstall ansible ansible-base
 
             If you want to install anyways and cleanup any breakage afterwards, set the
-            ANSIBLE_ALLOW_2_10_UPGRADE environment variable:
+            ANSIBLE_SKIP_CONFLICT_CHECK environment variable:
 
-                ANSIBLE_ALLOW_2_10_UPGRADE=1 pip install ansible
+                ANSIBLE_SKIP_CONFLICT_CHECK=1 pip install ansible
 
             ### END ERROR ###
 
@@ -63,9 +63,9 @@ def detect_bad_upgrade():
                 pip install --force-reinstall ansible ansible-base
 
             If you want to install anyways and cleanup any breakage afterwards, set the
-            ANSIBLE_ALLOW_2_10_UPGRADE environment variable:
+            ANSIBLE_SKIP_CONFLICT_CHECK environment variable:
 
-                ANSIBLE_ALLOW_2_10_UPGRADE=1 pip install ansible
+                ANSIBLE_SKIP_CONFLICT_CHECK=1 pip install ansible
 
             ### END ERROR ###
 
@@ -74,7 +74,7 @@ def detect_bad_upgrade():
     return True
 
 
-if not os.environ.get('ANSIBLE_ALLOW_2_10_UPGRADE'):
+if not os.environ.get('ANSIBLE_SKIP_CONFLICT_CHECK'):
     if detect_bad_upgrade():
         sys.exit(1)
 
