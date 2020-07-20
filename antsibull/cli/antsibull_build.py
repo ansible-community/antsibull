@@ -28,10 +28,10 @@ DEFAULT_FILE_BASE = 'acd'
 DEFAULT_PIECES_FILE = f'{DEFAULT_FILE_BASE}.in'
 
 ARGS_MAP = {'new-acd': new_acd_command,
-            'build-single': build_single_command,
-            'build-multiple': build_multiple_command,
-            'build-collection': build_collection_command,
-            'build-changelog': build_changelog,
+            'single': build_single_command,
+            'multiple': build_multiple_command,
+            'collection': build_collection_command,
+            'changelog': build_changelog,
             }
 
 
@@ -42,7 +42,13 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_new_release_options(args: argparse.Namespace) -> None:
-    if args.command != 'new-acd':
+    flog = mlog.fields(func='_normalize_new_release_options')
+
+    if args.command == 'new-acd':
+        flog.warning('The new-acd command is deprecated.  Use `new-ansible` instead.')
+        args.command = 'new-ansible'
+
+    if args.command != 'new-ansible':
         return
 
     if args.pieces_file is None:
@@ -59,7 +65,17 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
-    if args.command not in ('build-single', 'build-multiple'):
+    flog = mlog.fields(func='_normalize_release_build_options')
+
+    if args.command == 'build-single':
+        flog.warning('The build-single command is deprecated.  Use `single` instead.')
+        args.command = 'single'
+
+    if args.command == 'build-multiple':
+        flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
+        args.command = 'multiple'
+
+    if args.command not in ('single', 'multiple'):
         return
 
     if args.build_file is None:
@@ -81,7 +97,13 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_collection_build_options(args: argparse.Namespace) -> None:
-    if args.command != 'build-collection':
+    flog = mlog.fields(func='_normalize_collection_build_options')
+
+    if args.command == 'build-collection':
+        flog.warning('The build-collection command is deprecated.  Use `collection` instead.')
+        args.command = 'collection'
+
+    if args.command != 'collection':
         return
 
     if args.deps_file is None:
@@ -141,7 +163,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' of collections with version ranges.  The default is to'
                             ' place $BASENAME_OF_PIECES_FILE-X.Y.build into --dest-dir')
 
-    build_single_parser = subparsers.add_parser('build-single',
+    build_single_parser = subparsers.add_parser('single',
                                                 parents=[build_parser, cache_parser,
                                                          build_step_parser],
                                                 description='Build a single-file ACD')
@@ -150,11 +172,12 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                      help='Include Debian/Ubuntu packaging files in'
                                      ' the resulting output directory')
 
-    subparsers.add_parser('build-multiple',
-                          parents=[build_parser, cache_parser, build_step_parser],
-                          description='Build a multi-file ACD')
+    build_multiple_parser = subparsers.add_parser('multiple',
+                                                  parents=[build_parser, cache_parser,
+                                                           build_step_parser],
+                                                  description='Build a multi-file Ansible')
 
-    collection_parser = subparsers.add_parser('build-collection',
+    collection_parser = subparsers.add_parser('collection',
                                               parents=[build_parser],
                                               description='Build a collection which will'
                                               ' install ACD')
@@ -164,11 +187,17 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    f' The default is to look for {DEFAULT_FILE_BASE}-X.Y.Z.deps'
                                    ' inside of --dest-dir')
 
-    changelog_parser = subparsers.add_parser('build-changelog',
+    changelog_parser = subparsers.add_parser('changelog',
                                              parents=[build_parser, cache_parser],
                                              description='Build the ACD changelog')
     changelog_parser.add_argument('--deps-dir', required=True,
                                   help='Directory which contains the versioning data')
+
+    # Backwards compat.
+    subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
+    subparsers.add_parser('build-single', add_help=False, parents=[build_single_parser])
+    subparsers.add_parser('build-multiple', add_help=False, parents=[build_multiple_parser])
+    subparsers.add_parser('build-collection', add_help=False, parents=[collection_parser])
 
     args: argparse.Namespace = parser.parse_args(args)
 
