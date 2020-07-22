@@ -45,16 +45,22 @@ def _normalize_docs_options(args: argparse.Namespace) -> None:
     # We're going to be writing a deep hierarchy of files into this directory so we need to make
     # sure that the user understands that this needs to be a directory which has been secured
     # against malicious usage:
-    stat_results = os.stat(args.dest_dir)
 
     # Exists already
-    if not stat.S_ISDIR(stat_results.st_mode):
-        raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
+    try:
+        stat_results = os.stat(args.dest_dir)
+
+        if not stat.S_ISDIR(stat_results.st_mode):
+            raise FileNotFoundError()
+    except FileNotFoundError:
+        raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory owned by you,'
+                                   f' and only be writable by the owner')
 
     # Owned by the user
     euid = os.geteuid()
     if stat_results[stat.ST_UID] != euid:
-        raise InvalidArgumentError(f'{args.dest_dir} must be owned by you')
+        raise InvalidArgumentError(f'{args.dest_dir} must be owned by you, and only be writable'
+                                   f' by the owner')
 
     # Writable only by the user
     if stat.S_IMODE(stat_results.st_mode) & (stat.S_IWOTH | stat.S_IWGRP):
