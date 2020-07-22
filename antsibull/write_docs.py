@@ -32,7 +32,8 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                     plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
-                    path_override: t.Optional[str] = None) -> None:
+                    path_override: t.Optional[str] = None,
+                    squash_hierarchy: bool = False) -> None:
     """
     Write the rst page for one plugin.
 
@@ -48,6 +49,9 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
     :arg dest_dir: Destination directory for the plugin data.  For instance,
         :file:`ansible-checkout/docs/docsite/rst/`.  The directory structure underneath this
         directory will be created if needed.
+    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                           Undefined behavior if documentation for multiple collections are
+                           created.
     """
     flog = mlog.fields(func='write_rst')
     flog.debug('Enter')
@@ -84,10 +88,13 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
     if path_override is not None:
         plugin_file = path_override
     else:
-        collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
-        # This is dangerous but the code that takes dest_dir from the user checks
-        # permissions on it to make it as safe as possible.
-        os.makedirs(collection_dir, mode=0o755, exist_ok=True)
+        if squash_hierarchy:
+            collection_dir = dest_dir
+        else:
+            collection_dir = os.path.join(dest_dir, 'collections', namespace, collection)
+            # This is dangerous but the code that takes dest_dir from the user checks
+            # permissions on it to make it as safe as possible.
+            os.makedirs(collection_dir, mode=0o755, exist_ok=True)
 
         plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
@@ -100,7 +107,8 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
 async def output_all_plugin_rst(collection_info: CollectionInfoT,
                                 plugin_info: t.Dict[str, t.Any],
                                 nonfatal_errors: PluginErrorsT,
-                                dest_dir: str) -> None:
+                                dest_dir: str,
+                                squash_hierarchy: bool = False) -> None:
     """
     Output rst files for each plugin.
 
@@ -110,6 +118,9 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
     :arg nonfatal_errors: Mapping of plugins to nonfatal errors.  Using this to note on the docs
         pages when documentation wasn't formatted such that we could use it.
     :arg dest_dir: The directory to place the documentation in.
+    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                           Undefined behavior if documentation for multiple collections are
+                           created.
     """
     # Setup the jinja environment
     env = doc_environment(('antsibull.data', 'docsite'))
@@ -128,7 +139,7 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
                         write_rst(collection_name, plugin_short_name, plugin_type,
                                   plugin_info[plugin_type].get(plugin_name),
                                   nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
-                                  error_tmpl, dest_dir)))
+                                  error_tmpl, dest_dir, squash_hierarchy=squash_hierarchy)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)
@@ -208,13 +219,17 @@ async def output_collection_index(collection_info: CollectionInfoT,
 
 
 async def output_indexes(collection_info: CollectionInfoT,
-                         dest_dir: str) -> None:
+                         dest_dir: str,
+                         squash_hierarchy: bool = False) -> None:
     """
     Generate collection-level index pages for the collections.
 
     :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
         collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
+    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                           Undefined behavior if documentation for multiple collections are
+                           created.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
@@ -226,16 +241,22 @@ async def output_indexes(collection_info: CollectionInfoT,
     writers = []
     lib_ctx = app_context.lib_ctx.get()
 
-    collection_toplevel = os.path.join(dest_dir, 'collections')
-    flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
-        'collection_toplevel exists?')
-    # This is only safe because we made sure that the top of the directory tree we're writing to
-    # (docs/docsite/rst) is only writable by us.
-    os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+    if not squash_hierarchy:
+        collection_toplevel = os.path.join(dest_dir, 'collections')
+        flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+            'collection_toplevel exists?')
+        # This is only safe because we made sure that the top of the directory tree we're writing to
+        # (docs/docsite/rst) is only writable by us.
+        os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+    else:
+        collection_toplevel = dest_dir
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         for collection_name, plugin_maps in collection_info.items():
-            collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
+            if not squash_hierarchy:
+                collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
+            else:
+                collection_dir = collection_toplevel
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
                                    collection_dir)))

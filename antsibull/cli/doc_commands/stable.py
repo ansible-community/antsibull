@@ -219,7 +219,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       collection_dir: t.Optional[str],
                                       dest_dir: str,
                                       flog,
-                                      collection_names: t.Optional[t.List[str]] = None) -> None:
+                                      collection_names: t.Optional[t.List[str]] = None,
+                                      squash_hierarchy: bool = False) -> None:
     """
     Create documentation for a set of installed collections.
 
@@ -231,6 +232,9 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     :arg flog: A logger instance.
     :arg collection_names: Optional list of collection names. If specified, only documentation
                            for these collections will be collected and generated.
+    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                           Undefined behavior if documentation for multiple collections are
+                           created.
     """
 
     # Get the info from the plugins
@@ -284,11 +288,12 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         asyncio_run(output_collection_index(collection_info, dest_dir))
         flog.notice('Finished writing collection index')
 
-    asyncio_run(output_indexes(collection_info, dest_dir))
+    asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
-                                      nonfatal_errors, dest_dir))
+                                      nonfatal_errors, dest_dir,
+                                      squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing plugin docs')
 
 
