@@ -89,6 +89,15 @@ def _normalize_stable_options(args: argparse.Namespace) -> None:
                                    ' per line')
 
 
+def _normalize_collection_options(args: argparse.Namespace) -> None:
+    if args.command != 'collection':
+        return
+
+    if args.squash_hierarchy and len(args.collections) > 1:
+        raise InvalidArgumentError('The option --squash-hierarchy can only be used when'
+                                   ' only one collection is specified')
+
+
 def _normalize_current_options(args: argparse.Namespace) -> None:
     if args.command != 'current':
         return
@@ -184,6 +193,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' these collections have been installed with the current'
                                    ' version of ansible. Specified --collection-version will be'
                                    ' ignored.')
+    collection_parser.add_argument('--squash-hierarchy', action='store_true',
+                                   help='Do not use the full hierarchy collections/namespace/name/'
+                                   ' in the destination directory. Only valid if there is only'
+                                   ' one collection specified.')
     collection_parser.add_argument(nargs='+', dest='collections',
                                    help='One or more collections to document.  If the names are'
                                    ' directories on disk, they will be parsed as expanded'
@@ -212,6 +225,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_devel_options(args)
     _normalize_stable_options(args)
     _normalize_current_options(args)
+    _normalize_collection_options(args)
     _normalize_plugin_options(args)
     flog.fields(args=args).debug('Arguments normalized')
 
