@@ -129,12 +129,6 @@ import yaml
 _SENTINEL = object()
 
 
-#: Python scalars that are represented in JSON
-JSONScalarT = t.Union[None, int, float, str]
-
-#: Python types represented in JSON.  Unfortunately, we can't define this recursively yet.
-JSONValueT = t.Union[JSONScalarT, t.List[t.Any], t.Dict[str, t.Any]]
-
 #: Constrained string for valid Ansible environment variables
 REQUIRED_ENV_VAR_F = p.Field(..., regex='[A-Z_]+')
 
@@ -159,6 +153,22 @@ REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F = p.Field('', regex='^([^.]+\\.[^.]+)?$'
 
 #: Constrained string listing the possible types of a return field
 RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str)$')
+
+
+def is_json_value(value: t.Any) -> bool:
+    """
+    Check whether the given value is a JSON value, i.e. can be directly represented in JSON.
+    """
+    if isinstance(value, (int, float, str)):
+        return True
+    if isinstance(value, (list, tuple)):
+        return all(is_json_value(v) for v in value)
+    if isinstance(value, dict):
+        # Python can have non-str dict keys, as opposed to JSON
+        if not all(isinstance(k, str) for k in value.keys()):
+            return False
+        return all(is_json_value(v) for v in value.values())
+    return value is None
 
 
 def list_from_scalars(obj):
@@ -324,7 +334,7 @@ class OptionsSchema(BaseModel):
     description: t.List[str]
     aliases: t.List[str] = []
     choices: t.List[t.Union[str, None]] = []
-    default: JSONValueT = None
+    default: t.Any = None  # JSON value
     elements: str = OPTION_TYPE_F
     required: bool = False
     type: str = OPTION_TYPE_F
@@ -334,6 +344,12 @@ class OptionsSchema(BaseModel):
     @p.validator('aliases', 'description', 'choices', pre=True)
     def list_from_scalars(cls, obj):
         return list_from_scalars(obj)
+
+    @p.validator('default', pre=True)
+    def is_json_value(cls, obj):
+        if not is_json_value(obj):
+            raise ValueError('`default` must be a JSON value')
+        return obj
 
     @p.validator('type', 'elements', pre=True)
     def normalize_option_type(cls, obj):
