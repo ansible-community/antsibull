@@ -14,7 +14,7 @@ import pydantic as p
 
 from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F,
                    COLLECTION_NAME_F, BaseModel, DeprecationSchema, DocSchema,
-                   JSONValueT, LocalConfig, OptionsSchema, list_from_scalars,
+                   LocalConfig, OptionsSchema, list_from_scalars, is_json_value,
                    normalize_option_type_names, transform_return_docs)
 
 _SENTINEL = object()
@@ -49,7 +49,7 @@ class ReturnSchema(BaseModel):
     choices: t.List[str] = []
     elements: str = OPTION_TYPE_F
     returned: str = 'success'
-    sample: JSONValueT = ''
+    sample: t.Any = ''  # JSON value
     type: str = RETURN_TYPE_F
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
@@ -57,6 +57,12 @@ class ReturnSchema(BaseModel):
     @p.validator('description', pre=True)
     def list_from_scalars(cls, obj):
         return list_from_scalars(obj)
+
+    @p.validator('sample', pre=True)
+    def is_json_value(cls, obj):
+        if not is_json_value(obj):
+            raise ValueError('`sample` must be a JSON value')
+        return obj
 
     @p.validator('type', 'elements', pre=True)
     def normalize_types(cls, obj):
@@ -75,6 +81,9 @@ class ReturnSchema(BaseModel):
         if example is not _SENTINEL:
             if values.get('sample'):
                 raise ValueError('Cannot specify `example` if `sample` has been specified.')
+
+            if not is_json_value(example):
+                raise ValueError('`example` must be a JSON value')
 
             values['sample'] = example
             del values['example']
