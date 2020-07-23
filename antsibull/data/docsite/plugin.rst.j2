@@ -62,10 +62,7 @@
 .. version_added
 
 {% if doc['version_added'] is still_relevant -%}
-.. versionadded:: @{ doc['version_added'] }@
-{%   if doc['version_added_collection'] and doc['version_added_collection'] != collection %}
-                  of @{ doc['version_added_collection'] | rst_ify }@
-{%   endif %}
+.. versionadded:: @{ doc['version_added'] }@ of @{ doc['version_added_collection'] | rst_ify }@
 {% endif %}
 
 .. contents::
@@ -168,10 +165,7 @@ Parameters
                     </div>
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
-                        added in @{value['version_added']}@
-                        {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
-                          of @{ doc['version_added_collection'] | escape }@
-                        {% endif %}
+                        added in @{value['version_added']}@ of @{ doc['version_added_collection'] | escape }@
                       </div>
                     {% endif %}
                     {% if plugin_type != 'module' and value['deprecated'] %}
@@ -237,10 +231,7 @@ Parameters
                                         [@{ ini['section'] }@]<br>@{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@
                                         {% if ini['version_added'] is still_relevant %}
                                           <div style="font-style: italic; font-size: small; color: darkgreen">
-                                            added in @{ini['version_added']}@
-                                            {% if ini['version_added_collection'] and ini['version_added_collection'] != collection %}
-                                              of @{ doc['version_added_collection'] | escape }@
-                                            {% endif %}
+                                            added in @{ini['version_added']}@ of @{ doc['version_added_collection'] | escape }@
                                           </div>
                                         {% endif %}
                                         {% if ini['deprecated'] %}
@@ -270,10 +261,7 @@ Parameters
                                 env:@{ env['name'] }@
                                 {% if env['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
-                                    added in @{env['version_added']}@
-                                    {% if env['version_added_collection'] and env['version_added_collection'] != collection %}
-                                      of @{ doc['version_added_collection'] | escape }@
-                                    {% endif %}
+                                    added in @{env['version_added']}@ of @{ doc['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 {% if env['deprecated'] %}
@@ -301,10 +289,7 @@ Parameters
                                 var: @{ myvar['name'] }@
                                 {% if myvar['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
-                                    added in @{myvar['version_added']}@
-                                    {% if myvar['version_added_collection'] and myvar['version_added_collection'] != collection %}
-                                      of @{ doc['version_added_collection'] | escape }@
-                                    {% endif %}
+                                    added in @{myvar['version_added']}@ of @{ doc['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 {% if myvar['deprecated'] %}
@@ -443,10 +428,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     </div>
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
-                        added in @{value['version_added']}@
-                        {% if value['version_added_collection'] and value['version_added_collection'] != collection %}
-                          of @{ doc['version_added_collection'] | escape }@
-                        {% endif %}
+                        added in @{value['version_added']}@ of @{ doc['version_added_collection'] | escape }@
                       </div>
                     {% endif %}
                 </td>
