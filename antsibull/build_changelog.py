@@ -18,13 +18,7 @@ from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
 from . import app_context
-from .changelog import (
-    Changelog,
-    ChangelogEntry,
-    CollectionChangelogCollector,
-    AnsibleBaseChangelogCollector,
-    get_changelog,
-)
+from .changelog import Changelog, ChangelogEntry, get_changelog
 
 
 #
@@ -286,10 +280,9 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
     def check_changelog(
             name: str,
-            collector: t.Union[AnsibleBaseChangelogCollector, CollectionChangelogCollector],
+            generator: t.Optional[ChangelogGenerator],
             version: str,
             prev_version: t.Optional[str]) -> None:
-        generator = collector.changelog_generator
         if not generator:
             return
         entries = generator.collect(
@@ -298,20 +291,29 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
             return
         next(maybe_add_title)
         next(maybe_add_section_title)
-        builder.add_section(name, 2)
+        if name:
+            builder.add_section(name, 2)
         entries[0].add_section_content(builder, section)
         builder.add_raw_rst('')
 
     check_changelog(
+        '',
+        changelog_entry.acd_changelog_generator,
+        changelog_entry.version_str,
+        str(changelog_entry.prev_version) if changelog_entry.prev_version else None)
+    check_changelog(
         'Ansible-base',
-        changelog_entry.base_collector,
+        changelog_entry.base_collector.changelog_generator,
         changelog_entry.ansible_base_version,
         changelog_entry.prev_ansible_base_version)
     for (
             collector, collection_version, prev_collection_version
     ) in changelog_entry.changed_collections:
         check_changelog(
-            collector.collection, collector, collection_version, prev_collection_version)
+            collector.collection,
+            collector.changelog_generator,
+            collection_version,
+            prev_collection_version)
 
 
 def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
