@@ -22,6 +22,7 @@ from semantic_version import Version as SemVer
 from antsibull_changelog.config import PathsConfig, CollectionDetails, ChangelogConfig
 from antsibull_changelog.changes import ChangesData
 from antsibull_changelog.changelog_generator import ChangelogGenerator
+from antsibull_changelog.utils import collect_versions
 
 from . import app_context
 from .ansible_base import get_ansible_base
@@ -258,6 +259,8 @@ class ChangelogEntry:
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]]
 
     base_collector: AnsibleBaseChangelogCollector
+    acd_changelog: ChangesData
+    acd_changelog_generator: ChangelogGenerator
     collectors: t.List[CollectionChangelogCollector]
 
     ansible_base_version: str
@@ -273,6 +276,8 @@ class ChangelogEntry:
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
                  base_collector: AnsibleBaseChangelogCollector,
+                 acd_changelog: ChangesData,
+                 acd_changelog_generator: ChangelogGenerator,
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
         self.version_str = version_str
@@ -280,6 +285,8 @@ class ChangelogEntry:
         self.base_versions = base_versions
         self.versions_per_collection = versions_per_collection
         self.base_collector = base_collector
+        self.acd_changelog = acd_changelog
+        self.acd_changelog_generator = acd_changelog_generator
         self.collectors = collectors
 
         self.ansible_base_version = base_versions[version]
@@ -338,6 +345,16 @@ def get_changelog(
         collection_cache: t.Optional[str] = None,
         ) -> Changelog:
     dependencies: t.Dict[str, DependencyFileData] = {}
+
+    acd_paths = PathsConfig.force_ansible('')
+    acd_changelog_config = ChangelogConfig.default(
+        acd_paths, CollectionDetails(acd_paths), 'Ansible')
+    # TODO: adjust the following lines once Ansible switches to semantic versioning
+    acd_changelog_config.use_semantic_versioning = False
+    acd_changelog_config.release_tag_re = r'''(v(?:[\d.ab\-]|rc)+)'''
+    acd_changelog_config.pre_release_tag_re = r'''(?P<pre_release>(?:[ab]|rc)+\d*)$'''
+    acd_changelog = ChangesData(acd_changelog_config, '')  # empty changelog
+
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
             deps_file = DepsFile(path)
@@ -346,21 +363,23 @@ def get_changelog(
             if version > acd_version:
                 print(f"Ignoring {path}, since {deps.ansible_version} is newer than {acd_version}")
             dependencies[deps.ansible_version] = deps
+        acd_changelog = ChangesData(acd_changelog_config, os.path.join(deps_dir, 'changelog.yaml'))
     if deps_data:
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
 
+    acd_changelog_generator = ChangelogGenerator(
+        acd_changelog_config, acd_changelog, plugins=None, fragments=None, flatmap=True)
+
     base_versions: t.Dict[PypiVer, str] = dict()
-    versions: t.List[t.Tuple[str, PypiVer, DependencyFileData]] = []
+    versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
     for deps in dependencies.values():
         version = PypiVer(deps.ansible_version)
-        versions.append((deps.ansible_version, version, deps))
+        versions[deps.ansible_version] = (version, deps)
         base_versions[version] = deps.ansible_base_version
         for collection_name, collection_version in deps.deps.items():
             versions_per_collection[collection_name][version] = collection_version
-
-    versions.sort(key=lambda tuple: tuple[1])
 
     base_collector = AnsibleBaseChangelogCollector(base_versions.values())
     collectors = [
@@ -371,15 +390,22 @@ def get_changelog(
 
     changelog = []
 
-    for index, (version_str, version, deps) in enumerate(reversed(versions)):
-        if index + 1 < len(versions):
-            prev_version = versions[len(versions) - index - 2][1]
-        else:
-            prev_version = None
+    sorted_versions = collect_versions(versions, acd_changelog_config)
+    for index, (version_str, _) in enumerate(sorted_versions):
+        version, deps = versions[version_str]
+        prev_version = None
+        if index + 1 < len(sorted_versions):
+            prev_version = versions[sorted_versions[index + 1][0]][0]
 
         changelog.append(ChangelogEntry(
-            version, version_str, prev_version,
-            base_versions, versions_per_collection,
-            base_collector, collectors))
+            version,
+            version_str,
+            prev_version,
+            base_versions,
+            versions_per_collection,
+            base_collector,
+            acd_changelog,
+            acd_changelog_generator,
+            collectors))
 
     return Changelog(acd_version, changelog, base_collector, collectors)
