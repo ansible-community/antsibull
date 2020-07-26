@@ -421,19 +421,26 @@ class ReleaseNotes:
             "\n"
         )
 
-        builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
+        builder.add_raw_rst('.. contents:: Topics\n  :local:\n  :depth: 2\n')
 
         base_porting_guide = changelog.base_collector.porting_guide
         if base_porting_guide:
             lines = base_porting_guide.decode('utf-8').splitlines()
             lines.append('')
             found_topics = False
+            found_empty = False
             for line in lines:
                 if not found_topics:
-                    if line == '.. contents:: Topics':
+                    if line.startswith('.. contents::'):
                         found_topics = True
                     continue
+                if not found_empty:
+                    if line == '':
+                        found_empty = True
+                    continue
                 builder.add_raw_rst(line)
+            if not found_empty:
+                print('WARNING: cannot find TOC of ansible-base porting guide!')
 
         for porting_guide_entry in changelog.entries:
             append_porting_guide(builder, porting_guide_entry)
