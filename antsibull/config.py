@@ -106,16 +106,14 @@ DEFAULT_LOGGING_CONFIG = LoggingModel.parse_obj(
      },
      'emitters': {
          'all': {
-             'level': 'WARNING',
+             'level': 'INFO',
              'output_name': 'logfile',
              'filters': []
          },
-         'plugin_problems': {
-             'level': 'ERROR',
+         'problems': {
+             'level': 'WARNING',
              'output_name': 'stderr',
-             'filters': [
-                 {'filter': 'antsibull.logging.plugin_filter'}
-             ]
+             'filters': []
          },
      }
      })
