@@ -28,102 +28,7 @@ from .changelog import (
 
 
 #
-# Variant 1: Top-level are Ansible Base and collections;
-#            below are changelogs of these collections.
-#
-
-
-def append_ansible_base_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    builder.add_section('Ansible Base', 1)
-
-    builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
-                        f"version {changelog_entry.ansible_base_version}.")
-    same_version = False
-    if changelog_entry.prev_ansible_base_version:
-        if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
-            builder.add_raw_rst("This is the same version of Ansible-base as in "
-                                "the previous Ansible release.\n")
-            same_version = True
-        else:
-            builder.add_raw_rst(f"This is a newer version than version "
-                                f"{changelog_entry.prev_ansible_base_version} contained in the "
-                                f"previous Ansible release.\n")
-
-    generator = changelog_entry.base_collector.changelog_generator
-    if not same_version and generator:
-        builder.add_raw_rst('.. contents::')
-        builder.add_raw_rst('  :local:')
-        builder.add_raw_rst('  :depth: 1\n')
-
-        generator.generate_to(
-            builder, 1, squash=True,
-            after_version=changelog_entry.prev_ansible_base_version,
-            until_version=changelog_entry.ansible_base_version)
-
-
-def append_collection_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
-                                collector: CollectionChangelogCollector,
-                                collection_version: str,
-                                prev_collection_version: t.Optional[str]) -> None:
-    if collector in changelog_entry.added_collections:
-        builder.add_section(f"{collector.collection} (New)", 1)
-        builder.add_raw_rst(f"The collection {collector.collection} was "
-                            f"added in Ansible {changelog_entry.version}.\n")
-    else:
-        builder.add_section(collector.collection, 1)
-        builder.add_raw_rst(f"Ansible {changelog_entry.version} contains "
-                            f"{collector.collection} version {collection_version}.")
-        if changelog_entry.prev_version:
-            builder.add_raw_rst(f"This is a newer version than version "
-                                f"{prev_collection_version} contained in the "
-                                f"previous Ansible release.\n")
-        else:
-            builder.add_raw_rst('')
-
-    changelog = collector.changelog
-    generator = collector.changelog_generator
-    if not changelog or not generator:
-        builder.add_raw_rst(f"Unfortunately, {collector.collection} has no Ansible "
-                            f"compatible changelog.\n")
-        # TODO: add link to collection's changelog
-        return
-
-    release_entries = generator.collect(
-        squash=True, after_version=prev_collection_version, until_version=collection_version)
-
-    if not release_entries:
-        builder.add_raw_rst("The collection did not have a changelog in this version.\n")
-        return
-    if release_entries[0].empty:
-        builder.add_raw_rst("There are no changes recorded in the changelog.\n")
-        return
-
-    builder.add_raw_rst('.. contents::')
-    builder.add_raw_rst('  :local:')
-    builder.add_raw_rst('  :depth: 1\n')
-
-    for release in release_entries:
-        generator.append_changelog_entry(
-            builder, release, start_level=1, add_version=False)
-
-
-def append_changelog_entries_1(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    '''
-    Top-level are Ansible Base and collections; below are changelogs of these collections.
-    '''
-    if changelog_entry.base_collector.changelog:
-        append_ansible_base_changelog(builder, changelog_entry)
-
-    for (
-            collector, collection_version, prev_collection_version
-    ) in changelog_entry.changed_collections:
-        append_collection_changelog(builder, changelog_entry, collector,
-                                    collection_version, prev_collection_version)
-
-
-#
-# Variant 2: Top-level are collections with no changelog,
-#            and the sections of a single changelog entry.
+# Changelog
 #
 
 
@@ -274,7 +179,7 @@ def create_title_adder(builder: RstBuilder, title: str,
         yield
 
 
-def append_changelog_entries_2(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+def append_changelog_entries(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     '''
     Top-level are collections with no changelog, and the sections of a single changelog entry.
     '''
@@ -296,11 +201,6 @@ def append_changelog_entries_2(builder: RstBuilder, changelog_entry: ChangelogEn
 
     add_plugins(builder, data)
     add_modules(builder, data)
-
-
-#
-# Generic Changelog Code
-#
 
 
 def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
@@ -327,8 +227,7 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
             builder.add_list_item(f"{collector.collection} (still version {collection_version})")
         builder.add_raw_rst('')
 
-    # append_changelog_entries_1(builder, changelog_entry)
-    append_changelog_entries_2(builder, changelog_entry)
+    append_changelog_entries(builder, changelog_entry)
 
 
 #
