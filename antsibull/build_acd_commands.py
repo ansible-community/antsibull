@@ -180,8 +180,7 @@ def build_single_command():
             {collection: str(version) for collection, version in included_versions.items()})
 
         # Get changelog and porting guide data
-        deps_dir = os.path.dirname(
-            os.path.join(app_ctx.extra["dest_dir"], app_ctx.extra["deps_file"]))
+        deps_dir = os.path.dirname(app_ctx.extra["build_file"])
         changelog = get_changelog(
             app_ctx.extra["acd_version"],
             deps_dir=deps_dir,
