@@ -16,12 +16,15 @@ import sh
 from .. import app_context
 from ..compat import best_get_loop, create_task
 from ..constants import DOCUMENTABLE_PLUGINS
+from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
 
 if TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
 
+
+mlog = log.fields(mod=__name__)
 
 #: Clear Ansible environment variables that set paths where plugins could be found.
 ANSIBLE_PATH_ENVIRON: Dict[str, str] = os.environ.copy()
@@ -86,6 +89,9 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
         function.
     :returns: Mapping of fqcn's to plugin_info.
     """
+    flog = mlog.fields(func='_get_plugin_info')
+    flog.debug('Enter')
+
     # Get the list of plugins
     ansible_doc_list_cmd_list = ['--list', '--t', plugin_type, '--json']
     if collection_names and len(collection_names) == 1:
@@ -118,28 +124,24 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
     results = {}
     for plugin_name, ansible_doc_results in zip(extractors, plugin_info):
-        err_msg = []
+        plugin_log = flog.fields(plugin_type=plugin_type, plugin_name=plugin_name)
 
         if isinstance(ansible_doc_results, Exception):
-            formatted_exception = traceback.format_exception(None, ansible_doc_results,
-                                                             ansible_doc_results.__traceback__)
-            err_msg.append(f'Exception while parsing documentation for {plugin_type} plugin:'
-                           f' {plugin_name}.  Will not document this plugin.')
-            err_msg.append(f'Exception:\n{"".join(formatted_exception)}')
+            error_fields = {}
+            error_fields['exception'] = traceback.format_exception(
+                None, ansible_doc_results, ansible_doc_results.__traceback__)
 
-        # Note: Exception will also be True.
-        if isinstance(ansible_doc_results, sh.ErrorReturnCode):
-            stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
-            stderr = ansible_doc_results.stderr.decode("utf-8", errors="surrogateescape")
+            if isinstance(ansible_doc_results, sh.ErrorReturnCode):
+                error_fields['stdout'] = ansible_doc_results.stdout.decode(
+                    'utf-8', errors='surrogateescape')
+                error_fields['stderr'] = ansible_doc_results.stderr.decode(
+                    'utf-8', errors='surrogateescape')
 
-            err_msg.append(f'Full process stdout:\n{stdout}')
-            err_msg.append(f'Full process stderr:\n{stderr}')
-
-        if err_msg:
-            sys.stderr.write('\n'.join(err_msg))
+            plugin_log.fields(**error_fields).error(
+                'Exception while parsing documentation.  Will not document this plugin.')
             continue
 
-        stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
+        stdout = ansible_doc_results.stdout.decode('utf-8', errors='surrogateescape')
 
         # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
         # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
@@ -154,8 +156,20 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
         except ValueError:
             fqcn = f'ansible.builtin.{plugin_name}'
 
-        results[fqcn] = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
+        try:
+            ansible_doc_output = json.loads(_filter_non_json_lines(stdout))
+        except Exception as e:
+            formatted_exception = traceback.format_exception(None, e, e.__traceback__)
 
+            plugin_log.fields(ansible_doc_stdout=stdout, exception=formatted_exception,
+                              traceback=traceback.format_exc()).error(
+                                  'ansible-doc did not return json data.'
+                                  ' Will not document this plugin.')
+            continue
+
+        results[fqcn] = ansible_doc_output[plugin_name]
+
+    flog.debug('Leave')
     return results
 
 
