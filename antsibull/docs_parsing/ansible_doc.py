@@ -8,23 +8,26 @@ import json
 import os
 import sys
 import traceback
+import typing as t
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 
 import sh
 
 from .. import app_context
 from ..compat import best_get_loop, create_task
 from ..constants import DOCUMENTABLE_PLUGINS
+from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
 
 
+mlog = log.fields(mod=__name__)
+
 #: Clear Ansible environment variables that set paths where plugins could be found.
-ANSIBLE_PATH_ENVIRON: Dict[str, str] = os.environ.copy()
+ANSIBLE_PATH_ENVIRON: t.Dict[str, str] = os.environ.copy()
 ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATH': '/dev/null',
                              'ANSIBLE_ACTION_PLUGINS': '/dev/null',
                              'ANSIBLE_CACHE_PLUGINS': '/dev/null',
@@ -63,9 +66,78 @@ class ParsingError(Exception):
     """Error raised while parsing plugins for documentation."""
 
 
+def _process_plugin_results(plugin_type: str,
+                            plugin_names: t.Iterable[str],
+                            plugin_info: t.Sequence[t.Union[sh.RunningCommand, Exception]]
+                            ) -> t.Dict:
+    """
+    Process the results from running ansible-doc.
+
+    In particular, log errors and remove them from the output.
+
+    :arg plugin_type: The type of plugin.  See :attr:`DOCUMENTABLE_PLUGINS` for a list
+        of allowed types.
+    :arg plugin_names: Iterable of the plugin_names that were processed in the same order as the
+        plugin_info.
+    :arg plugin_info: List of results running sh.ansible_doc on each plugin.
+    :returns: Dictionary mapping plugin_name to the results from ansible-doc.
+    """
+    flog = mlog.fields(func='_process_plugin_results')
+    flog.debug('Enter')
+
+    results = {}
+    for plugin_name, ansible_doc_results in zip(plugin_names, plugin_info):
+        plugin_log = flog.fields(plugin_type=plugin_type, plugin_name=plugin_name)
+
+        if isinstance(ansible_doc_results, Exception):
+            error_fields = {}
+            error_fields['exception'] = traceback.format_exception(
+                None, ansible_doc_results, ansible_doc_results.__traceback__)
+
+            if isinstance(ansible_doc_results, sh.ErrorReturnCode):
+                error_fields['stdout'] = ansible_doc_results.stdout.decode(
+                    'utf-8', errors='surrogateescape')
+                error_fields['stderr'] = ansible_doc_results.stderr.decode(
+                    'utf-8', errors='surrogateescape')
+
+            plugin_log.fields(**error_fields).error(
+                'Exception while parsing documentation.  Will not document this plugin.')
+            continue
+
+        stdout = ansible_doc_results.stdout.decode('utf-8', errors='surrogateescape')
+
+        # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
+        # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
+        # do it here instead of as part of a general normalization step is that other plugins
+        # (site-specific ones from ANSIBLE_LIBRARY, for instance) will also be returned with no
+        # collection name.  We know that we don't have any of those in this code (because we set
+        # ANSIBLE_LIBRARY and other plugin path variables to /dev/null) so we can safely fix this
+        # here but not outside the ansible-doc backend.
+        fqcn = plugin_name
+        try:
+            get_fqcn_parts(fqcn)
+        except ValueError:
+            fqcn = f'ansible.builtin.{plugin_name}'
+
+        try:
+            ansible_doc_output = json.loads(_filter_non_json_lines(stdout)[0])
+        except Exception as e:
+            formatted_exception = traceback.format_exception(None, e, e.__traceback__)
+
+            plugin_log.fields(ansible_doc_stdout=stdout, exception=formatted_exception,
+                              traceback=traceback.format_exc()).error(
+                                  'ansible-doc did not return json data.'
+                                  ' Will not document this plugin.')
+            continue
+
+        results[fqcn] = ansible_doc_output[plugin_name]
+
+    return results
+
+
 async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
                            max_workers: int,
-                           collection_names: Optional[List[str]] = None) -> Dict[str, Any]:
+                           collection_names: t.Optional[t.List[str]] = None) -> t.Dict[str, t.Any]:
     """
     Retrieve info about all Ansible plugins of a particular type.
 
@@ -86,6 +158,9 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
         function.
     :returns: Mapping of fqcn's to plugin_info.
     """
+    flog = mlog.fields(func='_get_plugin_info')
+    flog.debug('Enter')
+
     # Get the list of plugins
     ansible_doc_list_cmd_list = ['--list', '--t', plugin_type, '--json']
     if collection_names and len(collection_names) == 1:
@@ -116,50 +191,13 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
                                                        '--json', plugin_name)
     plugin_info = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
-    results = {}
-    for plugin_name, ansible_doc_results in zip(extractors, plugin_info):
-        err_msg = []
+    results = _process_plugin_results(plugin_type, extractors, plugin_info)
 
-        if isinstance(ansible_doc_results, Exception):
-            formatted_exception = traceback.format_exception(None, ansible_doc_results,
-                                                             ansible_doc_results.__traceback__)
-            err_msg.append(f'Exception while parsing documentation for {plugin_type} plugin:'
-                           f' {plugin_name}.  Will not document this plugin.')
-            err_msg.append(f'Exception:\n{"".join(formatted_exception)}')
-
-        # Note: Exception will also be True.
-        if isinstance(ansible_doc_results, sh.ErrorReturnCode):
-            stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
-            stderr = ansible_doc_results.stderr.decode("utf-8", errors="surrogateescape")
-
-            err_msg.append(f'Full process stdout:\n{stdout}')
-            err_msg.append(f'Full process stderr:\n{stderr}')
-
-        if err_msg:
-            sys.stderr.write('\n'.join(err_msg))
-            continue
-
-        stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
-
-        # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
-        # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
-        # do it here instead of as part of a general normalization step is that other plugins
-        # (site-specific ones from ANSIBLE_LIBRARY, for instance) will also be returned with no
-        # collection name.  We know that we don't have any of those in this code (because we set
-        # ANSIBLE_LIBRARY and other plugin path variables to /dev/null) so we can safely fix this
-        # here but not outside the ansible-doc backend.
-        fqcn = plugin_name
-        try:
-            get_fqcn_parts(fqcn)
-        except ValueError:
-            fqcn = f'ansible.builtin.{plugin_name}'
-
-        results[fqcn] = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
-
+    flog.debug('Leave')
     return results
 
 
-def _get_environment(collection_dir: Optional[str]) -> Dict[str, str]:
+def _get_environment(collection_dir: t.Optional[str]) -> t.Dict[str, str]:
     env = ANSIBLE_PATH_ENVIRON.copy()
     if collection_dir is not None:
         env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
@@ -176,10 +214,10 @@ def _get_environment(collection_dir: Optional[str]) -> Dict[str, str]:
     return env
 
 
-async def get_ansible_plugin_info(venv: Union['VenvRunner', 'FakeVenvRunner'],
-                                  collection_dir: Optional[str],
-                                  collection_names: Optional[List[str]] = None
-                                  ) -> Dict[str, Dict[str, Any]]:
+async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
+                                  collection_dir: t.Optional[str],
+                                  collection_names: t.Optional[t.List[str]] = None
+                                  ) -> t.Dict[str, t.Dict[str, t.Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
