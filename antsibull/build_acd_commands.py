@@ -229,6 +229,9 @@ def build_single_command():
         new_dependencies.ansible_base_version,
         new_dependencies.deps)
 
+    # Write changelog also to destination directory
+    release_notes.write_changelog_to(deps_dir)
+
     return 0
 
 #
