@@ -32,7 +32,7 @@ from .changelog import (
 #
 
 
-PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.List[ChangelogGeneratorEntry]]]
+PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogGeneratorEntry]]]
 
 
 def append_changelog_changes_collections(builder: RstBuilder,
@@ -65,7 +65,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
                         collector.collection,
                         f"{collector.collection}.",
                         generator,
-                        release_entries))
+                        release_entries[0]))
                     msg += "The changes are reported in the combined changelog below."
             else:
                 msg += "Unfortunately, this collection does not provide changelog data in a format "
@@ -76,6 +76,32 @@ def append_changelog_changes_collections(builder: RstBuilder,
         builder.add_raw_rst('')
 
     return result
+
+
+def append_changelog_changes_acd(builder: RstBuilder,
+                                 changelog_entry: ChangelogEntry) -> PluginDataT:
+    generator = changelog_entry.acd_changelog_generator
+
+    release_entries = generator.collect(
+        squash=True,
+        after_version=str(changelog_entry.prev_version) if changelog_entry.prev_version else None,
+        until_version=changelog_entry.version_str)
+
+    if not release_entries:
+        return []
+
+    release_entry = release_entries[0]
+
+    release_summary = release_entry.changes.pop('release_summary', None)
+    if release_summary:
+        builder.add_section('Release Summary', 1)
+        builder.add_raw_rst(t.cast(str, release_summary))
+        builder.add_raw_rst('')
+
+    if release_entry.empty:
+        return []
+
+    return [("", "", generator, release_entry)]
 
 
 def append_changelog_changes_base(builder: RstBuilder,
@@ -107,12 +133,14 @@ def append_changelog_changes_base(builder: RstBuilder,
         builder.add_raw_rst("Ansible-base did not have a changelog in this version.")
         return []
 
-    if release_entries[0].empty:
+    release_entry = release_entries[0]
+
+    if release_entry.empty:
         builder.add_raw_rst("There are no changes recorded in the changelog.")
         return []
 
     builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible Base", "ansible.builtin.", generator, release_entries)]
+    return [("Ansible Base", "ansible.builtin.", generator, release_entry)]
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
@@ -147,8 +175,8 @@ def dump_plugins(builder: RstBuilder, plugins: PluginDumpT) -> None:
 
 def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
     plugins: PluginDumpT = []
-    for name, prefix, _, release_entries in data:
-        for release_entry in release_entries:
+    for name, prefix, _, release_entry in data:
+        if release_entry:
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
                     plugins.append((
@@ -161,8 +189,8 @@ def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
 
 def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
     modules: PluginDumpT = []
-    for name, prefix, _, release_entries in data:
-        for release_entry in release_entries:
+    for name, prefix, _, release_entry in data:
+        if release_entry:
             for module in release_entry.modules:
                 namespace = module['namespace'].split('.', 1) if module['namespace'] else []
                 modules.append((
@@ -183,20 +211,22 @@ def append_changelog_entries(builder: RstBuilder, changelog_entry: ChangelogEntr
     '''
     Top-level are collections with no changelog, and the sections of a single changelog entry.
     '''
-    data = append_changelog_changes_base(builder, changelog_entry)
+    data = append_changelog_changes_acd(builder, changelog_entry)
+    data.extend(append_changelog_changes_base(builder, changelog_entry))
     builder.add_raw_rst('')
     data.extend(append_changelog_changes_collections(builder, changelog_entry))
 
     for section, section_title in DEFAULT_SECTIONS:
         maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
-        for name, _, _, release_entries in data:
-            if not release_entries or release_entries[0].has_no_changes([section]):
+        for name, _, _, release_entry in data:
+            if not release_entry or release_entry.has_no_changes([section]):
                 continue
 
             next(maybe_add_section_title)
-            builder.add_section(name, 2)
-            release_entries[0].add_section_content(builder, section)
+            if name:
+                builder.add_section(name, 2)
+            release_entry.add_section_content(builder, section)
             builder.add_raw_rst('')
 
     add_plugins(builder, data)

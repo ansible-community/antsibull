@@ -35,7 +35,7 @@ PyYAML = "*"
 pydantic = "*"
 asyncio-pool = "*"
 perky = "*"
-antsibull-changelog = "*"
+antsibull-changelog = ">= 0.7.0"
 # 0.5.0 introduces dict_config
 twiggy = ">= 0.5.0"
 aiocontextvars = {version = "*", python = "~3.6"}
