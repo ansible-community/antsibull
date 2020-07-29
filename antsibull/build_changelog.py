@@ -106,7 +106,7 @@ def append_changelog_changes_acd(builder: RstBuilder,
 
 def append_changelog_changes_base(builder: RstBuilder,
                                   changelog_entry: ChangelogEntry) -> PluginDataT:
-    builder.add_section('Ansible Base', 1)
+    builder.add_section('Ansible-base', 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
                         f"version {changelog_entry.ansible_base_version}.")
@@ -140,7 +140,7 @@ def append_changelog_changes_base(builder: RstBuilder,
         return []
 
     builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible Base", "ansible.builtin.", generator, release_entry)]
+    return [("Ansible-base", "ansible.builtin.", generator, release_entry)]
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
@@ -289,7 +289,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
         builder.add_raw_rst('')
 
     check_changelog(
-        'Ansible Base',
+        'Ansible-base',
         changelog_entry.base_collector,
         changelog_entry.ansible_base_version,
         changelog_entry.prev_ansible_base_version)
