@@ -106,7 +106,7 @@ def append_changelog_changes_acd(builder: RstBuilder,
 
 def append_changelog_changes_base(builder: RstBuilder,
                                   changelog_entry: ChangelogEntry) -> PluginDataT:
-    builder.add_section('Ansible Base', 1)
+    builder.add_section('Ansible-base', 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
                         f"version {changelog_entry.ansible_base_version}.")
@@ -140,7 +140,7 @@ def append_changelog_changes_base(builder: RstBuilder,
         return []
 
     builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible Base", "ansible.builtin.", generator, release_entry)]
+    return [("Ansible-base", "ansible.builtin.", generator, release_entry)]
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
@@ -207,15 +207,52 @@ def create_title_adder(builder: RstBuilder, title: str,
         yield
 
 
-def append_changelog_entries(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    '''
-    Top-level are collections with no changelog, and the sections of a single changelog entry.
-    '''
+def append_removed_collections(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    if changelog_entry.removed_collections:
+        builder.add_section('Removed Collections', 1)
+        for collector, collection_version in changelog_entry.removed_collections:
+            builder.add_list_item(f"{collector.collection} "
+                                  f"(previously included version: {collection_version})")
+        builder.add_raw_rst('')
+
+
+def append_added_collections(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    if changelog_entry.added_collections:
+        builder.add_section('Added Collections', 1)
+        for collector, collection_version in changelog_entry.added_collections:
+            builder.add_list_item(f"{collector.collection} (version {collection_version})")
+        builder.add_raw_rst('')
+
+
+def append_unchanged_collections(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    if changelog_entry.unchanged_collections:
+        builder.add_section('Unchanged Collections', 1)
+        for collector, collection_version in changelog_entry.unchanged_collections:
+            builder.add_list_item(f"{collector.collection} (still version {collection_version})")
+        builder.add_raw_rst('')
+
+
+def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+    builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
+
+    builder.add_raw_rst('.. contents::')
+    builder.add_raw_rst('  :local:')
+    builder.add_raw_rst('  :depth: 2\n')
+
+    # Add release summary for Ansible
     data = append_changelog_changes_acd(builder, changelog_entry)
+
+    append_removed_collections(builder, changelog_entry)
+    append_added_collections(builder, changelog_entry)
+
+    # Adds Ansible-base section
     data.extend(append_changelog_changes_base(builder, changelog_entry))
     builder.add_raw_rst('')
+
+    # Adds list of changed collections
     data.extend(append_changelog_changes_collections(builder, changelog_entry))
 
+    # Adds all changes
     for section, section_title in DEFAULT_SECTIONS:
         maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
@@ -229,35 +266,12 @@ def append_changelog_entries(builder: RstBuilder, changelog_entry: ChangelogEntr
             release_entry.add_section_content(builder, section)
             builder.add_raw_rst('')
 
+    # Adds new plugins and modules
     add_plugins(builder, data)
     add_modules(builder, data)
 
-
-def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
-
-    builder.add_raw_rst('.. contents::')
-    builder.add_raw_rst('  :local:')
-    builder.add_raw_rst('  :depth: 2\n')
-
-    if changelog_entry.removed_collections:
-        builder.add_section('Removed Collections', 1)
-        for collector, collection_version in changelog_entry.removed_collections:
-            builder.add_list_item(f"{collector.collection} "
-                                  f"(previously included version: {collection_version})")
-        builder.add_raw_rst('')
-    if changelog_entry.added_collections:
-        builder.add_section('Added Collections', 1)
-        for collector, collection_version in changelog_entry.added_collections:
-            builder.add_list_item(f"{collector.collection} (version {collection_version})")
-        builder.add_raw_rst('')
-    if changelog_entry.unchanged_collections:
-        builder.add_section('Unchanged Collections', 1)
-        for collector, collection_version in changelog_entry.unchanged_collections:
-            builder.add_list_item(f"{collector.collection} (still version {collection_version})")
-        builder.add_raw_rst('')
-
-    append_changelog_entries(builder, changelog_entry)
+    # Adds list of unchanged collections
+    append_unchanged_collections(builder, changelog_entry)
 
 
 #
@@ -289,7 +303,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
         builder.add_raw_rst('')
 
     check_changelog(
-        'Ansible Base',
+        'Ansible-base',
         changelog_entry.base_collector,
         changelog_entry.ansible_base_version,
         changelog_entry.prev_ansible_base_version)
