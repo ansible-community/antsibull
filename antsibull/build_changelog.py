@@ -239,15 +239,20 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
     builder.add_raw_rst('  :local:')
     builder.add_raw_rst('  :depth: 2\n')
 
+    # Add release summary for Ansible
+    data = append_changelog_changes_acd(builder, changelog_entry)
+
     append_removed_collections(builder, changelog_entry)
     append_added_collections(builder, changelog_entry)
-    append_unchanged_collections(builder, changelog_entry)
 
-    data = append_changelog_changes_acd(builder, changelog_entry)
+    # Adds Ansible-base section
     data.extend(append_changelog_changes_base(builder, changelog_entry))
     builder.add_raw_rst('')
+
+    # Adds list of changed collections
     data.extend(append_changelog_changes_collections(builder, changelog_entry))
 
+    # Adds all changes
     for section, section_title in DEFAULT_SECTIONS:
         maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
@@ -261,8 +266,12 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
             release_entry.add_section_content(builder, section)
             builder.add_raw_rst('')
 
+    # Adds new plugins and modules
     add_plugins(builder, data)
     add_modules(builder, data)
+
+    # Adds list of unchanged collections
+    append_unchanged_collections(builder, changelog_entry)
 
 
 #
