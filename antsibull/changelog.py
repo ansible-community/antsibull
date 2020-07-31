@@ -52,7 +52,7 @@ def read_changelog_file(tarball_path: str, is_ansible_base=False) -> t.Optional[
 
 
 def get_porting_guide_filename(version: PypiVer):
-    return f"docs/docsite/rst/porting_guides/porting_guide_{version.major}.{version.minor}.rst"
+    return f"docs/docsite/rst/porting_guides/porting_guide_base_{version.major}.{version.minor}.rst"
 
 
 def read_porting_guide_file(tarball_path: str, version: PypiVer) -> t.Optional[bytes]:
