@@ -219,9 +219,9 @@ class AnsibleBaseChangelogCollector:
         changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
         self._set_changelog(ChangesData(self.config, '/', changelog_data))
 
-        # FIXME: temporarily overwrite with URL from felixfontein's branch
-        #        (until that's merged and backported):
-        branch_url = 'https://raw.githubusercontent.com/felixfontein/ansible/porting-guide'
+        # FIXME: temporarily overwrite with URL from Ansible's devel branch (until
+        #        backport https://github.com/ansible/ansible/pull/71030 has been merged):
+        branch_url = 'https://raw.githubusercontent.com/ansible/ansible/devel'
 
         # Porting Guide
         query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
