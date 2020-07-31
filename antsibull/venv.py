@@ -43,24 +43,15 @@ class VenvRunner:
         """
         return sh.Command(os.path.join(self.venv_dir, 'bin', executable_name))
 
-    def install_package(self, package_name: str, from_project_path=False) -> sh.RunningCommand:
+    def install_package(self, package_name: str) -> sh.RunningCommand:
         """
         Install a python package into the venv.
 
         :arg package_name: This can be a bare package name or a path to a file.  It's passed
             directly to :command:`pip install`.
-        :arg from_project_path: Instead of a package name or file, package_name is a path to a
-            project.  ie: an expanded sdist or a checkout of a source repo.  At the moment,
-            pip -e is used to install these sorts of packages but this is an implementation
-            detail.
         :returns: An :sh:obj:`sh.RunningCommand` for the pip output.
         """
-        if from_project_path:
-            package_args = ('-e', package_name)
-        else:
-            package_args = (package_name,)
-
-        return self._python('-m', 'pip', 'install', *package_args)
+        return self._python('-m', 'pip', 'install', package_name)
 
 
 class FakeVenvRunner:
@@ -81,16 +72,12 @@ class FakeVenvRunner:
         """
         return sh.Command(executable_name)
 
-    def install_package(self, package_name: str, from_project_path=False) -> sh.RunningCommand:
+    def install_package(self, package_name: str) -> sh.RunningCommand:
         """
         Install a python package into the venv.
 
         :arg package_name: This can be a bare package name or a path to a file.  It's passed
             directly to :command:`pip install`.
-        :arg from_project_path: Instead of a package name or file, package_name is a path to a
-            project.  ie: an expanded sdist or a checkout of a source repo.  At the moment,
-            pip -e is used to install these sorts of packages but this is an implementation
-            detail.
         :returns: An :sh:obj:`sh.RunningCommand` for the pip output.
         """
         raise Exception('Not implemented')

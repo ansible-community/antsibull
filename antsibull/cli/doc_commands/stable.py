@@ -332,7 +332,6 @@ def generate_docs() -> int:
 
         # Get the ansible-base location
         try:
-            # Note, this may be a tarball or the path to an ansible-base checkout/expanded sdist.
             ansible_base_path = collection_tarballs.pop('_ansible_base')
         except KeyError:
             print('ansible-base did not download successfully')
@@ -355,10 +354,7 @@ def generate_docs() -> int:
 
         # Create venv for ansible-base
         venv = VenvRunner('ansible-base-venv', tmp_dir)
-        if os.path.isdir(ansible_base_path):
-            venv.install_package(ansible_base_path, from_project_path=True)
-        else:
-            venv.install_package(ansible_base_path)
+        venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-base')
 
         generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
