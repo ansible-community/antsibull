@@ -6,8 +6,9 @@
 import ast
 import os
 import re
+import tempfile
 import typing as t
-from functools import lru_cache
+from functools import lru_cache, partial
 from urllib.parse import urljoin
 
 import aiofiles
@@ -30,6 +31,10 @@ _PYPI_SERVER_URL = str(app_context.AppContext().pypi_url)
 
 class UnknownVersion(Exception):
     """Raised when a requested version does not exist."""
+
+
+class CannotBuild(Exception):
+    """Raised when we can't figure out how to build a package."""
 
 
 class AnsibleBasePyPiClient:
@@ -206,6 +211,50 @@ async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_BASE_URL
     return ansible_base_dir
 
 
+@lru_cache(None)
+async def create_sdist(source_dir: str, dest_dir: str) -> str:
+    """
+    Create an sdist for the python package at a given path.
+
+    Note that this is not able to create an sdist for any python package.  It has to have a setup.py
+    sdist command.
+
+    :arg source_dir: the directory that the python package source is in.
+    :arg dest_dir: the directory that the sdist will be written to/
+    :returns: path to the sdist.
+    """
+    loop = best_get_loop()
+
+    # Make sure setup.py exists
+    setup_script = os.path.join(source_dir, 'setup.py')
+    if not os.path.exists(setup_script):
+        raise CannotBuild(f'{source_dir} does not include a setup.py script.  This script cannot'
+                          ' build the package')
+
+    # Make a subdir of dest_dir for returning the dist in
+    dist_dir_prefix = os.path.join(os.path.basename(source_dir))
+    dist_dir = tempfile.mkdtemp(prefix=dist_dir_prefix, dir=dest_dir)
+
+    # execute python setup.py sdist --dist-dir dest_dir/
+    # sh maps attributes to commands dynamically so ignore the linting errors there
+    # pyre-ignore[16]
+    python_cmd = partial(sh.python, _cwd=source_dir)  # pylint:disable=no-member
+    try:
+        await loop.run_in_executor(None, python_cmd, setup_script, 'sdist', '--dist-dir', dist_dir)
+    except Exception as e:
+        raise CannotBuild(f'Building {source_dir} failed: {e}')
+
+    dist_files = [f for f in os.listdir(dist_dir) if f.endswith('tar.gz')]
+    if len(dist_files) != 1:
+        if not dist_files:
+            raise CannotBuild(f'Building {source_dir} did not create a tar.gz')
+
+        raise CannotBuild(f'Building {source_dir} created more than one tar.gz files which is not'
+                          ' yet supported.')
+
+    return os.path.join(dist_dir, dist_files[0])
+
+
 async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
                            ansible_base_version: str,
                            tmpdir: str,
@@ -227,12 +276,13 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
         # is the source usable?
         if source_is_devel(ansible_base_source):
             assert ansible_base_source is not None
-            # TODO: In the future we may want to change this to install from the source rather than
-            # passing the source back verbatim.  That way we are assured we aren't modifying the
-            # source.
-            return ansible_base_source
+            source_location: str = ansible_base_source
 
-        install_file = await checkout_from_git(tmpdir)
+        else:
+            source_location = await checkout_from_git(tmpdir)
+
+        # Create an sdist from the source that can be installed
+        install_file = await create_sdist(source_location, tmpdir)
     else:
         pypi_client = AnsibleBasePyPiClient(aio_session)
         if ansible_base_version == '@latest':
@@ -243,11 +293,9 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
         # is the source the asked for version?
         if source_is_correct_version(ansible_base_source, ansible_base_version):
             assert ansible_base_source is not None
-            # TODO: In the future we may want to change this to install from the source rather than
-            # passing the source back verbatim.  That way we are assured we aren't modifying the
-            # source.
-            return ansible_base_source
-
-        install_file = await pypi_client.retrieve(ansible_base_version.public, tmpdir)
+            # Create an sdist from the source that can be installed
+            install_file = await create_sdist(ansible_base_source, tmpdir)
+        else:
+            install_file = await pypi_client.retrieve(ansible_base_version.public, tmpdir)
 
     return install_file
