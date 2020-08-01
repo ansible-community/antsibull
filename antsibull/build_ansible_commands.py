@@ -242,8 +242,9 @@ def build_single_command():
 
     ansible_changelog.changes.save()
 
-    # Write changelog also to destination directory
+    # Write changelog and porting guide also to destination directory
     release_notes.write_changelog_to(deps_dir)
+    release_notes.write_porting_guide_to(deps_dir)
 
     return 0
 
