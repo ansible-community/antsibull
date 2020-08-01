@@ -385,6 +385,13 @@ class ReleaseNotes:
         builder.set_title(
             f"Ansible {changelog.ansible_version.major}.{changelog.ansible_version.minor}"
             " Release Notes")
+
+        if changelog.ansible_ancestor_version:
+            builder.add_raw_rst(
+                f"This changelog describes changes since"
+                f" Ansible {changelog.ansible_ancestor_version}.\n"
+            )
+
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
         for index, changelog_entry in enumerate(changelog.entries):
