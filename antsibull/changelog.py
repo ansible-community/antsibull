@@ -339,9 +339,9 @@ class ChangelogEntry:
         self.changed_collections = []
         for collector in collectors:
             if version not in versions_per_collection[collector.collection]:
-                if self.prev_version and self.prev_version in versions_per_collection[collector.collection]:
+                if prev_version and prev_version in versions_per_collection[collector.collection]:
                     self.removed_collections.append((
-                        collector, versions_per_collection[collector.collection][self.prev_version]))
+                        collector, versions_per_collection[collector.collection][prev_version]))
 
                 continue
 
@@ -396,8 +396,9 @@ def get_changelog(
     dependencies: t.Dict[str, DependencyFileData] = {}
 
     ansible_changelog = ansible_changelog or ChangelogData.ansible(directory=deps_dir)
+    ansible_ancestor_version_str = ansible_changelog.changes.ancestor
     ansible_ancestor_version = (
-        PypiVer(ansible_changelog.changes.ancestor) if ansible_changelog.changes.ancestor else None
+        PypiVer(ansible_ancestor_version_str) if ansible_ancestor_version_str else None
     )
 
     if deps_dir is not None:
