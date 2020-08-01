@@ -45,7 +45,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
             if is_last:
                 msg = f"{collector.collection} with version {collection_version}."
                 if prev_collection_version is not None:
-                    msg += f" This used to be version {prev_collection_version}."
+                    msg += f" This was upgraded from version {prev_collection_version}."
             else:
                 if prev_collection_version is None:
                     msg = f"{collector.collection} was upgraded to version {collection_version}."
