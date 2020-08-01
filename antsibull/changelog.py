@@ -362,6 +362,7 @@ def get_changelog(
             version = PypiVer(deps.ansible_version)
             if version > acd_version:
                 print(f"Ignoring {path}, since {deps.ansible_version} is newer than {acd_version}")
+                continue
             dependencies[deps.ansible_version] = deps
         acd_changelog = ChangesData(acd_changelog_config, os.path.join(deps_dir, 'changelog.yaml'))
     if deps_data:
