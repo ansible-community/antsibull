@@ -314,6 +314,8 @@ class ChangelogEntry:
 
     def __init__(self, version: PypiVer, version_str: str,
                  prev_version: t.Optional[PypiVer],
+                 ancestor_version: t.Optional[PypiVer],
+                 has_ancestor_versions: bool,
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
                  base_collector: AnsibleBaseChangelogCollector,
@@ -321,7 +323,7 @@ class ChangelogEntry:
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
         self.version_str = version_str
-        self.prev_version = prev_version
+        self.prev_version = prev_version = prev_version or ancestor_version
         self.base_versions = base_versions
         self.versions_per_collection = versions_per_collection
         self.base_collector = base_collector
@@ -337,9 +339,9 @@ class ChangelogEntry:
         self.changed_collections = []
         for collector in collectors:
             if version not in versions_per_collection[collector.collection]:
-                if prev_version and prev_version in versions_per_collection[collector.collection]:
+                if self.prev_version and self.prev_version in versions_per_collection[collector.collection]:
                     self.removed_collections.append((
-                        collector, versions_per_collection[collector.collection][prev_version]))
+                        collector, versions_per_collection[collector.collection][self.prev_version]))
 
                 continue
 
@@ -351,7 +353,8 @@ class ChangelogEntry:
             )
             if prev_version:
                 if not prev_collection_version:
-                    self.added_collections.append((collector, collection_version))
+                    if prev_version != ancestor_version or has_ancestor_versions:
+                        self.added_collections.append((collector, collection_version))
                 elif prev_collection_version == collection_version:
                     self.unchanged_collections.append((collector, collection_version))
                     continue
@@ -362,6 +365,7 @@ class ChangelogEntry:
 
 class Changelog:
     ansible_version: PypiVer
+    ansible_ancestor_version: t.Optional[PypiVer]
     entries: t.List[ChangelogEntry]
     base_collector: AnsibleBaseChangelogCollector
     ansible_changelog: ChangelogData
@@ -369,11 +373,13 @@ class Changelog:
 
     def __init__(self,
                  ansible_version: PypiVer,
+                 ansible_ancestor_version: t.Optional[PypiVer],
                  entries: t.List[ChangelogEntry],
                  base_collector: AnsibleBaseChangelogCollector,
                  ansible_changelog: ChangelogData,
                  collection_collectors: t.List[CollectionChangelogCollector]):
         self.ansible_version = ansible_version
+        self.ansible_ancestor_version = ansible_ancestor_version
         self.entries = entries
         self.base_collector = base_collector
         self.ansible_changelog = ansible_changelog
@@ -390,6 +396,9 @@ def get_changelog(
     dependencies: t.Dict[str, DependencyFileData] = {}
 
     ansible_changelog = ansible_changelog or ChangelogData.ansible(directory=deps_dir)
+    ansible_ancestor_version = (
+        PypiVer(ansible_changelog.changes.ancestor) if ansible_changelog.changes.ancestor else None
+    )
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
@@ -404,6 +413,9 @@ def get_changelog(
     if deps_data:
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
+
+    # TODO: set to True if we have deps data for the ansible_ancestor_version
+    has_ancestor_versions = False
 
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
@@ -435,10 +447,18 @@ def get_changelog(
             version,
             version_str,
             prev_version,
+            ansible_ancestor_version,
+            has_ancestor_versions,
             base_versions,
             versions_per_collection,
             base_collector,
             ansible_changelog,
             collectors))
 
-    return Changelog(ansible_version, changelog, base_collector, ansible_changelog, collectors)
+    return Changelog(
+        ansible_version,
+        ansible_ancestor_version,
+        changelog,
+        base_collector,
+        ansible_changelog,
+        collectors)
