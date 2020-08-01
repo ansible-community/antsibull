@@ -389,8 +389,7 @@ def get_changelog(
         ) -> Changelog:
     dependencies: t.Dict[str, DependencyFileData] = {}
 
-    if ansible_changelog is None:
-        ansible_changelog = ChangelogData.ansible(directory=deps_dir)
+    ansible_changelog = ansible_changelog or ChangelogData.ansible(directory=deps_dir)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
