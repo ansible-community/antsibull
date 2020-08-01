@@ -18,7 +18,7 @@ from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
 from . import app_context
-from .changelog import Changelog, ChangelogEntry, get_changelog
+from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
 
 
 #
@@ -53,9 +53,9 @@ def append_changelog_changes_collections(builder: RstBuilder,
                     msg = f"{collector.collection} was upgraded from"
                     msg += f" version {prev_collection_version} to version {collection_version}."
             msg += "\n"
-            generator = collector.changelog_generator
-            if generator:
-                release_entries = generator.collect(
+            changelog = collector.changelog
+            if changelog:
+                release_entries = changelog.generator.collect(
                     squash=True,
                     after_version=prev_collection_version,
                     until_version=collection_version)
@@ -67,7 +67,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
                     result.append((
                         collector.collection,
                         f"{collector.collection}.",
-                        generator,
+                        changelog.generator,
                         release_entries[0]))
                     msg += "The changes are reported in the combined changelog below."
             else:
@@ -83,9 +83,9 @@ def append_changelog_changes_collections(builder: RstBuilder,
 
 def append_changelog_changes_ansible(builder: RstBuilder,
                                      changelog_entry: ChangelogEntry) -> PluginDataT:
-    generator = changelog_entry.ansible_changelog_generator
+    changelog = changelog_entry.ansible_changelog
 
-    release_entries = generator.collect(
+    release_entries = changelog.generator.collect(
         squash=True,
         after_version=str(changelog_entry.prev_version) if changelog_entry.prev_version else None,
         until_version=changelog_entry.version_str)
@@ -104,7 +104,7 @@ def append_changelog_changes_ansible(builder: RstBuilder,
     if release_entry.empty:
         return []
 
-    return [("", "", generator, release_entry)]
+    return [("", "", changelog.generator, release_entry)]
 
 
 def append_changelog_changes_base(builder: RstBuilder,
@@ -123,11 +123,11 @@ def append_changelog_changes_base(builder: RstBuilder,
                             f"{changelog_entry.prev_ansible_base_version} contained in the "
                             f"previous Ansible release.\n")
 
-    generator = changelog_entry.base_collector.changelog_generator
-    if not generator:
+    changelog = changelog_entry.base_collector.changelog
+    if not changelog:
         return []
 
-    release_entries = generator.collect(
+    release_entries = changelog.generator.collect(
         squash=True,
         after_version=changelog_entry.prev_ansible_base_version,
         until_version=changelog_entry.ansible_base_version)
@@ -143,7 +143,7 @@ def append_changelog_changes_base(builder: RstBuilder,
         return []
 
     builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible-base", "ansible.builtin.", generator, release_entry)]
+    return [("Ansible-base", "ansible.builtin.", changelog.generator, release_entry)]
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
@@ -290,12 +290,12 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
     def check_changelog(
             name: str,
-            generator: t.Optional[ChangelogGenerator],
+            changelog: t.Optional[ChangelogData],
             version: str,
             prev_version: t.Optional[str]) -> None:
-        if not generator:
+        if not changelog:
             return
-        entries = generator.collect(
+        entries = changelog.generator.collect(
             squash=True, after_version=prev_version, until_version=version)
         if not entries or entries[0].has_no_changes([section]):
             return
@@ -308,12 +308,12 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
     check_changelog(
         '',
-        changelog_entry.ansible_changelog_generator,
+        changelog_entry.ansible_changelog,
         changelog_entry.version_str,
         str(changelog_entry.prev_version) if changelog_entry.prev_version else None)
     check_changelog(
         'Ansible-base',
-        changelog_entry.base_collector.changelog_generator,
+        changelog_entry.base_collector.changelog,
         changelog_entry.ansible_base_version,
         changelog_entry.prev_ansible_base_version)
     for (
@@ -321,7 +321,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
     ) in changelog_entry.changed_collections:
         check_changelog(
             collector.collection,
-            collector.changelog_generator,
+            collector.changelog,
             collection_version,
             prev_collection_version)
 

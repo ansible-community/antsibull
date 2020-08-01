@@ -30,6 +30,72 @@ from .dependency_files import DepsFile, DependencyFileData
 from .galaxy import CollectionDownloader
 
 
+class ChangelogData:
+    '''
+    Data for a single changelog (for a collection, for ansible-base, for Ansible)
+    '''
+
+    paths: PathsConfig
+    config: ChangelogConfig
+    changes: ChangesData
+    generator: ChangelogGenerator
+    generator_flatmap: bool
+
+    def __init__(self, paths: PathsConfig, config: ChangelogConfig,
+                 changes: ChangesData, generator: t.Optional[ChangelogGenerator] = None,
+                 flatmap: bool = False):
+        self.paths = paths
+        self.config = config
+        self.changes = changes
+        self.generator_flatmap = flatmap
+        self.generator = ChangelogGenerator(
+            self.config, self.changes, plugins=None, fragments=None, flatmap=flatmap)
+
+    @classmethod
+    def collection(cls, collection_name: str, version: str,
+                   changelog_data: t.Optional[t.Any] = None) -> 'ChangelogData':
+        paths = PathsConfig.force_collection('')
+        collection_details = CollectionDetails(paths)
+        collection_details.namespace, collection_details.name = collection_name.split('.', 1)
+        collection_details.version = version
+        collection_details.flatmap = False  # TODO!
+        config = ChangelogConfig.default(paths, collection_details)
+        return cls(paths,
+                   config,
+                   ChangesData(config, '', changelog_data),
+                   flatmap=True)  # TODO!
+
+    @classmethod
+    def ansible_base(cls, changelog_data: t.Optional[t.Any] = None) -> 'ChangelogData':
+        paths = PathsConfig.force_ansible('')
+        collection_details = CollectionDetails(paths)
+        config = ChangelogConfig.default(paths, collection_details)
+        return cls(paths, config, ChangesData(config, '', changelog_data), flatmap=False)
+
+    @classmethod
+    def ansible(cls, directory: t.Optional[str]) -> 'ChangelogData':
+        paths = PathsConfig.force_ansible('')
+
+        config = ChangelogConfig.default(paths, CollectionDetails(paths), 'Ansible')
+        # TODO: adjust the following lines once Ansible switches to semantic versioning
+        config.use_semantic_versioning = False
+        config.release_tag_re = r'''(v(?:[\d.ab\-]|rc)+)'''
+        config.pre_release_tag_re = r'''(?P<pre_release>(?:[ab]|rc)+\d*)$'''
+
+        changelog_path = ''
+        if directory is not None:
+            changelog_path = os.path.join(directory, 'changelog.yaml')
+        return cls(paths, config, ChangesData(config, changelog_path), flatmap=True)
+
+    @classmethod
+    def concatenate(cls, changelogs: t.List['ChangelogData']) -> 'ChangelogData':
+        return cls(
+            changelogs[0].paths,
+            changelogs[0].config,
+            ChangesData.concatenate([changelog.changes for changelog in changelogs]),
+            flatmap=changelogs[0].generator_flatmap)
+
+
 def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> t.Optional[bytes]:
     with tarfile.open(tarball_path, "r:gz") as tar:
         for file in tar:
@@ -66,46 +132,34 @@ class CollectionChangelogCollector:
     earliest: SemVer
     latest: SemVer
 
-    config: ChangelogConfig
-
-    changelog: t.Optional[ChangesData]
-    changelog_generator: t.Optional[ChangelogGenerator]
+    changelog: t.Optional[ChangelogData]
 
     def __init__(self, collection: str, versions: t.ValuesView[str]):
         self.collection = collection
         self.versions = sorted(SemVer(version) for version in versions)
         self.earliest = self.versions[0]
         self.latest = self.versions[-1]
-
-        paths = PathsConfig.force_collection('')
-        collection_details = CollectionDetails(paths)
-        collection_details.namespace, collection_details.name = collection.split('.', 1)
-        collection_details.version = str(self.latest)
-        collection_details.flatmap = False  # TODO!
-        self.config = ChangelogConfig.default(paths, collection_details)
-
         self.changelog = None
-        self.changelog_generator = None
 
     async def _get_changelog(self, version: SemVer,
                              collection_downloader: CollectionDownloader
-                             ) -> t.Optional[ChangesData]:
+                             ) -> t.Optional[ChangelogData]:
         path = await collection_downloader.download(self.collection, version)
         changelog = read_changelog_file(path)
         if changelog is None:
             return None
         changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-        return ChangesData(self.config, '/', changelog_data)
+        return ChangelogData.collection(self.collection, str(version), changelog_data)
 
     async def download(self, collection_downloader: CollectionDownloader):
         changelog = await self._get_changelog(self.latest, collection_downloader)
         if changelog is None:
             return
 
-        changelog.prune_versions(versions_after=None, versions_until=str(self.latest))
+        changelog.changes.prune_versions(versions_after=None, versions_until=str(self.latest))
 
         changelogs = [changelog]
-        ancestor = changelog.ancestor
+        ancestor = changelog.changes.ancestor
         while ancestor is not None:
             ancestor_ver = SemVer(ancestor)
             if ancestor_ver < self.earliest:
@@ -113,16 +167,11 @@ class CollectionChangelogCollector:
             changelog = await self._get_changelog(ancestor_ver, collection_downloader)
             if changelog is None:
                 break
-            changelog.prune_versions(versions_after=None, versions_until=ancestor)
+            changelog.changes.prune_versions(versions_after=None, versions_until=ancestor)
             changelogs.append(changelog)
-            ancestor = changelog.ancestor
+            ancestor = changelog.changes.ancestor
 
-        changelog = ChangesData.concatenate(changelogs)
-        flatmap = True  # TODO
-
-        self.changelog = changelog
-        self.changelog_generator = ChangelogGenerator(
-            self.config, changelog, plugins=None, fragments=None, flatmap=flatmap)
+        self.changelog = ChangelogData.concatenate(changelogs)
 
 
 class AnsibleBaseChangelogCollector:
@@ -130,10 +179,7 @@ class AnsibleBaseChangelogCollector:
     earliest: PypiVer
     latest: PypiVer
 
-    config: ChangelogConfig
-
-    changelog: t.Optional[ChangesData]
-    changelog_generator: t.Optional[ChangelogGenerator]
+    changelog: t.Optional[ChangelogData]
 
     porting_guide: t.Optional[bytes]
 
@@ -141,48 +187,36 @@ class AnsibleBaseChangelogCollector:
         self.versions = sorted(PypiVer(version) for version in versions)
         self.earliest = self.versions[0]
         self.latest = self.versions[-1]
-
-        paths = PathsConfig.force_ansible('')
-        collection_details = CollectionDetails(paths)
-        self.config = ChangelogConfig.default(paths, collection_details)
-
         self.changelog = None
-        self.changelog_generator = None
-
         self.porting_guide = None
 
     async def _get_files(self, version: PypiVer,
                          base_downloader: t.Callable[[str], t.Awaitable[str]]
-                         ) -> t.Tuple[t.Optional[ChangesData], t.Optional[bytes]]:
+                         ) -> t.Tuple[t.Optional[ChangelogData], t.Optional[bytes]]:
         path = await base_downloader(str(version))
         if os.path.isdir(path):
             pg_path, pg_filename = os.path.split(get_porting_guide_filename(version))
-            changelog = None
-            porting_guide = None
+            changelog: t.Optional[ChangelogData] = None
+            porting_guide: t.Optional[bytes] = None
             for root, _, files in os.walk(path):
                 if 'changelog.yaml' in files:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
                         changelog = f.read()
                     changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-                    changelog = ChangesData(self.config, '/', changelog_data)
+                    changelog = ChangelogData.ansible_base(changelog_data)
                 if pg_filename in files:
                     if os.path.join(path, pg_path) == root:
                         with open(os.path.join(path, pg_path), 'rb') as f:
                             porting_guide = f.read()
-            return changelog_data, porting_guide
+            return changelog, porting_guide
         if os.path.isfile(path) and path.endswith('.tar.gz'):
             changelog = read_changelog_file(path, is_ansible_base=True)
             porting_guide = read_porting_guide_file(path, version)
             if changelog is None:
-                return (None, porting_guide)
+                return None, porting_guide
             changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-            return (ChangesData(self.config, '/', changelog_data), porting_guide)
+            return ChangelogData.ansible_base(changelog_data), porting_guide
         return None, None
-
-    def _set_changelog(self, changelog: ChangesData):
-        self.changelog = changelog
-        self.changelog_generator = ChangelogGenerator(
-            self.config, changelog, plugins=None, fragments=None, flatmap=True)
 
     async def download(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
         changelog, porting_guide = await self._get_files(self.latest, base_downloader)
@@ -191,10 +225,10 @@ class AnsibleBaseChangelogCollector:
         if changelog is None:
             return
 
-        changelog.prune_versions(versions_after=None, versions_until=str(self.latest))
+        changelog.changes.prune_versions(versions_after=None, versions_until=str(self.latest))
 
         changelogs = [changelog]
-        ancestor = changelog.ancestor
+        ancestor = changelog.changes.ancestor
         while ancestor is not None:
             ancestor_ver = PypiVer(ancestor)
             if ancestor_ver < self.earliest:
@@ -202,11 +236,11 @@ class AnsibleBaseChangelogCollector:
             changelog, _ = await self._get_files(ancestor_ver, base_downloader)
             if changelog is None:
                 break
-            changelog.prune_versions(versions_after=None, versions_until=ancestor)
+            changelog.changes.prune_versions(versions_after=None, versions_until=ancestor)
             changelogs.append(changelog)
-            ancestor = changelog.ancestor
+            ancestor = changelog.changes.ancestor
 
-        self._set_changelog(ChangesData.concatenate(changelogs))
+        self.changelog = ChangelogData.concatenate(changelogs)
 
     async def download_github(self, aio_session: 'aiohttp.client.ClientSession'):
         branch_url = (f"https://raw.githubusercontent.com/ansible/ansible/"
@@ -217,7 +251,7 @@ class AnsibleBaseChangelogCollector:
         async with aio_session.get(query_url) as response:
             changelog = await response.read()
         changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-        self._set_changelog(ChangesData(self.config, '/', changelog_data))
+        self.changelog = ChangelogData.ansible_base(changelog_data)
 
         # Porting Guide
         query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
@@ -259,8 +293,7 @@ class ChangelogEntry:
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]]
 
     base_collector: AnsibleBaseChangelogCollector
-    ansible_changelog: ChangesData
-    ansible_changelog_generator: ChangelogGenerator
+    ansible_changelog: ChangelogData
     collectors: t.List[CollectionChangelogCollector]
 
     ansible_base_version: str
@@ -276,8 +309,7 @@ class ChangelogEntry:
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
                  base_collector: AnsibleBaseChangelogCollector,
-                 ansible_changelog: ChangesData,
-                 ansible_changelog_generator: ChangelogGenerator,
+                 ansible_changelog: ChangelogData,
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
         self.version_str = version_str
@@ -286,7 +318,6 @@ class ChangelogEntry:
         self.versions_per_collection = versions_per_collection
         self.base_collector = base_collector
         self.ansible_changelog = ansible_changelog
-        self.ansible_changelog_generator = ansible_changelog_generator
         self.collectors = collectors
 
         self.ansible_base_version = base_versions[version]
@@ -325,16 +356,19 @@ class Changelog:
     ansible_version: PypiVer
     entries: t.List[ChangelogEntry]
     base_collector: AnsibleBaseChangelogCollector
+    ansible_changelog: ChangelogData
     collection_collectors: t.List[CollectionChangelogCollector]
 
     def __init__(self,
                  ansible_version: PypiVer,
                  entries: t.List[ChangelogEntry],
                  base_collector: AnsibleBaseChangelogCollector,
+                 ansible_changelog: ChangelogData,
                  collection_collectors: t.List[CollectionChangelogCollector]):
         self.ansible_version = ansible_version
         self.entries = entries
         self.base_collector = base_collector
+        self.ansible_changelog = ansible_changelog
         self.collection_collectors = collection_collectors
 
 
@@ -346,14 +380,7 @@ def get_changelog(
         ) -> Changelog:
     dependencies: t.Dict[str, DependencyFileData] = {}
 
-    ansible_paths = PathsConfig.force_ansible('')
-    ansible_changelog_config = ChangelogConfig.default(
-        ansible_paths, CollectionDetails(ansible_paths), 'Ansible')
-    # TODO: adjust the following lines once Ansible switches to semantic versioning
-    ansible_changelog_config.use_semantic_versioning = False
-    ansible_changelog_config.release_tag_re = r'''(v(?:[\d.ab\-]|rc)+)'''
-    ansible_changelog_config.pre_release_tag_re = r'''(?P<pre_release>(?:[ab]|rc)+\d*)$'''
-    ansible_changelog = ChangesData(ansible_changelog_config, '')  # empty changelog
+    ansible_changelog = ChangelogData.ansible(directory=deps_dir)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
@@ -365,14 +392,9 @@ def get_changelog(
                       f" is newer than {ansible_version}")
                 continue
             dependencies[deps.ansible_version] = deps
-        ansible_changelog = ChangesData(
-            ansible_changelog_config, os.path.join(deps_dir, 'changelog.yaml'))
     if deps_data:
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
-
-    ansible_changelog_generator = ChangelogGenerator(
-        ansible_changelog_config, ansible_changelog, plugins=None, fragments=None, flatmap=True)
 
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
@@ -393,7 +415,7 @@ def get_changelog(
 
     changelog = []
 
-    sorted_versions = collect_versions(versions, ansible_changelog_config)
+    sorted_versions = collect_versions(versions, ansible_changelog.config)
     for index, (version_str, _) in enumerate(sorted_versions):
         version, deps = versions[version_str]
         prev_version = None
@@ -408,7 +430,6 @@ def get_changelog(
             versions_per_collection,
             base_collector,
             ansible_changelog,
-            ansible_changelog_generator,
             collectors))
 
-    return Changelog(ansible_version, changelog, base_collector, collectors)
+    return Changelog(ansible_version, changelog, base_collector, ansible_changelog, collectors)
