@@ -6,6 +6,7 @@
 
 import asyncio
 from collections import defaultdict
+import datetime
 import glob
 import os
 import os.path
@@ -20,7 +21,7 @@ from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
 
 from antsibull_changelog.config import PathsConfig, CollectionDetails, ChangelogConfig
-from antsibull_changelog.changes import ChangesData
+from antsibull_changelog.changes import add_release, ChangesData
 from antsibull_changelog.changelog_generator import ChangelogGenerator
 from antsibull_changelog.utils import collect_versions
 
@@ -94,6 +95,13 @@ class ChangelogData:
             changelogs[0].config,
             ChangesData.concatenate([changelog.changes for changelog in changelogs]),
             flatmap=changelogs[0].generator_flatmap)
+
+    def add_ansible_release(self, version: str, date: datetime.date, release_summary: str) -> None:
+        add_release(self.config, self.changes, [], [], version, codename=None, date=date)
+        release_date = self.changes.releases[version]
+        if 'changes' not in release_date:
+            release_date['changes'] = {}
+        release_date['changes']['release_summary'] = release_summary
 
 
 def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> t.Optional[bytes]:
@@ -377,10 +385,12 @@ def get_changelog(
         deps_dir: t.Optional[str],
         deps_data: t.Optional[t.List[DependencyFileData]] = None,
         collection_cache: t.Optional[str] = None,
+        ansible_changelog: t.Optional[ChangelogData] = None
         ) -> Changelog:
     dependencies: t.Dict[str, DependencyFileData] = {}
 
-    ansible_changelog = ChangelogData.ansible(directory=deps_dir)
+    if ansible_changelog is None:
+        ansible_changelog = ChangelogData.ansible(directory=deps_dir)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
