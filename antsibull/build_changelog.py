@@ -30,19 +30,28 @@ PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogG
 
 
 def append_changelog_changes_collections(builder: RstBuilder,
-                                         changelog_entry: ChangelogEntry) -> PluginDataT:
+                                         changelog_entry: ChangelogEntry,
+                                         is_last: bool) -> PluginDataT:
     result: PluginDataT = []
 
     if changelog_entry.changed_collections:
-        builder.add_section('Changed Collections', 1)
+        if is_last:
+            builder.add_section('Included Collections', 1)
+        else:
+            builder.add_section('Changed Collections', 1)
         for (
                 collector, collection_version, prev_collection_version
         ) in changelog_entry.changed_collections:
-            if prev_collection_version is None:
-                msg = f"{collector.collection} was upgraded to version {collection_version}."
+            if is_last:
+                msg = f"{collector.collection} with version {collection_version}."
+                if prev_collection_version is not None:
+                    msg += f" This used to be version {prev_collection_version}."
             else:
-                msg = f"{collector.collection} was upgraded from version {prev_collection_version}"
-                msg += f" to version {collection_version}."
+                if prev_collection_version is None:
+                    msg = f"{collector.collection} was upgraded to version {collection_version}."
+                else:
+                    msg = f"{collector.collection} was upgraded from"
+                    msg += f" version {prev_collection_version} to version {collection_version}."
             msg += "\n"
             generator = collector.changelog_generator
             if generator:
@@ -226,7 +235,8 @@ def append_unchanged_collections(builder: RstBuilder, changelog_entry: Changelog
         builder.add_raw_rst('')
 
 
-def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
+def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
+                     is_last: bool) -> None:
     builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
 
     builder.add_raw_rst('.. contents::')
@@ -244,7 +254,7 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry) -> No
     builder.add_raw_rst('')
 
     # Adds list of changed collections
-    data.extend(append_changelog_changes_collections(builder, changelog_entry))
+    data.extend(append_changelog_changes_collections(builder, changelog_entry, is_last=is_last))
 
     # Adds all changes
     for section, section_title in DEFAULT_SECTIONS:
@@ -376,8 +386,8 @@ class ReleaseNotes:
             f"Ansible {changelog.acd_version.major}.{changelog.acd_version.minor} Release Notes")
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        for changelog_entry in changelog.entries:
-            append_changelog(builder, changelog_entry)
+        for index, changelog_entry in enumerate(changelog.entries):
+            append_changelog(builder, changelog_entry, is_last=index + 1 == len(changelog.entries))
 
         return builder.generate().encode('utf-8')
 
