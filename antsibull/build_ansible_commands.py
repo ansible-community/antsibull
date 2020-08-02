@@ -24,7 +24,7 @@ from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
-from .galaxy import CollectionDownloader
+from .galaxy import CollectionDownloader, DownloadResults
 from .utils.get_pkg_data import get_antsibull_data
 
 if t.TYPE_CHECKING:
@@ -39,7 +39,8 @@ if t.TYPE_CHECKING:
 async def download_collections(deps: t.Mapping[str, str],
                                galaxy_url: str,
                                download_dir: str,
-                               collection_cache: t.Optional[str] = None
+                               collection_cache: t.Optional[str] = None,
+                               force_versions: t.Optional[t.Mapping[str, SemVer]] = None
                                ) -> t.Dict[str, SemVer]:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
@@ -48,9 +49,21 @@ async def download_collections(deps: t.Mapping[str, str],
             downloader = CollectionDownloader(aio_session, download_dir,
                                               collection_cache=collection_cache,
                                               galaxy_server=galaxy_url)
+
+            async def download_specific(collection_name_: str, version: SemVer):
+                download_path = await downloader.download(collection_name_, version)
+                return DownloadResults(version=version, download_path=download_path)
+
             for collection_name, version_spec in deps.items():
-                requestors[collection_name] = await pool.spawn(
-                    downloader.download_latest_matching(collection_name, version_spec))
+                force_version = (
+                    None if force_versions is None else force_versions.get(collection_name)
+                )
+                if force_version is None:
+                    requestors[collection_name] = await pool.spawn(
+                        downloader.download_latest_matching(collection_name, version_spec))
+                else:
+                    requestors[collection_name] = await pool.spawn(
+                        download_specific(collection_name, force_version))
 
             responses = await asyncio.gather(*requestors.values())
 
@@ -170,7 +183,8 @@ def write_build_script(ansible_version: PypiVer,
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_command() -> int:
+def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None
+                      ) -> t.Optional[DependencyFileData]:
     app_ctx = app_context.app_ctx.get()
 
     build_file = BuildFile(app_ctx.extra['build_file'])
@@ -181,21 +195,29 @@ def build_single_command() -> int:
         print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
               f' {app_ctx.extra["ansible_version"].major}'
               f'.{app_ctx.extra["ansible_version"].minor}')
-        return 1
+        return None
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
         # Download included collections
+        versions: t.Optional[t.Mapping[str, SemVer]] = None
+        if dependency_data is not None:
+            versions = {
+                collection: SemVer(version)
+                for collection, version in dependency_data.deps.items()
+            }
         included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
                                                              download_dir,
-                                                             app_ctx.extra['collection_cache']))
+                                                             app_ctx.extra['collection_cache'],
+                                                             force_versions=versions))
 
-        new_dependencies = DependencyFileData(
-            str(app_ctx.extra["ansible_version"]),
-            str(ansible_base_version),
-            {collection: str(version) for collection, version in included_versions.items()})
+        if dependency_data is None:
+            dependency_data = DependencyFileData(
+                str(app_ctx.extra["ansible_version"]),
+                str(ansible_base_version),
+                {collection: str(version) for collection, version in included_versions.items()})
 
         # Get Ansible changelog, add new release
         deps_dir = os.path.dirname(app_ctx.extra["build_file"])
@@ -212,7 +234,7 @@ def build_single_command() -> int:
         changelog = get_changelog(
             app_ctx.extra["ansible_version"],
             deps_dir=deps_dir,
-            deps_data=[new_dependencies],
+            deps_data=[dependency_data],
             collection_cache=app_ctx.extra["collection_cache"],
             ansible_changelog=ansible_changelog)
 
@@ -247,18 +269,41 @@ def build_single_command() -> int:
             write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
         make_dist(package_dir, app_ctx.extra['dest_dir'])
 
-    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
-    deps_file = DepsFile(deps_filename)
-    deps_file.write(
-        new_dependencies.ansible_version,
-        new_dependencies.ansible_base_version,
-        new_dependencies.deps)
-
-    ansible_changelog.changes.save()
-
     # Write changelog and porting guide also to destination directory
     release_notes.write_changelog_to(deps_dir)
     release_notes.write_porting_guide_to(deps_dir)
+
+    return dependency_data
+
+
+def build_single_command() -> int:
+    app_ctx = app_context.app_ctx.get()
+
+    dependency_data = build_single_impl()
+    if dependency_data is None:
+        return 1
+
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_file = DepsFile(deps_filename)
+    deps_file.write(
+        dependency_data.ansible_version,
+        dependency_data.ansible_base_version,
+        dependency_data.deps)
+
+    ansible_changelog.changes.save()
+    return 0
+
+
+def rebuild_single_command() -> int:
+    app_ctx = app_context.app_ctx.get()
+
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_file = DepsFile(deps_filename)
+    new_dependencies = deps_file.parse()
+
+    dependency_data = build_single_impl(dependency_data=new_dependencies)
+    if dependency_data is None:
+        return 1
 
     return 0
 
