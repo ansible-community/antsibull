@@ -19,6 +19,8 @@ except ImportError:
 from jinja2.runtime import Undefined
 
 
+# Warning: If you add to this, then you also have to change ansible-doc
+# (ansible/cli/__init__.py) in the ansible/ansible repository
 _ITALIC = re.compile(r"I\(([^)]+)\)")
 _BOLD = re.compile(r"B\(([^)]+)\)")
 _MODULE = re.compile(r"M\(([^)]+)\)")
