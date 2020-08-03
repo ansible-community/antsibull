@@ -18,9 +18,9 @@ from .dependency_files import DepsFile
 def build_collection_command():
     app_ctx = app_context.app_ctx.get()
     with tempfile.TemporaryDirectory() as working_dir:
-        collection_dir = os.path.join(working_dir, 'community', 'acd')
+        collection_dir = os.path.join(working_dir, 'community', 'ansible')
 
-        sh.ansible_galaxy('collection', 'init', 'community.acd', '--init-path', working_dir)
+        sh.ansible_galaxy('collection', 'init', 'community.ansible', '--init-path', working_dir)
         # Copy the README.md file
         readme = pkgutil.get_data('antsibull.data', 'README_md.txt')
         with open(os.path.join(collection_dir, 'README.md'), 'wb') as f:
@@ -35,7 +35,7 @@ def build_collection_command():
         dep_string.replace(', ', ',\n    ')
         galaxy_yml = pkgutil.get_data('antsibull.data', 'galaxy_yml.j2').decode('utf-8')
         galaxy_yml_tmpl = Template(galaxy_yml)
-        galaxy_yml_contents = galaxy_yml_tmpl.render(version=app_ctx.extra['acd_version'],
+        galaxy_yml_contents = galaxy_yml_tmpl.render(version=app_ctx.extra['ansible_version'],
                                                      dependencies=dep_string)
 
         with open(os.path.join(collection_dir, 'galaxy.yml'), 'w') as f:

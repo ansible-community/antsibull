@@ -35,7 +35,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  }
 
 #: The filename for the file which lists raw collection names
-DEFAULT_PIECES_FILE: str = 'acd.in'
+DEFAULT_PIECES_FILE: str = 'ansible.in'
 
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:

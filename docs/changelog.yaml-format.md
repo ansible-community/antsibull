@@ -1,11 +1,11 @@
 Changelog YAML Format
 =====================
 
-This describes the format which is required from collections which want to be included in the Ansible Community Distribution if they want to have a nicely formatted changelog for their collection in the ACD combined changelog.
+This describes the format which is required from collections which want to be included in the Ansible package if they want to have a nicely formatted changelog for their collection in the Ansible combined changelog.
 
 The format is similar to the `.changes.yaml` file used internally by Ansible until 2.9.x (see [here](https://github.com/ansible/ansible/blob/stable-2.9/changelogs/.changes.yaml) for an example). Concrete examples for collection changelogs with the new format described here can be found [here](https://github.com/felixfontein/ansible-versioning_test_collection/blob/master/changelogs/changelog.yaml) and [here](https://github.com/felixfontein/ansible-versioning_test_collection/blob/1.0.2/changelogs/changelog.yaml).
 
-Please remember that collection versions **must** use [semantic versioning](https://semver.org/) if included in ACD or RedHat's Automation Hub.
+Please remember that collection versions **must** use [semantic versioning](https://semver.org/) if included in the Ansible package or RedHat's Automation Hub.
 
 You can use the `antsibull-lint changelog-yaml` tool to validate these files:
 

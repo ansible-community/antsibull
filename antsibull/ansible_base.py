@@ -164,7 +164,7 @@ def source_is_devel(ansible_base_source: t.Optional[str]) -> bool:
 
 
 def source_is_correct_version(ansible_base_source: t.Optional[str],
-                             ansible_base_version: PypiVer) -> bool:
+                              ansible_base_version: PypiVer) -> bool:
     """
     :arg ansible_base_source: A path to an Ansible-base checkout or expanded sdist or None.
         This will be used instead of downloading an ansible-base package if the version matches
@@ -215,7 +215,8 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
 
     :arg aio_session: :obj:`aiohttp.client.ClientSession` to make http requests with.
     :arg ansible_base_version: Version of ansible-base to retrieve.  If it is the special string
-        ``@devel``, then we will retrieve ansible-base from its git repository.
+        ``@devel``, then we will retrieve ansible-base from its git repository.  If it is the
+        special string ``@latest``, then we will retrieve the latest version from pypi.
     :arg tmpdir: Temporary directory use as a scratch area for downloading to and the place that the
         ansible-base directory should be placed in.
     :kwarg ansible_base_source: If given, a path to an ansible-base checkout or expanded sdist.

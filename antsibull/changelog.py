@@ -259,8 +259,8 @@ class ChangelogEntry:
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]]
 
     base_collector: AnsibleBaseChangelogCollector
-    acd_changelog: ChangesData
-    acd_changelog_generator: ChangelogGenerator
+    ansible_changelog: ChangesData
+    ansible_changelog_generator: ChangelogGenerator
     collectors: t.List[CollectionChangelogCollector]
 
     ansible_base_version: str
@@ -276,8 +276,8 @@ class ChangelogEntry:
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
                  base_collector: AnsibleBaseChangelogCollector,
-                 acd_changelog: ChangesData,
-                 acd_changelog_generator: ChangelogGenerator,
+                 ansible_changelog: ChangesData,
+                 ansible_changelog_generator: ChangelogGenerator,
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
         self.version_str = version_str
@@ -285,8 +285,8 @@ class ChangelogEntry:
         self.base_versions = base_versions
         self.versions_per_collection = versions_per_collection
         self.base_collector = base_collector
-        self.acd_changelog = acd_changelog
-        self.acd_changelog_generator = acd_changelog_generator
+        self.ansible_changelog = ansible_changelog
+        self.ansible_changelog_generator = ansible_changelog_generator
         self.collectors = collectors
 
         self.ansible_base_version = base_versions[version]
@@ -322,55 +322,57 @@ class ChangelogEntry:
 
 
 class Changelog:
-    acd_version: PypiVer
+    ansible_version: PypiVer
     entries: t.List[ChangelogEntry]
     base_collector: AnsibleBaseChangelogCollector
     collection_collectors: t.List[CollectionChangelogCollector]
 
     def __init__(self,
-                 acd_version: PypiVer,
+                 ansible_version: PypiVer,
                  entries: t.List[ChangelogEntry],
                  base_collector: AnsibleBaseChangelogCollector,
                  collection_collectors: t.List[CollectionChangelogCollector]):
-        self.acd_version = acd_version
+        self.ansible_version = ansible_version
         self.entries = entries
         self.base_collector = base_collector
         self.collection_collectors = collection_collectors
 
 
 def get_changelog(
-        acd_version: PypiVer,
+        ansible_version: PypiVer,
         deps_dir: t.Optional[str],
         deps_data: t.Optional[t.List[DependencyFileData]] = None,
         collection_cache: t.Optional[str] = None,
         ) -> Changelog:
     dependencies: t.Dict[str, DependencyFileData] = {}
 
-    acd_paths = PathsConfig.force_ansible('')
-    acd_changelog_config = ChangelogConfig.default(
-        acd_paths, CollectionDetails(acd_paths), 'Ansible')
+    ansible_paths = PathsConfig.force_ansible('')
+    ansible_changelog_config = ChangelogConfig.default(
+        ansible_paths, CollectionDetails(ansible_paths), 'Ansible')
     # TODO: adjust the following lines once Ansible switches to semantic versioning
-    acd_changelog_config.use_semantic_versioning = False
-    acd_changelog_config.release_tag_re = r'''(v(?:[\d.ab\-]|rc)+)'''
-    acd_changelog_config.pre_release_tag_re = r'''(?P<pre_release>(?:[ab]|rc)+\d*)$'''
-    acd_changelog = ChangesData(acd_changelog_config, '')  # empty changelog
+    ansible_changelog_config.use_semantic_versioning = False
+    ansible_changelog_config.release_tag_re = r'''(v(?:[\d.ab\-]|rc)+)'''
+    ansible_changelog_config.pre_release_tag_re = r'''(?P<pre_release>(?:[ab]|rc)+\d*)$'''
+    ansible_changelog = ChangesData(ansible_changelog_config, '')  # empty changelog
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
             deps_file = DepsFile(path)
             deps = deps_file.parse()
             version = PypiVer(deps.ansible_version)
-            if version > acd_version:
-                print(f"Ignoring {path}, since {deps.ansible_version} is newer than {acd_version}")
+            if version > ansible_version:
+                print(f"Ignoring {path}, since {deps.ansible_version}"
+                      f" is newer than {ansible_version}")
                 continue
             dependencies[deps.ansible_version] = deps
-        acd_changelog = ChangesData(acd_changelog_config, os.path.join(deps_dir, 'changelog.yaml'))
+        ansible_changelog = ChangesData(
+            ansible_changelog_config, os.path.join(deps_dir, 'changelog.yaml'))
     if deps_data:
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
 
-    acd_changelog_generator = ChangelogGenerator(
-        acd_changelog_config, acd_changelog, plugins=None, fragments=None, flatmap=True)
+    ansible_changelog_generator = ChangelogGenerator(
+        ansible_changelog_config, ansible_changelog, plugins=None, fragments=None, flatmap=True)
 
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
@@ -391,7 +393,7 @@ def get_changelog(
 
     changelog = []
 
-    sorted_versions = collect_versions(versions, acd_changelog_config)
+    sorted_versions = collect_versions(versions, ansible_changelog_config)
     for index, (version_str, _) in enumerate(sorted_versions):
         version, deps = versions[version_str]
         prev_version = None
@@ -405,8 +407,8 @@ def get_changelog(
             base_versions,
             versions_per_collection,
             base_collector,
-            acd_changelog,
-            acd_changelog_generator,
+            ansible_changelog,
+            ansible_changelog_generator,
             collectors))
 
-    return Changelog(acd_version, changelog, base_collector, collectors)
+    return Changelog(ansible_version, changelog, base_collector, collectors)

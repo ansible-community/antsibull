@@ -20,27 +20,27 @@ package is installed, you won't need to know about poetry at all::
     git clone git@github.com:ansible-community/ansible-build-data
     mkdir ansible-build-data/2.10
     # Copy from previous version... already done for 2.10
-    # cp ansible-build-data/2.10/acd.in ansible-build-data/2.10
+    # cp ansible-build-data/2.10/ansible.in ansible-build-data/2.10
     mkdir built
 
     # Creates a venv with all of the requirements
     poetry install
 
     # Generate the list of compatible versions.  Intended to be run when we feature freeze
-    poetry run antsibull-build new-acd 2.10.0 --dest-dir ansible-build-data/2.10
+    poetry run antsibull-build new-ansible 2.10.0 --dest-dir ansible-build-data/2.10
 
     # Create an ansible release using *one* of the following:
     # Single tarball for ansible with a dep on the ansible-base package
-    poetry run antsibull-build single 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run antsibull-build single 2.10.0 --build-file ansible-build-data/2.10/ansible-2.10.build --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
     # One tarball per collection plus the ansible package which deps on all of them and ansible-base
-    poetry run antsibull-build multiple 2.10.0 --build-file ansible-build-data/2.10/acd-2.10.build --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run antsibull-build multiple 2.10.0 --build-file ansible-build-data/2.10/ansible-2.10.build --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
 
     # Create a collection that can be installed to pull in all of the collections
-    poetry run antsibull-build collection 2.10.0 --deps-file ansible-build-data/2.10/acd-2.10.0.deps --dest-dir built
+    poetry run antsibull-build collection 2.10.0 --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
 
     # Record the files used to build:
     cd ansible-build-data/2.10
-    git add acd-2.10.build acd-2.10.0.deps
+    git add ansible-2.10.build ansible-2.10.0.deps
     git commit -m 'Collection dependency information for ansible 2.10.x and ansible-2.10.0'
     git push
 
@@ -53,21 +53,8 @@ package is installed, you won't need to know about poetry at all::
     # And this should once it is uploaded to test pypi
     python -m pip install --user --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ansible
 
-    ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-acd' localhost
+    ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
 
-
-Using a pre-release build
-=========================
-
-We have uploaded test versions of the ansible and ansible-base package **for testing only**.  You
-should be able to upgrade your ansible install like::
-
-    python -m pip install --user --upgrade --extra-index-url https://toshio.fedorapeople.org/ansible/acd/ ansible
-
-And it will pull in both the ``ansible`` and ``ansible-base`` Python packages .
-
-For offline install, one way to get that would be to download the two tarballs that are there
-and pip install them as files.
 
 TODO
 ====
@@ -76,12 +63,3 @@ TODO
   for 2.10 and possibly for 2.11 but in the longer term ansible-base major releases are going to
   slow down while ansible releases may speed up slightly.  We'll need to adapt the script to handle
   these diverged versions.
-
-* The way we specify release compatibility does not allow pre-release package dependencies to work.
-  (ie: if we have a dependency on ansible-2.4.x, it will not pick up ansible-2.4.0rc1 as satisfying
-  the dependency)  We should try to fix this to make testing easier.  Something like the following
-  should work::
-
-    'ansible-base>=2.4.0a0,<2.5'
-
-  * Do we want to do the same thing with collections?
