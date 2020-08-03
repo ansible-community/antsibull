@@ -6,11 +6,11 @@
 """
 Persist collection infornation used to build Ansible.
 
-Build dependency files list the dependencies of an ACD release along with the
-versions that are compatible with that release.
+Build dependency files list the dependencies of an Ansible release along with the versions that are
+compatible with that release.
 
-When we initially build an ACD major release, we'll use certain versions of collections.
-We don't want to install backwards incompatible collections until the next major ACD release.
+When we initially build an Ansible major release, we'll use certain versions of collections.  We
+don't want to install backwards incompatible collections until the next major Ansible release.
 """
 
 from typing import TYPE_CHECKING, Dict, List, Mapping, NamedTuple, Optional
@@ -47,17 +47,17 @@ def parse_pieces_file(pieces_file: str) -> List[str]:
 def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
     deps: Dict[str, str] = {}
     ansible_base_version: Optional[str] = None
-    acd_version: Optional[str] = None
+    ansible_version: Optional[str] = None
 
     with open(filename, 'r') as f:
         for line in f:
             record = [entry.strip() for entry in line.split(':', 1)]
 
-            if record[0] == '_acd_version':
-                if acd_version is not None:
-                    raise InvalidFileFormat(f'{filename} specified _acd_version'
+            if record[0] in ('_ansible_version', '_acd_version'):
+                if ansible_version is not None:
+                    raise InvalidFileFormat(f'{filename} specified _ansible_version/_acd_version'
                                             ' more than once')
-                acd_version = record[1]
+                ansible_version = record[1]
                 continue
 
             if record[0] == '_ansible_base_version':
@@ -69,11 +69,11 @@ def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
 
             deps[record[0]] = record[1]
 
-    if ansible_base_version is None or acd_version is None:
+    if ansible_base_version is None or ansible_version is None:
         raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
                                 ' required fields')
 
-    return DependencyFileData(acd_version, ansible_base_version, deps)
+    return DependencyFileData(ansible_version, ansible_base_version, deps)
 
 
 class DepsFile:
@@ -106,12 +106,12 @@ class DepsFile:
         """Parse the deps from a dependency file."""
         return _parse_name_version_spec_file(self.filename)
 
-    def write(self, acd_version: str, ansible_base_version: str,
+    def write(self, ansible_version: str, ansible_base_version: str,
               included_versions: Mapping[str, str]) -> None:
         """
-        Write a list of all the dependent collections included in this ACD release.
+        Write a list of all the dependent collections included in this Ansible release.
 
-        :arg acd_version: The version of Ansible that is being recorded.
+        :arg ansible_version: The version of Ansible that is being recorded.
         :arg ansible_base_version: The version of Ansible base that will be depended on.
         :arg included_versions: Dictionary mapping collection names to the version range in this
             version of Ansible.
@@ -122,7 +122,7 @@ class DepsFile:
         records.sort()
 
         with open(self.filename, 'w') as f:
-            f.write(f'_acd_version: {acd_version}\n')
+            f.write(f'_ansible_version: {ansible_version}\n')
             f.write(f'_ansible_base_version: {ansible_base_version}\n')
             f.write('\n'.join(records))
             f.write('\n')
@@ -136,7 +136,7 @@ class BuildFile:
         """Parse the build from a dependency file."""
         return _parse_name_version_spec_file(self.filename)
 
-    def write(self, acd_version: 'PypiVer', ansible_base_version: str,
+    def write(self, ansible_version: 'PypiVer', ansible_base_version: str,
               dependencies: Mapping[str, 'SemVer']) -> None:
         """
         Write a build dependency file.
@@ -144,7 +144,7 @@ class BuildFile:
         A build dependency file records the collections that went into a given Ansible release along
         with the exact version of the collection that was included.
 
-        :arg acd_version: The version of Ansible that is being recorded.
+        :arg ansible_version: The version of Ansible that is being recorded.
         :arg ansible_base_version: The version of Ansible base that will be depended on.
         :arg dependencies: Dictionary with keys of collection names and values of versions.
         """
@@ -154,7 +154,7 @@ class BuildFile:
         records.sort()
 
         with open(self.filename, 'w') as f:
-            f.write(f'_acd_version: {acd_version.major}.{acd_version.minor}\n')
+            f.write(f'_ansible_version: {ansible_version.major}.{ansible_version.minor}\n')
             f.write(f'_ansible_base_version: {ansible_base_version}\n')
             f.write('\n'.join(records))
             f.write('\n')

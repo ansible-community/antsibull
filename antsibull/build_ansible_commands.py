@@ -66,7 +66,7 @@ def copy_boilerplate_files(package_dir):
     with open(os.path.join(package_dir, 'COPYING'), 'wb') as f:
         f.write(gpl_license)
 
-    readme = pkgutil.get_data('antsibull.data', 'acd-readme.rst')
+    readme = pkgutil.get_data('antsibull.data', 'ansible-readme.rst')
     with open(os.path.join(package_dir, 'README.rst'), 'wb') as f:
         f.write(readme)
 
@@ -86,11 +86,11 @@ def write_manifest(package_dir, release_notes: t.Optional[ReleaseNotes] = None,
         f.write('recursive-include ansible_collections/ **\n')
 
 
-def write_setup(acd_version, ansible_base_version, collection_deps, package_dir):
+def write_setup(ansible_version, ansible_base_version, collection_deps, package_dir):
     setup_filename = os.path.join(package_dir, 'setup.py')
 
-    setup_tmpl = Template(pkgutil.get_data('antsibull.data', 'acd-setup_py.j2').decode('utf-8'))
-    setup_contents = setup_tmpl.render(version=acd_version,
+    setup_tmpl = Template(pkgutil.get_data('antsibull.data', 'ansible-setup_py.j2').decode('utf-8'))
+    setup_contents = setup_tmpl.render(version=ansible_version,
                                        ansible_base_version=ansible_base_version,
                                        collection_deps=collection_deps)
 
@@ -98,14 +98,14 @@ def write_setup(acd_version, ansible_base_version, collection_deps, package_dir)
         f.write(setup_contents)
 
 
-def write_python_build_files(acd_version, ansible_base_version, collection_deps, package_dir,
+def write_python_build_files(ansible_version, ansible_base_version, collection_deps, package_dir,
                              release_notes: t.Optional[ReleaseNotes] = None, debian: bool = False):
     copy_boilerplate_files(package_dir)
     write_manifest(package_dir, release_notes, debian)
-    write_setup(acd_version, ansible_base_version, collection_deps, package_dir)
+    write_setup(ansible_version, ansible_base_version, collection_deps, package_dir)
 
 
-def write_debian_directory(acd_version, package_dir):
+def write_debian_directory(ansible_version, package_dir):
     debian_dir = os.path.join(package_dir, 'debian')
     os.mkdir(debian_dir, mode=0o700)
     debian_files = ('changelog.j2', 'control', 'copyright', 'rules')
@@ -121,7 +121,7 @@ def write_debian_directory(acd_version, package_dir):
             # and update 'data' to be the result.
             tmpl = Template(data)
             data = tmpl.render(
-                version=acd_version,
+                version=ansible_version,
                 date=datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
             )
 
@@ -139,13 +139,13 @@ def make_dist(ansible_dir, dest_dir):
     shutil.move(os.path.join(dist_dir, files[0]), dest_dir)
 
 
-def write_build_script(acd_version, ansible_base_version, package_dir):
+def write_build_script(ansible_version, ansible_base_version, package_dir):
     """Write a build-script that tells how to build this tarball."""
     build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
 
     build_ansible_tmpl = Template(pkgutil.get_data('antsibull.data',
                                                    'build-ansible.sh.j2').decode('utf-8'))
-    build_ansible_contents = build_ansible_tmpl.render(version=acd_version,
+    build_ansible_contents = build_ansible_tmpl.render(version=ansible_version,
                                                        ansible_base_version=ansible_base_version)
 
     with open(build_ansible_filename, 'w') as f:
@@ -157,12 +157,13 @@ def build_single_command():
     app_ctx = app_context.app_ctx.get()
 
     build_file = BuildFile(app_ctx.extra['build_file'])
-    build_acd_version, ansible_base_version, deps = build_file.parse()
+    build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
-    if not str(app_ctx.extra['acd_version']).startswith(build_acd_version):
-        print(f'{app_ctx.extra["build_file"]} is for version {build_acd_version} but we need'
-              f' {app_ctx.extra["acd_version"].major}.{app_ctx.extra["acd_version"].minor}')
+    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
+        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
+              f' {app_ctx.extra["ansible_version"].major}'
+              f'.{app_ctx.extra["ansible_version"].minor}')
         return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -175,20 +176,20 @@ def build_single_command():
                                                              app_ctx.extra['collection_cache']))
 
         new_dependencies = DependencyFileData(
-            str(app_ctx.extra["acd_version"]),
+            str(app_ctx.extra["ansible_version"]),
             str(ansible_base_version),
             {collection: str(version) for collection, version in included_versions.items()})
 
         # Get changelog and porting guide data
         deps_dir = os.path.dirname(app_ctx.extra["build_file"])
         changelog = get_changelog(
-            app_ctx.extra["acd_version"],
+            app_ctx.extra["ansible_version"],
             deps_dir=deps_dir,
             deps_data=[new_dependencies],
             collection_cache=app_ctx.extra["collection_cache"])
 
         # Create package and collections directories
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
@@ -214,11 +215,11 @@ def build_single_command():
         # release_notes.write_porting_guide_to(package_dir)
 
         # Write build scripts and files
-        write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
-        write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version, '',
+        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
                                  package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['acd_version'], package_dir)
+            write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
         make_dist(package_dir, app_ctx.extra['dest_dir'])
 
     deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
@@ -303,12 +304,13 @@ def build_multiple_command():
     app_ctx = app_context.app_ctx.get()
 
     build_file = BuildFile(app_ctx.extra['build_file'])
-    build_acd_version, ansible_base_version, deps = build_file.parse()
+    build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
-    if not str(app_ctx.extra['acd_version']).startswith(build_acd_version):
-        print(f'{app_ctx.extra["build_file"]} is for version {build_acd_version} but we need'
-              f' {app_ctx.extra["acd_version"].major}.{app_ctx.extra["acd_version"].minor}')
+    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
+        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
+              f' {app_ctx.extra["ansible_version"].major}'
+              f'.{app_ctx.extra["ansible_version"].minor}')
         return 1
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -331,7 +333,7 @@ def build_multiple_command():
         asyncio.run(make_collection_dists(app_ctx.extra['dest_dir'], collection_dirs))
 
         # Create the ansible package that deps on the collections we just wrote
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["acd_version"]}')
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
@@ -341,8 +343,8 @@ def build_multiple_command():
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
         collection_deps = '\n' + ',\n'.join(collection_deps)
-        write_build_script(app_ctx.extra['acd_version'], ansible_base_version, package_dir)
-        write_python_build_files(app_ctx.extra['acd_version'], ansible_base_version,
+        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version,
                                  collection_deps, package_dir)
 
         make_dist(package_dir, app_ctx.extra['dest_dir'])
@@ -350,6 +352,6 @@ def build_multiple_command():
     # Write the deps file
     deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(app_ctx.extra['acd_version'], ansible_base_version, included_versions)
+    deps_file.write(app_ctx.extra['ansible_version'], ansible_base_version, included_versions)
 
     return 0

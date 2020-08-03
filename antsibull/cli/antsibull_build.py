@@ -16,22 +16,27 @@ from .. import app_context
 from ..app_logging import log
 from ..args import InvalidArgumentError, get_common_parser, normalize_common_options
 from ..config import load_config
-from ..new_acd import new_acd_command
+from ..new_ansible import new_ansible_command
 from ..build_collection import build_collection_command
-from ..build_acd_commands import build_single_command, build_multiple_command
+from ..build_ansible_commands import build_single_command, build_multiple_command
 from ..build_changelog import build_changelog
 
 
 mlog = log.fields(mod=__name__)
 
-DEFAULT_FILE_BASE = 'acd'
+DEFAULT_FILE_BASE = 'ansible'
 DEFAULT_PIECES_FILE = f'{DEFAULT_FILE_BASE}.in'
 
-ARGS_MAP = {'new-acd': new_acd_command,
+ARGS_MAP = {'new-ansible': new_ansible_command,
             'single': build_single_command,
             'multiple': build_multiple_command,
             'collection': build_collection_command,
             'changelog': build_changelog,
+            # Old names, deprecated
+            'new-acd': new_ansible_command,
+            'build-single': build_single_command,
+            'build-multiple': build_multiple_command,
+            'build-collection': build_collection_command,
             }
 
 
@@ -61,7 +66,9 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
 
     if args.build_file is None:
         basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
-        args.build_file = f'{basename}-{args.acd_version.major}.{args.acd_version.minor}.build'
+        args.build_file = (
+            f'{basename}-{args.ansible_version.major}.{args.ansible_version.minor}.build'
+        )
 
 
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
@@ -80,7 +87,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
     if args.build_file is None:
         args.build_file = (DEFAULT_FILE_BASE
-                           + f'-{args.acd_version.major}.{args.acd_version.minor}.build')
+                           + f'-{args.ansible_version.major}.{args.ansible_version.minor}.build')
 
     if not os.path.isfile(args.build_file):
         raise InvalidArgumentError(f'The build file, {args.build_file} must already exist.'
@@ -88,12 +95,12 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
                                    ' of versions per line')
 
     if args.deps_file is None:
-        major_minor = f'-{args.acd_version.major}.{args.acd_version.minor}'
+        major_minor = f'-{args.ansible_version.major}.{args.ansible_version.minor}'
         basename = os.path.basename(os.path.splitext(args.build_file)[0])
         if basename.endswith(major_minor):
             basename = basename[:-len(major_minor)]
 
-        args.deps_file = f'{basename}-{args.acd_version}.deps'
+        args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
 
 def _normalize_collection_build_options(args: argparse.Namespace) -> None:
@@ -107,7 +114,7 @@ def _normalize_collection_build_options(args: argparse.Namespace) -> None:
         return
 
     if args.deps_file is None:
-        args.deps_file = DEFAULT_FILE_BASE + f'{args.acd_version}.deps'
+        args.deps_file = DEFAULT_FILE_BASE + f'{args.ansible_version}.deps'
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -122,8 +129,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     common_parser = get_common_parser()
 
     build_parser = argparse.ArgumentParser(add_help=False, parents=[common_parser])
-    build_parser.add_argument('acd_version', type=PypiVer,
-                              help='The X.Y.Z version of ACD that this will be for')
+    build_parser.add_argument('ansible_version', type=PypiVer,
+                              help='The X.Y.Z version of Ansible that this will be for')
     build_parser.add_argument('--dest-dir', default='.',
                               help='Directory to write the output to')
 
@@ -142,16 +149,16 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     build_step_parser.add_argument('--deps-file', default=None,
                                    help='File which will be written containing the list of'
                                    ' collections at versions which were included in this version'
-                                   ' of ACD. The default is to place'
+                                   ' of Ansible. The default is to place'
                                    ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into --dest-dir')
 
     parser = argparse.ArgumentParser(prog=program_name,
-                                     description='Script to manage building ACD')
+                                     description='Script to manage building Ansible')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
                                        help='for help use antsibull-build SUBCOMMANDS -h')
     subparsers.required = True
 
-    new_parser = subparsers.add_parser('new-acd', parents=[build_parser],
+    new_parser = subparsers.add_parser('new-ansible', parents=[build_parser],
                                        description='Generate a new build description from the'
                                        ' latest available versions of ansible-base and the'
                                        ' included collections')
@@ -166,7 +173,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     build_single_parser = subparsers.add_parser('single',
                                                 parents=[build_parser, cache_parser,
                                                          build_step_parser],
-                                                description='Build a single-file ACD')
+                                                description='Build a single-file Ansible')
 
     build_single_parser.add_argument('--debian', action='store_true',
                                      help='Include Debian/Ubuntu packaging files in'
@@ -180,16 +187,16 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     collection_parser = subparsers.add_parser('collection',
                                               parents=[build_parser],
                                               description='Build a collection which will'
-                                              ' install ACD')
+                                              ' install Ansible')
     collection_parser.add_argument('--deps-file', default=None,
                                    help='File which contains the list of collections and'
-                                   ' versions which were included in this version of ACD'
+                                   ' versions which were included in this version of Ansible'
                                    f' The default is to look for {DEFAULT_FILE_BASE}-X.Y.Z.deps'
                                    ' inside of --dest-dir')
 
     changelog_parser = subparsers.add_parser('changelog',
                                              parents=[build_parser, cache_parser],
-                                             description='Build the ACD changelog')
+                                             description='Build the Ansible changelog')
     changelog_parser.add_argument('--deps-dir', required=True,
                                   help='Directory which contains the versioning data')
 
