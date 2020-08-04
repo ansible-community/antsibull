@@ -183,7 +183,8 @@ def write_build_script(ansible_version: PypiVer,
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None
+def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None,
+                      add_release: bool = True
                       ) -> t.Optional[DependencyFileData]:
     app_ctx = app_context.app_ctx.get()
 
@@ -222,13 +223,14 @@ def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None
         # Get Ansible changelog, add new release
         deps_dir = os.path.dirname(app_ctx.extra["build_file"])
         ansible_changelog = ChangelogData.ansible(deps_dir)
-        date = datetime.date.today()
-        ansible_changelog.add_ansible_release(
-            str(app_ctx.extra["ansible_version"]),
-            date,
-            f"Release Date: {date}"
-            f"\n\n"
-            f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
+        if add_release:
+            date = datetime.date.today()
+            ansible_changelog.add_ansible_release(
+                str(app_ctx.extra["ansible_version"]),
+                date,
+                f"Release Date: {date}"
+                f"\n\n"
+                f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
 
         # Get changelog and porting guide data
         changelog = get_changelog(
@@ -273,6 +275,9 @@ def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None
     release_notes.write_changelog_to(deps_dir)
     release_notes.write_porting_guide_to(deps_dir)
 
+    if add_release:
+        ansible_changelog.changes.save()
+
     return dependency_data
 
 
@@ -290,7 +295,6 @@ def build_single_command() -> int:
         dependency_data.ansible_base_version,
         dependency_data.deps)
 
-    ansible_changelog.changes.save()
     return 0
 
 
@@ -301,7 +305,7 @@ def rebuild_single_command() -> int:
     deps_file = DepsFile(deps_filename)
     new_dependencies = deps_file.parse()
 
-    dependency_data = build_single_impl(dependency_data=new_dependencies)
+    dependency_data = build_single_impl(dependency_data=new_dependencies, add_release=False)
     if dependency_data is None:
         return 1
 
