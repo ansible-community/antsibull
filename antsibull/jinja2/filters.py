@@ -21,14 +21,14 @@ from jinja2.runtime import Undefined
 
 # Warning: If you add to this, then you also have to change ansible-doc
 # (ansible/cli/__init__.py) in the ansible/ansible repository
-_ITALIC = re.compile(r"I\(([^)]+)\)")
-_BOLD = re.compile(r"B\(([^)]+)\)")
-_MODULE = re.compile(r"M\(([^)]+)\)")
-_URL = re.compile(r"U\(([^)]+)\)")
-_LINK = re.compile(r"L\(([^)]+), *([^)]+)\)")
-_REF = re.compile(r"R\(([^)]+), *([^)]+)\)")
-_CONST = re.compile(r"C\(([^)]+)\)")
-_RULER = re.compile(r"HORIZONTALLINE")
+_ITALIC = re.compile(r"\bI\(([^)]+)\)")
+_BOLD = re.compile(r"\bB\(([^)]+)\)")
+_MODULE = re.compile(r"\bM\(([^)]+)\)")
+_URL = re.compile(r"\bU\(([^)]+)\)")
+_LINK = re.compile(r"\bL\(([^)]+), *([^)]+)\)")
+_REF = re.compile(r"\bR\(([^)]+), *([^)]+)\)")
+_CONST = re.compile(r"\bC\(([^)]+)\)")
+_RULER = re.compile(r"\bHORIZONTALLINE\b")
 
 
 def html_ify(text):
@@ -78,7 +78,7 @@ def rst_ify(text):
     t = _URL.sub(r"\1", t)
     t = _REF.sub(r":ref:`\1 <\2>`", t)
     t = _CONST.sub(r"``\1``", t)
-    t = _RULER.sub(r"------------", t)
+    t = _RULER.sub(f"\n\n{'-' * 13}\n\n", t)
 
     return t
 
