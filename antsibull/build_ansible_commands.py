@@ -4,7 +4,7 @@
 # Copyright: Ansible Project, 2020
 
 import asyncio
-from datetime import datetime
+import datetime
 import os
 import os.path
 import pkgutil
@@ -22,7 +22,7 @@ from packaging.version import Version as PypiVer
 
 from . import app_context
 from .build_changelog import ReleaseNotes
-from .changelog import get_changelog
+from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader
@@ -122,7 +122,7 @@ def write_debian_directory(ansible_version, package_dir):
             tmpl = Template(data)
             data = tmpl.render(
                 version=ansible_version,
-                date=datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
+                date=datetime.datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
             )
 
         with open(os.path.join(debian_dir, filename), 'w') as f:
@@ -180,13 +180,24 @@ def build_single_command():
             str(ansible_base_version),
             {collection: str(version) for collection, version in included_versions.items()})
 
-        # Get changelog and porting guide data
+        # Get Ansible changelog, add new release
         deps_dir = os.path.dirname(app_ctx.extra["build_file"])
+        ansible_changelog = ChangelogData.ansible(deps_dir)
+        date = datetime.date.today()
+        ansible_changelog.add_ansible_release(
+            str(app_ctx.extra["ansible_version"]),
+            date,
+            f"Release Date: {date}"
+            f"\n\n"
+            f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
+
+        # Get changelog and porting guide data
         changelog = get_changelog(
             app_ctx.extra["ansible_version"],
             deps_dir=deps_dir,
             deps_data=[new_dependencies],
-            collection_cache=app_ctx.extra["collection_cache"])
+            collection_cache=app_ctx.extra["collection_cache"],
+            ansible_changelog=ansible_changelog)
 
         # Create package and collections directories
         package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
@@ -229,8 +240,11 @@ def build_single_command():
         new_dependencies.ansible_base_version,
         new_dependencies.deps)
 
-    # Write changelog also to destination directory
+    ansible_changelog.changes.save()
+
+    # Write changelog and porting guide also to destination directory
     release_notes.write_changelog_to(deps_dir)
+    release_notes.write_porting_guide_to(deps_dir)
 
     return 0
 

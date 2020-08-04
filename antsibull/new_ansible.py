@@ -12,6 +12,7 @@ import semantic_version as semver
 
 from . import app_context
 from .ansible_base import AnsibleBasePyPiClient
+from .changelog import ChangelogData
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
 
@@ -82,5 +83,8 @@ def new_ansible_command():
     build_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
     build_file.write(app_ctx.extra['ansible_version'], ansible_base_version, dependencies)
+
+    changelog = ChangelogData.acd(app_ctx.extra['dest_dir'])
+    changelog.changes.save()
 
     return 0
