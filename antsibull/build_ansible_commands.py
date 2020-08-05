@@ -43,6 +43,8 @@ async def download_collections(deps: t.Mapping[str, str],
                                pinned_versions: t.Optional[t.Mapping[str, SemVer]] = None
                                ) -> t.Dict[str, SemVer]:
     requestors = {}
+    if pinned_versions is None:
+        pinned_versions = {}
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
@@ -55,9 +57,7 @@ async def download_collections(deps: t.Mapping[str, str],
                 return DownloadResults(version=version, download_path=download_path)
 
             for collection_name, version_spec in deps.items():
-                force_version = (
-                    None if pinned_versions is None else pinned_versions.get(collection_name)
-                )
+                force_version = pinned_versions.get(collection_name)
                 if force_version is None:
                     requestors[collection_name] = await pool.spawn(
                         downloader.download_latest_matching(collection_name, version_spec))
