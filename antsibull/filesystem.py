@@ -31,7 +31,7 @@ def _get_acls(path: str) -> str:
         try:
             # sh dynamically creates functions which map to executables
             # pyre-ignore[16]
-            acls = sh.getfacl(path, '-n').stdout.decode('utf-8')
+            acls = sh.getfacl(path, '-n').stdout.decode('utf-8')  # pylint:disable=no-member
         except sh.CommandNotFound:
             pass
         except Exception as e:

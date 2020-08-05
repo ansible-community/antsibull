@@ -1,20 +1,11 @@
 # Copyright: (c) 2019, Ansible Project
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-# Make coding more python3-ish
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
+"""
+Jinja2 filters for use in Ansible documentation.
+"""
 
 import re
-
-try:
-    from html import escape as html_escape
-except ImportError:
-    # Python-3.2 or later
-    import cgi
-
-    def html_escape(text, quote=True):
-        return cgi.escape(text, quote)
+from html import escape as html_escape
 
 from jinja2.runtime import Undefined
 
@@ -34,17 +25,17 @@ _RULER = re.compile(r"\bHORIZONTALLINE\b")
 def html_ify(text):
     ''' convert symbols like I(this is in italics) to valid HTML '''
 
-    t = html_escape(text)
-    t = _ITALIC.sub(r"<em>\1</em>", t)
-    t = _BOLD.sub(r"<b>\1</b>", t)
-    t = _MODULE.sub(r"<span class='module'>\1</span>", t)
-    t = _URL.sub(r"<a href='\1'>\1</a>", t)
-    t = _REF.sub(r"<span class='module'>\1</span>", t)
-    t = _LINK.sub(r"<a href='\2'>\1</a>", t)
-    t = _CONST.sub(r"<code>\1</code>", t)
-    t = _RULER.sub(r"<hr/>", t)
+    text = html_escape(text)
+    text = _ITALIC.sub(r"<em>\1</em>", text)
+    text = _BOLD.sub(r"<b>\1</b>", text)
+    text = _MODULE.sub(r"<span class='module'>\1</span>", text)
+    text = _URL.sub(r"<a href='\1'>\1</a>", text)
+    text = _REF.sub(r"<span class='module'>\1</span>", text)
+    text = _LINK.sub(r"<a href='\2'>\1</a>", text)
+    text = _CONST.sub(r"<code>\1</code>", text)
+    text = _RULER.sub(r"<hr/>", text)
 
-    return t.strip()
+    return text.strip()
 
 
 def documented_type(text):
@@ -71,16 +62,16 @@ def do_max(seq):
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
 
-    t = _ITALIC.sub(r"*\1*", text)
-    t = _BOLD.sub(r"**\1**", t)
-    t = _MODULE.sub(r":ref:`\1 <ansible_collections.\1_module>`", t)
-    t = _LINK.sub(r"`\1 <\2>`_", t)
-    t = _URL.sub(r"\1", t)
-    t = _REF.sub(r":ref:`\1 <\2>`", t)
-    t = _CONST.sub(r"``\1``", t)
-    t = _RULER.sub(f"\n\n{'-' * 13}\n\n", t)
+    text = _ITALIC.sub(r"*\1*", text)
+    text = _BOLD.sub(r"**\1**", text)
+    text = _MODULE.sub(r":ref:`\1 <ansible_collections.\1_module>`", text)
+    text = _LINK.sub(r"`\1 <\2>`_", text)
+    text = _URL.sub(r"\1", text)
+    text = _REF.sub(r":ref:`\1 <\2>`", text)
+    text = _CONST.sub(r"``\1``", text)
+    text = _RULER.sub(f"\n\n{'-' * 13}\n\n", text)
 
-    return t
+    return text
 
 
 def rst_fmt(text, fmt):
