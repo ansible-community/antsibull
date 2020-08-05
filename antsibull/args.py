@@ -35,6 +35,6 @@ def normalize_common_options(args: argparse.Namespace) -> None:
         Any normalization needed will be applied directly to ``args``.
     """
     for conf_file in args.config_file:
-        if not os.path.isfile(args.config_file):
-            raise InvalidArgumentError(f'The user specified config file, {args.config_file},'
+        if not os.path.isfile(conf_file):
+            raise InvalidArgumentError(f'The user specified config file, {conf_file},'
                                        ' must exist.')

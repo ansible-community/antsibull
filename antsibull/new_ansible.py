@@ -84,7 +84,7 @@ def new_ansible_command():
     build_file = BuildFile(build_filename)
     build_file.write(app_ctx.extra['ansible_version'], ansible_base_version, dependencies)
 
-    changelog = ChangelogData.acd(app_ctx.extra['dest_dir'])
+    changelog = ChangelogData.ansible(app_ctx.extra['dest_dir'])
     changelog.changes.save()
 
     return 0
