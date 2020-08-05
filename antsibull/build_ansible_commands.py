@@ -40,7 +40,7 @@ async def download_collections(deps: t.Mapping[str, str],
                                galaxy_url: str,
                                download_dir: str,
                                collection_cache: t.Optional[str] = None,
-                               force_versions: t.Optional[t.Mapping[str, SemVer]] = None
+                               pinned_versions: t.Optional[t.Mapping[str, SemVer]] = None
                                ) -> t.Dict[str, SemVer]:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
@@ -56,7 +56,7 @@ async def download_collections(deps: t.Mapping[str, str],
 
             for collection_name, version_spec in deps.items():
                 force_version = (
-                    None if force_versions is None else force_versions.get(collection_name)
+                    None if pinned_versions is None else pinned_versions.get(collection_name)
                 )
                 if force_version is None:
                     requestors[collection_name] = await pool.spawn(
@@ -203,7 +203,7 @@ def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None,
         os.mkdir(download_dir, mode=0o700)
 
         # Download included collections
-        versions: t.Optional[t.Mapping[str, SemVer]] = None
+        versions: t.Dict[str, SemVer] = {}
         if dependency_data is not None:
             versions = {
                 collection: SemVer(version)
@@ -212,7 +212,7 @@ def build_single_impl(dependency_data: t.Optional[DependencyFileData] = None,
         included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
                                                              download_dir,
                                                              app_ctx.extra['collection_cache'],
-                                                             force_versions=versions))
+                                                             pinned_versions=versions))
 
         if dependency_data is None:
             dependency_data = DependencyFileData(
