@@ -34,7 +34,7 @@ from .utils.get_pkg_data import get_pkg_data
 #
 
 
-async def download_collections(deps: t.Dict[str, str],
+async def download_collections(deps: t.Mapping[str, str],
                                galaxy_url: str,
                                download_dir: str,
                                collection_cache: t.Optional[str] = None
