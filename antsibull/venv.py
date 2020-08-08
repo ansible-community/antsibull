@@ -5,9 +5,21 @@
 """Functionality to work with a venv."""
 
 import os
+import typing as t
 import venv
 
 import sh
+
+
+def get_clean_environment() -> t.Dict[str, str]:
+    env = os.environ.copy()
+    try:
+        del env['PYTHONPATH']
+    except KeyError:
+        # We just wanted to make sure there was no PYTHONPATH set...
+        # all python libs will come from the venv
+        pass
+    return env
 
 
 class VenvRunner:
@@ -41,7 +53,8 @@ class VenvRunner:
         :arg executable_name: Program to return a command for.
         :returns: An :obj:`sh.Command` that will invoke the program.
         """
-        return sh.Command(os.path.join(self.venv_dir, 'bin', executable_name))
+        command = sh.Command(os.path.join(self.venv_dir, 'bin', executable_name))
+        return command.bake(_env=get_clean_environment())
 
     def install_package(self, package_name: str) -> sh.RunningCommand:
         """
