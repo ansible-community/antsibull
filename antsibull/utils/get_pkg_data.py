@@ -2,7 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""General functions for working with aiohttp."""
+"""Helper to use pkgutil.get_data without having to check the return value."""
 
 import pkgutil
 
