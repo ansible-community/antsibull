@@ -18,7 +18,6 @@ import asyncio_pool
 import sh
 from jinja2 import Template
 from packaging.version import Version as PypiVer
-from semantic_version import Version as SemVer
 
 from . import app_context
 from .build_changelog import ReleaseNotes
@@ -27,6 +26,9 @@ from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader
 from .utils.get_pkg_data import get_pkg_data
+
+if t.TYPE_CHECKING:
+    from semantic_version import Version as SemVer
 
 
 #
