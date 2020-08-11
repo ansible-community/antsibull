@@ -18,7 +18,7 @@ from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
 from . import app_context
-from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
+from .changelog import Changelog, ChangelogData, ChangelogEntry, CollectionsMetadata, get_changelog
 
 
 #
@@ -30,15 +30,13 @@ PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogG
 
 
 def append_changelog_changes_collections(builder: RstBuilder,
+                                         collection_metadata: CollectionsMetadata,
                                          changelog_entry: ChangelogEntry,
                                          is_last: bool) -> PluginDataT:
     result: PluginDataT = []
 
     if changelog_entry.changed_collections:
-        if is_last:
-            builder.add_section('Included Collections', 1)
-        else:
-            builder.add_section('Changed Collections', 1)
+        builder.add_section('Included Collections' if is_last else 'Changed Collections', 1)
         for (
                 collector, collection_version, prev_collection_version
         ) in changelog_entry.changed_collections:
@@ -71,9 +69,13 @@ def append_changelog_changes_collections(builder: RstBuilder,
                         release_entries[0]))
                     msg += "The changes are reported in the combined changelog below."
             else:
-                msg += "Unfortunately, this collection does not provide changelog data in a format "
-                msg += "that can be processed by the changelog generator."
-                # TODO: add link to collection's changelog
+                metadata = collection_metadata.get_meta(collector.collection)
+                if metadata.changelog_url is not None:
+                    msg += "You can find the collection's changelog at"
+                    msg += f" `{metadata.changelog_url} <{metadata.changelog_url}>`_."
+                else:
+                    msg += "Unfortunately, this collection does not provide changelog data in a"
+                    msg += " format that can be processed by the changelog generator."
 
             builder.add_list_item(msg)
         builder.add_raw_rst('')
@@ -235,7 +237,9 @@ def append_unchanged_collections(builder: RstBuilder, changelog_entry: Changelog
         builder.add_raw_rst('')
 
 
-def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
+def append_changelog(builder: RstBuilder,
+                     collection_metadata: CollectionsMetadata,
+                     changelog_entry: ChangelogEntry,
                      is_last: bool) -> None:
     builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
 
@@ -254,7 +258,9 @@ def append_changelog(builder: RstBuilder, changelog_entry: ChangelogEntry,
     builder.add_raw_rst('')
 
     # Adds list of changed collections
-    data.extend(append_changelog_changes_collections(builder, changelog_entry, is_last=is_last))
+    data.extend(
+        append_changelog_changes_collections(
+            builder, collection_metadata, changelog_entry, is_last=is_last))
 
     # Adds all changes
     for section, section_title in DEFAULT_SECTIONS:
@@ -395,7 +401,11 @@ class ReleaseNotes:
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
         for index, changelog_entry in enumerate(changelog.entries):
-            append_changelog(builder, changelog_entry, is_last=index + 1 == len(changelog.entries))
+            append_changelog(
+                builder,
+                changelog.collection_metadata,
+                changelog_entry,
+                is_last=index + 1 == len(changelog.entries))
 
         return builder.generate().encode('utf-8')
 

@@ -363,6 +363,45 @@ class ChangelogEntry:
                 collector, collection_version, prev_collection_version))
 
 
+class CollectionMetadata:
+    '''
+    Stores metadata about one collection.
+    '''
+
+    changelog_url: t.Optional[str]
+
+    def __init__(self, source: t.Optional[t.Mapping[str, t.Any]] = None):
+        if source is None:
+            source = {}
+        self.changelog_url = source.get('changelog-url')
+
+
+class CollectionsMetadata:
+    '''
+    Stores metadata about a set of collections.
+    '''
+
+    data: t.Dict[str, CollectionMetadata]
+
+    def __init__(self, deps_dir: t.Optional[str]):
+        self.data = {}
+        if deps_dir is not None:
+            collection_meta_path = os.path.join(deps_dir, 'collection-meta.yaml')
+            if os.path.exists(collection_meta_path):
+                with open(collection_meta_path, 'rb') as collection_meta_file:
+                    data = yaml.load(collection_meta_file, Loader=yaml.SafeLoader)
+                if data and 'collections' in data:
+                    for collection_name, collection_data in data['collections'].items():
+                        self.data[collection_name] = CollectionMetadata(collection_data)
+
+    def get_meta(self, collection_name: str) -> CollectionMetadata:
+        result = self.data.get(collection_name)
+        if result is None:
+            result = CollectionMetadata()
+            self.data[collection_name] = result
+        return result
+
+
 class Changelog:
     ansible_version: PypiVer
     ansible_ancestor_version: t.Optional[PypiVer]
@@ -370,6 +409,7 @@ class Changelog:
     base_collector: AnsibleBaseChangelogCollector
     ansible_changelog: ChangelogData
     collection_collectors: t.List[CollectionChangelogCollector]
+    collection_metadata: CollectionsMetadata
 
     def __init__(self,
                  ansible_version: PypiVer,
@@ -377,13 +417,15 @@ class Changelog:
                  entries: t.List[ChangelogEntry],
                  base_collector: AnsibleBaseChangelogCollector,
                  ansible_changelog: ChangelogData,
-                 collection_collectors: t.List[CollectionChangelogCollector]):
+                 collection_collectors: t.List[CollectionChangelogCollector],
+                 collection_metadata: CollectionsMetadata):
         self.ansible_version = ansible_version
         self.ansible_ancestor_version = ansible_ancestor_version
         self.entries = entries
         self.base_collector = base_collector
         self.ansible_changelog = ansible_changelog
         self.collection_collectors = collection_collectors
+        self.collection_metadata = collection_metadata
 
 
 def get_changelog(
@@ -400,6 +442,8 @@ def get_changelog(
     ansible_ancestor_version = (
         PypiVer(ansible_ancestor_version_str) if ansible_ancestor_version_str else None
     )
+
+    collection_metadata = CollectionsMetadata(deps_dir)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, '*.deps'), recursive=False):
@@ -462,4 +506,5 @@ def get_changelog(
         changelog,
         base_collector,
         ansible_changelog,
-        collectors)
+        collectors,
+        collection_metadata)
