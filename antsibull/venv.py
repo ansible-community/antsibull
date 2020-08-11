@@ -53,8 +53,7 @@ class VenvRunner:
         :arg executable_name: Program to return a command for.
         :returns: An :obj:`sh.Command` that will invoke the program.
         """
-        command = sh.Command(os.path.join(self.venv_dir, 'bin', executable_name))
-        return command.bake(_env=get_clean_environment())
+        return sh.Command(os.path.join(self.venv_dir, 'bin', executable_name))
 
     def install_package(self, package_name: str) -> sh.RunningCommand:
         """
@@ -64,7 +63,7 @@ class VenvRunner:
             directly to :command:`pip install`.
         :returns: An :sh:obj:`sh.RunningCommand` for the pip output.
         """
-        return self._python('-m', 'pip', 'install', package_name)
+        return self._python('-m', 'pip', 'install', package_name, _env=get_clean_environment)
 
 
 class FakeVenvRunner:
