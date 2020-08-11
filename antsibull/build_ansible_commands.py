@@ -155,7 +155,7 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
 
 def write_build_script(ansible_version: PypiVer,
                        ansible_base_version: PypiVer,
-                       package_dir: str):
+                       package_dir: str) -> None:
     """Write a build-script that tells how to build this tarball."""
     build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
 
@@ -168,7 +168,7 @@ def write_build_script(ansible_version: PypiVer,
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_command():
+def build_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
     build_file = BuildFile(app_ctx.extra['build_file'])
@@ -318,7 +318,7 @@ async def make_collection_dist(name: str,
     await loop.run_in_executor(None, shutil.move, dist_file, dest_dir)
 
 
-async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]):
+async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]) -> None:
     dist_creators = []
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
@@ -332,7 +332,7 @@ async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]):
         await asyncio.gather(*dist_creators)
 
 
-def build_multiple_command():
+def build_multiple_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
     build_file = BuildFile(app_ctx.extra['build_file'])
