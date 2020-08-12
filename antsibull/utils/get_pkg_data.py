@@ -10,6 +10,9 @@ import pkgutil
 def get_antsibull_data(filename: str) -> bytes:
     '''
     Retrieve data from the antsibull.data package as bytes.
+
+    The filename can be a relative path separated with '/' to access subdirectories.
+    See https://docs.python.org/3/library/pkgutil.html#pkgutil.get_data for details.
     '''
     data = pkgutil.get_data('antsibull.data', filename)
     if data is None:
