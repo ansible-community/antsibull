@@ -396,8 +396,9 @@ def build_multiple_command() -> int:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio.run(
-            download_collections(deps, app_ctx.galaxy_url, download_dir,
+        included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
+        asyncio.run(
+            download_collections(included_versions, app_ctx.galaxy_url, download_dir,
                                  app_ctx.extra['collection_cache']))
         # TODO: PY3.8:
         # collections_to_install = [p for f in os.listdir(download_dir)
