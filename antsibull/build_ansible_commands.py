@@ -25,7 +25,7 @@ from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader
-from .utils.get_pkg_data import get_pkg_data
+from .utils.get_pkg_data import get_antsibull_data
 
 if t.TYPE_CHECKING:
     from semantic_version import Version as SemVer
@@ -69,11 +69,11 @@ async def download_collections(deps: t.Mapping[str, str],
 #
 
 def copy_boilerplate_files(package_dir: str) -> None:
-    gpl_license = get_pkg_data('gplv3.txt')
+    gpl_license = get_antsibull_data('gplv3.txt')
     with open(os.path.join(package_dir, 'COPYING'), 'wb') as f:
         f.write(gpl_license)
 
-    readme = get_pkg_data('ansible-readme.rst')
+    readme = get_antsibull_data('ansible-readme.rst')
     with open(os.path.join(package_dir, 'README.rst'), 'wb') as f:
         f.write(readme)
 
@@ -100,7 +100,7 @@ def write_setup(ansible_version: PypiVer,
                 package_dir: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
 
-    setup_tmpl = Template(get_pkg_data('ansible-setup_py.j2').decode('utf-8'))
+    setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(version=ansible_version,
                                        ansible_base_version=ansible_base_version,
                                        collection_deps=collection_deps)
@@ -128,7 +128,7 @@ def write_debian_directory(ansible_version: str, package_dir: str) -> None:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
         src_pkgfile = 'debian/' + filename
-        data = get_pkg_data(src_pkgfile).decode('utf-8')
+        data = get_antsibull_data(src_pkgfile).decode('utf-8')
 
         if filename.endswith('.j2'):
             filename = filename.replace('.j2', '')
@@ -161,7 +161,7 @@ def write_build_script(ansible_version: PypiVer,
     """Write a build-script that tells how to build this tarball."""
     build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
 
-    build_ansible_tmpl = Template(get_pkg_data('build-ansible.sh.j2').decode('utf-8'))
+    build_ansible_tmpl = Template(get_antsibull_data('build-ansible.sh.j2').decode('utf-8'))
     build_ansible_contents = build_ansible_tmpl.render(version=ansible_version,
                                                        ansible_base_version=ansible_base_version)
 
@@ -272,7 +272,7 @@ def build_single_command() -> int:
 
 
 async def write_collection_readme(collection_name: str, package_dir: str) -> None:
-    readme_tmpl = Template(get_pkg_data('collection-readme.j2').decode('utf-8'))
+    readme_tmpl = Template(get_antsibull_data('collection-readme.j2').decode('utf-8'))
     readme_contents = readme_tmpl.render(collection_name=collection_name)
 
     readme_filename = os.path.join(package_dir, 'README.rst')
@@ -283,7 +283,7 @@ async def write_collection_readme(collection_name: str, package_dir: str) -> Non
 async def write_collection_setup(name: str, version: str, package_dir: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
 
-    setup_tmpl = Template(get_pkg_data('collection-setup_py.j2').decode('utf-8'))
+    setup_tmpl = Template(get_antsibull_data('collection-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(version=version, name=name)
 
     async with aiofiles.open(setup_filename, 'w') as f:

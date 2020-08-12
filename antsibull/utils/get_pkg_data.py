@@ -7,8 +7,11 @@
 import pkgutil
 
 
-def get_pkg_data(filename: str, package: str = 'antsibull.data') -> bytes:
-    data = pkgutil.get_data(package, filename)
+def get_antsibull_data(filename: str) -> bytes:
+    '''
+    Retrieve data from the antsibull.data package as bytes.
+    '''
+    data = pkgutil.get_data('antsibull.data', filename)
     if data is None:
         raise RuntimeError(f"Cannot find {filename} in the {package} package")
     return data
