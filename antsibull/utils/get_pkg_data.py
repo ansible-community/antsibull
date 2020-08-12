@@ -16,5 +16,5 @@ def get_antsibull_data(filename: str) -> bytes:
     '''
     data = pkgutil.get_data('antsibull.data', filename)
     if data is None:
-        raise RuntimeError(f"Cannot find {filename} in the {package} package")
+        raise RuntimeError(f"Cannot find {filename} in the antsibull.data package")
     return data
