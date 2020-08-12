@@ -27,8 +27,7 @@ from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader, GalaxyClient
 from .utils.get_pkg_data import get_antsibull_data
 
-if t.TYPE_CHECKING:
-    from semantic_version import Version as SemVer
+from semantic_version import Version as SemVer
 
 
 #

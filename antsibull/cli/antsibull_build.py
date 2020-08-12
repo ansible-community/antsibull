@@ -107,7 +107,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
-    if args.command not in ('rebuild-single'):
+    if args.command not in ('rebuild-single', ):
         return
 
     deps_filename = os.path.join(args.dest_dir, args.deps_file)
