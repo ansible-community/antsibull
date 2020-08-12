@@ -42,7 +42,7 @@ async def install_together(collection_tarballs: List[str],
     await asyncio.gather(*installers)
 
 
-async def install_separately(collection_tarballs: List[str], collection_dir: str) -> List:
+async def install_separately(collection_tarballs: List[str], collection_dir: str) -> List[str]:
     installers = []
     collection_dirs = []
 
