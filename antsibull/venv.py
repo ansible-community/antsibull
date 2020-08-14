@@ -63,7 +63,7 @@ class VenvRunner:
             directly to :command:`pip install`.
         :returns: An :sh:obj:`sh.RunningCommand` for the pip output.
         """
-        return self._python('-m', 'pip', 'install', package_name, _env=get_clean_environment)
+        return self._python('-m', 'pip', 'install', package_name, _env=get_clean_environment())
 
 
 class FakeVenvRunner:
