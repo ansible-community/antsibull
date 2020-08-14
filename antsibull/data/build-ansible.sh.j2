@@ -10,7 +10,7 @@ if test -e "ansible-build-data/${MAJOR_MINOR}/ansible-${MAJOR_MINOR}.build" ; th
 else
   BUILDFILE="ansible-build-data/${MAJOR_MINOR}/acd-${MAJOR_MINOR}.build"
 fi
-antsibull-build single "{{ version }}" --build-file "$BUILDFILE" --dest-dir built
+antsibull-build rebuild-single "{{ version }}" --build-file "$BUILDFILE" --dest-dir built
 
 #pip install twine
 #twine upload "built/ansible-{{ version }}.tar.gz"

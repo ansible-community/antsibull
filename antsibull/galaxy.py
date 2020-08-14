@@ -153,6 +153,30 @@ class GalaxyClient:
 
         return collection_info
 
+    async def get_latest_matching_version(self, collection: str,
+                                          version_spec: str) -> semver.Version:
+        """
+        Get the latest version of a collection that matches a specification.
+
+        :arg collection: Namespace.collection identifying a collection.
+        :arg version_spec: String specifying the allowable versions.
+        :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
+            the specification.
+
+        .. seealso:: For the format of the version_spec, see the documentation
+            of :obj:`semantic_version.SimpleSpec`
+        """
+        versions = await self.get_versions(collection)
+        versions = [semver.Version(v) for v in versions]
+        versions.sort(reverse=True)
+
+        spec = semver.SimpleSpec(version_spec)
+        for version in (v for v in versions if v in spec):
+            return version
+
+        # No matching versions were found
+        raise NoSuchVersion(f'{version_spec} did not match with any version of {collection}.')
+
 
 class CollectionDownloader(GalaxyClient):
     """Manage downloading collections from Galaxy."""
@@ -230,30 +254,6 @@ class CollectionDownloader(GalaxyClient):
 
         return download_filename
 
-    async def _get_latest_matching_version(self, collection: str,
-                                           version_spec: str) -> semver.Version:
-        """
-        Get the latest version of a collection that matches a specification.
-
-        :arg collection: Namespace.collection identifying a collection.
-        :arg version_spec: String specifying the allowable versions.
-        :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
-            the specification.
-
-        .. seealso:: For the format of the version_spec, see the documentation
-            of :obj:`semantic_version.SimpleSpec`
-        """
-        versions = await self.get_versions(collection)
-        versions = [semver.Version(v) for v in versions]
-        versions.sort(reverse=True)
-
-        spec = semver.SimpleSpec(version_spec)
-        for version in (v for v in versions if v in spec):
-            return version
-
-        # No matching versions were found
-        raise NoSuchVersion(f'{version_spec} did not match with any version of {collection}.')
-
     async def download_latest_matching(self, collection: str,
                                        version_spec: str) -> DownloadResults:
         """
@@ -267,6 +267,6 @@ class CollectionDownloader(GalaxyClient):
         .. seealso:: For the format of the version_spec, see the documentation
             of :obj:`semantic_version.SimpleSpec`
         """
-        version = await self._get_latest_matching_version(collection, version_spec)
+        version = await self.get_latest_matching_version(collection, version_spec)
         download_path = await self.download(collection, version)
         return DownloadResults(version=version, download_path=download_path)

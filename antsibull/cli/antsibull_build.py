@@ -18,7 +18,9 @@ from ..args import InvalidArgumentError, get_common_parser, normalize_common_opt
 from ..config import load_config
 from ..new_ansible import new_ansible_command
 from ..build_collection import build_collection_command
-from ..build_ansible_commands import build_single_command, build_multiple_command
+from ..build_ansible_commands import (
+    build_single_command, build_multiple_command, rebuild_single_command,
+)
 from ..build_changelog import build_changelog
 
 
@@ -32,6 +34,7 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             'multiple': build_multiple_command,
             'collection': build_collection_command,
             'changelog': build_changelog,
+            'rebuild-single': rebuild_single_command,
             # Old names, deprecated
             'new-acd': new_ansible_command,
             'build-single': build_single_command,
@@ -82,7 +85,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
         args.command = 'multiple'
 
-    if args.command not in ('single', 'multiple'):
+    if args.command not in ('single', 'multiple', 'rebuild-single'):
         return
 
     if args.build_file is None:
@@ -101,6 +104,15 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
             basename = basename[:-len(major_minor)]
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
+
+
+def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
+    if args.command not in ('rebuild-single', ):
+        return
+
+    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+    if not os.path.isfile(deps_filename):
+        raise InvalidArgumentError(f'The dependency file, {deps_filename} must already exist.')
 
 
 def _normalize_collection_build_options(args: argparse.Namespace) -> None:
@@ -179,6 +191,16 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                      help='Include Debian/Ubuntu packaging files in'
                                      ' the resulting output directory')
 
+    rebuild_single_parser = subparsers.add_parser('rebuild-single',
+                                                  parents=[build_parser, cache_parser,
+                                                           build_step_parser],
+                                                  description='Rebuild a single-file Ansible from'
+                                                              ' a dependency file')
+
+    rebuild_single_parser.add_argument('--debian', action='store_true',
+                                       help='Include Debian/Ubuntu packaging files in'
+                                       ' the resulting output directory')
+
     build_multiple_parser = subparsers.add_parser('multiple',
                                                   parents=[build_parser, cache_parser,
                                                            build_step_parser],
@@ -213,6 +235,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_build_options(args)
     _normalize_new_release_options(args)
     _normalize_release_build_options(args)
+    _normalize_release_rebuild_options(args)
     _normalize_collection_build_options(args)
 
     return args

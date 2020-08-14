@@ -24,11 +24,10 @@ from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
-from .galaxy import CollectionDownloader
+from .galaxy import CollectionDownloader, GalaxyClient
 from .utils.get_pkg_data import get_antsibull_data
 
-if t.TYPE_CHECKING:
-    from semantic_version import Version as SemVer
+from semantic_version import Version as SemVer
 
 
 #
@@ -36,21 +35,17 @@ if t.TYPE_CHECKING:
 #
 
 
-async def download_collections(deps: t.Mapping[str, str],
-                               galaxy_url: str,
-                               download_dir: str,
-                               collection_cache: t.Optional[str] = None
-                               ) -> t.Dict[str, SemVer]:
+async def get_collection_versions(deps: t.Mapping[str, str],
+                                  galaxy_url: str,
+                                  ) -> t.Dict[str, SemVer]:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            downloader = CollectionDownloader(aio_session, download_dir,
-                                              collection_cache=collection_cache,
-                                              galaxy_server=galaxy_url)
+            client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
-                    downloader.download_latest_matching(collection_name, version_spec))
+                    client.get_latest_matching_version(collection_name, version_spec))
 
             responses = await asyncio.gather(*requestors.values())
 
@@ -58,10 +53,29 @@ async def download_collections(deps: t.Mapping[str, str],
     # used requestors.values() to generate responses, requestors and responses therefor have
     # a matching order.
     included_versions: t.Dict[str, SemVer] = {}
-    for collection_name, results in zip(requestors, responses):
-        included_versions[collection_name] = results.version
+    for collection_name, version in zip(requestors, responses):
+        included_versions[collection_name] = version
 
     return included_versions
+
+
+async def download_collections(versions: t.Mapping[str, SemVer],
+                               galaxy_url: str,
+                               download_dir: str,
+                               collection_cache: t.Optional[str] = None,
+                               ) -> None:
+    requestors = {}
+    async with aiohttp.ClientSession() as aio_session:
+        lib_ctx = app_context.lib_ctx.get()
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+            downloader = CollectionDownloader(aio_session, download_dir,
+                                              collection_cache=collection_cache,
+                                              galaxy_server=galaxy_url)
+            for collection_name, version in versions.items():
+                requestors[collection_name] = await pool.spawn(
+                    downloader.download(collection_name, version))
+
+            await asyncio.gather(*requestors.values())
 
 
 #
@@ -170,49 +184,47 @@ def write_build_script(ansible_version: PypiVer,
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_command() -> int:
+def build_single_impl(dependency_data: DependencyFileData, add_release: bool = True) -> None:
     app_ctx = app_context.app_ctx.get()
 
-    build_file = BuildFile(app_ctx.extra['build_file'])
-    build_ansible_version, ansible_base_version, deps = build_file.parse()
-    ansible_base_version = PypiVer(ansible_base_version)
-
-    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
-        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
-              f' {app_ctx.extra["ansible_version"].major}'
-              f'.{app_ctx.extra["ansible_version"].minor}')
-        return 1
+    # Determine included collection versions
+    ansible_base_version = PypiVer(dependency_data.ansible_base_version)
+    included_versions = {
+        collection: SemVer(version)
+        for collection, version in dependency_data.deps.items()
+    }
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
         # Download included collections
-        included_versions = asyncio.run(download_collections(deps, app_ctx.galaxy_url,
-                                                             download_dir,
-                                                             app_ctx.extra['collection_cache']))
+        asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
+                                         download_dir, app_ctx.extra['collection_cache']))
 
-        new_dependencies = DependencyFileData(
-            str(app_ctx.extra["ansible_version"]),
-            str(ansible_base_version),
-            {collection: str(version) for collection, version in included_versions.items()})
+        if dependency_data is None:
+            dependency_data = DependencyFileData(
+                str(app_ctx.extra["ansible_version"]),
+                str(ansible_base_version),
+                {collection: str(version) for collection, version in included_versions.items()})
 
         # Get Ansible changelog, add new release
         deps_dir = os.path.dirname(app_ctx.extra["build_file"])
         ansible_changelog = ChangelogData.ansible(deps_dir)
-        date = datetime.date.today()
-        ansible_changelog.add_ansible_release(
-            str(app_ctx.extra["ansible_version"]),
-            date,
-            f"Release Date: {date}"
-            f"\n\n"
-            f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
+        if add_release:
+            date = datetime.date.today()
+            ansible_changelog.add_ansible_release(
+                str(app_ctx.extra["ansible_version"]),
+                date,
+                f"Release Date: {date}"
+                f"\n\n"
+                f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
 
         # Get changelog and porting guide data
         changelog = get_changelog(
             app_ctx.extra["ansible_version"],
             deps_dir=deps_dir,
-            deps_data=[new_dependencies],
+            deps_data=[dependency_data],
             collection_cache=app_ctx.extra["collection_cache"],
             ansible_changelog=ansible_changelog)
 
@@ -247,18 +259,53 @@ def build_single_command() -> int:
             write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
         make_dist(package_dir, app_ctx.extra['dest_dir'])
 
-    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
-    deps_file = DepsFile(deps_filename)
-    deps_file.write(
-        new_dependencies.ansible_version,
-        new_dependencies.ansible_base_version,
-        new_dependencies.deps)
-
-    ansible_changelog.changes.save()
-
     # Write changelog and porting guide also to destination directory
     release_notes.write_changelog_to(deps_dir)
     release_notes.write_porting_guide_to(deps_dir)
+
+    if add_release:
+        ansible_changelog.changes.save()
+
+
+def build_single_command() -> int:
+    app_ctx = app_context.app_ctx.get()
+
+    build_file = BuildFile(app_ctx.extra['build_file'])
+    build_ansible_version, ansible_base_version, deps = build_file.parse()
+    ansible_base_version = PypiVer(ansible_base_version)
+    included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
+
+    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
+        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
+              f' {app_ctx.extra["ansible_version"].major}'
+              f'.{app_ctx.extra["ansible_version"].minor}')
+        return 1
+
+    dependency_data = DependencyFileData(
+        str(app_ctx.extra["ansible_version"]),
+        str(ansible_base_version),
+        {collection: str(version) for collection, version in included_versions.items()})
+
+    build_single_impl(dependency_data)
+
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_file = DepsFile(deps_filename)
+    deps_file.write(
+        dependency_data.ansible_version,
+        dependency_data.ansible_base_version,
+        dependency_data.deps)
+
+    return 0
+
+
+def rebuild_single_command() -> int:
+    app_ctx = app_context.app_ctx.get()
+
+    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_file = DepsFile(deps_filename)
+    dependency_data = deps_file.parse()
+
+    build_single_impl(dependency_data, add_release=False)
 
     return 0
 
@@ -348,8 +395,9 @@ def build_multiple_command() -> int:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio.run(
-            download_collections(deps, app_ctx.galaxy_url, download_dir,
+        included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
+        asyncio.run(
+            download_collections(included_versions, app_ctx.galaxy_url, download_dir,
                                  app_ctx.extra['collection_cache']))
         # TODO: PY3.8:
         # collections_to_install = [p for f in os.listdir(download_dir)
