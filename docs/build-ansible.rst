@@ -43,6 +43,16 @@ package is installed, you won't need to know about poetry at all::
     git add ansible-2.10.build ansible-2.10.0.deps
     git commit -m 'Collection dependency information for ansible 2.10.x and ansible-2.10.0'
     git push
+    git tag 2.10.0
+    git push --tags
+
+    # Update the porting guide
+    cp ansible-build-data/2.10/porting_guide_2.10.rst ansible/docs/docsite/rst/porting_guide/
+    cd ansible
+    git checkout -b update-porting-guide
+    git add ansible/docs/docsite/rst/porting_guide/
+    git commit -a -m 'Update the porting guide for a new ansible version'
+    # git push and open a PR
 
     # Then we can test installation with pip:
     # This might not work:
