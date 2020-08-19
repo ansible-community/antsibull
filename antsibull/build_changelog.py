@@ -520,12 +520,21 @@ def build_changelog() -> int:
     release_notes.write_porting_guide_to(dest_dir)
 
     missing_changelogs = []
-    for collector in changelog.collection_collectors:
+    last_entry = changelog.entries[0]
+    last_version_collectors = [
+        collector for collector in changelog.collection_collectors
+        if last_entry.version in last_entry.versions_per_collection[collector.collection]
+    ]
+    for collector in last_version_collectors:
         if collector.changelog is None:
             missing_changelogs.append(collector.collection)
     if missing_changelogs:
-        print(f"{len(missing_changelogs)} out of {len(changelog.collection_collectors)} collections"
+        print(f"{len(missing_changelogs)} out of {len(last_version_collectors)} collections"
               f" have no compatible changelog:")
-        for changelog in missing_changelogs:
-            print(f"    {changelog}")
+        for collection_name in missing_changelogs:
+            meta = changelog.collection_metadata.get_meta(collection_name)
+            entry = [collection_name]
+            if meta.changelog_url:
+                entry.append(f"(changelog URL: {meta.changelog_url})")
+            print(f"    {'  '.join(entry)}")
     return 0
