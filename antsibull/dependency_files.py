@@ -142,15 +142,18 @@ class BuildFile:
         Write a build dependency file.
 
         A build dependency file records the collections that went into a given Ansible release along
-        with the exact version of the collection that was included.
+        with the range of versions that are allowed for that collection.  The range is meant to
+        define the set of collection versions that are compatible with what was present in the
+        collection as of the first beta release, when we feature freeze the collections.
 
         :arg ansible_version: The version of Ansible that is being recorded.
         :arg ansible_base_version: The version of Ansible base that will be depended on.
-        :arg dependencies: Dictionary with keys of collection names and values of versions.
+        :arg dependencies: Dictionary with keys of collection names and values of the latest
+            versions of those collections.
         """
         records = []
         for dep, version in dependencies.items():
-            records.append(f'{dep}: >={version.major}.0.0,<{version.next_major()}')
+            records.append(f'{dep}: >={version.major}.{version.minor}.0,<{version.next_major()}')
         records.sort()
 
         with open(self.filename, 'w') as f:
