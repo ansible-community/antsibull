@@ -201,30 +201,24 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
         asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
                                          download_dir, app_ctx.extra['collection_cache']))
 
-        if dependency_data is None:
-            dependency_data = DependencyFileData(
-                str(app_ctx.extra["ansible_version"]),
-                str(ansible_base_version),
-                {collection: str(version) for collection, version in included_versions.items()})
-
         # Get Ansible changelog, add new release
-        deps_dir = os.path.dirname(app_ctx.extra["build_file"])
+        deps_dir = os.path.dirname(app_ctx.extra['build_file'])
         ansible_changelog = ChangelogData.ansible(deps_dir)
         if add_release:
             date = datetime.date.today()
             ansible_changelog.add_ansible_release(
-                str(app_ctx.extra["ansible_version"]),
+                str(app_ctx.extra['ansible_version']),
                 date,
-                f"Release Date: {date}"
-                f"\n\n"
-                f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_")
+                f'Release Date: {date}'
+                f'\n\n'
+                f'`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_')
 
         # Get changelog and porting guide data
         changelog = get_changelog(
-            app_ctx.extra["ansible_version"],
+            app_ctx.extra['ansible_version'],
             deps_dir=deps_dir,
             deps_data=[dependency_data],
-            collection_cache=app_ctx.extra["collection_cache"],
+            collection_cache=app_ctx.extra['collection_cache'],
             ansible_changelog=ansible_changelog)
 
         # Create package and collections directories
@@ -281,7 +275,7 @@ def build_single_command() -> int:
         return 1
 
     dependency_data = DependencyFileData(
-        str(app_ctx.extra["ansible_version"]),
+        str(app_ctx.extra['ansible_version']),
         str(ansible_base_version),
         {collection: str(version) for collection, version in included_versions.items()})
 
