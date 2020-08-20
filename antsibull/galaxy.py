@@ -154,12 +154,15 @@ class GalaxyClient:
         return collection_info
 
     async def get_latest_matching_version(self, collection: str,
-                                          version_spec: str) -> semver.Version:
+                                          version_spec: str,
+                                          pre: bool = False) -> semver.Version:
         """
         Get the latest version of a collection that matches a specification.
 
         :arg collection: Namespace.collection identifying a collection.
         :arg version_spec: String specifying the allowable versions.
+        :kwarg pre: If True, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
+            This is **not** for excluding 0.Y.Z versions.  The default is False.
         :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
             the specification.
 
@@ -172,6 +175,9 @@ class GalaxyClient:
 
         spec = semver.SimpleSpec(version_spec)
         for version in (v for v in versions if v in spec):
+            # If we're excluding prereleases and this is a prerelease, then skip it.
+            if not pre and version.prerelease:
+                continue
             return version
 
         # No matching versions were found
