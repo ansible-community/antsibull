@@ -163,6 +163,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' collections at versions which were included in this version'
                                    ' of Ansible. The default is to place'
                                    ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into --dest-dir')
+    build_step_parser.add_argument('--feature-frozen', action='store_true',
+                                   help='If this is given, then do not allow collections whose'
+                                   ' version implies there are new features.')
 
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage building Ansible')

@@ -18,7 +18,7 @@ import asyncio_pool
 import sh
 from jinja2 import Template
 from packaging.version import Version as PypiVer
-from semantic_version import Version as SemVer
+from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 from . import app_context
 from .build_changelog import ReleaseNotes
@@ -160,7 +160,7 @@ def write_debian_directory(ansible_version: str, package_dir: str) -> None:
             tmpl = Template(data)
             data = tmpl.render(
                 version=ansible_version,
-                date=datetime.datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
+                date=datetime.datetime.utcnow().strftime('%a, %d %b %Y %T +0000'),
             )
 
         with open(os.path.join(debian_dir, filename), 'w') as f:
@@ -276,6 +276,35 @@ def build_single_command() -> int:
     build_file = BuildFile(app_ctx.extra['build_file'])
     build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
+
+    # If we're building a feature frozen release (betas and rcs) then we need to
+    # change the upper version limit to not include new features.
+    if app_ctx.extra['feature_frozen']:
+        old_deps, deps = deps, {}
+        # For each collection that's listed...
+        for collection_name, spec in old_deps.items():
+            spec = SemVerSpec(spec)
+            new_clauses = []
+            min_version = None
+
+            # Look at each clause of the version specification
+            for clause in spec.clause.clauses:
+                if clause.operator in ('<', '<='):
+                    # Omit the upper bound as we're replacing it
+                    continue
+
+                if clause.operator == '>=':
+                    # Save the lower bound so we can write out a new compatible version
+                    min_version = clause.target
+
+                new_clauses.append(str(clause))
+
+            if min_version is None:
+                raise ValueError(f'No minimum version specified for {collection_name}: {spec}')
+
+            new_clauses.append(f'<{min_version.major}.{min_version.minor + 1}.0')
+            deps[collection_name] = ','.join(new_clauses)
+
     included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
 
     if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
