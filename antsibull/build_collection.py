@@ -27,7 +27,7 @@ def build_collection_command():
             f.write(readme)
 
         # Parse the deps file
-        deps_file = DepsFile(app_ctx.extra['deps_file'])
+        deps_file = DepsFile(os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file']))
         dummy1_, dummy2_, deps = deps_file.parse()
 
         # Template the galaxy.yml file
@@ -42,7 +42,7 @@ def build_collection_command():
             f.write(galaxy_yml_contents)
 
         sh.ansible_galaxy('collection', 'build',
-                          '--output-path', app_ctx.extra['dest_dir'],
+                          '--output-path', app_ctx.extra['collection_dir'],
                           collection_dir)
 
     return 0
