@@ -40,7 +40,7 @@ package is installed, you won't need to know about poetry at all::
 
     # Record the files used to build:
     cd ansible-build-data/2.10
-    git add ansible-2.10.build ansible-2.10.0.deps
+    git add ansible-2.10.build ansible-2.10.0.deps changelog.yaml CHANGELOG-v2.10.rst
     git commit -m 'Collection dependency information for ansible 2.10.x and ansible-2.10.0'
     git push
     git tag 2.10.0
