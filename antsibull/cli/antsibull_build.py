@@ -88,9 +88,6 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
     if args.command not in ('single', 'multiple', 'rebuild-single'):
         return
 
-    if args.build_data_dir is None:
-        args.build_data_dir = args.dest_dir
-
     if args.build_file is None:
         args.build_file = (DEFAULT_FILE_BASE
                            + f'-{args.ansible_version.major}.{args.ansible_version.minor}.build')
@@ -158,10 +155,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                               ' tarballs.')
 
     build_step_parser = argparse.ArgumentParser(add_help=False)
-    build_step_parser.add_argument('--build-data-dir',
+    build_step_parser.add_argument('--build-data-dir', default='.',
                                    help='Directory which contains the existing .deps files'
-                                   ' for previous builds. The default is to use the same value'
-                                   ' as for --dest-dir.')
+                                   ' for previous builds.')
     build_step_parser.add_argument('--build-file', default=None,
                                    help='File containing the list of collections with version'
                                    ' ranges. The default is to look for'
