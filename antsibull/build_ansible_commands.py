@@ -272,7 +272,8 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
 def build_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    build_file = BuildFile(os.path.join(app_ctx.extra['build_data_dir'], app_ctx.extra['build_file']))
+    build_file = BuildFile(
+        os.path.join(app_ctx.extra['build_data_dir'], app_ctx.extra['build_file']))
     build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
@@ -412,7 +413,8 @@ async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]) -> 
 def build_multiple_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    build_file = BuildFile(os.path.join(app_ctx.extra['build_data_dir'], app_ctx.extra['build_file']))
+    build_file = BuildFile(
+        os.path.join(app_ctx.extra['build_data_dir'], app_ctx.extra['build_file']))
     build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
