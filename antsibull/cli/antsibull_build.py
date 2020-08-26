@@ -88,12 +88,16 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
     if args.command not in ('single', 'multiple', 'rebuild-single'):
         return
 
+    if args.build_data_dir is None:
+        args.build_data_dir = args.dest_dir
+
     if args.build_file is None:
         args.build_file = (DEFAULT_FILE_BASE
                            + f'-{args.ansible_version.major}.{args.ansible_version.minor}.build')
 
-    if not os.path.isfile(args.build_file):
-        raise InvalidArgumentError(f'The build file, {args.build_file} must already exist.'
+    build_filename = os.path.join(args.build_data_dir, args.build_file)
+    if not os.path.isfile(build_filename):
+        raise InvalidArgumentError(f'The build file, {build_filename} must already exist.'
                                    ' It should contains one namespace.collection and range'
                                    ' of versions per line')
 
@@ -110,7 +114,7 @@ def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
     if args.command not in ('rebuild-single', ):
         return
 
-    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+    deps_filename = os.path.join(args.build_data_dir, args.deps_file)
     if not os.path.isfile(deps_filename):
         raise InvalidArgumentError(f'The dependency file, {deps_filename} must already exist.')
 
@@ -154,15 +158,19 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                               ' tarballs.')
 
     build_step_parser = argparse.ArgumentParser(add_help=False)
+    build_step_parser.add_argument('--build-data-dir',
+                                   help='Directory which contains the existing .deps files'
+                                   ' for previous builds. The default is to use the same value'
+                                   ' as for --dest-dir.')
     build_step_parser.add_argument('--build-file', default=None,
                                    help='File containing the list of collections with version'
                                    ' ranges. The default is to look for'
-                                   ' $DEFAULT_FILE_BASE-X.Y.build inside of --dest-dir')
+                                   ' $DEFAULT_FILE_BASE-X.Y.build inside of --build-data-dir')
     build_step_parser.add_argument('--deps-file', default=None,
                                    help='File which will be written containing the list of'
                                    ' collections at versions which were included in this version'
                                    ' of Ansible. The default is to place'
-                                   ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into --dest-dir')
+                                   ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into --build-data-dir')
     build_step_parser.add_argument('--feature-frozen', action='store_true',
                                    help='If this is given, then do not allow collections whose'
                                    ' version implies there are new features.')
