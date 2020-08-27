@@ -152,7 +152,7 @@ def find_config_files(conf_files: t.Iterable[str]) -> t.List[str]:
     flog = mlog.fields(func='find_config_file')
     flog.fields(conf_files=conf_files).debug('Enter')
 
-    paths = [p for p in conf_files]
+    paths = [os.path.abspath(p) for p in conf_files]
     flog.fields(paths=paths).info('Paths to check')
 
     config_files = []
