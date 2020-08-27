@@ -74,17 +74,18 @@ def find_latest_compatible(ansible_base_version, raw_dependency_versions):
 
 def new_ansible_command():
     app_ctx = app_context.app_ctx.get()
-    collections = parse_pieces_file(app_ctx.extra['pieces_file'])
+    collections = parse_pieces_file(
+        os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['pieces_file']))
     dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
 
     ansible_base_version = dependencies.pop('_ansible_base')[0]
     dependencies = find_latest_compatible(ansible_base_version, dependencies)
 
-    build_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['build_file'])
+    build_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
     build_file.write(app_ctx.extra['ansible_version'], ansible_base_version, dependencies)
 
-    changelog = ChangelogData.ansible(app_ctx.extra['dest_dir'])
+    changelog = ChangelogData.ansible(app_ctx.extra['dest_data_dir'])
     changelog.changes.save()
 
     return 0

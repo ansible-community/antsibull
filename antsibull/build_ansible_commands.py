@@ -212,8 +212,8 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
                                          download_dir, app_ctx.extra['collection_cache']))
 
         # Get Ansible changelog, add new release
-        deps_dir = os.path.dirname(app_ctx.extra['build_file'])
-        ansible_changelog = ChangelogData.ansible(deps_dir)
+        ansible_changelog = ChangelogData.ansible(
+            app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
         if add_release:
             date = datetime.date.today()
             ansible_changelog.add_ansible_release(
@@ -226,7 +226,7 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
         # Get changelog and porting guide data
         changelog = get_changelog(
             app_ctx.extra['ansible_version'],
-            deps_dir=deps_dir,
+            deps_dir=app_ctx.extra['data_dir'],
             deps_data=[dependency_data],
             collection_cache=app_ctx.extra['collection_cache'],
             ansible_changelog=ansible_changelog)
@@ -260,11 +260,11 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
                                  package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
-        make_dist(package_dir, app_ctx.extra['dest_dir'])
+        make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
     # Write changelog and porting guide also to destination directory
-    release_notes.write_changelog_to(deps_dir)
-    release_notes.write_porting_guide_to(deps_dir)
+    release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
+    release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
     if add_release:
         ansible_changelog.changes.save()
@@ -273,7 +273,8 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
 def build_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    build_file = BuildFile(app_ctx.extra['build_file'])
+    build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
+    build_file = BuildFile(build_filename)
     build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
@@ -308,7 +309,7 @@ def build_single_command() -> int:
     included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
 
     if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
-        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
+        print(f'{build_filename} is for version {build_ansible_version} but we need'
               f' {app_ctx.extra["ansible_version"].major}'
               f'.{app_ctx.extra["ansible_version"].minor}')
         return 1
@@ -320,7 +321,7 @@ def build_single_command() -> int:
 
     build_single_impl(dependency_data)
 
-    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     deps_file.write(
         dependency_data.ansible_version,
@@ -333,7 +334,7 @@ def build_single_command() -> int:
 def rebuild_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
 
@@ -413,12 +414,15 @@ async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]) -> 
 def build_multiple_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    build_file = BuildFile(app_ctx.extra['build_file'])
+    build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
+    build_file = BuildFile(build_filename)
     build_ansible_version, ansible_base_version, deps = build_file.parse()
     ansible_base_version = PypiVer(ansible_base_version)
 
+    # TODO: implement --feature-frozen support
+
     if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
-        print(f'{app_ctx.extra["build_file"]} is for version {build_ansible_version} but we need'
+        print(f'{build_filename} is for version {build_ansible_version} but we need'
               f' {app_ctx.extra["ansible_version"].major}'
               f'.{app_ctx.extra["ansible_version"].minor}')
         return 1
@@ -441,7 +445,7 @@ def build_multiple_command() -> int:
                 collections_to_install.append(path)
 
         collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
-        asyncio.run(make_collection_dists(app_ctx.extra['dest_dir'], collection_dirs))
+        asyncio.run(make_collection_dists(app_ctx.extra['sdist_dir'], collection_dirs))
 
         # Create the ansible package that deps on the collections we just wrote
         package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
@@ -458,10 +462,10 @@ def build_multiple_command() -> int:
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version,
                                  collection_deps, package_dir)
 
-        make_dist(package_dir, app_ctx.extra['dest_dir'])
+        make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
     # Write the deps file
-    deps_filename = os.path.join(app_ctx.extra['dest_dir'], app_ctx.extra['deps_file'])
+    deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     deps_file.write(app_ctx.extra['ansible_version'], ansible_base_version, included_versions)
 

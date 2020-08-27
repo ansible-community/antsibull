@@ -509,15 +509,15 @@ def build_changelog() -> int:
     app_ctx = app_context.app_ctx.get()
 
     ansible_version: PypiVer = app_ctx.extra['ansible_version']
-    deps_dir: str = app_ctx.extra['deps_dir']
-    dest_dir: str = app_ctx.extra['dest_dir']
+    data_dir: str = app_ctx.extra['data_dir']
+    dest_data_dir: str = app_ctx.extra['dest_data_dir']
     collection_cache: t.Optional[str] = app_ctx.extra['collection_cache']
 
-    changelog = get_changelog(ansible_version, deps_dir=deps_dir, collection_cache=collection_cache)
+    changelog = get_changelog(ansible_version, deps_dir=data_dir, collection_cache=collection_cache)
 
     release_notes = ReleaseNotes.build(changelog)
-    release_notes.write_changelog_to(dest_dir)
-    release_notes.write_porting_guide_to(dest_dir)
+    release_notes.write_changelog_to(dest_data_dir)
+    release_notes.write_porting_guide_to(dest_data_dir)
 
     missing_changelogs = []
     last_entry = changelog.entries[0]

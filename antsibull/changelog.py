@@ -74,7 +74,8 @@ class ChangelogData:
         return cls(paths, config, ChangesData(config, '', changelog_data), flatmap=False)
 
     @classmethod
-    def ansible(cls, directory: t.Optional[str]) -> 'ChangelogData':
+    def ansible(cls, directory: t.Optional[str],
+                output_directory: t.Optional[str] = None) -> 'ChangelogData':
         paths = PathsConfig.force_ansible('')
 
         config = ChangelogConfig.default(paths, CollectionDetails(paths), 'Ansible')
@@ -86,7 +87,10 @@ class ChangelogData:
         changelog_path = ''
         if directory is not None:
             changelog_path = os.path.join(directory, 'changelog.yaml')
-        return cls(paths, config, ChangesData(config, changelog_path), flatmap=True)
+        changes = ChangesData(config, changelog_path)
+        if output_directory is not None:
+            changes.path = os.path.join(output_directory, 'changelog.yaml')
+        return cls(paths, config, changes, flatmap=True)
 
     @classmethod
     def concatenate(cls, changelogs: t.List['ChangelogData']) -> 'ChangelogData':

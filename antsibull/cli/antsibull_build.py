@@ -44,9 +44,21 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
-    args.dest_dir = os.path.expanduser(os.path.expandvars(args.dest_dir))
-    if not os.path.isdir(args.dest_dir):
-        raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory')
+    if not os.path.isdir(args.data_dir):
+        raise InvalidArgumentError(f'{args.data_dir} must be an existing directory')
+
+
+def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
+    if args.command not in (
+            'new-ansible', 'single', 'rebuild-single', 'multiple', 'changelog',
+            'new-acd', 'build-single', 'build-multiple'):
+        return
+
+    if args.dest_data_dir is None:
+        args.dest_data_dir = args.data_dir
+
+    if not os.path.isdir(args.dest_data_dir):
+        raise InvalidArgumentError(f'{args.dest_data_dir} must be an existing directory')
 
 
 def _normalize_new_release_options(args: argparse.Namespace) -> None:
@@ -60,10 +72,11 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
         return
 
     if args.pieces_file is None:
-        args.pieces_file = os.path.join(args.dest_dir, DEFAULT_PIECES_FILE)
+        args.pieces_file = DEFAULT_PIECES_FILE
 
-    if not os.path.isfile(args.pieces_file):
-        raise InvalidArgumentError(f'The pieces file, {args.pieces_file}, must already'
+    pieces_path = os.path.join(args.data_dir, args.pieces_file)
+    if not os.path.isfile(pieces_path):
+        raise InvalidArgumentError(f'The pieces file, {pieces_path}, must already'
                                    ' exist. It should contain one namespace.collection'
                                    ' per line')
 
@@ -92,8 +105,9 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         args.build_file = (DEFAULT_FILE_BASE
                            + f'-{args.ansible_version.major}.{args.ansible_version.minor}.build')
 
-    if not os.path.isfile(args.build_file):
-        raise InvalidArgumentError(f'The build file, {args.build_file} must already exist.'
+    build_filename = os.path.join(args.data_dir, args.build_file)
+    if not os.path.isfile(build_filename):
+        raise InvalidArgumentError(f'The build file, {build_filename} must already exist.'
                                    ' It should contains one namespace.collection and range'
                                    ' of versions per line')
 
@@ -105,12 +119,16 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
+    if args.command in ('single', 'multiple'):
+        if not os.path.isdir(args.sdist_dir):
+            raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
+
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
     if args.command not in ('rebuild-single', ):
         return
 
-    deps_filename = os.path.join(args.dest_dir, args.deps_file)
+    deps_filename = os.path.join(args.data_dir, args.deps_file)
     if not os.path.isfile(deps_filename):
         raise InvalidArgumentError(f'The dependency file, {deps_filename} must already exist.')
 
@@ -128,6 +146,9 @@ def _normalize_collection_build_options(args: argparse.Namespace) -> None:
     if args.deps_file is None:
         args.deps_file = DEFAULT_FILE_BASE + f'{args.ansible_version}.deps'
 
+    if not os.path.isdir(args.collection_dir):
+        raise InvalidArgumentError(f'{args.collection_dir} must be an existing directory')
+
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     """
@@ -143,8 +164,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     build_parser = argparse.ArgumentParser(add_help=False, parents=[common_parser])
     build_parser.add_argument('ansible_version', type=PypiVer,
                               help='The X.Y.Z version of Ansible that this will be for')
-    build_parser.add_argument('--dest-dir', default='.',
-                              help='Directory to write the output to')
+    build_parser.add_argument('--data-dir', default='.',
+                              help='Directory to read .build and .deps files from')
+
+    build_write_data_parser = argparse.ArgumentParser(add_help=False, parents=[build_parser])
+    build_write_data_parser.add_argument('--dest-data-dir', default=None,
+                                         help='Directory to write .build and .deps files to,'
+                                         ' as well as changelog and porting guide if applicable.'
+                                         '  Defaults to --data-dir')
 
     cache_parser = argparse.ArgumentParser(add_help=False)
     cache_parser.add_argument('--collection-cache', default=None,
@@ -156,16 +183,20 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     build_step_parser = argparse.ArgumentParser(add_help=False)
     build_step_parser.add_argument('--build-file', default=None,
                                    help='File containing the list of collections with version'
-                                   ' ranges. The default is to look for'
-                                   ' $DEFAULT_FILE_BASE-X.Y.build inside of --dest-dir')
+                                   ' ranges.  This is considered to be relative to'
+                                   ' --build-data-dir.  The default is'
+                                   ' $DEFAULT_FILE_BASE-X.Y.build')
     build_step_parser.add_argument('--deps-file', default=None,
                                    help='File which will be written containing the list of'
                                    ' collections at versions which were included in this version'
-                                   ' of Ansible. The default is to place'
-                                   ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps into --dest-dir')
-    build_step_parser.add_argument('--feature-frozen', action='store_true',
-                                   help='If this is given, then do not allow collections whose'
-                                   ' version implies there are new features.')
+                                   ' of Ansible.  This is considered to be relative to'
+                                   ' --build-data-dir.  The default is'
+                                   ' $BASENAME_OF_BUILD_FILE-X.Y.Z.deps')
+
+    feature_freeze_parser = argparse.ArgumentParser(add_help=False)
+    feature_freeze_parser.add_argument('--feature-frozen', action='store_true',
+                                       help='If this is given, then do not allow collections whose'
+                                       ' version implies there are new features.')
 
     parser = argparse.ArgumentParser(prog=program_name,
                                      description='Script to manage building Ansible')
@@ -173,41 +204,48 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        help='for help use antsibull-build SUBCOMMANDS -h')
     subparsers.required = True
 
-    new_parser = subparsers.add_parser('new-ansible', parents=[build_parser],
+    new_parser = subparsers.add_parser('new-ansible', parents=[build_write_data_parser],
                                        description='Generate a new build description from the'
                                        ' latest available versions of ansible-base and the'
                                        ' included collections')
     new_parser.add_argument('--pieces-file', default=None,
-                            help='File containing a list of collections to include.  The'
-                            f' default is to look for {DEFAULT_PIECES_FILE} inside of --dest-dir')
+                            help='File containing a list of collections to include.  This is'
+                            ' considered to be relative to --data-dir.  The default is'
+                            f' {DEFAULT_PIECES_FILE}')
     new_parser.add_argument('--build-file', default=None,
                             help='File which will be written which contains the list'
-                            ' of collections with version ranges.  The default is to'
-                            ' place $BASENAME_OF_PIECES_FILE-X.Y.build into --dest-dir')
+                            ' of collections with version ranges.  This is considered to be'
+                            ' relative to --dest-data-dir.  The default is'
+                            ' $BASENAME_OF_PIECES_FILE-X.Y.build')
 
     build_single_parser = subparsers.add_parser('single',
-                                                parents=[build_parser, cache_parser,
-                                                         build_step_parser],
+                                                parents=[build_write_data_parser, cache_parser,
+                                                         build_step_parser, feature_freeze_parser],
                                                 description='Build a single-file Ansible')
-
+    build_single_parser.add_argument('--sdist-dir', default='.',
+                                     help='Directory to write the generated sdist tarball to')
     build_single_parser.add_argument('--debian', action='store_true',
                                      help='Include Debian/Ubuntu packaging files in'
                                      ' the resulting output directory')
 
     rebuild_single_parser = subparsers.add_parser('rebuild-single',
-                                                  parents=[build_parser, cache_parser,
+                                                  parents=[build_write_data_parser, cache_parser,
                                                            build_step_parser],
                                                   description='Rebuild a single-file Ansible from'
                                                               ' a dependency file')
-
+    rebuild_single_parser.add_argument('--sdist-dir', default='.',
+                                       help='Directory to write the generated sdist tarball to')
     rebuild_single_parser.add_argument('--debian', action='store_true',
                                        help='Include Debian/Ubuntu packaging files in'
                                        ' the resulting output directory')
 
     build_multiple_parser = subparsers.add_parser('multiple',
-                                                  parents=[build_parser, cache_parser,
-                                                           build_step_parser],
+                                                  parents=[build_write_data_parser, cache_parser,
+                                                           build_step_parser,
+                                                           feature_freeze_parser],
                                                   description='Build a multi-file Ansible')
+    build_multiple_parser.add_argument('--sdist-dir', default='.',
+                                       help='Directory to write the generated sdist tarballs to')
 
     collection_parser = subparsers.add_parser('collection',
                                               parents=[build_parser],
@@ -215,15 +253,15 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                               ' install Ansible')
     collection_parser.add_argument('--deps-file', default=None,
                                    help='File which contains the list of collections and'
-                                   ' versions which were included in this version of Ansible'
-                                   f' The default is to look for {DEFAULT_FILE_BASE}-X.Y.Z.deps'
-                                   ' inside of --dest-dir')
+                                   ' versions which were included in this version of Ansible.'
+                                   '  This is considered to be relative to --data-dir.'
+                                   f'  The default is {DEFAULT_FILE_BASE}-X.Y.Z.deps')
+    build_parser.add_argument('--collection-dir', default='.',
+                              help='Directory to write collection to')
 
-    changelog_parser = subparsers.add_parser('changelog',
-                                             parents=[build_parser, cache_parser],
+    changelog_parser = subparsers.add_parser('changelog',  # noqa: F841
+                                             parents=[build_write_data_parser, cache_parser],
                                              description='Build the Ansible changelog')
-    changelog_parser.add_argument('--deps-dir', required=True,
-                                  help='Directory which contains the versioning data')
 
     # Backwards compat.
     subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
@@ -236,6 +274,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Validation and coercion
     normalize_common_options(args)
     _normalize_build_options(args)
+    _normalize_build_write_data_options(args)
     _normalize_new_release_options(args)
     _normalize_release_build_options(args)
     _normalize_release_rebuild_options(args)

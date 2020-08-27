@@ -27,20 +27,20 @@ package is installed, you won't need to know about poetry at all::
     poetry install
 
     # Generate the list of compatible versions.  Intended to be run when we feature freeze
-    poetry run antsibull-build new-ansible 2.10.0 --dest-dir ansible-build-data/2.10
+    poetry run antsibull-build new-ansible 2.10.0 --data-dir ansible-build-data/2.10
 
-    # Create an ansible release using *one* of the following:
+    # Create an ansible release using **one** of the following:
     # Single tarball for ansible with a dep on the ansible-base package
-    poetry run antsibull-build single 2.10.0 --build-file ansible-build-data/2.10/ansible-2.10.build --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
+    poetry run antsibull-build single 2.10.0 --data-dir ansible-build-data/2.10 --sdist-dir built
     # One tarball per collection plus the ansible package which deps on all of them and ansible-base
-    poetry run antsibull-build multiple 2.10.0 --build-file ansible-build-data/2.10/ansible-2.10.build --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
+    poetry run antsibull-build multiple 2.10.0 --data-dir ansible-build-data/2.10 --sdist-dir built
 
     # Create a collection that can be installed to pull in all of the collections
-    poetry run antsibull-build collection 2.10.0 --deps-file ansible-build-data/2.10/ansible-2.10.0.deps --dest-dir built
+    poetry run antsibull-build collection 2.10.0 --data-dir ansible-build-data/2.10 --dest-dir built
 
     # Record the files used to build:
     cd ansible-build-data/2.10
-    git add ansible-2.10.build ansible-2.10.0.deps
+    git add ansible-2.10.build ansible-2.10.0.deps changelog.yaml CHANGELOG-v2.10.rst
     git commit -m 'Collection dependency information for ansible 2.10.x and ansible-2.10.0'
     git push
     git tag 2.10.0
