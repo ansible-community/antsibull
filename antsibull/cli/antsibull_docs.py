@@ -39,7 +39,6 @@ DEFAULT_PIECES_FILE: str = 'ansible.in'
 
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:
-    args.dest_dir = os.path.expanduser(os.path.expandvars(args.dest_dir))
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
 
     # We're going to be writing a deep hierarchy of files into this directory so we need to make
