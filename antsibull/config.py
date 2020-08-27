@@ -4,7 +4,6 @@
 # Copyright: Ansible Project, 2020
 """Functions to handle config files."""
 
-import itertools
 import os.path
 import typing as t
 
@@ -142,17 +141,23 @@ class ConfigModel(BaseModel):
         return value
 
 
-def find_config_files(conf_files: t.Iterable[str]) -> t.List[str]:
+def find_config_files(conf_files: t.Iterable[str],
+                      user_supplied_conf_files: t.Optional[t.Iterable[str]] = None) -> t.List[str]:
     """
     Find all config files that exist.
 
-    :arg conf_files: An iterable of config filenames to search for.
+    :arg conf_files: An iterable of config filenames to search for. These names
+                     will get user and variable expanded.
+    :arg user_supplied_conf_files: An iterable of config filenames to search for.
+                                   These names will get interpreted literally.
     :returns: A List of filenames which actually existed on the system.
     """
     flog = mlog.fields(func='find_config_file')
     flog.fields(conf_files=conf_files).debug('Enter')
 
     paths = [os.path.abspath(os.path.expanduser(os.path.expandvars(p))) for p in conf_files]
+    if user_supplied_conf_files:
+        paths.extend([os.path.abspath(p) for p in user_supplied_conf_files])
     flog.fields(paths=paths).info('Paths to check')
 
     config_files = []
@@ -208,8 +213,7 @@ def load_config(conf_files: t.Union[t.Iterable[str], str, None] = None) -> t.Dic
     elif conf_files is None:
         conf_files = ()
 
-    available_files = find_config_files(itertools.chain((SYSTEM_CONFIG_FILE, USER_CONFIG_FILE),
-                                                        conf_files))
+    available_files = find_config_files((SYSTEM_CONFIG_FILE, USER_CONFIG_FILE), conf_files)
 
     includes = list(available_files)
 
