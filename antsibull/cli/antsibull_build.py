@@ -47,6 +47,8 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
     if not os.path.isdir(args.data_dir):
         raise InvalidArgumentError(f'{args.data_dir} must be an existing directory')
 
+
+def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
     if args.command not in (
             'new-ansible', 'single', 'rebuild-single', 'multiple', 'changelog',
             'new-acd', 'build-single', 'build-multiple'):
@@ -272,6 +274,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Validation and coercion
     normalize_common_options(args)
     _normalize_build_options(args)
+    _normalize_build_write_data_options(args)
     _normalize_new_release_options(args)
     _normalize_release_build_options(args)
     _normalize_release_rebuild_options(args)
