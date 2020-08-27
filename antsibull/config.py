@@ -175,7 +175,7 @@ def read_config(filename: str) -> ConfigModel:
     flog = mlog.fields(func='read_config')
     flog.debug('Enter')
 
-    filename = os.path.abspath(os.path.expanduser(os.path.expandvars(filename)))
+    filename = os.path.abspath(filename)
 
     flog.fields(filename=filename).info('loading config file')
     raw_config_data = perky.load(filename)
