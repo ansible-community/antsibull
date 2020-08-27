@@ -152,7 +152,7 @@ def find_config_files(conf_files: t.Iterable[str]) -> t.List[str]:
     flog = mlog.fields(func='find_config_file')
     flog.fields(conf_files=conf_files).debug('Enter')
 
-    paths = [os.path.abspath(os.path.expanduser(os.path.expandvars(p))) for p in conf_files]
+    paths = [os.path.abspath(p) for p in conf_files]
     flog.fields(paths=paths).info('Paths to check')
 
     config_files = []
@@ -175,7 +175,7 @@ def read_config(filename: str) -> ConfigModel:
     flog = mlog.fields(func='read_config')
     flog.debug('Enter')
 
-    filename = os.path.abspath(os.path.expanduser(os.path.expandvars(filename)))
+    filename = os.path.abspath(filename)
 
     flog.fields(filename=filename).info('loading config file')
     raw_config_data = perky.load(filename)
@@ -208,7 +208,8 @@ def load_config(conf_files: t.Union[t.Iterable[str], str, None] = None) -> t.Dic
     elif conf_files is None:
         conf_files = ()
 
-    available_files = find_config_files(itertools.chain((SYSTEM_CONFIG_FILE, USER_CONFIG_FILE),
+    user_config_file = os.path.expanduser(USER_CONFIG_FILE)
+    available_files = find_config_files(itertools.chain((SYSTEM_CONFIG_FILE, user_config_file),
                                                         conf_files))
 
     includes = list(available_files)
