@@ -19,6 +19,9 @@ packages = [
 antsibull-build = "antsibull.cli.antsibull_build:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
 antsibull-docs = "antsibull.cli.antsibull_docs:main"
+# This is a one-off script.  If we need it for ongoing maintenance, we'll
+# probably fold it into antsibull-docs
+ansible-docsite-redirects = "antsibull.cli.redirects:main"
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
