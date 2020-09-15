@@ -29,7 +29,9 @@ def old_to_new_redirect(plugin_type, old, new):
     else:
         old_url = f'{URL_PREFIX}plugins/{plugin_type}/{old}.html'
 
-    return (f'RedirectMatch permanent "{old_url}"'
+    # Make the Redirect temporary until we're done testing it.
+    # return (f'RedirectMatch permanent "{old_url}"'
+    return (f'RedirectMatch "{old_url}"'
             f' "$1/collections/{namespace}/{collection}/{new_name}_{plugin_type}.html"')
 
 
@@ -50,7 +52,9 @@ def new_to_old_redirect(plugin_type, old, new):
     else:
         old_url = f'$1/plugins/{plugin_type}/{old}.html'
 
-    return (f'RedirectMatch permanent'
+    # Make the Redirect temporary until we're done testing it.
+    # return (f'RedirectMatch permanent'
+    return (f'RedirectMatch'
             f' "{URL_PREFIX}collections/{namespace}/{collection}/{new_name}_{plugin_type}.html"'
             f' "{old_url}"')
 
