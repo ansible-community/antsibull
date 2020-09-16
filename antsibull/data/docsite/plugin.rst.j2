@@ -165,7 +165,7 @@ Parameters
                     </div>
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
-                        added in @{value['version_added']}@ of @{ doc['version_added_collection'] | escape }@
+                        added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@
                       </div>
                     {% endif %}
                     {% if plugin_type != 'module' and value['deprecated'] %}
@@ -231,7 +231,7 @@ Parameters
                                         [@{ ini['section'] }@]<br>@{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@
                                         {% if ini['version_added'] is still_relevant %}
                                           <div style="font-style: italic; font-size: small; color: darkgreen">
-                                            added in @{ini['version_added']}@ of @{ doc['version_added_collection'] | escape }@
+                                            added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | escape }@
                                           </div>
                                         {% endif %}
                                         {% if ini['deprecated'] %}
@@ -261,7 +261,7 @@ Parameters
                                 env:@{ env['name'] }@
                                 {% if env['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
-                                    added in @{env['version_added']}@ of @{ doc['version_added_collection'] | escape }@
+                                    added in @{env['version_added']}@ of @{ env['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 {% if env['deprecated'] %}
@@ -289,7 +289,7 @@ Parameters
                                 var: @{ myvar['name'] }@
                                 {% if myvar['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
-                                    added in @{myvar['version_added']}@ of @{ doc['version_added_collection'] | escape }@
+                                    added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 {% if myvar['deprecated'] %}
@@ -424,7 +424,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     </div>
                     {% if value['version_added'] is still_relevant %}
                       <div style="font-style: italic; font-size: small; color: darkgreen">
-                        added in @{value['version_added']}@ of @{ doc['version_added_collection'] | escape }@
+                        added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@
                       </div>
                     {% endif %}
                 </td>
@@ -485,7 +485,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                       <span style="color: purple">@{ value['type'] | documented_type }@</span>
                       {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
                     </div>
-                    {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@</div>{% endif %}
+                    {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@ of @{value['version_added_collection']}@</div>{% endif %}
                 </td>
                 <td>@{ value['returned'] | html_ify }@</td>
                 <td>
