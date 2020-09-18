@@ -430,8 +430,8 @@ class ReleaseNotes:
             "\n\n"
             "        "
             " In Ansible 2.10, many plugins and modules have migrated to"
-            " Collections on `Ansible Galaxy <https://galaxy.ansible.com>`_. Your playbooks 
-            " should continue to work without any changes. We do recommend you start using the 
+            " Collections on `Ansible Galaxy <https://galaxy.ansible.com>`_. Your playbooks"
+            " should continue to work without any changes. We do recommend you start using the"
             " fully-qualified collection name in your playbooks as the explicit and"
             " authoritative indicator of which collection to use as some collections may contain"
             " the same module names."
@@ -445,7 +445,7 @@ class ReleaseNotes:
             "github.com/ansible-community/ansible-build-data/blob/main/2.10/CHANGELOG-v2.10.rst>`_"
             " to understand what updates you may need to make."
             "\n\n"
-            "Since 2.10, Asible consists of two parts:\n\n"
+            "Since 2.10, Ansible consists of two parts:\n\n"
             "* ansible-base, which includes the command line tools with a small selection"
             " of plugins and modules, and\n"
             "* a `set of collections <https://github.com/ansible-community/ansible-build-data/"
