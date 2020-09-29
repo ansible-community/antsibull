@@ -42,7 +42,7 @@ Building Ansible
 ~~~~~~~~~~~~~~~~
 
 Setup for the first alpha release
----------------------------------
+`````````````````````````````````
 ::
     # Setup steps for building for the first time:
     git clone git@github.com:ansible-community/ansible-build-data
@@ -51,6 +51,9 @@ Setup for the first alpha release
     cp ansible-build-data/2.10/ansible.in ansible-build-data/2.11/
     # Make any additions or subtractions to the set of collections in the ansible.in file
 
+
+Building the tarball
+````````````````````
 
 All alpha releases and the first beta
 -------------------------------------
@@ -64,30 +67,6 @@ All alpha releases and the first beta
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 2.11.0 --data-dir ansible-build-data/2.11 --sdist-dir built
-
-    # Record the files used to build:
-    cd ansible-build-data/2.11
-    git add ansible-2.11a1.build ansible-2.11.0a1.deps changelog.yaml CHANGELOG-v2.11.rst
-    git commit -m 'Collection dependency information for ansible 2.11.x and ansible-2.11.0'
-    git push
-    git tag 2.11.0a1
-    git push --tags
-
-    # Update the porting guide
-    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guide/
-    cd ansible
-    git checkout -b update-porting-guide
-    git add ansible/docs/docsite/rst/porting_guide/
-    git commit -a -m 'Update the porting guide for a new ansible version'
-    # git push and open a PR
-
-    # Then we can test installation with pip:
-    python -m pip install --user built/ansible-2.11.0a1.tar.gz
-
-    ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
-
-    # Upload to pypi:
-    twine upload built/ansible-2.11.0a1.tar.gz
 
 
 Beta2 up to and including rc1
@@ -107,31 +86,6 @@ Beta2 up to and including rc1
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 2.11.0b2 --feature-frozen --data-dir ansible-build-data/2.11 --sdist-dir built
 
-    # Record the files used to build:
-    cd ansible-build-data/2.11
-    git add ansible-2.11.0b2.deps changelog.yaml CHANGELOG-v2.11.rst
-    # Also git add the .build file if any manual changes were made
-    git commit -m 'Collection dependency information for ansible-2.11.0b2'
-    git push
-    git tag 2.11.0b2
-    git push --tags
-
-    # Update the porting guide
-    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guide/
-    cd ansible
-    git checkout -b update-porting-guide
-    git add ansible/docs/docsite/rst/porting_guide/
-    git commit -a -m 'Update the porting guide for a new ansible version'
-    # git push and open a PR
-
-    # Then we can test installation with pip:
-    python -m pip install --user built/ansible-2.11.0b2.tar.gz
-
-    ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
-
-    # Upload to pypi:
-    twine upload built/ansible-2.11.0b2.tar.gz
-
 
 Any subsequent rcs and final
 ----------------------------
@@ -143,7 +97,7 @@ Any subsequent rcs and final
     # vim ansible-build-data/ansible-2.11.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 2.11.0rc2 --build-data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --dest-dir built
+    antsibull-build rebuild-single 2.11.0rc2 --data-dir /srv/ansible/ansible-build-data/2.10 --build-file ansible-2.11.build --deps-file ansible-2.11.0.deps --sdist-dir built
 
 
 New patch releases (2.11.Z)
@@ -160,12 +114,17 @@ New patch releases (2.11.Z)
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 2.11.1 --data-dir ansible-build-data/2.11 --sdist-dir built
 
+
+Recording release information
+`````````````````````````````
+::
     # Record the files used to build:
+    export ANSIBLE_VERSION=2.11.0a1
     cd ansible-build-data/2.11
-    git add ansible-2.11.1.deps changelog.yaml CHANGELOG-v2.11.rst
-    git commit -m 'Collection dependency information for ansible 2.11.x and ansible-2.11.1'
+    git add ansible-2.11.build "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v2.11.rst
+    git commit -m "Collection dependency information for ansible $ANSIBLE_VERSION"
     git push
-    git tag 2.11.1
+    git tag $ANSIBLE_VERSION
     git push --tags
 
     # Update the porting guide
@@ -177,12 +136,12 @@ New patch releases (2.11.Z)
     # git push and open a PR
 
     # Then we can test installation with pip:
-    python -m pip install --user built/ansible-2.11.1.tar.gz
+    python -m pip install --user built/ansible-2.11.0a1.tar.gz
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
 
     # Upload to pypi:
-    twine upload built/ansible-2.11.1.tar.gz
+    twine upload built/ansible-2.11.0a1.tar.gz
 
 
 Announcing Ansible
