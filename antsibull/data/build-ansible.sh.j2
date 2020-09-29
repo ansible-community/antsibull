@@ -1,17 +1,20 @@
 #!/bin/sh
 
+VERSION="{{ version }}"
 MAJOR_MINOR="{{ version.major }}.{{ version.minor }}"
 
-pip install --user antsibull
+pip install --user --upgrade antsibull
 git clone git@github.com:ansible-community/ansible-build-data
 mkdir built
 BUILD_DATA_DIR="ansible-build-data/${MAJOR_MINOR}"
 if test -e "${BUILD_DATA_DIR}/ansible-${MAJOR_MINOR}.build" ; then
   BUILDFILE="ansible-${MAJOR_MINOR}.build"
+  DEPSFILE="ansible-${VERSION}.deps"
 else
   BUILDFILE="acd-${MAJOR_MINOR}.build"
+  DEPSFILE="acd-${VERSION}.deps"
 fi
-antsibull-build rebuild-single "{{ version }}" --build-data-dir "${BUILD_DATA_DIR}" --build-file "$BUILDFILE" --dest-dir built
+antsibull-build rebuild-single "${VERSION}" --data-dir "${BUILD_DATA_DIR}" --build-file "$BUILDFILE" --deps-file "$DEPSFILE" --sdist-dir built
 
 #pip install twine
-#twine upload "built/ansible-{{ version }}.tar.gz"
+#twine upload "built/ansible-${VERSION}.tar.gz"
