@@ -1,0 +1,185 @@
+name: 👷 dumb PyPI on GH pages
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ansible-base-slug:
+        default: ansible/ansible
+        description: The GitHub repo slug for pulling ansible-base from
+        required: true
+      ansible-base-ref:
+        default: devel
+        description: The GitHub repo ref for pulling ansible-base from
+        required: true
+      ansible-build-data-slug:
+        default: ansible-community/ansible-build-data
+        description: The GitHub repo slug for pulling ansible build data from
+        required: true
+      ansible-build-data-ref:
+        default: main
+        description: The GitHub repo ref for pulling ansible build data from
+        required: true
+  schedule:
+  # https://crontab.guru/#36_*/3_*_*_*
+  - cron: 36 */3 * * *  # At minute 36 past every 3rd hour.
+
+jobs:
+  build-dumb-pypi:
+    name: ansible-base and ACD 🌃
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Switch to Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Figure out the source repos
+      id: build-settings
+      run: |
+        print(
+            '::set-output name=ansible-base-slug::${{
+                github.event_name == 'workflow_dispatch' &&
+                github.event.inputs.ansible-base-slug ||
+                'ansible/ansible'
+            }}'
+        )
+        print(
+            '::set-output name=ansible-base-ref::${{
+                github.event_name == 'workflow_dispatch' &&
+                github.event.inputs.ansible-base-ref ||
+                'devel'
+            }}'
+        )
+        print(
+            '::set-output name=ansible-build-data-slug::${{
+                github.event_name == 'workflow_dispatch' &&
+                github.event.inputs.ansible-build-data-slug ||
+                'ansible-community/ansible-build-data'
+            }}'
+        )
+        print(
+            '::set-output name=ansible-build-data-ref::${{
+                github.event_name == 'workflow_dispatch' &&
+                github.event.inputs.ansible-build-data-ref ||
+                'main'
+            }}'
+        )
+      shell: python
+    - name: Check out antsibull src from Git
+      uses: actions/checkout@v2
+    - name: >-
+        Check out ${{
+          steps.build-settings.outputs.ansible-build-data-slug
+        }}@${{
+          steps.build-settings.outputs.ansible-build-data-ref
+        }} src from Git
+      uses: actions/checkout@v2
+      with:
+        path: ansible-build-data
+        ref: ${{ steps.build-settings.outputs.ansible-build-data-ref }}
+        repository: ${{ steps.build-settings.outputs.ansible-build-data-slug }}
+    - name: Make 'dist/' dir
+      run: |
+        from pathlib import Path
+        Path('dist').mkdir()
+      shell: python
+    - name: Install packaging-related dists from PyPI
+      run: >-
+        python -m
+        pip install
+        -U --user
+        pip setuptools wheel
+    - name: Install antsibull dist from PyPI
+      run: python -m pip install -U --user antsibull
+    - name: Install antsibull dist from GitHub
+      run: >-
+        python -m
+        pip install
+        -U --user
+        .
+    - name: Generate the list of compatible versions
+      # FIXME: should 2.10 / 2.10.0 be parametrized?
+      run: >-
+        ~/.local/bin/antsibull-build
+        new-ansible 2.10.0
+        --data-dir ansible-build-data/2.10
+    - name: Create a single-tarball Ansible dist
+      run: >-
+        ~/.local/bin/antsibull-build
+        single 2.10.0
+        --data-dir ansible-build-data/2.10
+        --sdist-dir dist
+    - name: >-
+        Check out ${{
+          steps.build-settings.outputs.ansible-base-slug
+        }}@${{
+          steps.build-settings.outputs.ansible-base-ref
+        }} src from Git
+      uses: actions/checkout@v2
+      with:
+        path: ansible--ansible--devel
+        ref: ${{ steps.build-settings.outputs.ansible-base-ref }}
+        repository: ${{ steps.build-settings.outputs.ansible-base-slug }}
+    - name: Install packaging-related dists from PyPI
+      run: >-
+        python -m
+        pip install
+        -U --user
+        packaging straight.plugin
+    - name: >-
+        Build ${{
+          steps.build-settings.outputs.ansible-base-slug
+        }}@${{
+          steps.build-settings.outputs.ansible-base-ref
+        }}
+      env:
+        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
+      run: |
+        make sdist_check
+        python -m setup sdist --dist-dir=../dist
+      working-directory: ansible--ansible--devel
+    - name: Make ansible version stable
+      # FIXME: use setuptools-scm to generate the actual version?
+      run: >-
+        sed -i
+        "s/^\(__version__ = '\)\([0-9]\+.[0-9]\+.[0-9]\+\)\.\(dev\|a\|b\|rc\)[0-9]\+\('\)$/\1\2\4/g"
+        lib/ansible/release.py
+      working-directory: ansible--ansible--devel
+    - name: >-
+        Build ${{
+          steps.build-settings.outputs.ansible-base-slug
+        }}@${{
+          steps.build-settings.outputs.ansible-base-ref
+        }} as stable
+      env:
+        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
+      run: |
+        make sdist_check
+        python -m setup sdist --dist-dir=../dist
+      working-directory: ansible--ansible--devel
+    - name: Install dumb-pypi dist from PyPI
+      run: python -m pip install dumb-pypi --user
+    - name: Generate a dumb PyPI website
+      run: |
+        python -m dumb_pypi.main \
+          --package-list <(ls dist) \
+          --packages-url https://raw.githubusercontent.com/ansible-community/nightly-builds/gh-pages/dist \
+          --output-dir www
+      shell: bash
+    - name: Copy dists over to the generated dumb PyPI website dir
+      run: cp -av dist www/
+    - name: >-
+        Publish the dumb PyPI website to GH Pages
+        @
+        https://ansible-community.github.io/nightly-builds
+      if: github.event_name != 'pull_request'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        force_orphan: true
+        deploy_key: ${{ secrets.NIGHTLIES_DEPLOYMENT_KEY }}
+        external_repository: ansible-community/nightly-builds
+        publish_dir: www
