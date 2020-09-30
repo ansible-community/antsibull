@@ -163,6 +163,33 @@ async def write_collection_list(collections: t.Iterable[str], template: Template
         await f.write(index_contents)
 
 
+async def write_plugin_type_index(plugin_type: str,
+                                  collection_info: CollectionInfoT,
+                                  template: Template,
+                                  dest_filename: str) -> None:
+    """
+    Write an index page for each plugin type.
+
+    :arg plugin_type: The plugin type to write the index for.
+    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
+        collection_name to short_description.
+    :arg template: A template to render the plugin index.
+    :arg dest_filename: The destination filename.
+    """
+    per_collection_data: t.Dict[str, t.Mapping[str, str]] = {
+        collection_name: plugin_maps[plugin_type]
+        for collection_name, plugin_maps in collection_info.items()
+        if plugin_type in plugin_maps
+    }
+
+    index_contents = template.render(
+        plugin_type=plugin_type,
+        per_collection_data=per_collection_data)
+
+    async with aiofiles.open(dest_filename, 'w') as f:
+        await f.write(index_contents)
+
+
 async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
@@ -214,6 +241,48 @@ async def output_collection_index(collection_info: CollectionInfoT,
 
     await write_collection_list(collection_info.keys(), collection_list_tmpl,
                                 collection_toplevel)
+
+    flog.debug('Leave')
+
+
+async def output_plugin_indexes(collection_info: CollectionInfoT,
+                                dest_dir: str) -> None:
+    """
+    Generate top-level plugin index pages for all plugins of a type in all collections.
+
+    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
+        collection_name to short_description.
+    :arg dest_dir: The directory to place the documentation in.
+    """
+    flog = mlog.fields(func='output_plugin_indexes')
+    flog.debug('Enter')
+
+    env = doc_environment(('antsibull.data', 'docsite'))
+    # Get the templates
+    plugin_list_tmpl = env.get_template('list_of_plugins.rst.j2')
+
+    collection_toplevel = os.path.join(dest_dir, 'collections')
+    flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
+        'collection_toplevel exists?')
+    # This is only safe because we made sure that the top of the directory tree we're writing to
+    # (docs/docsite/rst) is only writable by us.
+    os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
+
+    plugin_types = set()
+    for collection_name, plugin_maps in collection_info.items():
+        for plugin_type in plugin_maps:
+            plugin_types.add(plugin_type)
+
+    writers = []
+    lib_ctx = app_context.lib_ctx.get()
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+        for plugin_type in plugin_types:
+            filename = os.path.join(
+                collection_toplevel, 'index_{type}.rst'.format(type=plugin_type))
+            writers.append(await pool.spawn(
+                write_plugin_type_index(plugin_type, collection_info, plugin_list_tmpl, filename)))
+
+        await asyncio.gather(*writers)
 
     flog.debug('Leave')
 

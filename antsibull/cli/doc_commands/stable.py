@@ -27,7 +27,12 @@ from ...galaxy import CollectionDownloader
 from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner, FakeVenvRunner
-from ...write_docs import output_all_plugin_rst, output_collection_index, output_indexes
+from ...write_docs import (
+    output_all_plugin_rst,
+    output_collection_index,
+    output_indexes,
+    output_plugin_indexes,
+)
 
 if t.TYPE_CHECKING:
     import semantic_version as semver
@@ -287,6 +292,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     if collection_names is None:
         asyncio_run(output_collection_index(collection_info, dest_dir))
         flog.notice('Finished writing collection index')
+        asyncio_run(output_plugin_indexes(collection_info, dest_dir))
+        flog.notice('Finished writing plugin indexes')
 
     asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy))
     flog.notice('Finished writing indexes')
