@@ -14,7 +14,7 @@ else
   BUILDFILE="acd-${MAJOR_MINOR}.build"
   DEPSFILE="acd-${VERSION}.deps"
 fi
-antsibull-build rebuild-single "${VERSION}" --data-dir "${BUILD_DATA_DIR}" --build-file "$BUILDFILE" --deps-file "$DEPSFILE" --sdist-dir built
+antsibull-build rebuild-single "${VERSION}" --data-dir "${BUILD_DATA_DIR}" --build-file "${BUILDFILE}" --deps-file "${DEPSFILE}" --sdist-dir built
 
 #pip install twine
 #twine upload "built/ansible-${VERSION}.tar.gz"
