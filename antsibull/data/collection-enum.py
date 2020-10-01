@@ -18,6 +18,7 @@ from ansible.cli.arguments import option_helpers as opt_help
 from ansible.collections.list import list_collection_dirs
 from ansible.galaxy.collection import CollectionRequirement
 from ansible.module_utils._text import to_native
+from ansible.module_utils.common.json import AnsibleJSONEncoder
 from ansible.plugins.loader import fragment_loader
 from ansible.utils.collection_loader import AnsibleCollectionConfig
 from ansible.utils.plugin_docs import get_docstring
@@ -60,7 +61,9 @@ def load_plugin(loader, plugin_type, plugin):
         }
 
         try:
-            json.dumps(ansible_doc)
+            # If this fails, the documentation cannot be seralized as JSON
+            json.dumps(ansible_doc, cls=AnsibleJSONEncoder)
+            # Store result. This is guaranteed to be serializable
             result['ansible-doc'] = ansible_doc
         except Exception as e:
             result['error'] = (
@@ -136,10 +139,8 @@ def main(args):
         'version': ansible_release.__version__,
     }
 
-    if arguments.pretty:
-        print(json.dumps(result, indent=2))
-    else:
-        print(json.dumps(result))
+    print(json.dumps(
+        result, cls=AnsibleJSONEncoder, sort_keys=True, indent=4 if arguments.pretty else None))
 
 
 if __name__ == '__main__':
