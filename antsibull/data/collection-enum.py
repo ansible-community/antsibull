@@ -132,6 +132,9 @@ def main(args):
             'path': to_native(b_path),
             'version': collection.metadata.version if collection.metadata.version != '*' else None,
         }
+    result['collections']['ansible.builtin'] = {
+        'version': ansible_release.__version__,
+    }
 
     if arguments.pretty:
         print(json.dumps(result, indent=2))
