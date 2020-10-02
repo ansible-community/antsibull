@@ -5,9 +5,7 @@
 
 import asyncio
 import json
-import os
 import sys
-import tempfile
 import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
@@ -18,54 +16,15 @@ from .. import app_context
 from ..compat import best_get_loop, create_task
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..logging import log
-from ..utils.get_pkg_data import get_antsibull_data
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
+from . import _get_environment, ParsingError
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
 
 
 mlog = log.fields(mod=__name__)
-
-#: Clear Ansible environment variables that set paths where plugins could be found.
-ANSIBLE_PATH_ENVIRON: t.Dict[str, str] = os.environ.copy()
-ANSIBLE_PATH_ENVIRON.update({'ANSIBLE_COLLECTIONS_PATH': '/dev/null',
-                             'ANSIBLE_ACTION_PLUGINS': '/dev/null',
-                             'ANSIBLE_CACHE_PLUGINS': '/dev/null',
-                             'ANSIBLE_CALLBACK_PLUGINS': '/dev/null',
-                             'ANSIBLE_CLICONF_PLUGINS': '/dev/null',
-                             'ANSIBLE_CONNECTION_PLUGINS': '/dev/null',
-                             'ANSIBLE_FILTER_PLUGINS': '/dev/null',
-                             'ANSIBLE_HTTPAPI_PLUGINS': '/dev/null',
-                             'ANSIBLE_INVENTORY_PLUGINS': '/dev/null',
-                             'ANSIBLE_LOOKUP_PLUGINS': '/dev/null',
-                             'ANSIBLE_LIBRARY': '/dev/null',
-                             'ANSIBLE_MODULE_UTILS': '/dev/null',
-                             'ANSIBLE_NETCONF_PLUGINS': '/dev/null',
-                             'ANSIBLE_ROLES_PATH': '/dev/null',
-                             'ANSIBLE_STRATEGY_PLUGINS': '/dev/null',
-                             'ANSIBLE_TERMINAL_PLUGINS': '/dev/null',
-                             'ANSIBLE_TEST_PLUGINS': '/dev/null',
-                             'ANSIBLE_VARS_PLUGINS': '/dev/null',
-                             'ANSIBLE_DOC_FRAGMENT_PLUGINS': '/dev/null',
-                             })
-try:
-    del ANSIBLE_PATH_ENVIRON['PYTHONPATH']
-except KeyError:
-    # We just wanted to make sure there was no PYTHONPATH set...
-    # all python libs will come from the venv
-    pass
-try:
-    del ANSIBLE_PATH_ENVIRON['ANSIBLE_COLLECTIONS_PATHS']
-except KeyError:
-    # ANSIBLE_COLLECTIONS_PATHS is the deprecated name replaced by
-    # ANSIBLE_COLLECTIONS_PATH
-    pass
-
-
-class ParsingError(Exception):
-    """Error raised while parsing plugins for documentation."""
 
 
 def _process_plugin_results(plugin_type: str,
@@ -199,23 +158,6 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
-def _get_environment(collection_dir: t.Optional[str]) -> t.Dict[str, str]:
-    env = ANSIBLE_PATH_ENVIRON.copy()
-    if collection_dir is not None:
-        env['ANSIBLE_COLLECTIONS_PATH'] = collection_dir
-    else:
-        # Copy ANSIBLE_COLLECTIONS_PATH and ANSIBLE_COLLECTIONS_PATHS from the
-        # original environment.
-        for env_var in ('ANSIBLE_COLLECTIONS_PATH', 'ANSIBLE_COLLECTIONS_PATHS'):
-            try:
-                del env[env_var]
-            except KeyError:
-                pass
-            if env_var in os.environ:
-                env[env_var] = os.environ[env_var]
-    return env
-
-
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
@@ -236,6 +178,9 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                 {information from ansible-doc --json.  See the ansible-doc documentation for more
                  info.}
     """
+    flog = mlog.fields(func='get_ansible_plugin_info')
+    flog.debug('Enter')
+
     env = _get_environment(collection_dir)
 
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
@@ -300,63 +245,6 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         # We wanted to print out all of the exceptions raised by parsing the output but once we've
         # done so, we want to then fail by raising one of the exceptions.
         raise ParsingError('Parsing of plugins failed')
-
-    return plugin_map
-
-
-async def get_ansible_plugin_info_2(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
-                                    collection_dir: t.Optional[str],
-                                    collection_names: t.Optional[t.List[str]] = None
-                                    ) -> t.Dict[str, t.Dict[str, t.Any]]:
-    """
-    Retrieve information about all of the Ansible Plugins.
-
-    :arg venv: A VenvRunner into which Ansible has been installed.
-    :arg collection_dir: Directory in which the collections have been installed.
-                         If ``None``, the collections are assumed to be in the current
-                         search path for Ansible.
-    :arg collection_names: Optional list of collections. If specified, will only collect
-                           information for plugins in these collections.
-    :returns: A nested directory structure that looks like::
-
-        plugin_type:
-            plugin_name:  # Includes namespace and collection.
-                {information from ansible-doc --json.  See the ansible-doc documentation for more
-                 info.}
-    """
-    flog = mlog.fields(func='get_ansible_plugin_info_2')
-    flog.debug('Enter')
-
-    env = _get_environment(collection_dir)
-
-    venv_python = venv.get_command('python')
-
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        tmp_file.write(get_antsibull_data('collection-enum.py'))
-        collection_enum_args = [tmp_file.name]
-        if collection_names and len(collection_names) == 1:
-            # Script allows to filter by one collection
-            collection_enum_args.append(collection_names[0])
-        collection_enum_cmd = venv_python(*collection_enum_args, _env=env)
-        raw_result = collection_enum_cmd.stdout.decode('utf-8', errors='surrogateescape')
-        result = json.loads(_filter_non_json_lines(raw_result)[0])
-        del raw_result
-        del collection_enum_cmd
-
-    plugin_map = {}
-    for plugin_type, plugins in result['plugins'].items():
-        plugin_map[plugin_type] = {}
-        for plugin_name, plugin_data in plugins.items():
-            if '.' not in plugin_name:
-                plugin_name = 'ansible.builtin.{0}'.format(plugin_name)
-            if 'ansible-doc' in plugin_data:
-                plugin_map[plugin_type][plugin_name] = plugin_data['ansible-doc']
-            else:
-                plugin_log = flog.fields(plugin_type=plugin_type, plugin_name=plugin_name)
-                plugin_log.fields(error=plugin_data['error']).error(
-                    'Error while extracting documentation. Will not document this plugin.')
-
-    # TODO: use result['collections']
 
     flog.debug('Leave')
     return plugin_map

@@ -21,7 +21,7 @@ from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
-from ...docs_parsing.ansible_doc import get_ansible_plugin_info, get_ansible_plugin_info_2
+from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
 from ...galaxy import CollectionDownloader
 from ...logging import log
@@ -238,12 +238,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     """
 
     # Get the info from the plugins
-    if False:
-        plugin_info = asyncio_run(get_ansible_plugin_info(
-            venv, collection_dir, collection_names=collection_names))
-    else:
-        plugin_info = asyncio_run(get_ansible_plugin_info_2(
-            venv, collection_dir, collection_names=collection_names))
+    plugin_info = asyncio_run(get_ansible_plugin_info(
+        venv, collection_dir, collection_names=collection_names))
     flog.notice('Finished parsing info from plugins')
     # flog.fields(plugin_info=plugin_info).debug('Plugin data')
 

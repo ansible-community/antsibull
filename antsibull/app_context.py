@@ -73,7 +73,8 @@ if sys.version_info < (3, 7):
 _FIELDS_IN_APP_CTX = frozenset(('galaxy_url', 'logging_cfg', 'pypi_url'))
 
 #: Field names in the args and config which whose value will be added to the lib_ctx
-_FIELDS_IN_LIB_CTX = frozenset(('chunksize', 'process_max', 'thread_max', 'max_retries'))
+_FIELDS_IN_LIB_CTX = frozenset(
+    ('chunksize', 'process_max', 'thread_max', 'max_retries', 'doc_parsing_backend'))
 
 #: lib_ctx should be restricted to things which do not belong in the API but an application or
 #: user might want to tweak.  Global, internal, incidental values are good to store here.  Things
@@ -242,6 +243,7 @@ class LibContext(BaseModel):
     process_max: t.Optional[int] = None
     thread_max: int = 64
     max_retries: int = 10
+    doc_parsing_backend: str = 'ansible-doc'
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
