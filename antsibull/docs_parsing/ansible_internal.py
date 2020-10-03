@@ -50,9 +50,9 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     with tempfile.NamedTemporaryFile() as tmp_file:
         tmp_file.write(get_antsibull_data('collection-enum.py'))
         collection_enum_args = [tmp_file.name]
-        if collection_names and len(collection_names) == 1:
-            # Script allows to filter by one collection
-            collection_enum_args.append(collection_names[0])
+        if collection_names is not None:
+            # Script allows to filter by collections
+            collection_enum_args.extend(collection_names)
         collection_enum_cmd = venv_python(*collection_enum_args, _env=env)
         raw_result = collection_enum_cmd.stdout.decode('utf-8', errors='surrogateescape')
         result = json.loads(_filter_non_json_lines(raw_result)[0])
