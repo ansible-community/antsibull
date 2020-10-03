@@ -175,6 +175,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     stable_parser.add_argument('--deps-file', required=True,
                                help='File which contains the list of collections and'
                                ' versions which were included in this version of Ansible')
+    stable_parser.add_argument('--limit', nargs='*', action='extend',
+                               help='Limit processing to these collections.'
+                               ' Must be specified once per collection')
 
     current_parser = subparsers.add_parser('current',
                                            parents=[docs_parser],
@@ -185,6 +188,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                 help='Path to the directory containing ansible_collections. If not'
                                 ' specified, all collections in the currently configured ansible'
                                 ' search paths will be used')
+    current_parser.add_argument('--limit', nargs='*', action='extend',
+                                help='Limit processing to these collections.'
+                                ' Must be specified once per collection')
 
     collection_parser = subparsers.add_parser('collection',
                                               parents=[docs_parser],

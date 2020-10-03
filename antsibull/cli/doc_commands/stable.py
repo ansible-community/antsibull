@@ -247,6 +247,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       dest_dir: str,
                                       flog,
                                       collection_names: t.Optional[t.List[str]] = None,
+                                      create_index: t.Optional[bool] = None,
                                       squash_hierarchy: bool = False) -> None:
     """
     Create documentation for a set of installed collections.
@@ -259,10 +260,14 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     :arg flog: A logger instance.
     :arg collection_names: Optional list of collection names. If specified, only documentation
                            for these collections will be collected and generated.
+    :arg create_index: Whether to create a collection index. By default, it is created if
+                       collection_names is not specified.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
     """
+    if create_index is None:
+        create_index = (collection_names is None)
 
     # Get the info from the plugins
     plugin_info = asyncio_run(get_ansible_plugin_info(
@@ -312,7 +317,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.debug('Finished getting collection data')
 
     # Only build top-level index if no collection names were specified
-    if collection_names is None:
+    if create_index:
         asyncio_run(output_collection_index(collection_info, dest_dir))
         flog.notice('Finished writing collection index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
@@ -387,6 +392,8 @@ def generate_docs() -> int:
         venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-base')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
+        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog,
+                                          collection_names=app_ctx.extra['limit'] or None,
+                                          create_index=True)
 
     return 0

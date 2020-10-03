@@ -30,6 +30,7 @@ def generate_docs() -> int:
     venv = FakeVenvRunner()
 
     generate_docs_for_all_collections(
-        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'], flog)
+        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'], flog,
+        collection_names=app_ctx.extra['limit'] or None, create_index=True)
 
     return 0
