@@ -84,3 +84,13 @@ def rst_xline(width, char="="):
     ''' return a restructured text line of a given length '''
 
     return char * width
+
+
+def add_multiline_indent(data, indent):
+    ''' indent all lines after the first by the given amount of spaces '''
+    if data:
+        indent = ' ' * indent
+        lines = str(data).splitlines(True)
+        lines = [lines[0]] + [indent + line for line in lines[1:]]
+        data = ''.join(lines)
+    return data

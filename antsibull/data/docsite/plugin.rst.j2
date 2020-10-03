@@ -94,7 +94,7 @@ Synopsis
 .. Description
 
 {%   for desc in doc['description'] -%}
-- @{ desc | rst_ify }@
+- @{ desc | rst_ify | add_multiline_indent(2) }@
 {%   endfor %}
 
 .. Aliases
@@ -115,7 +115,7 @@ The below requirements are needed on the local controller node that executes thi
 {%   endif %}
 
 {%   for req in doc['requirements'] %}
-- @{ req | rst_ify }@
+- @{ req | rst_ify | add_multiline_indent(2) }@
 {%   endfor %}
 
 {% endif %}
@@ -340,7 +340,7 @@ Notes
 
 .. note::
 {%   for note in doc['notes'] %}
-   - @{ note | rst_ify }@
+   - @{ note | rst_ify | add_multiline_indent(5) }@
 {%   endfor %}
 {% endif %}
 
