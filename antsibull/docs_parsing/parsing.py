@@ -9,6 +9,7 @@ from .. import app_context
 from ..logging import log
 from .ansible_doc import get_ansible_plugin_info as ansible_doc_get_ansible_plugin_info
 from .ansible_internal import get_ansible_plugin_info as ansible_internal_get_ansible_plugin_info
+from . import AnsibleCollectionDocs
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -20,7 +21,7 @@ mlog = log.fields(mod=__name__)
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
-                                  ) -> t.Dict[str, t.Dict[str, t.Any]]:
+                                  ) -> AnsibleCollectionDocs:
     """
     Retrieve information about all of the Ansible Plugins.
 
@@ -30,12 +31,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                          search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
-    :returns: A nested directory structure that looks like::
-
-        plugin_type:
-            plugin_name:  # Includes namespace and collection.
-                {information from ansible-doc --json.  See the ansible-doc documentation for more
-                 info.}
+    :returns: An AnsibleCollectionDocs object.
     """
     lib_ctx = app_context.lib_ctx.get()
 

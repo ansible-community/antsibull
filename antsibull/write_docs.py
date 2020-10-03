@@ -33,7 +33,8 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
+async def write_rst(collection_name: str, collection_version: t.Optional[str],
+                    plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                     plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
                     path_override: t.Optional[str] = None,
@@ -42,6 +43,7 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
     Write the rst page for one plugin.
 
     :arg collection_name: Dotted colection name.
+    :arg collection_version: Collection version (optional).
     :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg plugin_record: The record for the plugin.  doc, examples, and return are the
@@ -72,6 +74,7 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
         plugin_contents = error_tmpl.render(
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
+            collection_version=collection_version,
             nonfatal_errors=nonfatal_errors)
     else:
         if nonfatal_errors:
@@ -82,6 +85,7 @@ async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: s
                                 plugin_name=plugin_name)
         plugin_contents = plugin_tmpl.render(
             collection=collection_name,
+            collection_version=collection_version,
             plugin_type=plugin_type,
             plugin_name=plugin_name,
             doc=plugin_record['doc'],
@@ -112,7 +116,8 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
                                 plugin_info: t.Dict[str, t.Any],
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
-                                squash_hierarchy: bool = False) -> None:
+                                squash_hierarchy: bool = False,
+                                collection_versions: t.Optional[t.Dict[str, str]] = None) -> None:
     """
     Output rst files for each plugin.
 
@@ -125,12 +130,16 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
+    :arg collection_versions: Optional dictionary mapping collection names to collection versions
     """
     # Setup the jinja environment
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
     plugin_tmpl = env.get_template('plugin.rst.j2')
     error_tmpl = env.get_template('plugin-error.rst.j2')
+
+    if collection_versions is None:
+        collection_versions = {}
 
     writers = []
     lib_ctx = app_context.lib_ctx.get()
@@ -140,7 +149,9 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
                 for plugin_short_name, dummy_ in plugins.items():
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
-                        write_rst(collection_name, plugin_short_name, plugin_type,
+                        write_rst(collection_name,
+                                  collection_versions.get(collection_name),
+                                  plugin_short_name, plugin_type,
                                   plugin_info[plugin_type].get(plugin_name),
                                   nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
                                   error_tmpl, dest_dir, squash_hierarchy=squash_hierarchy)))
@@ -191,7 +202,8 @@ async def write_plugin_type_index(plugin_type: str,
 async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
-                             dest_dir: str) -> None:
+                             dest_dir: str,
+                             collection_version: t.Optional[str]) -> None:
     """
     Write an index page for each collection.
 
@@ -200,10 +212,12 @@ async def write_plugin_lists(collection_name: str,
     :arg plugin_maps: Mapping of plugin_type to Mapping of plugin_name to short_description.
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
+    :arg collection_version: The collection's version
     """
     index_contents = template.render(
         collection_name=collection_name,
-        plugin_maps=plugin_maps)
+        plugin_maps=plugin_maps,
+        collection_version=collection_version)
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
     # (docs/docsite/rst) is only writable by us.
@@ -283,7 +297,8 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
 
 async def output_indexes(collection_info: CollectionInfoT,
                          dest_dir: str,
-                         squash_hierarchy: bool = False) -> None:
+                         squash_hierarchy: bool = False,
+                         collection_versions: t.Optional[t.Dict[str, str]] = None) -> None:
     """
     Generate collection-level index pages for the collections.
 
@@ -293,9 +308,13 @@ async def output_indexes(collection_info: CollectionInfoT,
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
+    :arg collection_versions: Optional dictionary mapping collection names to collection versions
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
+
+    if collection_versions is None:
+        collection_versions = {}
 
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
@@ -322,7 +341,7 @@ async def output_indexes(collection_info: CollectionInfoT,
                 collection_dir = collection_toplevel
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
-                                   collection_dir)))
+                                   collection_dir, collection_versions.get(collection_name))))
 
         await asyncio.gather(*writers)
 

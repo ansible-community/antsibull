@@ -103,7 +103,7 @@ def generate_docs() -> int:
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     asyncio_run(write_rst(
-        '.'.join([namespace, collection]), plugin, plugin_type,
+        '.'.join([namespace, collection]), None, plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path))
     flog.debug('Finished writing plugin docs')

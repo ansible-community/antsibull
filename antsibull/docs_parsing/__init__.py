@@ -62,3 +62,21 @@ def _get_environment(collection_dir: t.Optional[str]) -> t.Dict[str, str]:
             if env_var in os.environ:
                 env[env_var] = os.environ[env_var]
     return env
+
+
+class AnsibleCollectionDocs:
+    # A nested directory structure that looks like:
+    #    plugin_type:
+    #        plugin_name:  # Includes namespace and collection.
+    #            {information from ansible-doc --json.  See the ansible-doc documentation for more
+    #             info.}
+    plugins: t.Dict[str, t.Dict[str, t.Any]]
+
+    # Maps collection name to collection version
+    collection_versions: t.Dict[str, str]
+
+    def __init__(self,
+                 plugins: t.Dict[str, t.Dict[str, t.Any]],
+                 collection_versions: t.Dict[str, str]):
+        self.plugins = plugins
+        self.collection_versions = collection_versions

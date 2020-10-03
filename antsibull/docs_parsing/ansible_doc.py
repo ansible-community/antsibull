@@ -18,7 +18,7 @@ from ..constants import DOCUMENTABLE_PLUGINS
 from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
-from . import _get_environment, ParsingError
+from . import _get_environment, ParsingError, AnsibleCollectionDocs
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -158,10 +158,41 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
+def get_collection_versions(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
+                            collection_dir: t.Optional[str],
+                            collection_names: t.Optional[t.List[str]],
+                            env: t.Dict[str, str],
+                            ) -> t.Dict[str, str]:
+    collection_versions = {}
+
+    # Obtain ansible.builtin version
+    if collection_names is None or 'ansible.builtin' in collection_names:
+        venv_ansible = venv.get_command('ansible')
+        ansible_version_cmd = venv_ansible('--version', _env=env)
+        raw_result = ansible_version_cmd.stdout.decode('utf-8', errors='surrogateescape')
+        for line in raw_result.splitlines():
+            if line.startswith('ansible '):
+                collection_versions['ansible.builtin'] = line[len('ansible '):]
+
+    # Obtain collection versions
+    venv_ansible_galaxy = venv.get_command('ansible-galaxy')
+    ansible_collection_list_cmd = venv_ansible_galaxy('collection', 'list', _env=env)
+    raw_result = ansible_collection_list_cmd.stdout.decode('utf-8', errors='surrogateescape')
+    for line in raw_result.splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            collection_name = parts[0]
+            version = parts[1]
+            if '.' in collection_name:
+                collection_versions[collection_name] = version
+
+    return collection_versions
+
+
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
-                                  ) -> t.Dict[str, t.Dict[str, t.Any]]:
+                                  ) -> AnsibleCollectionDocs:
     """
     Retrieve information about all of the Ansible Plugins.
 
@@ -171,12 +202,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                          search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
-    :returns: A nested directory structure that looks like::
-
-        plugin_type:
-            plugin_name:  # Includes namespace and collection.
-                {information from ansible-doc --json.  See the ansible-doc documentation for more
-                 info.}
+    :returns: An AnsibleCollectionDocs object.
     """
     flog = mlog.fields(func='get_ansible_plugin_info')
     flog.debug('Enter')
@@ -246,5 +272,8 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         # done so, we want to then fail by raising one of the exceptions.
         raise ParsingError('Parsing of plugins failed')
 
+    flog.debug('Retrieving collection versions')
+    collection_versions = get_collection_versions(venv, collection_dir, collection_names, env)
+
     flog.debug('Leave')
-    return plugin_map
+    return AnsibleCollectionDocs(plugin_map, collection_versions)
