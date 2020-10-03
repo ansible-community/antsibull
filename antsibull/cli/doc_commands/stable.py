@@ -268,24 +268,26 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     """
 
     # Get the info from the plugins
-    plugin_info = asyncio_run(get_ansible_plugin_info(
+    collection_docs = asyncio_run(get_ansible_plugin_info(
         venv, collection_dir, collection_names=collection_names))
-    flog.notice('Finished parsing info from plugins')
-    # flog.fields(plugin_info=plugin_info).debug('Plugin data')
+    flog.notice('Finished parsing info from plugins and collections')
+    # flog.fields(plugin_info=collection_docs.plugins).debug('Plugin data')
+    # flog.fields(
+    #     collection_versions=collection_docs.collection_versions).debug('Collection versions')
 
     """
     # Turn these into some sort of decorator that will choose to dump or load the values
     # if a command line arg is specified.
     with open('dump_raw_plugin_info.json', 'w') as f:
         import json
-        json.dump(plugin_info, f)
-    flog.debug('Finished dumping raw plugin_info')
+        json.dump(collection_docs.plugins, f)
+    flog.debug('Finished dumping raw collection_docs.plugins')
     with open('dump_formatted_plugin_info.json', 'r') as f:
         import json
-        plugin_info = json.load(f)
+        collection_docs.plugins = json.load(f)
     """
 
-    plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
+    plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(collection_docs.plugins))
     flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
     augment_docs(plugin_info)
     flog.notice('Finished calculating new data')
@@ -321,12 +323,14 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
 
-    asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy))
+    asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy,
+                               collection_versions=collection_docs.collection_versions))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
                                       nonfatal_errors, dest_dir,
-                                      squash_hierarchy=squash_hierarchy))
+                                      squash_hierarchy=squash_hierarchy,
+                                      collection_versions=collection_docs.collection_versions))
     flog.debug('Finished writing plugin docs')
 
 

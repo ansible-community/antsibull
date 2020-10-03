@@ -52,7 +52,7 @@
     the same module name.
 {% else %}
 .. note::
-    This plugin is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_.
+    This plugin is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
 
     To install it use: :code:`ansible-galaxy collection install @{collection}@`.
 
