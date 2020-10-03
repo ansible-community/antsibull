@@ -12,8 +12,13 @@ These are the plugins in the @{collection_name}@ collection
 
 {% for category, plugins in plugin_maps.items() | sort %}
 
+{% if category == 'module' %}
+Modules
+-------
+{% else %}
 @{ category | capitalize }@ Plugins
 @{ '-' * ((category | length) + 8) }@
+{% endif %}
 
 {% for name, desc in plugins.items() | sort %}
 * :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | rst_ify | indent(width=2) }@
