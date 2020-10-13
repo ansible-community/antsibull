@@ -76,12 +76,6 @@ Beta2 up to and including rc1
     rm -rf built
     mkdir built
 
-    # We do not run antsibull-build single because the compatible collection version information
-    # is now set until final.
-    # If ansible-base needs a version update, change it in the .build file.
-    # If any collections have been granted an update exception, change the range manually in the
-    # .build file.
-
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 2.11.0b2 --feature-frozen --data-dir ansible-build-data/2.11 --sdist-dir built
@@ -93,11 +87,16 @@ Any subsequent rcs and final
     # Copy the previous rc's .deps file to the new rc version
     cp ansible-build-data/ansible-2.11.0rc1.deps ansible-build-data/ansible-2.11.0rc2.deps
 
-    # Modify it if needed to manually update versions
+    # We do not run antsibull-build single because the compatible collection version information
+    # is now set until final.
+    # If ansible-base needs a version update, change it in the .build and .deps file.
+    # If any collections have been granted an update exception, change the range manually in the
+    # .build and .deps file.
+    # vim ansible-build-data/ansible-2.11.build
     # vim ansible-build-data/ansible-2.11.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 2.11.0rc2 --data-dir /srv/ansible/ansible-build-data/2.10 --build-file ansible-2.11.build --deps-file ansible-2.11.0.deps --sdist-dir built
+    antsibull-build rebuild-single 2.11.0rc2 --data-dir /srv/ansible/ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0.deps --sdist-dir built
 
 
 New patch releases (2.11.Z)
@@ -107,12 +106,20 @@ New patch releases (2.11.Z)
     rm -rf built
     mkdir built
 
-    # We do not run antsibull-build single because the compatible collection version information
-    # is now set until final.
-
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 2.11.1 --data-dir ansible-build-data/2.11 --sdist-dir built
+
+    # Until we get separate versions for ansible-base working correctly:
+    # https://github.com/ansible-community/antsibull/issues/187
+    # We'll need to update the ansible-base version manually and then rebuild the release. Follow
+    # these steps after running antsibull-build single above:
+    # vim ansible-build-data/2.11/ansible-2.11.1.deps
+    # Change the ansible-base version information in here to the latest compatible version on pypi
+
+    rm -rf built
+    mkdir built
+    antsibull-build rebuild-single 2.11.1 --data-dir /srv/ansible/ansible-build-data/2.11 --build-file ansible-  2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built
 
 
 Recording release information
@@ -126,22 +133,40 @@ Recording release information
     git push
     git tag $ANSIBLE_VERSION
     git push --tags
+    cd ../..
 
     # Update the porting guide
-    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guide/
+    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guides/
     cd ansible
     git checkout -b update-porting-guide
-    git add ansible/docs/docsite/rst/porting_guide/
+    git add docs/docsite/rst/porting_guides/
     git commit -a -m 'Update the porting guide for a new ansible version'
     # git push and open a PR
+    cd ..
 
     # Then we can test installation with pip:
     python -m pip install --user built/ansible-2.11.0a1.tar.gz
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
 
-    # Upload to pypi:
-    twine upload built/ansible-2.11.0a1.tar.gz
+
+Final Publishing
+````````````````
+
+We want to sync docs and releases.  So the first thing to do is to alert the docs team in
+#ansible-docs that we're making a release (they should know ahead of time if they're watching the
+schedule too).
+
+* Merge the porting guide PR.
+* Open a backport of the porting guide.  Merge that.
+* Build Ansible Docs to testing.docs.ansible.com
+* For now: Also Build Docsite to testing.docs.ansible.com (Works around a bug in the
+  redirect deployment)
+* Does it look right, redirects work, etc?
+* Build the ansible docs and docsite to the production website
+* Upload the tarball to pypi::
+
+    twine upload built/ansible-2.11.0.tar.gz
 
 
 Announcing Ansible
