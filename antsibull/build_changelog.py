@@ -197,7 +197,12 @@ def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
     for name, prefix, _, release_entry in data:
         if release_entry:
             for module in release_entry.modules:
-                namespace = module['namespace'].split('.', 1) if module['namespace'] else []
+                namespace = module.get('namespace') or ''
+                if namespace.startswith('.ansible.collections.ansible_collections.'):
+                    # Work around old antsibull-changelog versions which suffer from
+                    # https://github.com/ansible-community/antsibull-changelog/issues/18
+                    namespace = ''
+                namespace = namespace.strip('.').split('.', 1) if namespace else []
                 modules.append((
                     ['New Modules', name] + [ns.replace('_', ' ').title() for ns in namespace],
                     prefix + module['name'],
