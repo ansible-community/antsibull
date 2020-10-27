@@ -19,7 +19,7 @@ from ansible.collections.list import list_collection_dirs
 from ansible.galaxy.collection import CollectionRequirement
 from ansible.module_utils._text import to_native
 from ansible.module_utils.common.json import AnsibleJSONEncoder
-from ansible.plugins.loader import fragment_loader
+from ansible.plugins.loader import action_loader, fragment_loader
 from ansible.utils.collection_loader import AnsibleCollectionConfig
 from ansible.utils.plugin_docs import get_docstring
 
@@ -52,6 +52,13 @@ def load_plugin(loader, plugin_type, plugin):
 
         documentation['filename'] = filename
         documentation['collection'] = collection_name
+
+        if plugin_type == 'module':
+            # is there corresponding action plugin?
+            if plugin in action_loader:
+                documentation['has_action'] = True
+            else:
+                documentation['has_action'] = False
 
         ansible_doc = {
             'doc': documentation,
