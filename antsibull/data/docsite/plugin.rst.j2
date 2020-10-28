@@ -97,6 +97,11 @@ Synopsis
 - @{ desc | rst_ify }@
 {%   endfor %}
 
+{% if doc['has_action'] %}
+.. note::
+    This module has a corresponding :ref:`action plugin <action_plugins>`.
+{% endif %}
+
 .. Aliases
 
 {% if doc['aliases'] -%}
