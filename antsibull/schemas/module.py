@@ -32,6 +32,7 @@ class ModuleOptionsSchema(OptionsSchema):
 
 class OuterModuleDocSchema(DocSchema):
     options: t.Dict[str, ModuleOptionsSchema] = {}
+    has_action: bool = False
 
 
 # Ignore Uninitialized attribute error as BaseModel works some magic to initialize the
