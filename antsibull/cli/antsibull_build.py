@@ -329,8 +329,4 @@ def main() -> int:
         :3: version in an input file does not match with the version specified on the command line
         :4: Needs to be run on a newer version of Python
     """
-    if sys.version_info < (3, 8):
-        print('Needs Python 3.8 or later')
-        return 4
-
     return run(sys.argv)
