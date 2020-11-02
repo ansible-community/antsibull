@@ -259,11 +259,11 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     build_parser.add_argument('--collection-dir', default='.',
                               help='Directory to write collection to')
 
-    changelog_parser = subparsers.add_parser('changelog',  # noqa: F841
-                                             parents=[build_write_data_parser, cache_parser],
-                                             description='Build the Ansible changelog')
+    subparsers.add_parser('changelog',
+                          parents=[build_write_data_parser, cache_parser],
+                          description='Build the Ansible changelog')
 
-    # Backwards compat.
+    # Backwards compat
     subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
     subparsers.add_parser('build-single', add_help=False, parents=[build_single_parser])
     subparsers.add_parser('build-multiple', add_help=False, parents=[build_multiple_parser])
