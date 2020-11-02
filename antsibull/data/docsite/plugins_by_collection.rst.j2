@@ -16,7 +16,7 @@ These are the plugins in the @{collection_name}@ collection
 @{ '-' * ((category | length) + 8) }@
 
 {% for name, desc in plugins.items() | sort %}
-* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc }@
+* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | indent(width=2) }@
 {% endfor %}
 {% endfor %}
 
