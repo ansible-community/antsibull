@@ -8,7 +8,7 @@ import os.path
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 
 from .filters import (
-    do_max, documented_type, html_ify, rst_ify, rst_fmt, rst_xline, add_multiline_indent,
+    do_max, documented_type, html_ify, rst_ify, rst_fmt, rst_xline,
 )
 from .tests import still_relevant, test_list
 
@@ -65,7 +65,6 @@ def doc_environment(template_location):
     env.filters['html_ify'] = html_ify
     env.filters['fmt'] = rst_fmt
     env.filters['xline'] = rst_xline
-    env.filters['add_multiline_indent'] = add_multiline_indent
     env.filters['documented_type'] = documented_type
     env.tests['list'] = test_list
     env.tests['still_relevant'] = still_relevant
