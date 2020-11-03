@@ -28,6 +28,10 @@ PluginErrorsT = t.Mapping[str, t.Mapping[str, t.Sequence[str]]]
 #: The mapping is collection_name: plugin_type: plugin_name: plugin_short_description
 CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
+#: Plugins grouped first by plugin type, then by collection
+#: The mapping is plugin_type: collection_name: plugin_name: plugin_short_description
+PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
+
 
 async def write_rst(collection_name: str, plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
@@ -164,27 +168,21 @@ async def write_collection_list(collections: t.Iterable[str], template: Template
 
 
 async def write_plugin_type_index(plugin_type: str,
-                                  collection_info: CollectionInfoT,
+                                  per_collection_plugins: t.Mapping[str, t.Mapping[str, str]],
                                   template: Template,
                                   dest_filename: str) -> None:
     """
     Write an index page for each plugin type.
 
     :arg plugin_type: The plugin type to write the index for.
-    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
-        collection_name to short_description.
+    :arg per_collection_plugins: Mapping of collection_name to Mapping of plugin_name to
+        short_description.
     :arg template: A template to render the plugin index.
     :arg dest_filename: The destination filename.
     """
-    per_collection_data: t.Dict[str, t.Mapping[str, str]] = {
-        collection_name: plugin_maps[plugin_type]
-        for collection_name, plugin_maps in collection_info.items()
-        if plugin_type in plugin_maps
-    }
-
     index_contents = template.render(
         plugin_type=plugin_type,
-        per_collection_data=per_collection_data)
+        per_collection_plugins=per_collection_plugins)
 
     async with aiofiles.open(dest_filename, 'w') as f:
         await f.write(index_contents)
@@ -245,13 +243,13 @@ async def output_collection_index(collection_info: CollectionInfoT,
     flog.debug('Leave')
 
 
-async def output_plugin_indexes(collection_info: CollectionInfoT,
+async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
                                 dest_dir: str) -> None:
     """
     Generate top-level plugin index pages for all plugins of a type in all collections.
 
-    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
-        collection_name to short_description.
+    :arg plugin_info: Mapping of plugin_type to Mapping of collection_name to Mapping of
+        plugin_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     """
     flog = mlog.fields(func='output_plugin_indexes')
@@ -268,19 +266,15 @@ async def output_plugin_indexes(collection_info: CollectionInfoT,
     # (docs/docsite/rst) is only writable by us.
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
-    plugin_types = set()
-    for collection_name, plugin_maps in collection_info.items():
-        for plugin_type in plugin_maps:
-            plugin_types.add(plugin_type)
-
     writers = []
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        for plugin_type in plugin_types:
+        for plugin_type, per_collection_data in plugin_info.items():
             filename = os.path.join(
                 collection_toplevel, 'index_{type}.rst'.format(type=plugin_type))
             writers.append(await pool.spawn(
-                write_plugin_type_index(plugin_type, collection_info, plugin_list_tmpl, filename)))
+                write_plugin_type_index(
+                    plugin_type, per_collection_data, plugin_list_tmpl, filename)))
 
         await asyncio.gather(*writers)
 

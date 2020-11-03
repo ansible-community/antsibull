@@ -187,35 +187,57 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
     return new_plugin_info, nonfatal_errors
 
 
-def get_collection_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
-                            nonfatal_errors: PluginErrorsRT
-                            ) -> t.DefaultDict[str, t.DefaultDict[str, t.Dict[str, str]]]:
+def get_plugin_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
+                        nonfatal_errors: PluginErrorsRT
+                        ) -> t.DefaultDict[str, t.DefaultDict[str, t.Dict[str, str]]]:
     """
-    Return the plugins which are in each collection.
+    Return the collections with their plugins for every plugin type.
 
     :arg plugin_info: Mapping of plugin type to a mapping of plugin name to plugin record.
         The plugin_type, plugin_name, and short_description from plugin_records are used.
     :arg nonfatal_errors: mapping of plugin type to plugin name to list of error messages.
         The plugin_type and plugin_name are used.
+    :returns: A Mapping of plugin type to a mapping of collection name to a mapping of plugin names
+        to short_descriptions.
+    plugin_type:
+        collection:
+            - plugin_short_name: short_description
+    """
+    plugin_contents = defaultdict(lambda: defaultdict(dict))
+    # Some plugins won't have an entry in the plugin_info because documentation failed to parse.
+    # Those should be documented in the nonfatal_errors information.
+    for plugin_type, plugin_list in nonfatal_errors.items():
+        for plugin_name, dummy_ in plugin_list.items():
+            namespace, collection, short_name = get_fqcn_parts(plugin_name)
+            plugin_contents[plugin_type]['.'.join((namespace, collection))][short_name] = ''
+
+    for plugin_type, plugin_list in plugin_info.items():
+        for plugin_name, plugin_desc in plugin_list.items():
+            namespace, collection, short_name = get_fqcn_parts(plugin_name)
+            plugin_contents[plugin_type]['.'.join((namespace, collection))][short_name] = (
+                plugin_desc['doc']['short_description'])
+
+    return plugin_contents
+
+
+def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]],
+                            ) -> t.DefaultDict[str, t.Dict[str, t.Mapping[str, str]]]:
+    """
+    Return the plugins which are in each collection.
+
+    :arg plugin_content: Mapping of plugin type to a mapping of collection name to a mapping of
+        plugin name to short description.
     :returns: A Mapping of collection name to a mapping of plugin type to a mapping of plugin names
         to short_descriptions.
     collection:
         plugin_type:
             - plugin_short_name: short_description
     """
-    collection_plugins = defaultdict(lambda: defaultdict(dict))
-    # Some plugins won't have an entry in the plugin_info because documentation failed to parse.
-    # Those should be documented in the nonfatal_errors information.
-    for plugin_type, plugin_list in nonfatal_errors.items():
-        for plugin_name, dummy_ in plugin_list.items():
-            namespace, collection, short_name = get_fqcn_parts(plugin_name)
-            collection_plugins['.'.join((namespace, collection))][plugin_type][short_name] = ''
+    collection_plugins = defaultdict(dict)
 
-    for plugin_type, plugin_list in plugin_info.items():
-        for plugin_name, plugin_desc in plugin_list.items():
-            namespace, collection, short_name = get_fqcn_parts(plugin_name)
-            collection_plugins['.'.join((namespace, collection))][plugin_type][short_name] = (
-                plugin_desc['doc']['short_description'])
+    for plugin_type, collection_data in plugin_content.items():
+        for collection_name, plugin_data in collection_data.items():
+            collection_plugins[collection_name][plugin_type] = plugin_data
 
     return collection_plugins
 
@@ -285,14 +307,15 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.debug('Finished loading errors')
     """
 
-    collection_info = get_collection_contents(plugin_info, nonfatal_errors)
+    plugin_contents = get_plugin_contents(plugin_info, nonfatal_errors)
+    collection_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
     # Only build top-level index if no collection names were specified
     if collection_names is None:
         asyncio_run(output_collection_index(collection_info, dest_dir))
         flog.notice('Finished writing collection index')
-        asyncio_run(output_plugin_indexes(collection_info, dest_dir))
+        asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
 
     asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy))

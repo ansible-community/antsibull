@@ -10,7 +10,7 @@ Index of all @{ plugin_type | capitalize }@ Plugins
 =============@{ '=' * (plugin_type | length) }@========
 {% endif %}
 
-{% for collection_name, plugins in per_collection_data.items() | sort %}
+{% for collection_name, plugins in per_collection_plugins.items() | sort %}
 @{ collection_name }@
 @{ '-' * (collection_name | length) }@
 
