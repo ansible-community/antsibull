@@ -15,8 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Need to separate out 3.8-only code as we add tests for files which
-        # have 3.8 syntax in them
         python-version: [3.6, 3.7, 3.8]
 
     steps:
