@@ -21,7 +21,7 @@ from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
-from ...docs_parsing.ansible_doc import get_ansible_plugin_info
+from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
 from ...galaxy import CollectionDownloader
 from ...logging import log

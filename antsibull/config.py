@@ -21,6 +21,10 @@ mlog = log.fields(mod=__name__)
 #: Valid choices for a logging level field
 LEVEL_CHOICES_F = p.Field(..., regex='^(CRITICAL|ERROR|WARNING|NOTICE|INFO|DEBUG|DISABLED)$')
 
+#: Valid choices for a logging level field
+DOC_PARSING_BACKEND_CHOICES_F = p.Field(
+    'ansible-internal', regex='^(ansible-doc|ansible-internal)$')
+
 #: Valid choice of the logging version field
 VERSION_CHOICES_F = p.Field(..., regex=r'1\.0')
 
@@ -131,6 +135,7 @@ class ConfigModel(BaseModel):
     pypi_url: p.HttpUrl = 'https://pypi.org/'
     thread_max: int = 80
     max_retries: int = 10
+    doc_parsing_backend: str = DOC_PARSING_BACKEND_CHOICES_F
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
