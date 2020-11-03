@@ -18,3 +18,5 @@ coverage:
         if_ci_failed: error
         informational: true
         only_pulls: false
+github_checks:
+  annotations: false
