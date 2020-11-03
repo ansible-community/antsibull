@@ -1,0 +1,21 @@
+:orphan:
+
+.. _list_of_@{ plugin_type }@_plugins:
+
+{% if plugin_type == 'module' %}
+Index of all Modules
+====================
+{% else %}
+Index of all @{ plugin_type | capitalize }@ Plugins
+=============@{ '=' * (plugin_type | length) }@========
+{% endif %}
+
+{% for collection_name, plugins in per_collection_plugins.items() | sort %}
+@{ collection_name }@
+@{ '-' * (collection_name | length) }@
+
+{%   for plugin_name, plugin_desc in plugins.items() | sort %}
+* :ref:`@{ collection_name }@.@{ plugin_name }@ <ansible_collections.@{ collection_name }@.@{ plugin_name }@_@{ plugin_type }@>` -- @{ plugin_desc | rst_ify }@
+{%   endfor %}
+
+{% endfor %}
