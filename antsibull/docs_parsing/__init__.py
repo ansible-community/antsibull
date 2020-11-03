@@ -70,13 +70,13 @@ class AnsibleCollectionDocs:
     #        plugin_name:  # Includes namespace and collection.
     #            {information from ansible-doc --json.  See the ansible-doc documentation for more
     #             info.}
-    plugins: t.Dict[str, t.Dict[str, t.Any]]
+    plugins: t.Mapping[str, t.Mapping[str, t.Any]]
 
     # Maps collection name to collection version
-    collection_versions: t.Dict[str, str]
+    collection_versions: t.Mapping[str, str]
 
     def __init__(self,
-                 plugins: t.Dict[str, t.Dict[str, t.Any]],
-                 collection_versions: t.Dict[str, str]):
+                 plugins: t.Mapping[str, t.Mapping[str, t.Any]],
+                 collection_versions: t.Mapping[str, str]):
         self.plugins = plugins
         self.collection_versions = collection_versions
