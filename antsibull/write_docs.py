@@ -117,7 +117,8 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
                                 squash_hierarchy: bool = False,
-                                collection_versions: t.Optional[t.Dict[str, str]] = None) -> None:
+                                collection_versions: t.Optional[
+                                    t.Mapping[str, str]] = None) -> None:
     """
     Output rst files for each plugin.
 
@@ -298,7 +299,7 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
 async def output_indexes(collection_info: CollectionInfoT,
                          dest_dir: str,
                          squash_hierarchy: bool = False,
-                         collection_versions: t.Optional[t.Dict[str, str]] = None) -> None:
+                         collection_versions: t.Optional[t.Mapping[str, str]] = None) -> None:
     """
     Generate collection-level index pages for the collections.
 
