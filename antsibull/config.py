@@ -22,7 +22,7 @@ mlog = log.fields(mod=__name__)
 LEVEL_CHOICES_F = p.Field(..., regex='^(CRITICAL|ERROR|WARNING|NOTICE|INFO|DEBUG|DISABLED)$')
 
 #: Valid choices for a logging level field
-DOC_PARSING_BACKEND_CHOICES_F = p.Field('ansible-doc', regex='^(ansible-doc|ansible-internal)$')
+DOC_PARSING_BACKEND_CHOICES_F = p.Field('ansible-internal', regex='^(ansible-doc|ansible-internal)$')
 
 #: Valid choice of the logging version field
 VERSION_CHOICES_F = p.Field(..., regex=r'1\.0')

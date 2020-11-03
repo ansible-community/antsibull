@@ -243,7 +243,7 @@ class LibContext(BaseModel):
     process_max: t.Optional[int] = None
     thread_max: int = 64
     max_retries: int = 10
-    doc_parsing_backend: str = 'ansible-doc'
+    doc_parsing_backend: str = 'ansible-internal'
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
