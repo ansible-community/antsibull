@@ -196,7 +196,8 @@ class CollectionChangelogCollector:
             changelog = await self._download_changelog_stream(
                 missing_version, collection_downloader)
             if changelog:
-                if self.changelog is None:
+                current_changelog = self.changelog
+                if current_changelog is None:
                     # If we didn't have a changelog so far, start with it
                     self.changelog = changelog
                     missing_versions -= {SemVer(version) for version in changelog.changes.releases}
@@ -205,7 +206,7 @@ class CollectionChangelogCollector:
                     for version, entry in changelog.changes.releases.items():
                         sem_version = SemVer(version)
                         if sem_version in missing_versions:
-                            self.changelog.changes.releases[version] = entry
+                            current_changelog.changes.releases[version] = entry
                             missing_versions.remove(sem_version)
 
             # Make sure that this version isn't checked again
