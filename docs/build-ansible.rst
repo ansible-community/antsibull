@@ -12,9 +12,6 @@ Feedback welcome via GitHub issues in this repo.
 Building the Ansible package
 ============================
 
-.. note::
-    * The script needs python-3.8 or later.
-
 
 Setup for running from source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
