@@ -202,38 +202,29 @@ class AnsibleBaseChangelogCollector:
         self.changelog = None
         self.porting_guide = None
 
-    async def _get_files(self, version: PypiVer,
-                         base_downloader: t.Callable[[str], t.Awaitable[str]]
-                         ) -> t.Tuple[t.Optional[ChangelogData], t.Optional[bytes]]:
+    async def _get_changelog_file(self, version: PypiVer,
+                                  base_downloader: t.Callable[[str], t.Awaitable[str]]
+                                  ) -> t.Optional[ChangelogData]:
         path = await base_downloader(str(version))
         if os.path.isdir(path):
-            pg_path, pg_filename = os.path.split(get_porting_guide_filename(version))
             changelog: t.Optional[ChangelogData] = None
-            porting_guide: t.Optional[bytes] = None
             for root, _, files in os.walk(path):
                 if 'changelog.yaml' in files:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
                         changelog = f.read()
                     changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
                     changelog = ChangelogData.ansible_base(changelog_data)
-                if pg_filename in files:
-                    if os.path.join(path, pg_path) == root:
-                        with open(os.path.join(path, pg_path), 'rb') as f:
-                            porting_guide = f.read()
-            return changelog, porting_guide
+            return changelog
         if os.path.isfile(path) and path.endswith('.tar.gz'):
             changelog = read_changelog_file(path, is_ansible_base=True)
-            porting_guide = read_porting_guide_file(path, version)
             if changelog is None:
-                return None, porting_guide
+                return None
             changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-            return ChangelogData.ansible_base(changelog_data), porting_guide
-        return None, None
+            return ChangelogData.ansible_base(changelog_data)
+        return None
 
-    async def download(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
-        changelog, porting_guide = await self._get_files(self.latest, base_downloader)
-        if porting_guide:
-            self.porting_guide = porting_guide
+    async def download_changelog(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
+        changelog = await self._get_changelog_file(self.latest, base_downloader)
         if changelog is None:
             return
 
@@ -245,7 +236,7 @@ class AnsibleBaseChangelogCollector:
             ancestor_ver = PypiVer(ancestor)
             if ancestor_ver < self.earliest:
                 break
-            changelog, _ = await self._get_files(ancestor_ver, base_downloader)
+            changelog = await self._get_changelog_file(ancestor_ver, base_downloader)
             if changelog is None:
                 break
             changelog.changes.prune_versions(versions_after=None, versions_until=ancestor)
@@ -254,18 +245,9 @@ class AnsibleBaseChangelogCollector:
 
         self.changelog = ChangelogData.concatenate(changelogs)
 
-    async def download_github(self, aio_session: 'aiohttp.client.ClientSession'):
-        branch_url = (f"https://raw.githubusercontent.com/ansible/ansible/"
-                      f"stable-{self.latest.major}.{self.latest.minor}")
+    async def download_porting_guide(self, aio_session: 'aiohttp.client.ClientSession'):
+        branch_url = (f"https://raw.githubusercontent.com/ansible/ansible/devel")
 
-        # Changelog
-        query_url = f"{branch_url}/changelogs/changelog.yaml"
-        async with aio_session.get(query_url) as response:
-            changelog = await response.read()
-        changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-        self.changelog = ChangelogData.ansible_base(changelog_data)
-
-        # Porting Guide
         query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
         async with aio_session.get(query_url) as response:
             self.porting_guide = await response.read()
@@ -287,12 +269,10 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                 requestors = [
                     await pool.spawn(collector.download(downloader)) for collector in collectors
                 ]
-                if False:  # TODO: make this depend on version or something else...
-                    requestors.append(
-                        await pool.spawn(base_collector.download(base_downloader)))
-                else:
-                    requestors.append(
-                        await pool.spawn(base_collector.download_github(aio_session)))
+                requestors.append(
+                    await pool.spawn(base_collector.download_changelog(base_downloader)))
+                requestors.append(
+                    await pool.spawn(base_collector.download_porting_guide(aio_session)))
                 await asyncio.gather(*requestors)
 
 
