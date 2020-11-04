@@ -163,13 +163,14 @@ class CollectionChangelogCollector:
         changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
         return ChangelogData.collection(self.collection, str(version), changelog_data)
 
-    async def download(self, collection_downloader: CollectionDownloader):
-        changelog = await self._get_changelog(self.latest, collection_downloader)
+    async def _download_changelog_stream(self, start_version: SemVer,
+                                         collection_downloader: CollectionDownloader
+                                         ) -> t.Optional[ChangelogData]:
+        changelog = await self._get_changelog(start_version, collection_downloader)
         if changelog is None:
-            return
+            return None
 
-        changelog.changes.prune_versions(versions_after=None, versions_until=str(self.latest))
-
+        changelog.changes.prune_versions(versions_after=None, versions_until=str(start_version))
         changelogs = [changelog]
         ancestor = changelog.changes.ancestor
         while ancestor is not None:
@@ -183,7 +184,32 @@ class CollectionChangelogCollector:
             changelogs.append(changelog)
             ancestor = changelog.changes.ancestor
 
-        self.changelog = ChangelogData.concatenate(changelogs)
+        return ChangelogData.concatenate(changelogs)
+
+    async def download(self, collection_downloader: CollectionDownloader):
+        missing_versions = set(self.versions)
+
+        while missing_versions:
+            missing_version = max(missing_versions)
+
+            # Try to get hold of changelog for this version
+            changelog = await self._download_changelog_stream(
+                missing_version, collection_downloader)
+            if changelog:
+                if self.changelog is None:
+                    # If we didn't have a changelog so far, start with it
+                    self.changelog = changelog
+                    missing_versions -= {SemVer(version) for version in changelog.changes.releases}
+                else:
+                    # Insert entries from changelog into combined changelog that are missing there
+                    for version, entry in changelog.changes.releases.items():
+                        sem_version = SemVer(version)
+                        if sem_version in missing_versions:
+                            self.changelog.changes.releases[version] = entry
+                            missing_versions.remove(sem_version)
+
+            # Make sure that this version isn't checked again
+            missing_versions -= {missing_version}
 
 
 class AnsibleBaseChangelogCollector:
