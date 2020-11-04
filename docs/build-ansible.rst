@@ -155,12 +155,7 @@ We want to sync docs and releases.  So the first thing to do is to alert the doc
 schedule too).
 
 * Merge the porting guide PR.
-* Open a backport of the porting guide.  Merge that.
-* Build Ansible Docs to testing.docs.ansible.com
-* For now: Also Build Docsite to testing.docs.ansible.com (Works around a bug in the
-  redirect deployment)
-* Does it look right, redirects work, etc?
-* Build the ansible docs and docsite to the production website
+* Build Ansible Docs to docs.ansible.com
 * Upload the tarball to pypi::
 
     twine upload built/ansible-2.11.0.tar.gz
