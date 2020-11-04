@@ -29,6 +29,21 @@ from .changelog import Changelog, ChangelogData, ChangelogEntry, CollectionsMeta
 PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogGeneratorEntry]]]
 
 
+def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGeneratorEntry:
+    '''Remove duplicate entries from changelog entry.
+
+    This can happen if entries from versions from different changelogs are combined
+    which partially include each other's changes. This happens if for example the 1.1.0
+    changelog continues the 1.0.2 changelog, and there was also a 1.0.3 release continuing
+    the 1.0.2 changelog. The 1.0.3 changes are usually a subset of the 1.1.0 changes as
+    they are backported bugfixes.
+    '''
+    for section, changes in entry.changes.items():
+        if isinstance(changes, list):
+            entry.changes[section] = sorted(set(changes))
+    return entry
+
+
 def append_changelog_changes_collections(builder: RstBuilder,
                                          collection_metadata: CollectionsMetadata,
                                          changelog_entry: ChangelogEntry,
@@ -66,7 +81,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
                         collector.collection,
                         f"{collector.collection}.",
                         changelog.generator,
-                        release_entries[0]))
+                        optimize_release_entry(release_entries[0])))
                     msg += "The changes are reported in the combined changelog below."
             else:
                 metadata = collection_metadata.get_meta(collector.collection)
@@ -95,7 +110,7 @@ def append_changelog_changes_ansible(builder: RstBuilder,
     if not release_entries:
         return []
 
-    release_entry = release_entries[0]
+    release_entry = optimize_release_entry(release_entries[0])
 
     release_summary = release_entry.changes.pop('release_summary', None)
     if release_summary:
