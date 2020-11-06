@@ -1,0 +1,31 @@
+# This workflow will install CSS build dependencies and run the CSS build
+
+name: Build CSS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install sassc
+          npm install -g autoprefixer cssnano postcss postcss-cli
+
+      - name: Build CSS
+        run: |
+          ./build.sh
+        working-directory: ./sphinx_antsibull_ext/css
