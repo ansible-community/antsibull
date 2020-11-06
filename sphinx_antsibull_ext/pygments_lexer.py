@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=no-self-argument
 #
 # Copyright 2006-2017 by the Pygments team, see AUTHORS at
 # https://github.com/pygments/pygments/blob/3e1b79c82d2df318f63f24984d875fd2a3400808/AUTHORS
