@@ -15,6 +15,10 @@ fi
 
 export BROWSERSLIST_CONFIG=browserslistrc
 
+# Apparently the cssnano.config.js needs to be where the destination file is placed
+trap "{ rm -f ../cssnano.config.js; }" EXIT
+cp cssnano.config.js ..
+
 set -e
 
 build_css() {
