@@ -247,6 +247,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       dest_dir: str,
                                       flog,
                                       collection_names: t.Optional[t.List[str]] = None,
+                                      create_indexes: bool = True,
                                       squash_hierarchy: bool = False) -> None:
     """
     Create documentation for a set of installed collections.
@@ -259,6 +260,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     :arg flog: A logger instance.
     :arg collection_names: Optional list of collection names. If specified, only documentation
                            for these collections will be collected and generated.
+    :arg create_indexes: Whether to create the collection index and plugin indexes. By default,
+                         they are created.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
@@ -311,8 +314,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
-    # Only build top-level index if no collection names were specified
-    if collection_names is None:
+    # Only build top-level index if requested
+    if create_indexes:
         asyncio_run(output_collection_index(collection_info, dest_dir))
         flog.notice('Finished writing collection index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))

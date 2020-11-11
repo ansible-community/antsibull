@@ -12,7 +12,7 @@ from .stable import generate_docs_for_all_collections
 mlog = log.fields(mod=__name__)
 
 
-def generate_current_docs(squash_hierarchy: bool) -> int:
+def generate_current_docs(skip_indexes: bool, squash_hierarchy: bool) -> int:
     flog = mlog.fields(func='generate_current_docs')
     flog.debug('Begin processing docs')
 
@@ -22,6 +22,7 @@ def generate_current_docs(squash_hierarchy: bool) -> int:
 
     generate_docs_for_all_collections(
         venv, None, app_ctx.extra['dest_dir'], flog, app_ctx.extra['collections'],
+        create_indexes=not skip_indexes and not squash_hierarchy,
         squash_hierarchy=squash_hierarchy)
 
     return 0
@@ -40,10 +41,11 @@ def generate_docs() -> int:
     """
     app_ctx = app_context.app_ctx.get()
 
+    skip_indexes: bool = app_ctx.extra['skip_indexes']
     squash_hierarchy: bool = app_ctx.extra['squash_hierarchy']
 
     if app_ctx.extra['use_current']:
-        return generate_current_docs(squash_hierarchy)
+        return generate_current_docs(skip_indexes, squash_hierarchy)
 
     raise NotImplementedError('Priority to implement subcommands is stable, devel, plugin, and'
                               ' then collection commands. Only --use-current is implemented'

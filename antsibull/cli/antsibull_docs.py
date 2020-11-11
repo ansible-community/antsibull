@@ -199,6 +199,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' these collections have been installed with the current'
                                    ' version of ansible. Specified --collection-version will be'
                                    ' ignored.')
+    collection_parser.add_argument('--skip-indexes', action='store_true',
+                                   help='Do not create the collection index and plugin indexes.'
+                                   ' Automatically assumed when --squash-hierarchy is specified.')
     collection_parser.add_argument('--squash-hierarchy', action='store_true',
                                    help='Do not use the full hierarchy collections/namespace/name/'
                                    ' in the destination directory. Only valid if there is only'
