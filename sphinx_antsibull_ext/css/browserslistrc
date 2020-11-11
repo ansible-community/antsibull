@@ -1,0 +1,20 @@
+last 4 versions
+> 0.1%
+
+Chrome >= 21
+and_chr >= 21
+
+Firefox >= 28
+and_ff >= 28
+
+Explorer >= 8
+ExplorerMobile >= 8
+not ie < 8
+Edge >= 12
+
+iOS >= 6
+Safari >= 6
+ios_saf >= 6
+
+Opera >= 12.1
+android >= 4
