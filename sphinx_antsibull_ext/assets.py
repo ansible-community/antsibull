@@ -10,10 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 
 
 import os
-
-from pkg_resources import resource_filename
-
-from sphinx.util.fileutil import copy_asset
+import pkgutil
 
 
 CSS_FILES = [
@@ -27,9 +24,13 @@ def _copy_asset_files(app, exc):  # pylint: disable=unused-argument
     '''
     # Copy CSS files
     for file in CSS_FILES:
-        source = resource_filename(__name__, file)
-        destination = os.path.join(app.outdir, '_static')
-        copy_asset(source, destination)
+        data = pkgutil.get_data('sphinx_antsibull_ext', file)
+        if data is None:
+            raise Exception(
+                'Internal error: cannot find {0} in sphinx_antsibull_ext package'.format(file))
+        destination = os.path.join(app.outdir, '_static', file)
+        with open(destination, 'wb') as f:
+            f.write(data)
 
 
 def setup_assets(app):
