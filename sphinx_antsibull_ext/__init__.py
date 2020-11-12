@@ -28,8 +28,7 @@ def setup(app):
     for lexer in [
         AnsibleOutputLexer(startinline=True)
     ]:
-        app.add_lexer(lexer.name, lexer)
-        for alias in lexer.aliases:
+        for alias in (lexer.name, *lexer.aliases):
             app.add_lexer(alias, lexer)
 
     # Add assets
