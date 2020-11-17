@@ -16,9 +16,8 @@ Building the Ansible package
 Setup for running from source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-antsibull uses the ``poetry`` tool to build and install.
+antsibull uses the ``poetry`` tool to build and install::
 
-::
     # Install poetry
     python3 -m pip install poetry
 
@@ -30,7 +29,7 @@ antsibull uses the ``poetry`` tool to build and install.
     poetry install
 
 When running from source, you need to use poetry to run :cmd:`antsibull-build`.  For instance,
-``poetry run antsibull-build new-ansible 2.10.0 --data-dir ansi ble-build-data/2.10``.
+``poetry run antsibull-build new-ansible 2.10.0 --data-dir ansible-build-data/2.10``.
 So just prepend ``poetry run`` to all of the :cmd:`antsibull-build` commands in the instructions
 below.
 
@@ -40,7 +39,9 @@ Building Ansible
 
 Setup for the first alpha release
 `````````````````````````````````
-::
+
+.. code-block:: shell
+
     # Setup steps for building for the first time:
     git clone git@github.com:ansible-community/ansible-build-data
     mkdir ansible-build-data/2.11
@@ -54,7 +55,9 @@ Building the tarball
 
 All alpha releases and the first beta
 -------------------------------------
-::
+
+.. code-block:: shell
+
     # Create a directory to output tarballs
     mkdir built
 
@@ -68,7 +71,9 @@ All alpha releases and the first beta
 
 Beta2 up to and including rc1
 -----------------------------
-::
+
+.. code-block:: shell
+
     # Create a directory to output tarballs
     rm -rf built
     mkdir built
@@ -80,7 +85,9 @@ Beta2 up to and including rc1
 
 Any subsequent rcs and final
 ----------------------------
-::
+
+.. code-block:: shell
+
     # Copy the previous rc's .deps file to the new rc version
     cp ansible-build-data/ansible-2.11.0rc1.deps ansible-build-data/ansible-2.11.0rc2.deps
 
@@ -98,7 +105,9 @@ Any subsequent rcs and final
 
 New patch releases (2.11.Z)
 ---------------------------
-::
+
+.. code-block:: shell
+
     # Create a directory to output tarballs
     rm -rf built
     mkdir built
@@ -121,7 +130,9 @@ New patch releases (2.11.Z)
 
 Recording release information
 `````````````````````````````
-::
+
+.. code-block:: shell
+
     # Record the files used to build:
     export ANSIBLE_VERSION=2.11.0a1
     cd ansible-build-data/2.11
@@ -151,7 +162,7 @@ Final Publishing
 ````````````````
 
 We want to sync docs and releases.  So the first thing to do is to alert the docs team in
-#ansible-docs that we're making a release (they should know ahead of time if they're watching the
+``#ansible-docs`` that we're making a release (they should know ahead of time if they're watching the
 schedule too).
 
 * Merge the porting guide PR.
