@@ -73,6 +73,7 @@ Beta2 up to and including rc1
 -----------------------------
 
 .. code-block:: shell
+
     # Create a directory to output tarballs
     rm -rf built
     mkdir built
@@ -86,6 +87,7 @@ Any subsequent rcs and final
 ----------------------------
 
 .. code-block:: shell
+
     # Copy the previous rc's .deps file to the new rc version
     cp ansible-build-data/ansible-2.11.0rc1.deps ansible-build-data/ansible-2.11.0rc2.deps
 
@@ -105,6 +107,7 @@ New patch releases (2.11.Z)
 ---------------------------
 
 .. code-block:: shell
+
     # Create a directory to output tarballs
     rm -rf built
     mkdir built
@@ -129,6 +132,7 @@ Recording release information
 `````````````````````````````
 
 .. code-block:: shell
+
     # Record the files used to build:
     export ANSIBLE_VERSION=2.11.0a1
     cd ansible-build-data/2.11
