@@ -93,6 +93,8 @@ def ansible_doc_coll_filter(coll_filter):
 def match_filter(name, coll_filter):
     if coll_filter is None or name in coll_filter:
         return True
+    if '.' not in name and 'ansible.builtin' in coll_filter:
+        return True
     for filter in coll_filter:
         if name.startswith(filter + '.'):
             return True
