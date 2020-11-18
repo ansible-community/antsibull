@@ -7,7 +7,10 @@
 
 import argparse
 import json
+import os
 import sys
+
+import yaml
 
 import ansible.plugins.loader as plugin_loader
 
@@ -16,8 +19,7 @@ from ansible import release as ansible_release
 from ansible.cli import doc
 from ansible.cli.arguments import option_helpers as opt_help
 from ansible.collections.list import list_collection_dirs
-from ansible.galaxy.collection import CollectionRequirement
-from ansible.module_utils._text import to_native
+from ansible.module_utils._text import to_native, to_bytes
 from ansible.module_utils.common.json import AnsibleJSONEncoder
 from ansible.plugins.loader import action_loader, fragment_loader
 from ansible.utils.collection_loader import AnsibleCollectionConfig
@@ -124,6 +126,39 @@ def load_all_plugins(plugin_type, basedir, coll_filter):
     return result
 
 
+def load_collection_meta_manifest(b_manifest_path, data):
+    with open(b_manifest_path, 'rb') as f:
+        meta = json.load(f)
+    data['namespace'] = meta['collection_info']['namespace']
+    data['name'] = meta['collection_info']['name']
+    data['version'] = meta['collection_info']['version']
+
+
+def load_collection_meta_galaxy(b_galaxy_path, data):
+    with open(b_galaxy_path, 'rb') as f:
+        meta = yaml.safe_load(f)
+    data['namespace'] = meta['namespace']
+    data['name'] = meta['name']
+    data['version'] = meta.get('version')
+
+
+def load_collection_meta(b_path):
+    data = {
+        'version': None,
+        'path': to_native(b_path),
+    }
+    b_manifest_path = os.path.join(b_path, to_bytes('MANIFEST.json'))
+    if os.path.exists(b_manifest_path):
+        load_collection_meta_manifest(b_manifest_path, data)
+    b_galaxy_path = os.path.join(b_path, to_bytes('galaxy.yml'))
+    b_galaxy_alt_path = os.path.join(b_path, to_bytes('galaxy.yaml'))
+    for path in (b_galaxy_path, b_galaxy_alt_path):
+        if os.path.exists(path):
+            load_collection_meta_galaxy(path, data)
+            break
+    return data
+
+
 def main(args):
     parser = argparse.ArgumentParser(
         prog=args[0], description='Bulk extraction of Ansible plugin docs.')
@@ -151,17 +186,13 @@ def main(args):
     # Export collection data
     b_colldirs = list_collection_dirs(coll_filter=ansible_doc_coll_filter(coll_filter))
     for b_path in b_colldirs:
-        collection = CollectionRequirement.from_path(b_path, False, fallback_metadata=True)
-
-        collection_name = '{0}.{1}'.format(collection.namespace, collection.name)
+        meta = load_collection_meta(b_path)
+        collection_name = '{0}.{1}'.format(meta['namespace'], meta['name'])
         if match_filter(collection_name, coll_filter):
-            version = collection.metadata.version
-            result['collections'][collection_name] = {
-                'path': to_native(b_path),
-                'version': version if version != '*' else None,
-            }
+            result['collections'][collection_name] = meta
     if match_filter('ansible.builtin', coll_filter):
         result['collections']['ansible.builtin'] = {
+            'path': os.path.dirname(ansible_release.__file__),
             'version': ansible_release.__version__,
         }
 
