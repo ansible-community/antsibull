@@ -273,7 +273,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.notice('Finished parsing info from plugins and collections')
     # flog.fields(plugin_info=collection_docs.plugins).debug('Plugin data')
     # flog.fields(
-    #     collection_versions=collection_docs.collection_versions).debug('Collection versions')
+    #     collection_infos=collection_docs.collection_infos).debug('Collection infos')
 
     """
     # Turn these into some sort of decorator that will choose to dump or load the values
@@ -324,13 +324,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         flog.notice('Finished writing plugin indexes')
 
     asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy,
-                               collection_versions=collection_docs.collection_versions))
+                               collection_infos=collection_docs.collection_infos))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
                                       nonfatal_errors, dest_dir,
                                       squash_hierarchy=squash_hierarchy,
-                                      collection_versions=collection_docs.collection_versions))
+                                      collection_infos=collection_docs.collection_infos))
     flog.debug('Finished writing plugin docs')
 
 
