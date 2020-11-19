@@ -6,6 +6,7 @@
 import asyncio
 import json
 import sys
+import os
 import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
@@ -18,7 +19,7 @@ from ..constants import DOCUMENTABLE_PLUGINS
 from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
-from . import _get_environment, ParsingError, AnsibleCollectionDocs
+from . import _get_environment, ParsingError, AnsibleCollectionDocs, AnsibleCollectionInfo
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -158,35 +159,47 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
-def get_collection_versions(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
-                            collection_dir: t.Optional[str],
-                            collection_names: t.Optional[t.List[str]],
-                            env: t.Dict[str, str],
-                            ) -> t.Dict[str, str]:
-    collection_versions = {}
+def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
+                         collection_dir: t.Optional[str],
+                         collection_names: t.Optional[t.List[str]],
+                         env: t.Dict[str, str],
+                         ) -> t.Dict[str, AnsibleCollectionInfo]:
+    collection_infos = {}
 
     # Obtain ansible.builtin version
     if collection_names is None or 'ansible.builtin' in collection_names:
         venv_ansible = venv.get_command('ansible')
         ansible_version_cmd = venv_ansible('--version', _env=env)
         raw_result = ansible_version_cmd.stdout.decode('utf-8', errors='surrogateescape')
+        path: t.Optional[str] = None
+        version: t.Optional[str] = None
         for line in raw_result.splitlines():
+            if line.strip().startswith('ansible python module location'):
+                path = line.split('=', 2)[1].strip()
             if line.startswith('ansible '):
-                collection_versions['ansible.builtin'] = line[len('ansible '):]
+                version = line[len('ansible '):]
+        collection_infos['ansible.builtin'] = AnsibleCollectionInfo(path=path, version=version)
 
     # Obtain collection versions
     venv_ansible_galaxy = venv.get_command('ansible-galaxy')
     ansible_collection_list_cmd = venv_ansible_galaxy('collection', 'list', _env=env)
     raw_result = ansible_collection_list_cmd.stdout.decode('utf-8', errors='surrogateescape')
+    current_base_path = None
     for line in raw_result.splitlines():
         parts = line.split()
         if len(parts) >= 2:
-            collection_name = parts[0]
-            version = parts[1]
-            if '.' in collection_name:
-                collection_versions[collection_name] = version
+            if parts[0] == '#':
+                current_base_path = parts[1]
+            else:
+                collection_name = parts[0]
+                version = parts[1]
+                if '.' in collection_name:
+                    namespace, name = collection_name.split('.', 2)
+                    collection_infos[collection_name] = AnsibleCollectionInfo(
+                        path=os.path.join(current_base_path, namespace, name),
+                        version=None if version == '*' else version)
 
-    return collection_versions
+    return collection_infos
 
 
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
@@ -272,8 +285,8 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         # done so, we want to then fail by raising one of the exceptions.
         raise ParsingError('Parsing of plugins failed')
 
-    flog.debug('Retrieving collection versions')
-    collection_versions = get_collection_versions(venv, collection_dir, collection_names, env)
+    flog.debug('Retrieving collection infos')
+    collection_infos = get_collection_infos(venv, collection_dir, collection_names, env)
 
     flog.debug('Leave')
-    return AnsibleCollectionDocs(plugin_map, collection_versions)
+    return AnsibleCollectionDocs(plugin_map, collection_infos)

@@ -64,6 +64,18 @@ def _get_environment(collection_dir: t.Optional[str]) -> t.Dict[str, str]:
     return env
 
 
+class AnsibleCollectionInfo:
+    path: str
+    version: t.Optional[str]
+
+    def __init__(self, path: str, version: t.Optional[str]):
+        self.path = path
+        self.version = version
+
+    def __repr__(self):
+        return 'AnsibleCollectionInfo({0}, {1})'.format(repr(self.path), repr(self.version))
+
+
 class AnsibleCollectionDocs:
     # A nested directory structure that looks like:
     #    plugin_type:
@@ -73,10 +85,10 @@ class AnsibleCollectionDocs:
     plugins: t.Mapping[str, t.Mapping[str, t.Any]]
 
     # Maps collection name to collection version
-    collection_versions: t.Mapping[str, str]
+    collection_infos: t.Mapping[str, AnsibleCollectionInfo]
 
     def __init__(self,
-                 plugins: t.Mapping[str, t.Mapping[str, t.Any]],
-                 collection_versions: t.Mapping[str, str]):
+                 plugins: t.Mapping[str, t.Dict[str, t.Any]],
+                 collection_infos: t.Mapping[str, AnsibleCollectionInfo]):
         self.plugins = plugins
-        self.collection_versions = collection_versions
+        self.collection_infos = collection_infos
