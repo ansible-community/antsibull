@@ -19,7 +19,7 @@ from ansible import release as ansible_release
 from ansible.cli import doc
 from ansible.cli.arguments import option_helpers as opt_help
 from ansible.collections.list import list_collection_dirs
-from ansible.module_utils._text import to_native, to_bytes
+from ansible.module_utils._text import to_native
 from ansible.module_utils.common.json import AnsibleJSONEncoder
 from ansible.plugins.loader import action_loader, fragment_loader
 from ansible.utils.collection_loader import AnsibleCollectionConfig
@@ -149,11 +149,11 @@ def load_collection_meta(b_path):
         'version': None,
         'path': to_native(b_path),
     }
-    b_manifest_path = os.path.join(b_path, to_bytes('MANIFEST.json'))
+    b_manifest_path = os.path.join(b_path, b'MANIFEST.json')
     if os.path.exists(b_manifest_path):
         load_collection_meta_manifest(b_manifest_path, data)
-    b_galaxy_path = os.path.join(b_path, to_bytes('galaxy.yml'))
-    b_galaxy_alt_path = os.path.join(b_path, to_bytes('galaxy.yaml'))
+    b_galaxy_path = os.path.join(b_path, b'galaxy.yml')
+    b_galaxy_alt_path = os.path.join(b_path, b'galaxy.yaml')
     for path in (b_galaxy_path, b_galaxy_alt_path):
         if os.path.exists(path):
             load_collection_meta_galaxy(path, data)
