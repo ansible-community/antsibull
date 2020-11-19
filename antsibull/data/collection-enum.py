@@ -128,36 +128,46 @@ def load_all_plugins(plugin_type, basedir, coll_filter):
     return result
 
 
-def load_collection_meta_manifest(b_manifest_path, data):
+def load_collection_meta_manifest(b_manifest_path):
     with open(b_manifest_path, 'rb') as f:
         meta = json.load(f)
-    data['namespace'] = meta['collection_info']['namespace']
-    data['name'] = meta['collection_info']['name']
-    data['version'] = meta['collection_info']['version']
+    return {
+        'namespace': meta['collection_info']['namespace'],
+        'name': meta['collection_info']['name'],
+        'version': meta['collection_info']['version'],
+    }
 
 
-def load_collection_meta_galaxy(b_galaxy_path, data):
+def load_collection_meta_galaxy(b_galaxy_path):
     with open(b_galaxy_path, 'rb') as f:
         meta = yaml.safe_load(f)
-    data['namespace'] = meta['namespace']
-    data['name'] = meta['name']
-    data['version'] = meta.get('version')
+    return {
+        'namespace': meta['namespace'],
+        'name': meta['name'],
+        'version': meta.get('version'),
+    }
 
 
 def load_collection_meta(b_path):
-    data = {
-        'version': None,
-        'path': to_native(b_path),
-    }
     b_manifest_path = os.path.join(b_path, b'MANIFEST.json')
     if os.path.exists(b_manifest_path):
-        load_collection_meta_manifest(b_manifest_path, data)
-    b_galaxy_path = os.path.join(b_path, b'galaxy.yml')
-    b_galaxy_alt_path = os.path.join(b_path, b'galaxy.yaml')
-    for path in (b_galaxy_path, b_galaxy_alt_path):
-        if os.path.exists(path):
-            load_collection_meta_galaxy(path, data)
-            break
+        data = load_collection_meta_manifest(b_manifest_path)
+    else:
+        data = {}
+        b_galaxy_path = os.path.join(b_path, b'galaxy.yml')
+        b_galaxy_alt_path = os.path.join(b_path, b'galaxy.yaml')
+        for path in (b_galaxy_path, b_galaxy_alt_path):
+            if os.path.exists(path):
+                data = load_collection_meta_galaxy(path)
+        if not data:
+            # Fallback in case no galaxy.yml is around. This happens for collections
+            # checked out from source where galaxy.yml is templated on build.
+            data = {
+                'version': None,
+                'namespace': to_native(os.path.basename(os.path.dirname(b_path))),
+                'name': to_native(os.path.basename(b_path)),
+            }
+    data['path'] = to_native(b_path)
     return data
 
 
