@@ -21,8 +21,8 @@ antsibull uses the ``poetry`` tool to build and install::
     # Install poetry
     python3 -m pip install poetry
 
-    # Clone the antisbull repo.
-    git clone https://github.com/ansible-comunity/antsibull
+    # Clone the antsibull repo.
+    git clone https://github.com/ansible-community/antsibull.git
     cd antsibull
 
     # Creates a venv with all of the requirements
@@ -43,7 +43,7 @@ Setup for the first alpha release
 .. code-block:: shell
 
     # Setup steps for building for the first time:
-    git clone git@github.com:ansible-community/ansible-build-data
+    git clone git@github.com:ansible-community/ansible-build-data.git
     mkdir ansible-build-data/2.11
     # Copy from previous version
     cp ansible-build-data/2.10/ansible.in ansible-build-data/2.11/
@@ -66,7 +66,7 @@ All alpha releases and the first beta
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.0 --data-dir ansible-build-data/2.11 --sdist-dir built
+    antsibull-build single 2.11.0a1 --data-dir ansible-build-data/2.11 --sdist-dir built
 
 
 Beta2 up to and including rc1
@@ -89,7 +89,7 @@ Any subsequent rcs and final
 .. code-block:: shell
 
     # Copy the previous rc's .deps file to the new rc version
-    cp ansible-build-data/ansible-2.11.0rc1.deps ansible-build-data/ansible-2.11.0rc2.deps
+    cp ansible-build-data/2.11/ansible-2.11.0rc1.deps ansible-build-data/2.11/ansible-2.11.0rc2.deps
 
     # We do not run antsibull-build single because the compatible collection version information
     # is now set until final.
@@ -100,7 +100,7 @@ Any subsequent rcs and final
     # vim ansible-build-data/ansible-2.11.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 2.11.0rc2 --data-dir /srv/ansible/ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0.deps --sdist-dir built
+    antsibull-build rebuild-single 2.11.0rc2 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0rc2.deps --sdist-dir built
 
 
 New patch releases (2.11.Z)
@@ -125,7 +125,7 @@ New patch releases (2.11.Z)
 
     rm -rf built
     mkdir built
-    antsibull-build rebuild-single 2.11.1 --data-dir /srv/ansible/ansible-build-data/2.11 --build-file ansible-  2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built
+    antsibull-build rebuild-single 2.11.1 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built
 
 
 Recording release information
