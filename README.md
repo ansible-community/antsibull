@@ -18,11 +18,6 @@ a checkout, you'll have to run them under poetry::
     poetry install  # Installs dependencies into a virtualenv
     poetry run antsibull-build --help
 
-If you want to create a new release::
-
-    poetry build
-    poetry publish  # Uploads to pypi.  Be sure you really want to do this
-
 .. note:: When installing a package published by poetry, it is best to use
     pip >= 19.0.  Installing with pip-18.1 and below could create scripts which
     use pkg_resources which can slow down startup time (in some environments by
@@ -60,3 +55,16 @@ apt-get install sassc
 # PostCSS, autoprefixer and cssnano require nodejs/npm:
 npm install -g autoprefixer cssnano postcss postcss-cli
 ```
+
+## Creating a new release:
+
+If you want to create a new release::
+
+    poetry build
+    poetry publish  # Uploads to pypi.  Be sure you really want to do this
+
+    git tag $VERSION_NUMBER
+    git push --tags
+    vim pyproject.toml    # Bump the version number
+    git commit -m 'Update the version number for the next release' pyproject.toml
+    git push
