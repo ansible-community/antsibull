@@ -11,7 +11,7 @@ import typing as t
 from ..logging import log
 from ..utils.get_pkg_data import get_antsibull_data
 from ..vendored.json_utils import _filter_non_json_lines
-from . import _get_environment, AnsibleCollectionDocs, AnsibleCollectionMetadata
+from . import _get_environment, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -23,7 +23,9 @@ mlog = log.fields(mod=__name__)
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
-                                  ) -> AnsibleCollectionDocs:
+                                  ) -> t.Tuple[
+                                      t.Mapping[str, t.Mapping[str, t.Any]],
+                                      t.Mapping[str, t.Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
@@ -33,7 +35,14 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                          search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
-    :returns: An AnsibleCollectionDocs tuple.
+    :returns: An tuple. The first component is a nested directory structure that looks like:
+
+            plugin_type:
+                plugin_name:  # Includes namespace and collection.
+                    {information from ansible-doc --json.  See the ansible-doc documentation
+                     for more info.}
+
+        The second component is a Mapping of collection names to metadata.
     """
     flog = mlog.fields(func='get_ansible_plugin_info')
     flog.debug('Enter')
@@ -74,4 +83,4 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
             version=collection_data.get('version'))
 
     flog.debug('Leave')
-    return AnsibleCollectionDocs(plugin_map, collection_metadata)
+    return (plugin_map, collection_metadata)

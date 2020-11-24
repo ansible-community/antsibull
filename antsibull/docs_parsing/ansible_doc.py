@@ -19,7 +19,7 @@ from ..constants import DOCUMENTABLE_PLUGINS
 from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
-from . import _get_environment, ParsingError, AnsibleCollectionDocs, AnsibleCollectionMetadata
+from . import _get_environment, ParsingError, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -206,7 +206,9 @@ def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
-                                  ) -> AnsibleCollectionDocs:
+                                  ) -> t.Tuple[
+                                      t.Mapping[str, t.Mapping[str, t.Any]],
+                                      t.Mapping[str, t.Any]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
@@ -216,7 +218,14 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                          search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
-    :returns: An AnsibleCollectionDocs tuple.
+    :returns: An tuple. The first component is a nested directory structure that looks like:
+
+            plugin_type:
+                plugin_name:  # Includes namespace and collection.
+                    {information from ansible-doc --json.  See the ansible-doc documentation
+                     for more info.}
+
+        The second component is a Mapping of collection names to metadata.
     """
     flog = mlog.fields(func='get_ansible_plugin_info')
     flog.debug('Enter')
@@ -290,4 +299,4 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     collection_metadata = get_collection_metadata(venv, env, collection_names)
 
     flog.debug('Leave')
-    return AnsibleCollectionDocs(plugin_map, collection_metadata)
+    return (plugin_map, collection_metadata)
