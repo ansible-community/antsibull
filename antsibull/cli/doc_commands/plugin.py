@@ -15,6 +15,7 @@ from .stable import normalize_plugin_info
 from ... import app_context
 from ...augment_docs import augment_docs
 from ...compat import asyncio_run
+from ...docs_parsing import AnsibleCollectionMetadata
 from ...docs_parsing.fqcn import get_fqcn_parts, is_fqcn
 from ...jinja2.environment import doc_environment
 from ...logging import log
@@ -103,7 +104,7 @@ def generate_docs() -> int:
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     asyncio_run(write_rst(
-        '.'.join([namespace, collection]), None, plugin, plugin_type,
+        '.'.join([namespace, collection]), AnsibleCollectionMetadata.empty(), plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path))
     flog.debug('Finished writing plugin docs')

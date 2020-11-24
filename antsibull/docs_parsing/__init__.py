@@ -75,6 +75,10 @@ class AnsibleCollectionMetadata:
     def __repr__(self):
         return 'AnsibleCollectionMetadata({0}, {1})'.format(repr(self.path), repr(self.version))
 
+    @classmethod
+    def empty(cls, path='.'):
+        return cls(path=path, version=None)
+
 
 class AnsibleCollectionDocs:
     # A nested directory structure that looks like:
