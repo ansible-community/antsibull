@@ -33,7 +33,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                          search path for Ansible.
     :arg collection_names: Optional list of collections. If specified, will only collect
                            information for plugins in these collections.
-    :returns: An AnsibleCollectionDocs object.
+    :returns: An AnsibleCollectionDocs tuple.
     """
     flog = mlog.fields(func='get_ansible_plugin_info')
     flog.debug('Enter')
