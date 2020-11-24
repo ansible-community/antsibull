@@ -80,19 +80,13 @@ class AnsibleCollectionMetadata:
         return cls(path=path, version=None)
 
 
-class AnsibleCollectionDocs:
-    # A nested directory structure that looks like:
-    #    plugin_type:
-    #        plugin_name:  # Includes namespace and collection.
-    #            {information from ansible-doc --json.  See the ansible-doc documentation for more
-    #             info.}
-    plugins: t.Mapping[str, t.Mapping[str, t.Any]]
-
-    # Maps collection name to metadata
-    collection_metadata: t.Mapping[str, AnsibleCollectionMetadata]
-
-    def __init__(self,
-                 plugins: t.Mapping[str, t.Dict[str, t.Any]],
-                 collection_metadata: t.Mapping[str, AnsibleCollectionMetadata]):
-        self.plugins = plugins
-        self.collection_metadata = collection_metadata
+AnsibleCollectionDocs = t.NamedTuple(
+    'AnsibleCollectionDocs', [
+        # A nested directory structure that looks like:
+        #    plugin_type:
+        #        plugin_name:  # Includes namespace and collection.
+        #            {information from ansible-doc --json.  See the ansible-doc documentation
+        #             for more info.}
+        ('plugins', t.Mapping[str, t.Mapping[str, t.Any]]),
+        # Maps collection name to metadata
+        ('collection_metadata', t.Mapping[str, AnsibleCollectionMetadata])])
