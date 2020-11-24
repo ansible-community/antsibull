@@ -325,14 +325,14 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         flog.notice('Finished writing plugin indexes')
 
     asyncio_run(output_indexes(collection_to_plugin_info, dest_dir,
-                               squash_hierarchy=squash_hierarchy,
-                               collection_metadata=collection_docs.collection_metadata))
+                               collection_metadata=collection_docs.collection_metadata,
+                               squash_hierarchy=squash_hierarchy))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
-                                      squash_hierarchy=squash_hierarchy,
-                                      collection_metadata=collection_docs.collection_metadata))
+                                      collection_metadata=collection_docs.collection_metadata,
+                                      squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing plugin docs')
 
 

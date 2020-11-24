@@ -34,7 +34,7 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCollectionMetadata],
+async def write_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
                     plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                     plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
@@ -44,7 +44,7 @@ async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCol
     Write the rst page for one plugin.
 
     :arg collection_name: Dotted colection name.
-    :arg collection_info: Collection information object (optional).
+    :arg collection_meta: Collection metadata object.
     :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg plugin_record: The record for the plugin.  doc, examples, and return are the
@@ -75,7 +75,7 @@ async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCol
         plugin_contents = error_tmpl.render(
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
-            collection_version=collection_info.version if collection_info else None,
+            collection_version=collection_meta.version,
             nonfatal_errors=nonfatal_errors)
     else:
         if nonfatal_errors:
@@ -86,7 +86,7 @@ async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCol
                                 plugin_name=plugin_name)
         plugin_contents = plugin_tmpl.render(
             collection=collection_name,
-            collection_version=collection_info.version if collection_info else None,
+            collection_version=collection_meta.version,
             plugin_type=plugin_type,
             plugin_name=plugin_name,
             doc=plugin_record['doc'],
@@ -117,9 +117,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                 plugin_info: t.Dict[str, t.Any],
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
-                                squash_hierarchy: bool = False,
-                                collection_metadata: t.Optional[
-                                    t.Mapping[str, AnsibleCollectionMetadata]] = None) -> None:
+                                collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
+                                squash_hierarchy: bool = False) -> None:
     """
     Output rst files for each plugin.
 
@@ -129,20 +128,16 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     :arg nonfatal_errors: Mapping of plugins to nonfatal errors.  Using this to note on the docs
         pages when documentation wasn't formatted such that we could use it.
     :arg dest_dir: The directory to place the documentation in.
+    :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
-    :arg collection_metadata: Optional dictionary mapping collection names to collection info
-                              objects.
     """
     # Setup the jinja environment
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
     plugin_tmpl = env.get_template('plugin.rst.j2')
     error_tmpl = env.get_template('plugin-error.rst.j2')
-
-    if collection_metadata is None:
-        collection_metadata = {}
 
     writers = []
     lib_ctx = app_context.lib_ctx.get()
@@ -153,7 +148,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
                         write_rst(collection_name,
-                                  collection_metadata.get(collection_name),
+                                  collection_metadata.get(collection_name) or
+                                  AnsibleCollectionMetadata.empty(),
                                   plugin_short_name, plugin_type,
                                   plugin_info[plugin_type].get(plugin_name),
                                   nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
@@ -206,7 +202,7 @@ async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
                              dest_dir: str,
-                             collection_info: t.Optional[AnsibleCollectionMetadata]) -> None:
+                             collection_meta: AnsibleCollectionMetadata) -> None:
     """
     Write an index page for each collection.
 
@@ -215,12 +211,12 @@ async def write_plugin_lists(collection_name: str,
     :arg plugin_maps: Mapping of plugin_type to Mapping of plugin_name to short_description.
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
-    :arg collection_info: Information on the collection.
+    :arg collection_meta: Metadata for the collection.
     """
     index_contents = template.render(
         collection_name=collection_name,
         plugin_maps=plugin_maps,
-        collection_version=collection_info.version if collection_info else None)
+        collection_version=collection_meta.version)
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
     # (docs/docsite/rst) is only writable by us.
@@ -300,9 +296,8 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
 
 async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          dest_dir: str,
+                         collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
                          squash_hierarchy: bool = False,
-                         collection_metadata: t.Optional[
-                            t.Mapping[str, AnsibleCollectionMetadata]] = None
                          ) -> None:
     """
     Generate collection-level index pages for the collections.
@@ -310,11 +305,10 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
     :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
         of collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
+    :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
-    :arg collection_metadata: Optional dictionary mapping collection names to collection info
-                              objects.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
