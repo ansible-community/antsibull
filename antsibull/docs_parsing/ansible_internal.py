@@ -11,7 +11,7 @@ import typing as t
 from ..logging import log
 from ..utils.get_pkg_data import get_antsibull_data
 from ..vendored.json_utils import _filter_non_json_lines
-from . import _get_environment, AnsibleCollectionDocs, AnsibleCollectionInfo
+from . import _get_environment, AnsibleCollectionDocs, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -67,11 +67,11 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                 plugin_log.fields(error=plugin_data['error']).error(
                     'Error while extracting documentation. Will not document this plugin.')
 
-    collection_infos = {}
+    collection_metadata = {}
     for collection_name, collection_data in result['collections'].items():
-        collection_infos[collection_name] = AnsibleCollectionInfo(
+        collection_metadata[collection_name] = AnsibleCollectionMetadata(
             path=collection_data['path'],
             version=collection_data.get('version'))
 
     flog.debug('Leave')
-    return AnsibleCollectionDocs(plugin_map, collection_infos)
+    return AnsibleCollectionDocs(plugin_map, collection_metadata)

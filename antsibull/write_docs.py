@@ -16,7 +16,7 @@ from jinja2 import Template
 from . import app_context
 from .jinja2.environment import doc_environment
 from .logging import log
-from .docs_parsing import AnsibleCollectionInfo
+from .docs_parsing import AnsibleCollectionMetadata
 
 
 mlog = log.fields(mod=__name__)
@@ -34,7 +34,7 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCollectionInfo],
+async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCollectionMetadata],
                     plugin_short_name: str, plugin_type: str,
                     plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                     plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
@@ -118,8 +118,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
                                 squash_hierarchy: bool = False,
-                                collection_infos: t.Optional[
-                                    t.Mapping[str, AnsibleCollectionInfo]] = None) -> None:
+                                collection_metadata: t.Optional[
+                                    t.Mapping[str, AnsibleCollectionMetadata]] = None) -> None:
     """
     Output rst files for each plugin.
 
@@ -132,7 +132,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
-    :arg collection_infos: Optional dictionary mapping collection names to collection info objects.
+    :arg collection_metadata: Optional dictionary mapping collection names to collection info
+                              objects.
     """
     # Setup the jinja environment
     env = doc_environment(('antsibull.data', 'docsite'))
@@ -140,8 +141,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     plugin_tmpl = env.get_template('plugin.rst.j2')
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
-    if collection_infos is None:
-        collection_infos = {}
+    if collection_metadata is None:
+        collection_metadata = {}
 
     writers = []
     lib_ctx = app_context.lib_ctx.get()
@@ -152,7 +153,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
                         write_rst(collection_name,
-                                  collection_infos.get(collection_name),
+                                  collection_metadata.get(collection_name),
                                   plugin_short_name, plugin_type,
                                   plugin_info[plugin_type].get(plugin_name),
                                   nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
@@ -205,7 +206,7 @@ async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
                              dest_dir: str,
-                             collection_info: t.Optional[AnsibleCollectionInfo]) -> None:
+                             collection_info: t.Optional[AnsibleCollectionMetadata]) -> None:
     """
     Write an index page for each collection.
 
@@ -300,7 +301,8 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
 async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          dest_dir: str,
                          squash_hierarchy: bool = False,
-                         collection_infos: t.Optional[t.Mapping[str, AnsibleCollectionInfo]] = None
+                         collection_metadata: t.Optional[
+                            t.Mapping[str, AnsibleCollectionMetadata]] = None
                          ) -> None:
     """
     Generate collection-level index pages for the collections.
@@ -311,13 +313,14 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
-    :arg collection_infos: Optional dictionary mapping collection names to collection info objects
+    :arg collection_metadata: Optional dictionary mapping collection names to collection info
+                              objects.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
 
-    if collection_infos is None:
-        collection_infos = {}
+    if collection_metadata is None:
+        collection_metadata = {}
 
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
@@ -344,7 +347,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                 collection_dir = collection_toplevel
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
-                                   collection_dir, collection_infos.get(collection_name))))
+                                   collection_dir, collection_metadata.get(collection_name))))
 
         await asyncio.gather(*writers)
 

@@ -64,7 +64,7 @@ def _get_environment(collection_dir: t.Optional[str]) -> t.Dict[str, str]:
     return env
 
 
-class AnsibleCollectionInfo:
+class AnsibleCollectionMetadata:
     path: str
     version: t.Optional[str]
 
@@ -73,7 +73,7 @@ class AnsibleCollectionInfo:
         self.version = version
 
     def __repr__(self):
-        return 'AnsibleCollectionInfo({0}, {1})'.format(repr(self.path), repr(self.version))
+        return 'AnsibleCollectionMetadata({0}, {1})'.format(repr(self.path), repr(self.version))
 
 
 class AnsibleCollectionDocs:
@@ -84,11 +84,11 @@ class AnsibleCollectionDocs:
     #             info.}
     plugins: t.Mapping[str, t.Mapping[str, t.Any]]
 
-    # Maps collection name to collection version
-    collection_infos: t.Mapping[str, AnsibleCollectionInfo]
+    # Maps collection name to metadata
+    collection_metadata: t.Mapping[str, AnsibleCollectionMetadata]
 
     def __init__(self,
                  plugins: t.Mapping[str, t.Dict[str, t.Any]],
-                 collection_infos: t.Mapping[str, AnsibleCollectionInfo]):
+                 collection_metadata: t.Mapping[str, AnsibleCollectionMetadata]):
         self.plugins = plugins
-        self.collection_infos = collection_infos
+        self.collection_metadata = collection_metadata
