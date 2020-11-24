@@ -123,7 +123,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     Output rst files for each plugin.
 
     :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
-        of collection_name to short_description.
+        of plugin_name to short_description.
     :arg plugin_info: Documentation information for all of the plugins.
     :arg nonfatal_errors: Mapping of plugins to nonfatal errors.  Using this to note on the docs
         pages when documentation wasn't formatted such that we could use it.
@@ -233,7 +233,7 @@ async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
     Generate top-level collection index page for the collections.
 
     :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
-        of collection_name to short_description.
+        of plugin_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     """
     flog = mlog.fields(func='output_collection_index')
@@ -303,7 +303,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
     Generate collection-level index pages for the collections.
 
     :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
-        of collection_name to short_description.
+        of plugin_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
