@@ -113,7 +113,7 @@ async def write_rst(collection_name: str, collection_info: t.Optional[AnsibleCol
     flog.debug('Leave')
 
 
-async def output_all_plugin_rst(collection_info: CollectionInfoT,
+async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                 plugin_info: t.Dict[str, t.Any],
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
@@ -123,8 +123,8 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
     """
     Output rst files for each plugin.
 
-    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
-        collection_name to short_description.
+    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
+        of collection_name to short_description.
     :arg plugin_info: Documentation information for all of the plugins.
     :arg nonfatal_errors: Mapping of plugins to nonfatal errors.  Using this to note on the docs
         pages when documentation wasn't formatted such that we could use it.
@@ -146,7 +146,7 @@ async def output_all_plugin_rst(collection_info: CollectionInfoT,
     writers = []
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        for collection_name, plugins_by_type in collection_info.items():
+        for collection_name, plugins_by_type in collection_to_plugin_info.items():
             for plugin_type, plugins in plugins_by_type.items():
                 for plugin_short_name, dummy_ in plugins.items():
                     plugin_name = '.'.join((collection_name, plugin_short_name))
@@ -230,13 +230,13 @@ async def write_plugin_lists(collection_name: str,
         await f.write(index_contents)
 
 
-async def output_collection_index(collection_info: CollectionInfoT,
+async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
                                   dest_dir: str) -> None:
     """
     Generate top-level collection index page for the collections.
 
-    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
-        collection_name to short_description.
+    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
+        of collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     """
     flog = mlog.fields(func='output_collection_index')
@@ -253,7 +253,7 @@ async def output_collection_index(collection_info: CollectionInfoT,
     # (docs/docsite/rst) is only writable by us.
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
-    await write_collection_list(collection_info.keys(), collection_list_tmpl,
+    await write_collection_list(collection_to_plugin_info.keys(), collection_list_tmpl,
                                 collection_toplevel)
 
     flog.debug('Leave')
@@ -297,7 +297,7 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
     flog.debug('Leave')
 
 
-async def output_indexes(collection_info: CollectionInfoT,
+async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          dest_dir: str,
                          squash_hierarchy: bool = False,
                          collection_infos: t.Optional[t.Mapping[str, AnsibleCollectionInfo]] = None
@@ -305,8 +305,8 @@ async def output_indexes(collection_info: CollectionInfoT,
     """
     Generate collection-level index pages for the collections.
 
-    :arg collection_info: Mapping of collection_name to Mapping of plugin_type to Mapping of
-        collection_name to short_description.
+    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
+        of collection_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
@@ -337,7 +337,7 @@ async def output_indexes(collection_info: CollectionInfoT,
         collection_toplevel = dest_dir
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        for collection_name, plugin_maps in collection_info.items():
+        for collection_name, plugin_maps in collection_to_plugin_info.items():
             if not squash_hierarchy:
                 collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
             else:
