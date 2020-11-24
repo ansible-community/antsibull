@@ -2,25 +2,29 @@
 
 .. _plugins_in_@{collection_name}@:
 
-Plugin Index
-============
+@{collection_name.title()}@
+@{ '=' * (collection_name | length) }@
 
-These are the plugins in the @{collection_name}@ collection
 {% if collection_version %}
-(version @{ collection_version }@)
+Collection version @{ collection_version }@
 {% endif %}
 
 .. toctree::
     :maxdepth: 1
 
+Plugin Index
+------------
+
+These are the plugins in the @{collection_name}@ collection
+
 {% for category, plugins in plugin_maps.items() | sort %}
 
 {% if category == 'module' %}
 Modules
--------
+~~~~~~~
 {% else %}
 @{ category | capitalize }@ Plugins
-@{ '-' * ((category | length) + 8) }@
+@{ '~' * ((category | length) + 8) }@
 {% endif %}
 
 {% for name, desc in plugins.items() | sort %}
