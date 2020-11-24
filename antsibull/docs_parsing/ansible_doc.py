@@ -19,7 +19,7 @@ from ..constants import DOCUMENTABLE_PLUGINS
 from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
-from . import _get_environment, ParsingError, AnsibleCollectionDocs, AnsibleCollectionInfo
+from . import _get_environment, ParsingError, AnsibleCollectionDocs, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
     from ..venv import VenvRunner, FakeVenvRunner
@@ -159,11 +159,11 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
-def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
-                         env: t.Dict[str, str],
-                         collection_names: t.Optional[t.List[str]] = None,
-                         ) -> t.Dict[str, AnsibleCollectionInfo]:
-    collection_infos = {}
+def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
+                            env: t.Dict[str, str],
+                            collection_names: t.Optional[t.List[str]] = None,
+                            ) -> t.Dict[str, AnsibleCollectionMetadata]:
+    collection_metadata = {}
 
     # Obtain ansible.builtin version
     if collection_names is None or 'ansible.builtin' in collection_names:
@@ -177,7 +177,8 @@ def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                 path = line.split('=', 2)[1].strip()
             if line.startswith('ansible '):
                 version = line[len('ansible '):]
-        collection_infos['ansible.builtin'] = AnsibleCollectionInfo(path=path, version=version)
+        collection_metadata['ansible.builtin'] = AnsibleCollectionMetadata(
+            path=path, version=version)
 
     # Obtain collection versions
     venv_ansible_galaxy = venv.get_command('ansible-galaxy')
@@ -195,11 +196,11 @@ def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                 if '.' in collection_name:
                     if collection_names is None or collection_name in collection_names:
                         namespace, name = collection_name.split('.', 2)
-                        collection_infos[collection_name] = AnsibleCollectionInfo(
+                        collection_metadata[collection_name] = AnsibleCollectionMetadata(
                             path=os.path.join(current_base_path, namespace, name),
                             version=None if version == '*' else version)
 
-    return collection_infos
+    return collection_metadata
 
 
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
@@ -285,8 +286,8 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         # done so, we want to then fail by raising one of the exceptions.
         raise ParsingError('Parsing of plugins failed')
 
-    flog.debug('Retrieving collection infos')
-    collection_infos = get_collection_infos(venv, env, collection_names)
+    flog.debug('Retrieving collection metadata')
+    collection_metadata = get_collection_metadata(venv, env, collection_names)
 
     flog.debug('Leave')
-    return AnsibleCollectionDocs(plugin_map, collection_infos)
+    return AnsibleCollectionDocs(plugin_map, collection_metadata)
