@@ -28,6 +28,7 @@ from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner, FakeVenvRunner
 from ...write_docs import (
+    CollectionInfoT,
     output_all_plugin_rst,
     output_collection_index,
     output_indexes,
@@ -221,7 +222,7 @@ def get_plugin_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
 
 
 def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]],
-                            ) -> t.DefaultDict[str, t.Dict[str, t.Mapping[str, str]]]:
+                            ) -> CollectionInfoT:
     """
     Return the plugins which are in each collection.
 
@@ -313,21 +314,22 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     """
 
     plugin_contents = get_plugin_contents(plugin_info, nonfatal_errors)
-    collection_info = get_collection_contents(plugin_contents)
+    collection_to_plugin_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
     # Only build top-level index if requested
     if create_indexes:
-        asyncio_run(output_collection_index(collection_info, dest_dir))
+        asyncio_run(output_collection_index(collection_to_plugin_info, dest_dir))
         flog.notice('Finished writing collection index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
 
-    asyncio_run(output_indexes(collection_info, dest_dir, squash_hierarchy=squash_hierarchy,
+    asyncio_run(output_indexes(collection_to_plugin_info, dest_dir,
+                               squash_hierarchy=squash_hierarchy,
                                collection_infos=collection_docs.collection_infos))
     flog.notice('Finished writing indexes')
 
-    asyncio_run(output_all_plugin_rst(collection_info, plugin_info,
+    asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
                                       squash_hierarchy=squash_hierarchy,
                                       collection_infos=collection_docs.collection_infos))
