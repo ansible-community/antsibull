@@ -160,9 +160,8 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
 
 def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
-                         collection_dir: t.Optional[str],
-                         collection_names: t.Optional[t.List[str]],
                          env: t.Dict[str, str],
+                         collection_names: t.Optional[t.List[str]] = None,
                          ) -> t.Dict[str, AnsibleCollectionInfo]:
     collection_infos = {}
 
@@ -194,10 +193,11 @@ def get_collection_infos(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                 collection_name = parts[0]
                 version = parts[1]
                 if '.' in collection_name:
-                    namespace, name = collection_name.split('.', 2)
-                    collection_infos[collection_name] = AnsibleCollectionInfo(
-                        path=os.path.join(current_base_path, namespace, name),
-                        version=None if version == '*' else version)
+                    if collection_names is None or collection_name in collection_names:
+                        namespace, name = collection_name.split('.', 2)
+                        collection_infos[collection_name] = AnsibleCollectionInfo(
+                            path=os.path.join(current_base_path, namespace, name),
+                            version=None if version == '*' else version)
 
     return collection_infos
 
@@ -286,7 +286,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         raise ParsingError('Parsing of plugins failed')
 
     flog.debug('Retrieving collection infos')
-    collection_infos = get_collection_infos(venv, collection_dir, collection_names, env)
+    collection_infos = get_collection_infos(venv, env, collection_names)
 
     flog.debug('Leave')
     return AnsibleCollectionDocs(plugin_map, collection_infos)
