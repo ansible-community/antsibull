@@ -28,7 +28,6 @@ from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner, FakeVenvRunner
 from ...write_docs import (
-    CollectionInfoT,
     output_all_plugin_rst,
     output_collection_index,
     output_indexes,
