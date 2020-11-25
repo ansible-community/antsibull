@@ -222,7 +222,7 @@ def get_plugin_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
 
 
 def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]],
-                            ) -> CollectionInfoT:
+                            ) -> t.DefaultDict[str, t.Dict[str, t.Mapping[str, str]]]:
     """
     Return the plugins which are in each collection.
 
