@@ -148,8 +148,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
                         write_rst(collection_name,
-                                  collection_metadata.get(collection_name) or
-                                  AnsibleCollectionMetadata.empty(),
+                                  collection_metadata[collection_name],
                                   plugin_short_name, plugin_type,
                                   plugin_info[plugin_type].get(plugin_name),
                                   nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
@@ -341,7 +340,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                 collection_dir = collection_toplevel
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
-                                   collection_dir, collection_metadata.get(collection_name))))
+                                   collection_dir, collection_metadata[collection_name])))
 
         await asyncio.gather(*writers)
 
