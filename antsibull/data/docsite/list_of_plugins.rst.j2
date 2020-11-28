@@ -10,12 +10,25 @@ Index of all @{ plugin_type | capitalize }@ Plugins
 =============@{ '=' * (plugin_type | length) }@========
 {% endif %}
 
-{% for collection_name, plugins in per_collection_plugins.items() | sort %}
+{% if per_collection_plugins %}
+
+{%   if per_collection_plugins | length > 1 %}
+.. contents:: Collections listed below:
+  :local:
+{%   endif %}
+
+{%   for collection_name, plugins in per_collection_plugins.items() | sort %}
 @{ collection_name }@
 @{ '-' * (collection_name | length) }@
 
-{%   for plugin_name, plugin_desc in plugins.items() | sort %}
+{%     for plugin_name, plugin_desc in plugins.items() | sort %}
 * :ref:`@{ collection_name }@.@{ plugin_name }@ <ansible_collections.@{ collection_name }@.@{ plugin_name }@_@{ plugin_type }@>` -- @{ plugin_desc | rst_ify }@
+{%     endfor %}
+
 {%   endfor %}
 
-{% endfor %}
+{% elif plugin_type == 'module' %}
+None of the collections provide modules.
+{% else %}
+None of the collections provide @{ plugin_type }@ plugins.
+{% endif %}
