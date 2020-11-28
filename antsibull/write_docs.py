@@ -197,6 +197,21 @@ async def write_plugin_type_index(plugin_type: str,
         await f.write(index_contents)
 
 
+async def write_plugin_index_list(plugin_types: t.List[str], template: Template,
+                                  dest_filename: str) -> None:
+    """
+    Write an index page for all plugin types.
+
+    :arg plugin_types: List of plugin types for this index.
+    :arg template: A template to render the plugin type index.
+    :arg dest_filename: The destination filename.
+    """
+    index_contents = template.render(plugin_types=plugin_types)
+
+    async with aiofiles.open(dest_filename, 'w') as f:
+        await f.write(index_contents)
+
+
 async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
@@ -270,6 +285,7 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
     plugin_list_tmpl = env.get_template('list_of_plugins.rst.j2')
+    plugin_index_list_tmpl = env.get_template('list_of_plugin_indexes.rst.j2')
 
     collection_toplevel = os.path.join(dest_dir, 'collections')
     flog.fields(toplevel=collection_toplevel, exists=os.path.isdir(collection_toplevel)).debug(
@@ -287,6 +303,12 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
             writers.append(await pool.spawn(
                 write_plugin_type_index(
                     plugin_type, per_collection_data, plugin_list_tmpl, filename)))
+
+        filename = os.path.join(
+            collection_toplevel, 'all_indexes.rst')
+        writers.append(await pool.spawn(
+            write_plugin_index_list(
+                sorted(plugin_info.keys()), plugin_index_list_tmpl, filename)))
 
         await asyncio.gather(*writers)
 
