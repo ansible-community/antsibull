@@ -37,13 +37,24 @@ below.
 Building Ansible
 ~~~~~~~~~~~~~~~~
 
-Setup for the first alpha release
+Setup for building the first time
 `````````````````````````````````
+
+If you haven't built Ansible before, you'll need a checkout of the ansible-build-data repo.  This
+repo is where information about the release is saved:
 
 .. code-block:: shell
 
     # Setup steps for building for the first time:
     git clone git@github.com:ansible-community/ansible-build-data.git
+
+Setup for the first alpha release
+`````````````````````````````````
+
+When the first alpha is created, we need to make the directory for the new major version:
+
+.. code-block:: shell
+
     mkdir ansible-build-data/2.11
     # Copy from previous version
     cp ansible-build-data/2.10/ansible.in ansible-build-data/2.11/
@@ -165,6 +176,12 @@ We want to sync docs and releases.  So the first thing to do is to alert the doc
 ``#ansible-docs`` that we're making a release (they should know ahead of time if they're watching the
 schedule too).
 
+* In patch releases, check the porting guide for unwanted breaking changes (collections that are new
+  in this patch release are allowed to have breaking changes but existing collections should not.)
+
+  * Fixing this requires manually changing the .deps file and re-running rebuild-single (and then
+    pinging the collection maintainer to find out what should happen for the next release.)
+
 * Merge the porting guide PR.
 * Build Ansible Docs to docs.ansible.com
 * Upload the tarball to pypi::
@@ -188,6 +205,7 @@ For final, send to ansible-devel, ansible-project, and ansible-announce.
 
 Post a link to the mailing list post to the #ansible and #ansible-devel irc channels.
 
+Update the topic in the #ansible channel with the new version
 
 TODO
 ====
