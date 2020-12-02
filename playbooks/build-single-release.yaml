@@ -1,0 +1,8 @@
+---
+- name: Build a single Ansible release
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: Include build-release role
+      include_role:
+        name: build-release
