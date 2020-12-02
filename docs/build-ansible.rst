@@ -40,7 +40,7 @@ Building Ansible
 Setup for building the first time
 `````````````````````````````````
 
-If you haven't built Ansible before, you'll need a checkout of the ansible-build-data repo.  This
+If you haven't built Ansible before, you'll need a checkout of the `ansible-build-data <https://github.com/ansible-community/ansible-build-data>`_ repo.  This
 repo is where information about the release is saved:
 
 .. code-block:: shell
