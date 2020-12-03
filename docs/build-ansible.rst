@@ -196,6 +196,8 @@ Announcing Ansible
 * Change the version numbers.
 * Change the sha256sum
 * Add any info specific to this release.
+  * Send any important information (like one-off changes to the release schedule) from here to
+    `The Bullhorn <https://meet.google.com/eja-xdrg-pqi>`_
 
 For alphas, send to ansible-devel@googlegroups.com
 
