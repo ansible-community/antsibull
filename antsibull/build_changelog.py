@@ -44,6 +44,47 @@ def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGenerator
     return entry
 
 
+def _add_rst_table_row(builder: RstBuilder, column_widths: t.List[int], row: t.List[str]):
+    lines = [[''] * len(column_widths)]
+    for i, value in enumerate(row):
+        for j, line in enumerate(value.splitlines()):
+            if j >= len(lines):
+                lines.append([''] * len(column_widths))
+            lines[j][i] = line
+    for line in lines:
+        parts = ['|']
+        for j, cell in enumerate(line):
+            parts.append(' ' + cell + ' ' * (1 + column_widths[j] - len(cell)) + '|')
+        builder.add_raw_rst(''.join(parts))
+
+
+def _add_rst_table_line(builder: RstBuilder, column_widths: t.List[int], sep: str):
+    parts = ['+']
+    for w in column_widths:
+        parts.append(sep * (w + 2) + '+')
+    builder.add_raw_rst(''.join(parts))
+
+
+def render_rst_table(builder: RstBuilder, headings: t.List[str],
+                     cells: t.List[t.List[str]]) -> None:
+    # Determine column widths
+    column_widths = []
+    for row in [headings] + cells:
+        while len(row) > len(column_widths):
+            column_widths.append(0)
+        for i, value in enumerate(row):
+            for line in value.splitlines():
+                column_widths[i] = max(column_widths[i], len(line))
+
+    # Add rows
+    _add_rst_table_line(builder, column_widths, '-')
+    _add_rst_table_row(builder, column_widths, headings)
+    _add_rst_table_line(builder, column_widths, '=')
+    for row in cells:
+        _add_rst_table_row(builder, column_widths, row)
+        _add_rst_table_line(builder, column_widths, '-')
+
+
 def append_changelog_changes_collections(builder: RstBuilder,
                                          collection_metadata: CollectionsMetadata,
                                          changelog_entry: ChangelogEntry,
@@ -55,20 +96,14 @@ def append_changelog_changes_collections(builder: RstBuilder,
         builder.add_raw_rst(
             'If not mentioned explicitly, the changes are reported in the combined changelog'
             ' below.\n')
+        headings = ['Collection', 'Previous version', 'New version', 'Notes']
+        cells = []
         for (
                 collector, collection_version, prev_collection_version
         ) in changelog_entry.changed_collections:
-            if is_last:
-                msg = f"{collector.collection} with version {collection_version}."
-                if prev_collection_version is not None:
-                    msg += f" This was upgraded from version {prev_collection_version}."
-            else:
-                if prev_collection_version is None:
-                    msg = f"{collector.collection} was upgraded to version {collection_version}."
-                else:
-                    msg = f"{collector.collection} was upgraded from"
-                    msg += f" version {prev_collection_version} to version {collection_version}."
-            msg += "\n"
+            row = [collector.collection, '', str(collection_version), '']
+            if prev_collection_version is not None:
+                row[1] = str(prev_collection_version)
             changelog = collector.changelog
             if changelog:
                 release_entries = changelog.generator.collect(
@@ -76,9 +111,9 @@ def append_changelog_changes_collections(builder: RstBuilder,
                     after_version=prev_collection_version,
                     until_version=collection_version)
                 if not release_entries:
-                    msg += "The collection did not have a changelog in this version."
+                    row[-1] = "The collection did not have a changelog in this version."
                 elif release_entries[0].empty:
-                    msg += "There are no changes recorded in the changelog."
+                    row[-1] = "There are no changes recorded in the changelog."
                 else:
                     result.append((
                         collector.collection,
@@ -88,13 +123,17 @@ def append_changelog_changes_collections(builder: RstBuilder,
             else:
                 metadata = collection_metadata.get_meta(collector.collection)
                 if metadata.changelog_url is not None:
-                    msg += "You can find the collection's changelog at"
-                    msg += f" `{metadata.changelog_url} <{metadata.changelog_url}>`_."
+                    row[-1] = (
+                        "You can find the collection's changelog at"
+                        f" `{metadata.changelog_url} <{metadata.changelog_url}>`_."
+                    )
                 else:
-                    msg += "Unfortunately, this collection does not provide changelog data in a"
-                    msg += " format that can be processed by the changelog generator."
-
-            builder.add_list_item(msg.rstrip())
+                    row[-1] = (
+                        "Unfortunately, this collection does not provide changelog data in a"
+                        " format that can be processed by the changelog generator."
+                    )
+            cells.append(row)
+        render_rst_table(builder, headings, cells)
         builder.add_raw_rst('')
 
     return result
