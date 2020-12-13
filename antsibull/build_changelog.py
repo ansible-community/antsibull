@@ -52,6 +52,9 @@ def append_changelog_changes_collections(builder: RstBuilder,
 
     if changelog_entry.changed_collections:
         builder.add_section('Included Collections' if is_last else 'Changed Collections', 1)
+        builder.add_raw_rst(
+            'If not mentioned explicitly, the changes are reported in the combined changelog'
+            ' below.\n')
         for (
                 collector, collection_version, prev_collection_version
         ) in changelog_entry.changed_collections:
@@ -82,7 +85,6 @@ def append_changelog_changes_collections(builder: RstBuilder,
                         f"{collector.collection}.",
                         changelog.generator,
                         optimize_release_entry(release_entries[0])))
-                    msg += "The changes are reported in the combined changelog below."
             else:
                 metadata = collection_metadata.get_meta(collector.collection)
                 if metadata.changelog_url is not None:
@@ -92,7 +94,7 @@ def append_changelog_changes_collections(builder: RstBuilder,
                     msg += "Unfortunately, this collection does not provide changelog data in a"
                     msg += " format that can be processed by the changelog generator."
 
-            builder.add_list_item(msg)
+            builder.add_list_item(msg.rstrip())
         builder.add_raw_rst('')
 
     return result
