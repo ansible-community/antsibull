@@ -96,7 +96,12 @@ def append_changelog_changes_collections(builder: RstBuilder,
         builder.add_raw_rst(
             'If not mentioned explicitly, the changes are reported in the combined changelog'
             ' below.\n')
-        headings = ['Collection', 'Previous version', 'New version', 'Notes']
+        headings = [
+            'Collection',
+            f'Ansible {changelog_entry.prev_version}',
+            f'Ansible {changelog_entry.version_str}',
+            'Notes'
+        ]
         cells = []
         for (
                 collector, collection_version, prev_collection_version
