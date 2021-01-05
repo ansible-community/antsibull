@@ -48,7 +48,7 @@ class RetryGetManager:
 
         error_codes = []
         for retry in range(self.max_retries):
-            flog.debug('Execute {0}'.format(self.call_string))
+            flog.debug('Execute {0}', self.call_string)
             try:
                 response = await self.aio_session.get(*self.args, **self.kwargs)
                 status_code = response.status
