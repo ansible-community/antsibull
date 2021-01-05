@@ -77,7 +77,7 @@ All alpha releases and the first beta
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.0a1 --data-dir ansible-build-data/2.11 --sdist-dir built
+    antsibull-build single 2.11.0a1 --data-dir ansible-build-data/2.11 --sdist-dir built --debian
 
 
 Beta2 up to and including rc1
@@ -91,7 +91,7 @@ Beta2 up to and including rc1
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.0b2 --feature-frozen --data-dir ansible-build-data/2.11 --sdist-dir built
+    antsibull-build single 2.11.0b2 --feature-frozen --data-dir ansible-build-data/2.11 --sdist-dir built --debian
 
 
 Any subsequent rcs and final
@@ -111,7 +111,7 @@ Any subsequent rcs and final
     # vim ansible-build-data/ansible-2.11.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 2.11.0rc2 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0rc2.deps --sdist-dir built
+    antsibull-build rebuild-single 2.11.0rc2 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0rc2.deps --sdist-dir built --debian
 
 
 New patch releases (2.11.Z)
@@ -125,7 +125,7 @@ New patch releases (2.11.Z)
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.1 --data-dir ansible-build-data/2.11 --sdist-dir built
+    antsibull-build single 2.11.1 --data-dir ansible-build-data/2.11 --sdist-dir built --debian
 
     # Until we get separate versions for ansible-base working correctly:
     # https://github.com/ansible-community/antsibull/issues/187
@@ -136,7 +136,7 @@ New patch releases (2.11.Z)
 
     rm -rf built
     mkdir built
-    antsibull-build rebuild-single 2.11.1 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built
+    antsibull-build rebuild-single 2.11.1 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built --debian
 
 
 Recording release information
