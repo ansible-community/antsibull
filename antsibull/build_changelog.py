@@ -375,7 +375,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
         next(maybe_add_section_title)
         if name:
             builder.add_section(name, 2)
-        entries[0].add_section_content(builder, section)
+        optimize_release_entry(entries[0]).add_section_content(builder, section)
         builder.add_raw_rst('')
 
     check_changelog(
