@@ -49,25 +49,24 @@ def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
     ansible_base_version: Optional[str] = None
     ansible_version: Optional[str] = None
 
-    with open(filename, 'r') as f:
-        for line in f:
-            record = [entry.strip() for entry in line.split(':', 1)]
+    for line in parse_pieces_file(filename):
+        record = [entry.strip() for entry in line.split(':', 1)]
 
-            if record[0] in ('_ansible_version', '_acd_version'):
-                if ansible_version is not None:
-                    raise InvalidFileFormat(f'{filename} specified _ansible_version/_acd_version'
-                                            ' more than once')
-                ansible_version = record[1]
-                continue
+        if record[0] in ('_ansible_version', '_acd_version'):
+            if ansible_version is not None:
+                raise InvalidFileFormat(f'{filename} specified _ansible_version/_acd_version'
+                                        ' more than once')
+            ansible_version = record[1]
+            continue
 
-            if record[0] == '_ansible_base_version':
-                if ansible_base_version is not None:
-                    raise InvalidFileFormat(f'{filename} specified _ansible_base_version'
-                                            ' more' ' than once')
-                ansible_base_version = record[1]
-                continue
+        if record[0] == '_ansible_base_version':
+            if ansible_base_version is not None:
+                raise InvalidFileFormat(f'{filename} specified _ansible_base_version'
+                                        ' more' ' than once')
+            ansible_base_version = record[1]
+            continue
 
-            deps[record[0]] = record[1]
+        deps[record[0]] = record[1]
 
     if ansible_base_version is None or ansible_version is None:
         raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
