@@ -454,9 +454,11 @@ class ReleaseNotes:
     @staticmethod
     def _get_changelog_bytes(changelog: Changelog) -> bytes:
         builder = RstBuilder()
-        builder.set_title(
-            f"Ansible {changelog.ansible_version.major}.{changelog.ansible_version.minor}"
-            " Release Notes")
+        if changelog.ansible_version.major > 2:
+            version = f"{changelog.ansible_version.major}"
+        else:
+            version = f"{changelog.ansible_version.major}.{changelog.ansible_version.minor}"
+        builder.set_title(f"Ansible {version} Release Notes")
 
         if changelog.ansible_ancestor_version:
             builder.add_raw_rst(
