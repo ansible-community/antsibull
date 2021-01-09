@@ -106,13 +106,13 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
     if args.command not in ('single', 'multiple', 'rebuild-single'):
         return
 
+    version_prefix = (
+        f'-{args.ansible_version.major}' if args.ansible_version.major > 2
+        else f'-{args.ansible_version.major}.{args.ansible_version.minor}'
+    )
+
     if args.build_file is None:
-        if args.ansible_version.major > 2:
-            args.build_file = (DEFAULT_FILE_BASE
-                               + f'-{args.ansible_version.major}.build')
-        else:
-            args.build_file = (DEFAULT_FILE_BASE
-                               + f'-{args.ansible_version.major}.{args.ansible_version.minor}.build')
+        args.build_file = DEFAULT_FILE_BASE + f'-{version_prefix}.build'
 
     build_filename = os.path.join(args.data_dir, args.build_file)
     if not os.path.isfile(build_filename):
@@ -121,13 +121,10 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
                                    ' of versions per line')
 
     if args.deps_file is None:
-        if args.ansible_version.major > 2:
-            major_minor = f'-{args.ansible_version.major}'
-        else:
-            major_minor = f'-{args.ansible_version.major}.{args.ansible_version.minor}'
+        version_suffix = f'-{version_prefix}'
         basename = os.path.basename(os.path.splitext(args.build_file)[0])
-        if basename.endswith(major_minor):
-            basename = basename[:-len(major_minor)]
+        if basename.endswith(version_suffix):
+            basename = basename[:-len(version_suffix)]
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 

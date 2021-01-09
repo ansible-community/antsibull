@@ -477,6 +477,27 @@ class ReleaseNotes:
         return builder.generate().encode('utf-8')
 
     @staticmethod
+    def _append_base_porting_guide_bytes(builder: RstBuilder, changelog: Changelog) -> None:
+        base_porting_guide = changelog.base_collector.porting_guide
+        if base_porting_guide:
+            lines = base_porting_guide.decode('utf-8').splitlines()
+            lines.append('')
+            found_topics = False
+            found_empty = False
+            for line in lines:
+                if not found_topics:
+                    if line.startswith('.. contents::'):
+                        found_topics = True
+                    continue
+                if not found_empty:
+                    if line == '':
+                        found_empty = True
+                    continue
+                builder.add_raw_rst(line)
+            if not found_empty:
+                print('WARNING: cannot find TOC of ansible-base porting guide!')
+
+    @staticmethod
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
         if changelog.ansible_version.major > 2:
             version = f"{changelog.ansible_version.major}"
@@ -502,16 +523,18 @@ class ReleaseNotes:
                 " Collections on `Ansible Galaxy <https://galaxy.ansible.com>`_. Your playbooks"
                 " should continue to work without any changes. We recommend you start using the"
                 " fully-qualified collection name (FQCN) in your playbooks as the explicit and"
-                " authoritative indicator of which collection to use as some collections may contain"
-                " duplicate module names."
+                " authoritative indicator of which collection to use as some collections may"
+                " contain duplicate module names."
                 "\n\n"
-                "This section discusses the behavioral changes between Ansible 2.9 and Ansible 2.10."
+                "This section discusses the behavioral changes between Ansible 2.9 and"
+                " Ansible 2.10."
                 "\n\n"
                 "It is intended to assist in updating your playbooks, plugins and other parts of"
                 " your Ansible infrastructure so they will work with this version of Ansible."
                 "\n\n"
                 "We suggest you read this page along with the `Ansible Changelog for 2.10 <https://"
-                "github.com/ansible-community/ansible-build-data/blob/main/2.10/CHANGELOG-v2.10.rst>`_"
+                "github.com/ansible-community/ansible-build-data/blob/main/2.10/"
+                "CHANGELOG-v2.10.rst>`_"
                 " to understand what updates you may need to make."
                 "\n\n"
                 "Since 2.10, Ansible consists of two parts:\n\n"
@@ -527,24 +550,7 @@ class ReleaseNotes:
 
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        base_porting_guide = changelog.base_collector.porting_guide
-        if base_porting_guide:
-            lines = base_porting_guide.decode('utf-8').splitlines()
-            lines.append('')
-            found_topics = False
-            found_empty = False
-            for line in lines:
-                if not found_topics:
-                    if line.startswith('.. contents::'):
-                        found_topics = True
-                    continue
-                if not found_empty:
-                    if line == '':
-                        found_empty = True
-                    continue
-                builder.add_raw_rst(line)
-            if not found_empty:
-                print('WARNING: cannot find TOC of ansible-base porting guide!')
+        ReleaseNotes._append_base_porting_guide_bytes(builder, changelog)
 
         for porting_guide_entry in changelog.entries:
             if not porting_guide_entry.is_ancestor:
