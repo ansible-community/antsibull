@@ -24,7 +24,7 @@ antsibull-docs = "antsibull.cli.antsibull_docs:main"
 [tool.poetry.dependencies]
 python = "^3.6.0"
 aiofiles = "*"
-aiohttp = "*"
+aiohttp = ">= 3.0.0"
 jinja2 = "*"
 # major/minor was introduced here
 packaging = ">= 20.0"
