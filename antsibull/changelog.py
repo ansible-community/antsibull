@@ -306,7 +306,7 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
 class ChangelogEntry:
     version: PypiVer
     version_str: str
-    is_ancester: bool
+    is_ancestor: bool
 
     prev_version: t.Optional[PypiVer]
     base_versions: t.Dict[PypiVer, str]
