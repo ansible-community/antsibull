@@ -157,7 +157,11 @@ class BuildFile:
         records.sort()
 
         with open(self.filename, 'w') as f:
-            f.write(f'_ansible_version: {ansible_version.major}.{ansible_version.minor}\n')
+            if ansible_version.major > 2:
+                # Ansible 3.0.0 and newer use semver, so we only need the major version
+                f.write(f'_ansible_version: {ansible_version.major}\n')
+            else:
+                f.write(f'_ansible_version: {ansible_version.major}.{ansible_version.minor}\n')
             f.write(f'_ansible_base_version: {ansible_base_version}\n')
             f.write('\n'.join(records))
             f.write('\n')
