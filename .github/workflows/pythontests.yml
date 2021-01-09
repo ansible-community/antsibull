@@ -28,6 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install poetry
           poetry install
+          poetry update
       - name: Test with pytest and upload coverage stats
         run: |
           ./test-pytest.sh
