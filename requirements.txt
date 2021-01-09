@@ -1,5 +1,5 @@
 aiofiles
-aiohttp
+aiohttp>=3.0.0
 jinja2
 packaging
 semantic_version
