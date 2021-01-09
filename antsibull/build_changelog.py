@@ -466,12 +466,13 @@ class ReleaseNotes:
 
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        for index, changelog_entry in enumerate(changelog.entries):
+        entries = [entry for entry in changelog.entries if not entry.is_ancestor]
+        for index, changelog_entry in enumerate(entries):
             append_changelog(
                 builder,
                 changelog.collection_metadata,
                 changelog_entry,
-                is_last=index + 1 == len(changelog.entries))
+                is_last=index + 1 == len(entries))
 
         return builder.generate().encode('utf-8')
 
@@ -544,7 +545,8 @@ class ReleaseNotes:
                 print('WARNING: cannot find TOC of ansible-base porting guide!')
 
         for porting_guide_entry in changelog.entries:
-            append_porting_guide(builder, porting_guide_entry)
+            if not porting_guide_entry.is_ancestor:
+                append_porting_guide(builder, porting_guide_entry)
 
         return builder.generate().encode('utf-8')
 

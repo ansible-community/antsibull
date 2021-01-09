@@ -306,6 +306,7 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
 class ChangelogEntry:
     version: PypiVer
     version_str: str
+    is_ancester: bool
 
     prev_version: t.Optional[PypiVer]
     base_versions: t.Dict[PypiVer, str]
@@ -334,6 +335,7 @@ class ChangelogEntry:
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
         self.version_str = version_str
+        self.is_ancestor = False if ancestor_version is None else ancestor_version == version
         self.prev_version = prev_version = prev_version or ancestor_version
         self.base_versions = base_versions
         self.versions_per_collection = versions_per_collection
