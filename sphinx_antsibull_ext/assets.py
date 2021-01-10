@@ -42,4 +42,7 @@ def setup_assets(app):
 
     # Add CSS files
     for file in CSS_FILES:
-        app.add_css_file(file)
+        try:
+            app.add_css_file(file)
+        except AttributeError:
+            app.add_stylesheet(file)
