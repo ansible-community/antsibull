@@ -45,4 +45,5 @@ def setup_assets(app):
         try:
             app.add_css_file(file)
         except AttributeError:
+            # Compat for Sphinx < 1.8
             app.add_stylesheet(file)
