@@ -68,9 +68,12 @@ def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
 
         deps[record[0]] = record[1]
 
-    if ansible_base_version is None or ansible_version is None:
+    if ansible_base_version is None:
         raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
-                                ' required fields')
+                                ' the required ansible_base_version field')
+    if ansible_version is None:
+        raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
+                                ' the required ansible_version field')
 
     return DependencyFileData(ansible_version, ansible_base_version, deps)
 
