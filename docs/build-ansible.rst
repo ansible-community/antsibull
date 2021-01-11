@@ -18,6 +18,8 @@ Setup for running from source
 
 antsibull uses the ``poetry`` tool to build and install::
 
+    # We have had reports of failed builds using macOS, you may want to consider using the ``python:3.9.1`` docker image if you are running macOS to build.
+
     # Install poetry
     python3 -m pip install poetry
 
@@ -47,6 +49,9 @@ repo is where information about the release is saved:
 
     # Setup steps for building for the first time:
     git clone git@github.com:ansible-community/ansible-build-data.git
+
+    # Fork and clone github.com/ansible/ansible
+    git clone git@github.com:${USER}/ansible.git
 
 Setup for the first alpha release
 `````````````````````````````````
@@ -144,6 +149,15 @@ Recording release information
 
 .. code-block:: shell
 
+    # Update the porting guide (check for breaking changes)
+    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guides/
+    cd ansible
+    git checkout -b update-porting-guide
+    git add docs/docsite/rst/porting_guides/
+    git commit -m 'Update the porting guide for a new ansible version'
+    # git push and open a PR
+    cd ..
+
     # Record the files used to build:
     export ANSIBLE_VERSION=2.11.0a1
     cd ansible-build-data/2.11
@@ -153,15 +167,6 @@ Recording release information
     git tag $ANSIBLE_VERSION
     git push --tags
     cd ../..
-
-    # Update the porting guide
-    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guides/
-    cd ansible
-    git checkout -b update-porting-guide
-    git add docs/docsite/rst/porting_guides/
-    git commit -a -m 'Update the porting guide for a new ansible version'
-    # git push and open a PR
-    cd ..
 
     # Then we can test installation with pip:
     python -m pip install --user built/ansible-2.11.0a1.tar.gz
@@ -198,7 +203,7 @@ Announcing Ansible
 * Add any info specific to this release.
 
   * Send any important information (like one-off changes to the release schedule) from here to
-  
+
     `The Bullhorn <https://github.com/ansible/community/issues/546>`_
 
 For alphas, send to ansible-devel@googlegroups.com
