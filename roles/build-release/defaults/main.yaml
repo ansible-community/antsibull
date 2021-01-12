@@ -6,14 +6,14 @@ antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 antsibull_build_file: "ansible-2.10.build"
 
 # The deps file
-antsibull_deps_file: "ansible-2.10.4.deps"
+antsibull_deps_file: "ansible-2.10.5.deps"
 
 # Where to get the ansible-build-data repository from
 antsibull_data_git_repo: "https://github.com/ansible-community/ansible-build-data"
 
 # The tag (or branch) of the ansible-build-data git repo to checkout
 # Could be "main", "devel", etc
-antsibull_data_version: 2.10.4
+antsibull_data_version: 2.10.5
 
 # Where the ansible-build-data git repository will be cloned to
 antsibull_data_git_dir: "{{ antsibull_sdist_dir }}/ansible-build-data"
@@ -31,7 +31,7 @@ antsibull_ansible_git_version: "stable-2.10"
 antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
 
 # The version of ansible to build
-antsibull_ansible_version: 2.10.4
+antsibull_ansible_version: 2.10.5
 
 # Where the Ansible release tarball will be installed for test purposes
 antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
