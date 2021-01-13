@@ -60,9 +60,15 @@ When the first alpha is created, we need to make the directory for the new major
 
 .. code-block:: shell
 
-    mkdir ansible-build-data/2.11
+    mkdir ansible-build-data/3
+    cd ansible-build-data/3
     # Copy from previous version
-    cp ansible-build-data/2.10/ansible.in ansible-build-data/2.11/
+    cp ../2.10/ansible.in .
+    cp ../2.10/collection-meta.yaml .
+    # Link initial release of previous version as changelog ancestor
+    ln -s ../2.10/ansible-2.10.0.deps ancestor.deps
+    # Create changelog stub with ancestor
+    echo -n "ancestor: 2.10.0\nreleases: {}" > changelog.yaml
     # Make any additions or subtractions to the set of collections in the ansible.in file
 
 
@@ -78,11 +84,11 @@ All alpha releases and the first beta
     mkdir built
 
     # Generate the list of compatible versions.
-    antsibull-build new-ansible 2.11.0a1 --data-dir ansible-build-data/2.11
+    antsibull-build new-ansible 3.0.0a1 --data-dir ansible-build-data/3
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.0a1 --data-dir ansible-build-data/2.11 --sdist-dir built --debian
+    antsibull-build single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
 Beta2 up to and including rc1
@@ -96,7 +102,7 @@ Beta2 up to and including rc1
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.0b2 --feature-frozen --data-dir ansible-build-data/2.11 --sdist-dir built --debian
+    antsibull-build single 3.0.0b2 --feature-frozen --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
 Any subsequent rcs and final
@@ -105,22 +111,22 @@ Any subsequent rcs and final
 .. code-block:: shell
 
     # Copy the previous rc's .deps file to the new rc version
-    cp ansible-build-data/2.11/ansible-2.11.0rc1.deps ansible-build-data/2.11/ansible-2.11.0rc2.deps
+    cp ansible-build-data/3/ansible-3.0.0rc1.deps ansible-build-data/3/ansible-3.0.0rc2.deps
 
     # We do not run antsibull-build single because the compatible collection version information
     # is now set until final.
     # If ansible-base needs a version update, change it in the .build and .deps file.
     # If any collections have been granted an update exception, change the range manually in the
     # .build and .deps file.
-    # vim ansible-build-data/ansible-2.11.build
-    # vim ansible-build-data/ansible-2.11.0rc2.deps
+    # vim ansible-build-data/3/ansible-3.build
+    # vim ansible-build-data/3/ansible-3.0.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 2.11.0rc2 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.0rc2.deps --sdist-dir built --debian
+    antsibull-build rebuild-single 3.0.0rc2 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.0.0rc2.deps --sdist-dir built --debian
 
 
-New patch releases (2.11.Z)
----------------------------
+New minor releases (3.Y.0)
+--------------------------
 
 .. code-block:: shell
 
@@ -130,18 +136,18 @@ New patch releases (2.11.Z)
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 2.11.1 --data-dir ansible-build-data/2.11 --sdist-dir built --debian
+    antsibull-build single 3.1.0 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
     # Until we get separate versions for ansible-base working correctly:
     # https://github.com/ansible-community/antsibull/issues/187
     # We'll need to update the ansible-base version manually and then rebuild the release. Follow
     # these steps after running antsibull-build single above:
-    # vim ansible-build-data/2.11/ansible-2.11.1.deps
+    # vim ansible-build-data/3/ansible-3.1.0.deps
     # Change the ansible-base version information in here to the latest compatible version on pypi
 
     rm -rf built
     mkdir built
-    antsibull-build rebuild-single 2.11.1 --data-dir ansible-build-data/2.11 --build-file ansible-2.11.build --deps-file ansible-2.11.1.deps --sdist-dir built --debian
+    antsibull-build rebuild-single 3.1.0 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.1.0.deps --sdist-dir built --debian
 
 
 Recording release information
@@ -150,7 +156,7 @@ Recording release information
 .. code-block:: shell
 
     # Update the porting guide (check for breaking changes)
-    cp ansible-build-data/2.11/porting_guide_2.11.rst ansible/docs/docsite/rst/porting_guides/
+    cp ansible-build-data/3/porting_guide_3.rst ansible/docs/docsite/rst/porting_guides/
     cd ansible
     git checkout -b update-porting-guide
     git add docs/docsite/rst/porting_guides/
@@ -159,9 +165,9 @@ Recording release information
     cd ..
 
     # Record the files used to build:
-    export ANSIBLE_VERSION=2.11.0a1
-    cd ansible-build-data/2.11
-    git add ansible-2.11.build "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v2.11.rst
+    export ANSIBLE_VERSION=3.0.0a1
+    cd ansible-build-data/3
+    git add ansible-3.build "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v3.rst
     git commit -m "Collection dependency information for ansible $ANSIBLE_VERSION"
     git push
     git tag $ANSIBLE_VERSION
@@ -169,7 +175,7 @@ Recording release information
     cd ../..
 
     # Then we can test installation with pip:
-    python -m pip install --user built/ansible-2.11.0a1.tar.gz
+    python -m pip install --user built/ansible-3.0.0a1.tar.gz
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
 
@@ -191,7 +197,7 @@ schedule too).
 * Build Ansible Docs to docs.ansible.com
 * Upload the tarball to pypi::
 
-    twine upload built/ansible-2.11.0.tar.gz
+    twine upload built/ansible-3.0.0.tar.gz
 
 
 Announcing Ansible
@@ -222,6 +228,6 @@ TODO
 ====
 
 * Right now the script assumes ansible-base and ansible will have the same version.  This is true
-  for 2.10 and possibly for 2.11 but in the longer term ansible-base major releases are going to
+  for 2.10 and possibly for 3 but in the longer term ansible-base major releases are going to
   slow down while ansible releases may speed up slightly.  We'll need to adapt the script to handle
   these diverged versions.
