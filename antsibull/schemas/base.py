@@ -134,7 +134,7 @@ REQUIRED_ENV_VAR_F = p.Field(..., regex='[A-Z_]+')
 
 #: option types are a set of strings that represent the types handled by argspec.
 OPTION_TYPE_F = p.Field('str', regex='^(bits|bool|bytes|dict|float|int|json|jsonarg|list'
-                        '|path|raw|sid|str)$')
+                        '|path|raw|sid|str|tmp|temppath|tmppath|pathspec|pathlist)$')
 
 #: Constrained string type for version numbers
 REQUIRED_VERSION_F = p.Field(..., regex='^([0-9][0-9.]+)$')
@@ -152,7 +152,7 @@ COLLECTION_NAME_F = p.Field(default='', regex='^([^.]+\\.[^.]+)$')
 REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F = p.Field('', regex='^([^.]+\\.[^.]+)?$')
 
 #: Constrained string listing the possible types of a return field
-RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str)$')
+RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str|path|raw)$')
 
 
 def is_json_value(value: t.Any) -> bool:
