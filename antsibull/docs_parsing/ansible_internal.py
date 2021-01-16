@@ -25,7 +25,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_names: t.Optional[t.List[str]] = None
                                   ) -> t.Tuple[
                                       t.Mapping[str, t.Mapping[str, t.Any]],
-                                      t.Mapping[str, t.Any]]:
+                                      t.Mapping[str, AnsibleCollectionMetadata]]:
     """
     Retrieve information about all of the Ansible Plugins.
 
