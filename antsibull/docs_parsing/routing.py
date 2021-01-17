@@ -33,6 +33,12 @@ from .fqcn import get_fqcn_parts
 CollectionRoutingT = t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]
 
 
+COLLECTIONS_WITH_FLATMAPPING = (
+    'community.general',
+    'community.network',
+)
+
+
 def add_symlink(collection_name: str, src_components: t.List[str], dest_components: t.List[str],
                 plugin_type_routing: t.Dict[str, t.Dict[str, t.Any]]) -> None:
     """
@@ -99,6 +105,75 @@ def process_dates(plugin_record: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     return plugin_record
 
 
+def find_flatmapping_short_long_maps(plugin_routing_type: t.Dict[str, t.Dict[str, t.Any]],
+                                     ) -> t.Tuple[t.Mapping[str, str],
+                                                  t.Mapping[str, t.Tuple[str, bool]]]:
+    """
+    Collect all short and long names, and mappings between them.
+
+    Short names are FQCN like community.general.rax_facts, and long names are FQCN like
+    community.general.cloud.rackspace.rax_facts.
+
+    Returns two tuples. The first element maps short names to long names. The second element
+    maps long names to pairs (short name, is symbolic link).
+    """
+    shortname_to_longname: t.Dict[str, str] = {}
+    longname_to_shortname: t.Dict[str, t.Tuple[str, bool]] = {}
+    for plugin_name, routing_data in plugin_routing_type.items():
+        coll_ns, coll_name, plug_name = get_fqcn_parts(plugin_name)
+        if 'tombstone' not in routing_data and 'redirect' in routing_data:
+            redirect = routing_data['redirect']
+            redir_coll_ns, redir_coll_name, redir_plug_name = get_fqcn_parts(redirect)
+            if coll_ns == redir_coll_ns and coll_name == redir_coll_name:
+                if '.' not in plug_name and redir_plug_name.endswith(f'.{plug_name}'):
+                    is_symlink = routing_data.get('redirect_is_symlink') or False
+                    shortname_to_longname[plugin_name] = redirect
+                    longname_to_shortname[redirect] = (plugin_name, is_symlink)
+                elif '.' in plug_name:
+                    # Sometimes plugins/modules/foo_facts.py could be a link to
+                    # plugins/modules/subdir1/subdir2/foo_info.py, and
+                    # plugins/modules/subdir1/subdir2/foo_facts.py also links to the same
+                    # _info module. In that case, artificially construct the shortname
+                    # <-> longname mapping
+                    _, short_name = plug_name.rsplit('.', 1)
+                    short_fqcn = f'{coll_ns}.{coll_name}.{short_name}'
+                    if plugin_routing_type.get(short_fqcn, {}).get('redirect') == redirect:
+                        shortname_to_longname[short_fqcn] = plugin_name
+                        longname_to_shortname[plugin_name] = (short_fqcn, False)
+    return shortname_to_longname, longname_to_shortname
+
+
+def remove_flatmapping_artefacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]
+                                 ) -> None:
+    """
+    For collections which use flatmapping (like community.general and community.network),
+    there will be several redirects which look confusing, like the community.general.rax_facts
+    module redirects to community.general.cloud.rackspace.rax_facts, which in turn redirects to
+    community.general.cloud.rackspace.rax_info. Such redirects are condensed by this function
+    into one redirect from community.general.rax_facts to community.general.rax_info.
+    """
+    for plugin_type, plugin_routing_type in plugin_routing.items():
+        # First collect all short and long names.
+        shortname_to_longname, longname_to_shortname = find_flatmapping_short_long_maps(
+            plugin_routing_type)
+        # Now shorten redirects
+        for plugin_name, routing_data in list(plugin_routing_type.items()):
+            if 'redirect' in routing_data:
+                redirect = routing_data['redirect']
+                if shortname_to_longname.get(plugin_name) == redirect:
+                    routing_data.pop('redirect')
+                    routing_data.pop('redirect_is_symlink', None)
+                    if 'deprecation' not in routing_data and 'tombstone' not in routing_data:
+                        plugin_routing_type.pop(plugin_name, None)
+                elif redirect in longname_to_shortname:
+                    routing_data['redirect'], is_symlink = longname_to_shortname[redirect]
+                    if routing_data.get('redirect_is_symlink') and not is_symlink:
+                        routing_data.pop('redirect_is_symlink')
+                if plugin_name in longname_to_shortname:
+                    if 'tombstone' not in routing_data and 'deprecation' not in routing_data:
+                        plugin_routing_type.pop(plugin_name, None)
+
+
 async def load_collection_routing(collection_name: str,
                                   collection_metadata: AnsibleCollectionMetadata
                                   ) -> CollectionRoutingT:
@@ -127,6 +202,8 @@ async def load_collection_routing(collection_name: str,
         }
 
     add_symlinks(plugin_routing_out, collection_name, collection_metadata)
+    if collection_name in COLLECTIONS_WITH_FLATMAPPING:
+        remove_flatmapping_artefacts(plugin_routing_out)
     return plugin_routing_out
 
 
