@@ -36,6 +36,7 @@ from ...write_docs import (
     output_all_plugin_rst,
     output_all_plugin_stub_rst,
     output_collection_index,
+    output_collection_namespace_indexes,
     output_indexes,
     output_plugin_indexes,
 )
@@ -248,6 +249,22 @@ def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapp
     return collection_plugins
 
 
+def get_collection_namespaces(collection_to_something: t.Mapping[str, t.Any]
+                              ) -> t.Dict[str, t.List[str]]:
+    """
+    Return the plugins which are in each collection.
+
+    :arg collection_to_something: A map mapping collection names to something.
+        For example the result of ``get_collection_contents()``.
+    :returns: Mapping from collection namespaces to list of collection names
+    """
+    namespaces = defaultdict(list)
+    for collection_name in collection_to_something:
+        namespace, name = collection_name.split('.', 1)
+        namespaces[namespace].append(name)
+    return namespaces
+
+
 def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       collection_dir: t.Optional[str],
                                       dest_dir: str,
@@ -331,10 +348,15 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_to_plugin_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
+    collection_namespaces = get_collection_namespaces(collection_to_plugin_info)
+
     # Only build top-level index if requested
     if create_indexes:
-        asyncio_run(output_collection_index(collection_to_plugin_info, dest_dir))
+        asyncio_run(output_collection_index(
+            collection_to_plugin_info, collection_namespaces, dest_dir))
         flog.notice('Finished writing collection index')
+        asyncio_run(output_collection_namespace_indexes(collection_namespaces, dest_dir))
+        flog.notice('Finished writing collection namespace index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
 

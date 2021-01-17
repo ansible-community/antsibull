@@ -15,6 +15,6 @@ These are the collections with docs hosted on `docs.ansible.com <https://docs.an
     :maxdepth: 1
     :hidden:
 
-{% for name in collections | sort %}
-    @{ name.replace('.', '/') }@/index
+{% for namespace in namespaces | sort %}
+    @{ namespace }@/index
 {% endfor %}
