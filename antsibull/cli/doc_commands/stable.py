@@ -23,7 +23,11 @@ from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
 from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
-from ...docs_parsing.routing import load_all_collection_routing
+from ...docs_parsing.routing import (
+    find_stubs,
+    load_all_collection_routing,
+    remove_redirect_duplicates,
+)
 from ...galaxy import CollectionDownloader
 from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
@@ -279,7 +283,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     # Load collection routing information
     collection_routing = asyncio_run(load_all_collection_routing(collection_metadata))
     flog.notice('Finished loading collection routing information')
-    flog.fields(collection_routing=collection_routing).error('Collection routing infos')
+    # flog.fields(collection_routing=collection_routing).debug('Collection routing infos')
 
     """
     # Turn these into some sort of decorator that will choose to dump or load the values
@@ -293,9 +297,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         plugin_info = json.load(f)
     """
 
+    stubs_info = find_stubs(plugin_info, collection_routing)
+    flog.fields(stubs_info=stubs_info).error('Stubs info')
+
     plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
     flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
     augment_docs(plugin_info)
+    remove_redirect_duplicates(plugin_info, collection_routing)
     flog.notice('Finished calculating new data')
 
     """

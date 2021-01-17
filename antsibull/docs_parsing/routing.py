@@ -6,6 +6,8 @@
 Functions for parsing and interpreting collection metadata.
 """
 
+from collections import defaultdict
+
 import os
 import typing as t
 
@@ -17,15 +19,36 @@ from ansible.constants import DOCUMENTABLE_PLUGINS
 from .. import app_context
 from .. import yaml
 from . import AnsibleCollectionMetadata
+from .fqcn import get_fqcn_parts
 
 
 # A nested structure as follows:
 #       plugin_type:
 #           plugin_name:  # FQCN
-#               tombstone: {tombstone record}
-#               deprecation: {deprecation record}
-#               redirect: str
+#               tombstone: t.Optional[{tombstone record}]
+#               deprecation: t.Optional[{deprecation record}]
+#               redirect: t.Optional[str]
+#               redirect_is_symlink: t.Optional[bool]
 CollectionRoutingT = t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]
+
+
+def add_symlink(collection_name: str, src_components: t.List[str], dest_components: t.List[str],
+                plugin_type_routing: t.Dict[str, t.Dict[str, t.Any]]) -> None:
+    """
+    Add symlink redirect for a single plugin.
+    """
+    # Compose source FQCN
+    src_name = '.'.join(src_components)
+    src_fqcn = f'{collection_name}.{src_name}'
+    if src_fqcn not in plugin_type_routing:
+        plugin_type_routing[src_fqcn] = {}
+    # Compose destination FQCN
+    dst_name = '.'.join(dest_components)
+    dst_fqcn = f'{collection_name}.{dst_name}'
+    if 'redirect' not in plugin_type_routing[src_fqcn]:
+        plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
+    if plugin_type_routing[src_fqcn]['redirect'] == dst_fqcn:
+        plugin_type_routing[src_fqcn]['redirect_is_symlink'] = True
 
 
 def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
@@ -59,14 +82,8 @@ def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
                             os.path.join(
                                 rel_path,
                                 os.path.splitext(os.readlink(file_path))[0])).split(os.sep)
-                        src_name = '.'.join(src_components)
-                        src_fqcn = f'{collection_name}.{src_name}'
-                        if src_fqcn not in plugin_type_routing:
-                            plugin_type_routing[src_fqcn] = {}
-                        if 'redirect' not in plugin_type_routing[src_fqcn]:
-                            dst_name = '.'.join(dest_components)
-                            dst_fqcn = f'{collection_name}.{dst_name}'
-                            plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
+                        add_symlink(
+                            collection_name, src_components, dest_components, plugin_type_routing)
 
 
 async def load_collection_routing(collection_name: str,
@@ -102,17 +119,87 @@ async def load_collection_routing(collection_name: str,
 
 async def load_all_collection_routing(collection_metadata: t.Mapping[
                                           str, AnsibleCollectionMetadata]
-                                      ) -> t.Dict[str, CollectionRoutingT]:
-    requestors = {}
-
+                                      ) -> CollectionRoutingT:
+    # Collection
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+        requestors = []
         for collection, metadata in collection_metadata.items():
-            requestors[collection] = await pool.spawn(
-                load_collection_routing(collection, metadata))
+            requestors.append(await pool.spawn(
+                load_collection_routing(collection, metadata)))
 
-        responses = await asyncio.gather(*requestors.values())
+        responses = await asyncio.gather(*requestors)
 
-    # Note: Python dicts have always had a stable order as long as you don't modify the dict.
-    # So requestors (implicitly, the keys) and responses have a matching order here.
-    return dict(zip(requestors, responses))
+    # Merge per-collection routing into one big routing table
+    global_plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]] = {}
+    for plugin_type in DOCUMENTABLE_PLUGINS:
+        global_plugin_routing[plugin_type] = {}
+        for collection_plugin_routing in responses:
+            global_plugin_routing[plugin_type].update(collection_plugin_routing[plugin_type])
+
+    return global_plugin_routing
+
+
+def compare_all_but(dict_a, dict_b, *keys_to_ignore):
+    """
+    Compare two dictionaries
+    """
+    sentinel = object()
+    for key, value in dict_a.items():
+        if key in keys_to_ignore:
+            continue
+        if value != dict_b.get(key, sentinel):
+            return False
+    for key, value in dict_b.items():
+        if key in keys_to_ignore:
+            continue
+        if value != dict_a.get(key, sentinel):
+            return False
+    return True
+
+
+def remove_redirect_duplicates(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
+                               collection_routing: CollectionRoutingT) -> None:
+    """
+    Remove duplicate plugin docs that come from symlinks (or once ansible-docs supports them,
+    other plugin routing redirects).
+    """
+    for plugin_type, plugin_map in plugin_info.items():
+        plugin_routing = collection_routing[plugin_type]
+        for plugin_name, plugin_record in list(plugin_map.items()):
+            # Check redirect
+            if plugin_name in plugin_routing and 'redirect' in plugin_routing[plugin_name]:
+                destination = plugin_routing[plugin_name]['redirect']
+                if destination in plugin_map and destination != plugin_name:
+                    # Heuristic: if we have a redirect, and docs for both this plugin and the
+                    # redireted one are generated from the same plugin filename, then we can
+                    # remove this plugin's docs and generate a redirect stub instead.
+                    if compare_all_but(
+                            plugin_record['doc'], plugin_map[destination]['doc'], 'filename'):
+                        del plugin_map[plugin_name]
+
+
+def find_stubs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
+               collection_routing: CollectionRoutingT
+               ) -> t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]:
+    """
+    Find plugin stubs to write. Returns a nested structure:
+
+        collection:
+            plugin_type:
+                plugin_short_name:
+                    tombstone: t.Optional[{tombstone record}]
+                    deprecation: t.Optional[{deprecation record}]
+                    redirect: t.Optional[str]
+                    redirect_is_symlink: t.Optional[bool]
+    """
+    stubs_info: t.MutableMapping[str, t.MutableMapping[str, t.Mapping[str, t.Any]]] = (
+        defaultdict(lambda: defaultdict(dict))
+    )
+    for plugin_type, plugin_routing in collection_routing.items():
+        plugin_info_type = plugin_info.get(plugin_type) or {}
+        for plugin_name, plugin_data in plugin_routing.items():
+            if plugin_name not in plugin_info_type:
+                coll_ns, coll_name, plug_name = get_fqcn_parts(plugin_name)
+                stubs_info[f'{coll_ns}.{coll_name}'][plugin_type][plug_name] = plugin_data
+    return stubs_info
