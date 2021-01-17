@@ -34,6 +34,7 @@ from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner, FakeVenvRunner
 from ...write_docs import (
     output_all_plugin_rst,
+    output_all_plugin_stub_rst,
     output_collection_index,
     output_indexes,
     output_plugin_indexes,
@@ -297,13 +298,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         plugin_info = json.load(f)
     """
 
+    remove_redirect_duplicates(plugin_info, collection_routing)
     stubs_info = find_stubs(plugin_info, collection_routing)
-    flog.fields(stubs_info=stubs_info).error('Stubs info')
+    # flog.fields(stubs_info=stubs_info).debug('Stubs info')
 
     plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
     flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
     augment_docs(plugin_info)
-    remove_redirect_duplicates(plugin_info, collection_routing)
     flog.notice('Finished calculating new data')
 
     """
@@ -341,6 +342,11 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                collection_metadata=collection_metadata,
                                squash_hierarchy=squash_hierarchy))
     flog.notice('Finished writing indexes')
+
+    asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
+                                           collection_metadata=collection_metadata,
+                                           squash_hierarchy=squash_hierarchy))
+    flog.debug('Finished writing plugin subs')
 
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,

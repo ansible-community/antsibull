@@ -193,12 +193,15 @@ def find_stubs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
                     redirect: t.Optional[str]
                     redirect_is_symlink: t.Optional[bool]
     """
-    stubs_info: t.MutableMapping[str, t.MutableMapping[str, t.Mapping[str, t.Any]]] = (
+    stubs_info: t.DefaultDict[str, t.DefaultDict[str, t.Dict[str, t.Any]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
     for plugin_type, plugin_routing in collection_routing.items():
         plugin_info_type = plugin_info.get(plugin_type) or {}
         for plugin_name, plugin_data in plugin_routing.items():
+            if 'tombstone' not in plugin_data and 'redirect' not in plugin_data:
+                # Ignore pure deprecations
+                continue
             if plugin_name not in plugin_info_type:
                 coll_ns, coll_name, plug_name = get_fqcn_parts(plugin_name)
                 stubs_info[f'{coll_ns}.{coll_name}'][plugin_type][plug_name] = plugin_data

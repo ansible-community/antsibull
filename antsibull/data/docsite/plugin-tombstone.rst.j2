@@ -1,0 +1,34 @@
+.. Document meta
+
+:orphan:
+
+.. Anchors
+
+.. _ansible_collections.@{plugin_name}@_@{plugin_type}@:
+
+.. Title
+
+@{ plugin_name }@
+@{ '+' * plugin_name|length }@
+
+.. Collection note
+
+{% if collection == 'ansible.builtin' -%}
+.. note::
+    This module was part of ``ansible-base`` and was included in all Ansible installations.
+{% else %}
+.. note::
+    This plugin was part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
+{% endif %}
+
+This {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %} has been removed
+{% if tombstone.removal_version is defined %}
+in version @{ tombstone.removal_version | rst_ify }@ of @{ collection }@.
+{% elif tombstone.removal_date is defined %}
+in a major release after @{ tombstone.removal_date | rst_ify }@ of @{ collection }@.
+{% else %}
+from @{ collection_name }@.
+{% endif %}
+{% if tombstone.warning_text is defined %}
+@{   tombstone.warning_text | rst_ify }@
+{% endif %}
