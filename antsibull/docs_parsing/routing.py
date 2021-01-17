@@ -8,6 +8,7 @@ Functions for parsing and interpreting collection metadata.
 
 from collections import defaultdict
 
+import datetime
 import os
 import typing as t
 
@@ -86,6 +87,18 @@ def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
                             collection_name, src_components, dest_components, plugin_type_routing)
 
 
+def process_dates(plugin_record: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
+    for tlkey in ('tombstone', 'deprecation'):
+        if tlkey in plugin_record and 'removal_date' in plugin_record[tlkey]:
+            date = plugin_record[tlkey]['removal_date']
+            if isinstance(date, datetime.datetime):
+                date = date.date()
+            if isinstance(date, datetime.date):
+                date = date.isoformat()
+            plugin_record[tlkey]['removal_date'] = date
+    return plugin_record
+
+
 async def load_collection_routing(collection_name: str,
                                   collection_metadata: AnsibleCollectionMetadata
                                   ) -> CollectionRoutingT:
@@ -109,7 +122,7 @@ async def load_collection_routing(collection_name: str,
         plugin_type_id = 'modules' if plugin_type == 'module' else plugin_type
         plugin_type_routing = plugin_routing_in.get(plugin_type_id) or {}
         plugin_routing_out[plugin_type] = {
-            f'{collection_name}.{plugin_name}': plugin_record
+            f'{collection_name}.{plugin_name}': process_dates(plugin_record)
             for plugin_name, plugin_record in plugin_type_routing.items()
         }
 
