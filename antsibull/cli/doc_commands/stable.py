@@ -249,17 +249,15 @@ def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapp
     return collection_plugins
 
 
-def get_collection_namespaces(collection_to_something: t.Mapping[str, t.Any]
-                              ) -> t.Dict[str, t.List[str]]:
+def get_collection_namespaces(collection_names: t.Iterable[str]) -> t.Dict[str, t.List[str]]:
     """
     Return the plugins which are in each collection.
 
-    :arg collection_to_something: A map mapping collection names to something.
-        For example the result of ``get_collection_contents()``.
-    :returns: Mapping from collection namespaces to list of collection names
+    :arg collection_names: An iterable of collection names.
+    :returns: Mapping from collection namespaces to list of collection names.
     """
     namespaces = defaultdict(list)
-    for collection_name in collection_to_something:
+    for collection_name in collection_names:
         namespace, name = collection_name.split('.', 1)
         namespaces[namespace].append(name)
     return namespaces
@@ -348,7 +346,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_to_plugin_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
-    collection_namespaces = get_collection_namespaces(collection_to_plugin_info)
+    collection_namespaces = get_collection_namespaces(collection_to_plugin_info.keys())
 
     # Only build top-level index if requested
     if create_indexes:
