@@ -134,7 +134,7 @@ REQUIRED_ENV_VAR_F = p.Field(..., regex='[A-Z_]+')
 
 #: option types are a set of strings that represent the types handled by argspec.
 OPTION_TYPE_F = p.Field('str', regex='^(bits|bool|bytes|dict|float|int|json|jsonarg|list'
-                        '|path|raw|sid|str|tmp|temppath|tmppath|pathspec|pathlist)$')
+                        '|path|raw|sid|str|tmppath|pathspec|pathlist)$')
 
 #: Constrained string type for version numbers
 REQUIRED_VERSION_F = p.Field(..., regex='^([0-9][0-9.]+)$')
@@ -231,6 +231,9 @@ def normalize_option_type_names(obj):
 
     if obj == 'lists':
         return 'list'
+
+    if obj in ('tmp', 'temppath'):
+        return 'tmppath'
 
     return obj
 
