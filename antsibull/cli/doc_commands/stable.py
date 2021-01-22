@@ -40,6 +40,7 @@ from ...write_docs import (
     output_indexes,
     output_plugin_indexes,
 )
+from ...utils.transformations import get_collection_namespaces
 
 if t.TYPE_CHECKING:
     import semantic_version as semver
@@ -247,20 +248,6 @@ def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapp
             collection_plugins[collection_name][plugin_type] = plugin_data
 
     return collection_plugins
-
-
-def get_collection_namespaces(collection_names: t.Iterable[str]) -> t.Dict[str, t.List[str]]:
-    """
-    Return the plugins which are in each collection.
-
-    :arg collection_names: An iterable of collection names.
-    :returns: Mapping from collection namespaces to list of collection names.
-    """
-    namespaces = defaultdict(list)
-    for collection_name in collection_names:
-        namespace, name = collection_name.split('.', 1)
-        namespaces[namespace].append(name)
-    return namespaces
 
 
 def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
