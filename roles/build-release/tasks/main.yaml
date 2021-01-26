@@ -16,7 +16,7 @@
     dest: "{{ antsibull_data_git_dir }}"
     version: "{{ antsibull_data_version }}"
     # TODO: Building a release means we may create or change files which would be overwritten by force
-    force: yes
+    force: "{{ antsibull_data_reset | bool }}"
 
 - name: Set expected path to deps file and release archive
   ansible.builtin.set_fact:
@@ -24,10 +24,10 @@
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
 
 - name: Build a release with new dependencies
-  command: >
-    poetry run antsibull-build single {{ antsibull_ansible_version }} \
-      --data-dir {{ antsibull_data_dir }} \
-      --sdist-dir {{ antsibull_sdist_dir }} \
+  command: >-
+    poetry run antsibull-build single {{ antsibull_ansible_version }}
+      --data-dir {{ antsibull_data_dir }}
+      --sdist-dir {{ antsibull_sdist_dir }}
       --debian
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
@@ -38,14 +38,20 @@
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
 
-# This is not a rebuild -- if the release archive is already there it won't be re-built if we run again
+- name: Remove existing release archive if it exists
+  file:
+    path: "{{ _release_archive }}"
+    state: absent
+  when: "{{ antsibull_force_rebuild }}"
+
+# If the release archive is already there it won't be re-built if we run again
 - name: Build a release with existing deps
-  command: >
-    poetry run antsibull-build rebuild-single {{ antsibull_ansible_version }} \
-      --data-dir {{ antsibull_data_dir }} \
-      --sdist-dir {{ antsibull_sdist_dir }} \
-      --build-file {{ antsibull_build_file }} \
-      --deps-file {{ _deps_file }} \
+  command: >-
+    poetry run antsibull-build rebuild-single {{ antsibull_ansible_version }}
+      --data-dir {{ antsibull_data_dir }}
+      --sdist-dir {{ antsibull_sdist_dir }}
+      --build-file {{ antsibull_build_file }}
+      --deps-file {{ _deps_file }}
       --debian
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3

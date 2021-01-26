@@ -5,12 +5,19 @@ antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 # The build file
 antsibull_build_file: "ansible-2.10.build"
 
+# Force a rebuild by deleting an existing release tarball, if it exists
+antsibull_force_rebuild: false
+
 # Where to get the ansible-build-data repository from
 antsibull_data_git_repo: "https://github.com/ansible-community/ansible-build-data"
 
 # The tag (or branch) of the ansible-build-data git repo to checkout
 # Could be "main", "devel", etc
 antsibull_data_version: main
+
+# Whether to forcefully reset the ansible-build-data repo
+# ex: set to false if there are manual changes that should not be overwritten
+antsibull_data_reset: true
 
 # Where the ansible-build-data git repository will be cloned to
 antsibull_data_git_dir: "{{ antsibull_sdist_dir }}/ansible-build-data"
