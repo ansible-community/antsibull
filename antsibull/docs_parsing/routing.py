@@ -19,6 +19,7 @@ from ansible.constants import DOCUMENTABLE_PLUGINS
 
 from .. import app_context
 from .. import yaml
+from ..utils.get_pkg_data import get_antsibull_data
 from . import AnsibleCollectionMetadata
 from .fqcn import get_fqcn_parts
 
@@ -296,3 +297,27 @@ def find_stubs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
                 coll_ns, coll_name, plug_name = get_fqcn_parts(plugin_name)
                 stubs_info[f'{coll_ns}.{coll_name}'][plugin_type][plug_name] = plugin_data
     return stubs_info
+
+
+def remove_ansible_2_10_builtin_stubs(
+        stubs: t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]) -> None:
+    """
+    Removes all Find plugin stubs to write. Returns a nested structure:
+
+        collection:
+            plugin_type:
+                plugin_short_name:
+                    tombstone: t.Optional[{tombstone record}]
+                    deprecation: t.Optional[{deprecation record}]
+                    redirect: t.Optional[str]
+                    redirect_is_symlink: t.Optional[bool]
+    """
+    if 'ansible.builtin' not in stubs:
+        return
+    ansible_builtin_routing = stubs['ansible.builtin']
+
+    ansible_2_10_routing = yaml.load_yaml_bytes(get_antsibull_data('ansible_2_10_routing.yml'))
+    for plugin_type, plugins in ansible_2_10_routing['ansible_2_10_routing'].items():
+        if plugin_type in ansible_builtin_routing:
+            for plugin_short_name in plugins:
+                ansible_builtin_routing[plugin_type].pop(plugin_short_name, None)

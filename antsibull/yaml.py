@@ -22,6 +22,13 @@ except ImportError:
     from yaml import SafeDumper as _SafeDumper
 
 
+def load_yaml_bytes(input: bytes) -> Any:
+    """
+    Load and parse YAML from given bytes.
+    """
+    return yaml.load(input, Loader=_SafeLoader)
+
+
 def load_yaml(path: str) -> Any:
     """
     Load and parse YAML file ``path``.

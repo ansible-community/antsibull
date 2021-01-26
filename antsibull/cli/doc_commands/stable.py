@@ -26,6 +26,7 @@ from ...docs_parsing.fqcn import get_fqcn_parts
 from ...docs_parsing.routing import (
     find_stubs,
     load_all_collection_routing,
+    remove_ansible_2_10_builtin_stubs,
     remove_redirect_duplicates,
 )
 from ...galaxy import CollectionDownloader
@@ -300,6 +301,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
 
     remove_redirect_duplicates(plugin_info, collection_routing)
     stubs_info = find_stubs(plugin_info, collection_routing)
+    remove_ansible_2_10_builtin_stubs(stubs_info)
     # flog.fields(stubs_info=stubs_info).debug('Stubs info')
 
     plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
