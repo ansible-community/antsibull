@@ -30,7 +30,7 @@ Build what is probably the latest release (provided by role defaults):
 
 To re-build a specific version with some additional settings and a forked ansible-build-data:
 ```yaml
-- name: Build an Ansible release with role defaults
+- name: Build a specific Ansible release with a forked ansible-build-data
   hosts: localhost
   gather_facts: no
   vars:
