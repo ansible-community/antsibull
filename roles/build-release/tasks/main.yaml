@@ -10,32 +10,48 @@
     state: directory
     mode: 0755
 
-- name: Set expected path to release archive
-  ansible.builtin.set_fact:
-    _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
-
 - name: Clone the ansible-build-data git repository
   ansible.builtin.git:
     repo: "{{ antsibull_data_git_repo }}"
     dest: "{{ antsibull_data_git_dir }}"
     version: "{{ antsibull_data_version }}"
-    # TODO: if we build a release it might change files in this repo
+    # TODO: Building a release means we may create or change files which would be overwritten by force
     force: yes
 
+- name: Set expected path to deps file and release archive
+  ansible.builtin.set_fact:
+    _deps_file: "ansible-{{ antsibull_ansible_version }}.deps"
+    _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
+
+- name: Build a release with new dependencies
+  command: >
+    poetry run antsibull-build single {{ antsibull_ansible_version }} \
+      --data-dir {{ antsibull_data_dir }} \
+      --sdist-dir {{ antsibull_sdist_dir }} \
+      --debian
+  # Minimal failure tolerance to galaxy collection download errors
+  retries: 3
+  delay: 5
+  register: _build
+  until: _build.rc == 0
+  args:
+    chdir: "{{ playbook_dir | dirname }}"
+    creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
+
 # This is not a rebuild -- if the release archive is already there it won't be re-built if we run again
-- name: Build a release tarball with antsibull-build
+- name: Build a release with existing deps
   command: >
     poetry run antsibull-build rebuild-single {{ antsibull_ansible_version }} \
       --data-dir {{ antsibull_data_dir }} \
       --sdist-dir {{ antsibull_sdist_dir }} \
       --build-file {{ antsibull_build_file }} \
-      --deps-file {{ antsibull_deps_file }} \
+      --deps-file {{ _deps_file }} \
       --debian
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
-  register: result
-  until: result.rc == 0
+  register: _rebuild
+  until: _rebuild.rc == 0
   args:
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ _release_archive }}"
