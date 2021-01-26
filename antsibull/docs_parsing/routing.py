@@ -296,28 +296,14 @@ def find_stubs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
             if plugin_name not in plugin_info_type:
                 coll_ns, coll_name, plug_name = get_fqcn_parts(plugin_name)
                 stubs_info[f'{coll_ns}.{coll_name}'][plugin_type][plug_name] = plugin_data
+
+    if 'ansible.builtin' in stubs_info:
+        # Remove all redirects from the ansible-base 2.10 -> collections move.
+        # We do not want stub pages for all these thousands of plugins/modules.
+        ansible_2_10_routing = yaml.load_yaml_bytes(get_antsibull_data('ansible_2_10_routing.yml'))
+        for plugin_type, plugins in ansible_2_10_routing['ansible_2_10_routing'].items():
+            if plugin_type in stubs_info['ansible.builtin']:
+                for plugin_short_name in plugins:
+                    stubs_info['ansible.builtin'][plugin_type].pop(plugin_short_name, None)
+
     return stubs_info
-
-
-def remove_ansible_2_10_builtin_stubs(
-        stubs: t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]) -> None:
-    """
-    Removes all Find plugin stubs to write. Returns a nested structure:
-
-        collection:
-            plugin_type:
-                plugin_short_name:
-                    tombstone: t.Optional[{tombstone record}]
-                    deprecation: t.Optional[{deprecation record}]
-                    redirect: t.Optional[str]
-                    redirect_is_symlink: t.Optional[bool]
-    """
-    if 'ansible.builtin' not in stubs:
-        return
-    ansible_builtin_routing = stubs['ansible.builtin']
-
-    ansible_2_10_routing = yaml.load_yaml_bytes(get_antsibull_data('ansible_2_10_routing.yml'))
-    for plugin_type, plugins in ansible_2_10_routing['ansible_2_10_routing'].items():
-        if plugin_type in ansible_builtin_routing:
-            for plugin_short_name in plugins:
-                ansible_builtin_routing[plugin_type].pop(plugin_short_name, None)
