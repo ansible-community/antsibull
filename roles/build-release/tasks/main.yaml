@@ -63,3 +63,11 @@
     creates: "{{ _release_archive }}"
 
 - include_tasks: tests.yaml
+
+- name: Release instructions
+  debug:
+    msg: >-
+      Build tested and complete!
+      A changelog as well as a porting guide have probably been generated at {{ antsibull_data_dir }}.
+      The changelog must stay in the ansible-build-data repository and can be sent as a pull request
+      but the porting guide needs to be submitted to ansible/ansible:docs/docsite/rst/porting_guides.

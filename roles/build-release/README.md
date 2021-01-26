@@ -21,9 +21,23 @@ See [defaults/main.yaml](https://github.com/ansible-community/antsibull/blob/mas
 Build what is probably the latest release (provided by role defaults):
 
 ```yaml
-- name: Build an Ansible release
+- name: Build an Ansible release with role defaults
   hosts: localhost
-  gather_facts: yes
+  gather_facts: no
+  roles:
+    - build-release
+```
+
+To re-build a specific version with some additional settings and a forked ansible-build-data:
+```yaml
+- name: Build an Ansible release with role defaults
+  hosts: localhost
+  gather_facts: no
+  vars:
+    antsibull_ansible_version: 2.10.10
+    antsibull_data_git_repo: https://github.com/dmsimard/ansible-build-data
+    antsibull_data_version: 2.10.10-branch
+    antsibull_force_rebuild: true
   roles:
     - build-release
 ```
