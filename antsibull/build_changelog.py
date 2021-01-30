@@ -224,9 +224,9 @@ def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
 PluginDumpT = t.List[t.Tuple[t.List[str], str, str]]
 
 
-def dump_plugins(builder: RstBuilder, plugins: PluginDumpT) -> None:
+def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
     last_title = []
-    for title, name, description in sorted(plugins):
+    for title, name, description in sorted(items):
         if title != last_title:
             if last_title:
                 builder.add_raw_rst('')
@@ -250,7 +250,20 @@ def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
                         ['New Plugins', plugin_type.title()],
                         prefix + plugin_data['name'],
                         plugin_data['description']))
-    dump_plugins(builder, plugins)
+    dump_items(builder, plugins)
+
+
+def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
+    objects: PluginDumpT = []
+    for name, prefix, _, release_entry in data:
+        if release_entry:
+            for object_type, object_datas in release_entry.objects.items():
+                for object_data in object_datas:
+                    objects.append((
+                        ['New {type}s'.format(type=object_type.title())],
+                        prefix + object_data['name'],
+                        object_data['description']))
+    dump_items(builder, objects)
 
 
 def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
@@ -268,7 +281,7 @@ def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
                     ['New Modules', name] + [ns.replace('_', ' ').title() for ns in namespace],
                     prefix + module['name'],
                     module['description']))
-    dump_plugins(builder, modules)
+    dump_items(builder, modules)
 
 
 def create_title_adder(builder: RstBuilder, title: str,
@@ -345,6 +358,7 @@ def append_changelog(builder: RstBuilder,
     # Adds new plugins and modules
     add_plugins(builder, data)
     add_modules(builder, data)
+    add_objects(builder, data)
 
     # Adds list of unchanged collections
     append_unchanged_collections(builder, changelog_entry)
