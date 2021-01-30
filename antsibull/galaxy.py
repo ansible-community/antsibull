@@ -7,6 +7,7 @@
 import os.path
 import shutil
 import typing as t
+from urllib.parse import urlencode
 from urllib.parse import urljoin
 
 import semantic_version as semver
@@ -96,6 +97,7 @@ class GalaxyClient:
         """
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server, f'api/v2/collections/{collection}/versions/')
+        galaxy_url = galaxy_url + '?' + urlencode({'page_size': 100})
         retval = await self._get_galaxy_versions(galaxy_url)
         return retval
 
