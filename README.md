@@ -1,4 +1,10 @@
 # antsibull -- Ansible Build Scripts
+[![Python linting badge](https://github.com/ansible-community/antsibull/workflows/Python%20linting/badge.svg?event=push)](https://github.com/ansible-community/antsibull/actions)
+[![Python testing badge](https://github.com/ansible-community/antsibull/workflows/Python%20testing/badge.svg?event=push)](https://github.com/ansible-community/antsibull/actions)
+[![Build CSS testing badge](https://github.com/ansible-community/antsibull/workflows/Build%20CSS/badge.svg?event=push)](https://github.com/ansible-community/antsibull/actions)
+[![dumb PyPI on GH pages badge](https://github.com/ansible-community/antsibull/workflows/👷%20dumb%20PyPI%20on%20GH%20pages/badge.svg?event=push)](https://github.com/ansible-community/antsibull/actions)
+[![Codecov badge](https://img.shields.io/codecov/c/github/ansible-community/antsibull)](https://codecov.io/gh/ansible-community/antsibull)
+
 Tooling for building various things related to Ansible
 
 Scripts that are here:
