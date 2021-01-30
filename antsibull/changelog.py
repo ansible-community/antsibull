@@ -101,7 +101,7 @@ class ChangelogData:
             flatmap=changelogs[0].generator_flatmap)
 
     def add_ansible_release(self, version: str, date: datetime.date, release_summary: str) -> None:
-        add_release(self.config, self.changes, [], [], version, codename=None, date=date)
+        add_release(self.config, self.changes, [], [], version, codename=None, date=date, update_existing=True)
         release_date = self.changes.releases[version]
         if 'changes' not in release_date:
             release_date['changes'] = {}
