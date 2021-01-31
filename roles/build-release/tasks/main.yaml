@@ -42,7 +42,7 @@
   file:
     path: "{{ _release_archive }}"
     state: absent
-  when: "{{ antsibull_force_rebuild }}"
+  when: antsibull_force_rebuild | bool
 
 # If the release archive is already there it won't be re-built if we run again
 - name: Build a release with existing deps
