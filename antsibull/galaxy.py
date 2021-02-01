@@ -7,7 +7,6 @@
 import os.path
 import shutil
 import typing as t
-from urllib.parse import urlencode
 from urllib.parse import urljoin
 
 import semantic_version as semver
@@ -73,7 +72,9 @@ class GalaxyClient:
         :arg version_url: url to the page to retrieve.
         :returns: List of the all the versions of the collection.
         """
-        async with retry_get(self.aio_session, versions_url, params=self.params,
+        params = self.params.copy()
+        params['page_size'] = 100
+        async with retry_get(self.aio_session, versions_url, params=params,
                              acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {versions_url}')
@@ -97,7 +98,6 @@ class GalaxyClient:
         """
         collection = collection.replace('.', '/')
         galaxy_url = urljoin(self.galaxy_server, f'api/v2/collections/{collection}/versions/')
-        galaxy_url = galaxy_url + '?' + urlencode({'page_size': 100})
         retval = await self._get_galaxy_versions(galaxy_url)
         return retval
 
