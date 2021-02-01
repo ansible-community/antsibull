@@ -72,7 +72,9 @@ class GalaxyClient:
         :arg version_url: url to the page to retrieve.
         :returns: List of the all the versions of the collection.
         """
-        async with retry_get(self.aio_session, versions_url, params=self.params,
+        params = self.params.copy()
+        params['page_size'] = '100'
+        async with retry_get(self.aio_session, versions_url, params=params,
                              acceptable_error_codes=[404]) as response:
             if response.status == 404:
                 raise NoSuchCollection(f'No collection found at: {versions_url}')

@@ -31,7 +31,7 @@ async def test_get_collection_version_info(http_redirect, ssl_certificate):
         task = asyncio.ensure_future(gc.get_versions('community.general'))
 
         request = await server.receive_request(timeout=5)
-        assert request.path_qs == '/api/v2/collections/community/general/versions/?format=json'
+        assert request.path_qs == '/api/v2/collections/community/general/versions/?format=json&page_size=100'
 
         server.send_response(request, text=json.dumps(SAMPLE_VERSIONS),
                              headers={'Content-Type': 'application/json'})
