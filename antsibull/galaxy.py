@@ -73,7 +73,7 @@ class GalaxyClient:
         :returns: List of the all the versions of the collection.
         """
         params = self.params.copy()
-        params['page_size'] = 100
+        params['page_size'] = '100'
         async with retry_get(self.aio_session, versions_url, params=params,
                              acceptable_error_codes=[404]) as response:
             if response.status == 404:
