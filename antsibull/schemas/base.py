@@ -152,7 +152,8 @@ COLLECTION_NAME_F = p.Field(default='', regex='^([^.]+\\.[^.]+)$')
 REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F = p.Field('', regex='^([^.]+\\.[^.]+)?$')
 
 #: Constrained string listing the possible types of a return field
-RETURN_TYPE_F = p.Field('str', regex='^(bool|complex|dict|float|int|list|str|path|raw)$')
+RETURN_TYPE_F = p.Field('str', regex='^(any|bits|bool|bytes|complex|dict|float|int|json'
+                        '|jsonarg|list|path|sid|str|pathspec|pathlist)$')
 
 
 def is_json_value(value: t.Any) -> bool:
@@ -234,6 +235,16 @@ def normalize_option_type_names(obj):
 
     if obj in ('tmp', 'temppath'):
         return 'tmppath'
+
+    return obj
+
+
+def normalize_return_type_names(obj):
+    """Normalize common mispellings of return type names."""
+    obj = normalize_option_type_names(obj)
+
+    if obj == 'raw':
+        return 'any'
 
     return obj
 

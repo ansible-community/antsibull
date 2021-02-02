@@ -15,7 +15,7 @@ import pydantic as p
 from .base import (OPTION_TYPE_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F,
                    COLLECTION_NAME_F, BaseModel, DeprecationSchema, DocSchema,
                    LocalConfig, OptionsSchema, list_from_scalars, is_json_value,
-                   normalize_option_type_names, transform_return_docs)
+                   normalize_return_type_names, transform_return_docs)
 
 _SENTINEL = object()
 
@@ -47,7 +47,7 @@ class ReturnSchema(BaseModel):
 
     description: t.List[str]
     choices: t.List[str] = []
-    elements: str = OPTION_TYPE_F
+    elements: str = RETURN_TYPE_F
     returned: str = 'success'
     sample: t.Any = ''  # JSON value
     type: str = RETURN_TYPE_F
@@ -66,7 +66,7 @@ class ReturnSchema(BaseModel):
 
     @p.validator('type', 'elements', pre=True)
     def normalize_types(cls, obj):
-        return normalize_option_type_names(obj)
+        return normalize_return_type_names(obj)
 
     @p.root_validator(pre=True)
     def remove_example(cls, values):
