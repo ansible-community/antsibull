@@ -552,7 +552,18 @@ class ReleaseNotes:
 
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        ReleaseNotes._append_base_porting_guide_bytes(builder, changelog)
+        if changelog.ansible_version.major == 2:
+            ReleaseNotes._append_base_porting_guide_bytes(builder, changelog)
+        else:
+            builder.add_raw_rst(
+                # noqa: E501
+                "\n"
+                "Ansible 3 is based on Ansible-Base 2.10, which is the same major release as"
+                " Ansible 2.10.  Therefore, there is no section on ansible-base in this porting"
+                " guide.  If you are upgrading from Ansible 2.9, please first consult the"
+                " Ansible 2.10 porting guide before continuing with the Ansible 3 porting guide."
+                "\n"
+            )
 
         for porting_guide_entry in changelog.entries:
             if not porting_guide_entry.is_ancestor:
