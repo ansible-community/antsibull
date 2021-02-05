@@ -40,23 +40,23 @@ COLLECTIONS_WITH_FLATMAPPING = (
 )
 
 
-def add_symlink(collection_name: str, src_components: t.List[str], dest_components: t.List[str],
-                plugin_type_routing: t.Dict[str, t.Dict[str, t.Any]]) -> None:
-    """
-    Add symlink redirect for a single plugin.
-    """
+def calculate_fqcns(basename, file_path, plugin_type, rel_path, path, collection_name):
+    src_components = os.path.normpath(
+        os.path.join(rel_path, basename)).split(os.sep)
+    dest_components = os.path.normpath(
+        os.path.join(
+            rel_path,
+            os.path.splitext(os.readlink(file_path))[0])).split(os.sep)
+
     # Compose source FQCN
     src_name = '.'.join(src_components)
     src_fqcn = f'{collection_name}.{src_name}'
-    if src_fqcn not in plugin_type_routing:
-        plugin_type_routing[src_fqcn] = {}
+
     # Compose destination FQCN
     dst_name = '.'.join(dest_components)
     dst_fqcn = f'{collection_name}.{dst_name}'
-    if 'redirect' not in plugin_type_routing[src_fqcn]:
-        plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
-    if plugin_type_routing[src_fqcn]['redirect'] == dst_fqcn:
-        plugin_type_routing[src_fqcn]['redirect_is_symlink'] = True
+
+    return src_fqcn, dst_fqcn
 
 
 def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
@@ -66,11 +66,6 @@ def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
     """
     Scans plugin folders for symbolic links, and updates plugin routing information accordingly.
     """
-    if collection_name == 'ansible.builtin':
-        # ansible-base/-core has a special directory structure we currently do not want
-        # (or need) to handle
-        return
-
     for plugin_type in DOCUMENTABLE_PLUGINS:
         directory_name = 'modules' if plugin_type == 'module' else plugin_type
         directory_path = os.path.join(collection_metadata.path, 'plugins', directory_name)
@@ -78,20 +73,21 @@ def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
         if os.path.isdir(directory_path):
             for path, _, files in os.walk(directory_path):
                 rel_path = os.path.relpath(path, directory_path)
-                for file in files:
-                    basename, ext = os.path.splitext(file)
+                for filename in files:
+                    basename, ext = os.path.splitext(filename)
                     if ext != '.py' and not (plugin_type == 'module' and ext == '.ps1'):
                         continue
-                    file_path = os.path.join(path, file)
-                    if os.path.islink(file_path):
-                        src_components = os.path.normpath(
-                            os.path.join(rel_path, basename)).split(os.sep)
-                        dest_components = os.path.normpath(
-                            os.path.join(
-                                rel_path,
-                                os.path.splitext(os.readlink(file_path))[0])).split(os.sep)
-                        add_symlink(
-                            collection_name, src_components, dest_components, plugin_type_routing)
+                    file_path = os.path.join(path, filename)
+                    if not os.path.islink(file_path):
+                        continue
+                    src_fqcn, dst_fqcn = calculate_fqcns(basename, file_path, plugin_type, rel_path,
+                                                         path, collection_name)
+                    if src_fqcn not in plugin_type_routing:
+                        plugin_type_routing[src_fqcn] = {}
+                    if 'redirect' not in plugin_type_routing[src_fqcn]:
+                        plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
+                    if plugin_type_routing[src_fqcn]['redirect'] == dst_fqcn:
+                        plugin_type_routing[src_fqcn]['redirect_is_symlink'] = True
 
 
 def process_dates(plugin_record: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
@@ -175,12 +171,7 @@ def remove_flatmapping_artefacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[
                         plugin_routing_type.pop(plugin_name, None)
 
 
-async def load_collection_routing(collection_name: str,
-                                  collection_metadata: AnsibleCollectionMetadata
-                                  ) -> t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]:
-    """
-    Load plugin routing for a collection.
-    """
+def calculate_meta_runtime(collection_name, collection_metadata):
     if collection_name == 'ansible.builtin':
         meta_runtime_path = os.path.join(
             collection_metadata.path, 'config', 'ansible_builtin_runtime.yml')
@@ -192,6 +183,16 @@ async def load_collection_routing(collection_name: str,
     else:
         meta_runtime = {}
 
+    return meta_runtime
+
+
+async def load_collection_routing(collection_name: str,
+                                  collection_metadata: AnsibleCollectionMetadata
+                                  ) -> t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]:
+    """
+    Load plugin routing for a collection.
+    """
+    meta_runtime = calculate_meta_runtime(collection_name, collection_metadata)
     plugin_routing_out: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]] = {}
     plugin_routing_in = meta_runtime.get('plugin_routing') or {}
     for plugin_type in DOCUMENTABLE_PLUGINS:
@@ -202,14 +203,19 @@ async def load_collection_routing(collection_name: str,
             for plugin_name, plugin_record in plugin_type_routing.items()
         }
 
+    if collection_name == 'ansible.builtin':
+        # ansible-base/-core has a special directory structure we currently do not want
+        # (or need) to handle
+        return
+
     add_symlinks(plugin_routing_out, collection_name, collection_metadata)
     if collection_name in COLLECTIONS_WITH_FLATMAPPING:
         remove_flatmapping_artefacts(plugin_routing_out)
     return plugin_routing_out
 
 
-async def load_all_collection_routing(collection_metadata: t.Mapping[
-                                          str, AnsibleCollectionMetadata]
+async def load_all_collection_routing(collection_metadata: t.Mapping[str,
+                                                                     AnsibleCollectionMetadata]
                                       ) -> t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]:
     # Collection
     lib_ctx = app_context.lib_ctx.get()
@@ -263,7 +269,7 @@ def remove_redirect_duplicates(plugin_info: t.MutableMapping[str, t.MutableMappi
                 destination = plugin_routing[plugin_name]['redirect']
                 if destination in plugin_map and destination != plugin_name:
                     # Heuristic: if we have a redirect, and docs for both this plugin and the
-                    # redireted one are generated from the same plugin filename, then we can
+                    # redirected one are generated from the same plugin filename, then we can
                     # remove this plugin's docs and generate a redirect stub instead.
                     if compare_all_but(
                             plugin_record['doc'], plugin_map[destination]['doc'], 'filename'):
