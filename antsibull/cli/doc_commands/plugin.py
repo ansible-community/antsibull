@@ -21,7 +21,7 @@ from ...jinja2.environment import doc_environment
 from ...logging import log
 from ...vendored.json_utils import _filter_non_json_lines
 from ...venv import FakeVenvRunner
-from ...write_docs import write_rst
+from ...write_docs import write_plugin_rst
 
 
 mlog = log.fields(mod=__name__)
@@ -103,7 +103,7 @@ def generate_docs() -> int:
     plugin_tmpl = env.get_template('plugin.rst.j2')
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
-    asyncio_run(write_rst(
+    asyncio_run(write_plugin_rst(
         '.'.join([namespace, collection]), AnsibleCollectionMetadata.empty(), plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path))

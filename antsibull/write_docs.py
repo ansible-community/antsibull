@@ -34,12 +34,12 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-async def write_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
-                    plugin_short_name: str, plugin_type: str,
-                    plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
-                    plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
-                    path_override: t.Optional[str] = None,
-                    squash_hierarchy: bool = False) -> None:
+async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
+                           plugin_short_name: str, plugin_type: str,
+                           plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
+                           plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
+                           path_override: t.Optional[str] = None,
+                           squash_hierarchy: bool = False) -> None:
     """
     Write the rst page for one plugin.
 
@@ -60,7 +60,7 @@ async def write_rst(collection_name: str, collection_meta: AnsibleCollectionMeta
                            Undefined behavior if documentation for multiple collections are
                            created.
     """
-    flog = mlog.fields(func='write_rst')
+    flog = mlog.fields(func='write_plugin_rst')
     flog.debug('Enter')
 
     namespace, collection = collection_name.split('.')
@@ -215,12 +215,12 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                 for plugin_short_name, dummy_ in plugins.items():
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
-                        write_rst(collection_name,
-                                  collection_metadata[collection_name],
-                                  plugin_short_name, plugin_type,
-                                  plugin_info[plugin_type].get(plugin_name),
-                                  nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
-                                  error_tmpl, dest_dir, squash_hierarchy=squash_hierarchy)))
+                        write_plugin_rst(collection_name,
+                                         collection_metadata[collection_name],
+                                         plugin_short_name, plugin_type,
+                                         plugin_info[plugin_type].get(plugin_name),
+                                         nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
+                                         error_tmpl, dest_dir, squash_hierarchy=squash_hierarchy)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)
