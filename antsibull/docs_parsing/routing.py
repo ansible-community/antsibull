@@ -177,7 +177,7 @@ def remove_flatmapping_artefacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[
 
 async def load_collection_routing(collection_name: str,
                                   collection_metadata: AnsibleCollectionMetadata
-                                  ) -> CollectionRoutingT:
+                                  ) -> t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]:
     """
     Load plugin routing for a collection.
     """
@@ -210,7 +210,7 @@ async def load_collection_routing(collection_name: str,
 
 async def load_all_collection_routing(collection_metadata: t.Mapping[
                                           str, AnsibleCollectionMetadata]
-                                      ) -> CollectionRoutingT:
+                                      ) -> t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]:
     # Collection
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
@@ -272,7 +272,7 @@ def remove_redirect_duplicates(plugin_info: t.MutableMapping[str, t.MutableMappi
 
 def find_stubs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
                collection_routing: CollectionRoutingT
-               ) -> t.Mapping[str, t.Mapping[str, t.Mapping[str, t.Any]]]:
+               ) -> t.DefaultDict[str, t.DefaultDict[str, t.Dict[str, t.Any]]]:
     """
     Find plugin stubs to write. Returns a nested structure:
 
