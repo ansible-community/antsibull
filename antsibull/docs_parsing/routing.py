@@ -40,13 +40,23 @@ COLLECTIONS_WITH_FLATMAPPING = (
 )
 
 
-def calculate_fqcns(basename, file_path, plugin_type, rel_path, path, collection_name):
+def calculate_plugin_fqcns(collection_name: str, src_basename: str,
+                           dst_basename: str, rel_path: str) -> t.Tuple[str, str]:
+    """
+    Calculate source and dest FQCNs for plugins which have been renamed via symlink.
+
+    :collection_name: FQCN of the collection
+    :src_basename: Alias name for the plugin
+    :dst_basename: Canonical name of the plugin
+    :rel_path: Filesystem path to the directory that the plugin lives in relative to the plugin
+        type directory.
+    :returns: Two-tuple of fqcn of the alias name of the plugin and fqcn of the canonical
+        plugin name.
+    """
     src_components = os.path.normpath(
-        os.path.join(rel_path, basename)).split(os.sep)
+        os.path.join(rel_path, src_basename)).split(os.sep)
     dest_components = os.path.normpath(
-        os.path.join(
-            rel_path,
-            os.path.splitext(os.readlink(file_path))[0])).split(os.sep)
+        os.path.join(rel_path, dst_basename)).split(os.sep)
 
     # Compose source FQCN
     src_name = '.'.join(src_components)
@@ -59,35 +69,39 @@ def calculate_fqcns(basename, file_path, plugin_type, rel_path, path, collection
     return src_fqcn, dst_fqcn
 
 
-def add_symlinks(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]],
-                 collection_name: str,
-                 collection_metadata: AnsibleCollectionMetadata
-                 ) -> None:
+def find_symlink_redirects(collection_name: str,
+                           plugin_type: str,
+                           directory_path: str
+                           ) -> t.DefaultDict[str, t.Dict]:
     """
-    Scans plugin folders for symbolic links, and updates plugin routing information accordingly.
+    Finds plugin redirects that are defined by symlinks.
+
+    :collection_name: FQCN of the collection we're searching within
+    :plugin_type: Type of plugins that we're scanning
+    :directory_path: Full path to the directory we're scanning.
+    :returns: Defaultdict mapping fqcn of the alias names to fqcn of the canonical plugin names.
     """
-    for plugin_type in DOCUMENTABLE_PLUGINS:
-        directory_name = 'modules' if plugin_type == 'module' else plugin_type
-        directory_path = os.path.join(collection_metadata.path, 'plugins', directory_name)
-        plugin_type_routing = plugin_routing[plugin_type]
-        if os.path.isdir(directory_path):
-            for path, _, files in os.walk(directory_path):
-                rel_path = os.path.relpath(path, directory_path)
-                for filename in files:
-                    basename, ext = os.path.splitext(filename)
-                    if ext != '.py' and not (plugin_type == 'module' and ext == '.ps1'):
-                        continue
-                    file_path = os.path.join(path, filename)
-                    if not os.path.islink(file_path):
-                        continue
-                    src_fqcn, dst_fqcn = calculate_fqcns(basename, file_path, plugin_type, rel_path,
-                                                         path, collection_name)
-                    if src_fqcn not in plugin_type_routing:
-                        plugin_type_routing[src_fqcn] = {}
-                    if 'redirect' not in plugin_type_routing[src_fqcn]:
-                        plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
-                    if plugin_type_routing[src_fqcn]['redirect'] == dst_fqcn:
-                        plugin_type_routing[src_fqcn]['redirect_is_symlink'] = True
+    plugin_type_routing = defaultdict(dict)
+    if os.path.isdir(directory_path):
+        for path, _, files in os.walk(directory_path):
+            rel_path = os.path.relpath(path, directory_path)
+            for filename in files:
+                src_basename, ext = os.path.splitext(filename)
+                if ext != '.py' and not (plugin_type == 'module' and ext == '.ps1'):
+                    continue
+
+                file_path = os.path.join(path, filename)
+                if not os.path.islink(file_path):
+                    continue
+
+                dst_basename = os.path.splitext(os.readlink(file_path))[0]
+
+                src_fqcn, dst_fqcn = calculate_plugin_fqcns(collection_name, src_basename,
+                                                            dst_basename, rel_path)
+
+                plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
+
+    return plugin_type_routing
 
 
 def process_dates(plugin_record: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
@@ -206,11 +220,23 @@ async def load_collection_routing(collection_name: str,
     if collection_name == 'ansible.builtin':
         # ansible-base/-core has a special directory structure we currently do not want
         # (or need) to handle
-        return
+        return plugin_routing_out
 
-    add_symlinks(plugin_routing_out, collection_name, collection_metadata)
+    for plugin_type in DOCUMENTABLE_PLUGINS:
+        directory_name = 'modules' if plugin_type == 'module' else plugin_type
+        directory_path = os.path.join(collection_metadata.path, 'plugins', directory_name)
+        plugin_type_routing = plugin_routing_out[plugin_type]
+
+        symlink_redirects = find_symlink_redirects(collection_name, plugin_type, directory_path)
+        for redirect_name, redirect_dst in symlink_redirects.items():
+            if 'redirect' not in plugin_type_routing[redirect_name]:
+                plugin_type_routing[redirect_name]['redirect'] = redirect_dst
+            if plugin_type_routing[redirect_name]['redirect'] == redirect_dst:
+                plugin_type_routing[redirect_name]['redirect_is_symlink'] = True
+
     if collection_name in COLLECTIONS_WITH_FLATMAPPING:
         remove_flatmapping_artefacts(plugin_routing_out)
+
     return plugin_routing_out
 
 
