@@ -29,7 +29,7 @@ def load_yaml_bytes(input: bytes) -> Any:
     return yaml.load(input, Loader=_SafeLoader)
 
 
-def load_yaml(path: str) -> Any:
+def load_yaml_file(path: str) -> Any:
     """
     Load and parse YAML file ``path``.
     """
@@ -37,7 +37,7 @@ def load_yaml(path: str) -> Any:
         return yaml.load(stream, Loader=_SafeLoader)
 
 
-def store_yaml(path: str, content: Any) -> None:
+def store_yaml_file(path: str, content: Any) -> None:
     """
     Store ``content`` as YAML file under ``path``.
     """

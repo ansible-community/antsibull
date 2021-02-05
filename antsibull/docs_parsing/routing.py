@@ -188,7 +188,7 @@ async def load_collection_routing(collection_name: str,
         meta_runtime_path = os.path.join(collection_metadata.path, 'meta', 'runtime.yml')
 
     if os.path.exists(meta_runtime_path):
-        meta_runtime = yaml.load_yaml(meta_runtime_path)
+        meta_runtime = yaml.load_yaml_file(meta_runtime_path)
     else:
         meta_runtime = {}
 
