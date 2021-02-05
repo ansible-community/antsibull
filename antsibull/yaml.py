@@ -7,12 +7,12 @@
 YAML handling.
 """
 
-from typing import Any
+import typing as t
 
 import yaml
 
-_SafeLoader: Any
-_SafeDumper: Any
+_SafeLoader: t.Any
+_SafeDumper: t.Any
 try:
     # use C version if possible for speedup
     from yaml import CSafeLoader as _SafeLoader
@@ -22,14 +22,14 @@ except ImportError:
     from yaml import SafeDumper as _SafeDumper
 
 
-def load_yaml_bytes(input: bytes) -> Any:
+def load_yaml_bytes(input: bytes) -> t.Any:
     """
     Load and parse YAML from given bytes.
     """
     return yaml.load(input, Loader=_SafeLoader)
 
 
-def load_yaml_file(path: str) -> Any:
+def load_yaml_file(path: str) -> t.Any:
     """
     Load and parse YAML file ``path``.
     """
@@ -37,7 +37,7 @@ def load_yaml_file(path: str) -> Any:
         return yaml.load(stream, Loader=_SafeLoader)
 
 
-def store_yaml_file(path: str, content: Any) -> None:
+def store_yaml_file(path: str, content: t.Any) -> None:
     """
     Store ``content`` as YAML file under ``path``.
     """
