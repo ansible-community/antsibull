@@ -72,16 +72,16 @@ def calculate_plugin_fqcns(collection_name: str, src_basename: str,
 def find_symlink_redirects(collection_name: str,
                            plugin_type: str,
                            directory_path: str
-                           ) -> t.DefaultDict[str, t.Dict]:
+                           ) -> t.Dict[str, str]:
     """
     Finds plugin redirects that are defined by symlinks.
 
     :collection_name: FQCN of the collection we're searching within
     :plugin_type: Type of plugins that we're scanning
     :directory_path: Full path to the directory we're scanning.
-    :returns: Defaultdict mapping fqcn of the alias names to fqcn of the canonical plugin names.
+    :returns: Dict mapping fqcn of the alias names to fqcn of the canonical plugin names.
     """
-    plugin_type_routing = defaultdict(dict)
+    plugin_type_routing = dict()
     if os.path.isdir(directory_path):
         for path, _, files in os.walk(directory_path):
             rel_path = os.path.relpath(path, directory_path)
@@ -99,7 +99,7 @@ def find_symlink_redirects(collection_name: str,
                 src_fqcn, dst_fqcn = calculate_plugin_fqcns(collection_name, src_basename,
                                                             dst_basename, rel_path)
 
-                plugin_type_routing[src_fqcn]['redirect'] = dst_fqcn
+                plugin_type_routing[src_fqcn] = dst_fqcn
 
     return plugin_type_routing
 
@@ -229,6 +229,8 @@ async def load_collection_routing(collection_name: str,
 
         symlink_redirects = find_symlink_redirects(collection_name, plugin_type, directory_path)
         for redirect_name, redirect_dst in symlink_redirects.items():
+            if redirect_name not in plugin_type_routing:
+                plugin_type_routing[redirect_name] = {}
             if 'redirect' not in plugin_type_routing[redirect_name]:
                 plugin_type_routing[redirect_name]['redirect'] = redirect_dst
             if plugin_type_routing[redirect_name]['redirect'] == redirect_dst:
