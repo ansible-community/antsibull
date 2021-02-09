@@ -35,7 +35,7 @@ antsibull_ansible_git_version: "stable-2.10"
 antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
 
 # The version of ansible to build
-antsibull_ansible_version: 2.10.5
+antsibull_ansible_version: 2.10.6
 
 # Where the Ansible release tarball will be installed for test purposes
 antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
