@@ -46,6 +46,12 @@ class VenvRunner:
         venv.create(self.venv_dir, clear=True, symlinks=True, with_pip=True)
         self._python = self.get_command('python')
 
+        # Upgrade pip to the latest version.
+        # Note that cryptography stopped building manylinux1 wheels (the only ship manylinux2010) so
+        # we need pip19+ in order to work now.  RHEL8 and Ubuntu 18.04 contain a pip that's older
+        # than that so we must upgrade to something even if it's not latest.
+        self._python('-m', 'pip', 'install', '--upgrade', 'pip')
+
     def get_command(self, executable_name) -> sh.Command:
         """
         Return an :sh:obj:`sh.Command` for the given program installed within the venv.
