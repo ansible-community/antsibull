@@ -159,6 +159,8 @@ Recording release information
     cp ansible-build-data/3/porting_guide_3.rst ansible/docs/docsite/rst/porting_guides/
     cd ansible
     git checkout -b update-porting-guide
+    # If this is a brand new major release, add the new porting guide to:
+    #   ansible/docs/docsite/rst/porting_guides/porting_guides.rst
     git add docs/docsite/rst/porting_guides/
     git commit -m 'Update the porting guide for a new ansible version'
     # git push and open a PR
@@ -167,7 +169,7 @@ Recording release information
     # Record the files used to build:
     export ANSIBLE_VERSION=3.0.0a1
     cd ansible-build-data/3
-    git add ansible-3.build "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v3.rst
+    git add ansible-3.build porting_guide_3.rst "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v3.rst
     git commit -m "Collection dependency information for ansible $ANSIBLE_VERSION"
     git push
     git tag $ANSIBLE_VERSION
