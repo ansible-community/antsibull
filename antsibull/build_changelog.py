@@ -528,7 +528,7 @@ class ReleaseNotes:
                 " authoritative indicator of which collection to use as some collections may"
                 " contain duplicate module names."
                 " You can search the `index of all modules"
-                " <https://docs.ansible.com/ansible/latest/collections/index_module.html>`_"
+                " <https://docs.ansible.com/ansible/2.10/collections/index_module.html>`_"
                 " to find the collection a module has been relocated to."
                 "\n\n"
                 "This section discusses the behavioral changes between Ansible 2.9 and"
