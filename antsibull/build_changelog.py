@@ -562,6 +562,10 @@ class ReleaseNotes:
                 " Ansible 2.10.  Therefore, there is no section on ansible-base in this porting"
                 " guide.  If you are upgrading from Ansible 2.9, please first consult the"
                 " Ansible 2.10 porting guide before continuing with the Ansible 3 porting guide."
+                "\n\n"
+                "Due to a scheduling conflict, the latest version of Ansible 2.10 (2.10.7) has a"
+                " few collections which are newer than Ansible 3.0.0.  Ansible 3.1.0 will"
+                " contain updated versions of those collections."
                 "\n"
             )
 
