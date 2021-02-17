@@ -19,6 +19,7 @@ from ansible.constants import DOCUMENTABLE_PLUGINS
 
 from .. import app_context
 from .. import yaml
+from ..utils.collections import compare_all_but
 from ..utils.get_pkg_data import get_antsibull_data
 from . import AnsibleCollectionMetadata
 from .fqcn import get_fqcn_parts
@@ -83,7 +84,7 @@ def find_symlink_redirects(collection_name: str,
     """
     plugin_type_routing = dict()
     if os.path.isdir(directory_path):
-        for path, _, files in os.walk(directory_path):
+        for path, dummy, files in os.walk(directory_path):
             rel_path = os.path.relpath(path, directory_path)
             for filename in files:
                 src_basename, ext = os.path.splitext(filename)
@@ -146,7 +147,7 @@ def find_flatmapping_short_long_maps(plugin_routing_type: t.Dict[str, t.Dict[str
                     # plugins/modules/subdir1/subdir2/foo_facts.py also links to the same
                     # _info module. In that case, artificially construct the shortname
                     # <-> longname mapping
-                    _, short_name = plug_name.rsplit('.', 1)
+                    dummy, short_name = plug_name.rsplit('.', 1)
                     short_fqcn = f'{coll_ns}.{coll_name}.{short_name}'
                     if plugin_routing_type.get(short_fqcn, {}).get('redirect') == redirect:
                         shortname_to_longname[short_fqcn] = plugin_name
@@ -154,7 +155,7 @@ def find_flatmapping_short_long_maps(plugin_routing_type: t.Dict[str, t.Dict[str
     return shortname_to_longname, longname_to_shortname
 
 
-def remove_flatmapping_artefacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]
+def remove_flatmapping_artifacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[str, t.Any]]]
                                  ) -> None:
     """
     For collections which use flatmapping (like community.general and community.network),
@@ -237,7 +238,7 @@ async def load_collection_routing(collection_name: str,
                 plugin_type_routing[redirect_name]['redirect_is_symlink'] = True
 
     if collection_name in COLLECTIONS_WITH_FLATMAPPING:
-        remove_flatmapping_artefacts(plugin_routing_out)
+        remove_flatmapping_artifacts(plugin_routing_out)
 
     return plugin_routing_out
 
@@ -265,24 +266,6 @@ async def load_all_collection_routing(collection_metadata: t.Mapping[str,
     return global_plugin_routing
 
 
-def compare_all_but(dict_a, dict_b, *keys_to_ignore):
-    """
-    Compare two dictionaries
-    """
-    sentinel = object()
-    for key, value in dict_a.items():
-        if key in keys_to_ignore:
-            continue
-        if value != dict_b.get(key, sentinel):
-            return False
-    for key, value in dict_b.items():
-        if key in keys_to_ignore:
-            continue
-        if value != dict_a.get(key, sentinel):
-            return False
-    return True
-
-
 def remove_redirect_duplicates(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]],
                                collection_routing: CollectionRoutingT) -> None:
     """
@@ -299,8 +282,8 @@ def remove_redirect_duplicates(plugin_info: t.MutableMapping[str, t.MutableMappi
                     # Heuristic: if we have a redirect, and docs for both this plugin and the
                     # redirected one are generated from the same plugin filename, then we can
                     # remove this plugin's docs and generate a redirect stub instead.
-                    if compare_all_but(
-                            plugin_record['doc'], plugin_map[destination]['doc'], 'filename'):
+                    if compare_all_but(plugin_record['doc'], plugin_map[destination]['doc'],
+                                       'filename'):
                         del plugin_map[plugin_name]
 
 
