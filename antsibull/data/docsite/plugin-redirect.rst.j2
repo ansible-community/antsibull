@@ -1,0 +1,53 @@
+.. Document meta
+
+:orphan:
+
+.. Anchors
+
+.. _ansible_collections.@{plugin_name}@_@{plugin_type}@:
+
+.. Title
+
+@{ plugin_name }@
+@{ '+' * plugin_name|length }@
+
+.. Collection note
+
+{% if collection == 'ansible.builtin' -%}
+.. note::
+    This redirect is part of ``ansible-base`` and included in all Ansible
+    installations. In most cases, you can use the short module name
+    @{ plugin_name.rsplit('.', 1)[-1] }@ even without specifying the ``collections:`` keyword.
+    Despite that, we recommend you use the FQCN for easy linking to the module
+    documentation and to avoid conflicting with other collections that may have
+    the same module name.
+{% else %}
+.. note::
+    This redirect is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
+
+{%   if not deprecation %}
+    To use it in a playbook, specify: :code:`@{plugin_name}@`.
+{%   endif %}
+{% endif %}
+
+{% if deprecation %}
+- This redirect has been **deprecated**. Please update your tasks to use the new name ``@{ redirect }@`` instead.
+{%   if deprecation.removal_version is defined %}
+  It will be removed in version @{ deprecation.removal_version | rst_ify }@ of @{ collection }@.
+{%   elif deprecation.removal_date is defined %}
+  It will be removed in a major release after @{ deprecation.removal_date | rst_ify }@ of @{ collection }@.
+{%   else %}
+  It will eventually be removed from @{ collection_name }@.
+{%   endif %}
+{% endif %}
+- This is a redirect to the :ref:`@{ redirect }@ {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %} <ansible_collections.@{ redirect }@_@{ plugin_type }@>`.
+{% if collection != 'ansible.builtin' -%}
+{%   if redirect_is_symlink %}
+- This redirect also works with Ansible 2.9.
+{%   else %}
+- This redirect does **not** work with Ansible 2.9.
+{%   endif %}
+{% endif %}
+{% if deprecation and deprecation.warning_text is defined %}
+- The collection contains the following information on this deprecation: @{ deprecation.warning_text | rst_ify }@
+{% endif %}

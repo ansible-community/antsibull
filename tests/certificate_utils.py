@@ -24,7 +24,7 @@ class TemporaryCertificate:
 
         with contextlib.ExitStack() as stack:
             key = rsa.generate_private_key(
-                public_exponent=65537, key_size=1024,
+                public_exponent=65537, key_size=2048,
                 backend=default_backend()
             )
 

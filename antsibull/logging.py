@@ -79,7 +79,10 @@ def plugin_filter():
     :arg msg: A :twiggy:obj:`twiggy.message.Message` object which would be filtered
     """
     def wrapped(msg):
-        return msg.fields['func'] == 'write_rst' and msg.fields['mod'] == 'antsibull.write_docs'
+        return (
+            msg.fields['func'] == 'write_plugin_rst' and
+            msg.fields['mod'] == 'antsibull.write_docs'
+        )
     return wrapped
 
 

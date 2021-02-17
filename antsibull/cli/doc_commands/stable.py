@@ -23,12 +23,18 @@ from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
 from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
+from ...docs_parsing.routing import (
+    find_stubs,
+    load_all_collection_routing,
+    remove_redirect_duplicates,
+)
 from ...galaxy import CollectionDownloader
 from ...logging import log
 from ...schemas.docs import DOCS_SCHEMAS
 from ...venv import VenvRunner, FakeVenvRunner
 from ...write_docs import (
     output_all_plugin_rst,
+    output_all_plugin_stub_rst,
     output_collection_index,
     output_indexes,
     output_plugin_indexes,
@@ -275,6 +281,11 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     # flog.fields(
     #     collection_metadata=collection_metadata).debug('Collection metadata')
 
+    # Load collection routing information
+    collection_routing = asyncio_run(load_all_collection_routing(collection_metadata))
+    flog.notice('Finished loading collection routing information')
+    # flog.fields(collection_routing=collection_routing).debug('Collection routing infos')
+
     """
     # Turn these into some sort of decorator that will choose to dump or load the values
     # if a command line arg is specified.
@@ -286,6 +297,10 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         import json
         plugin_info = json.load(f)
     """
+
+    remove_redirect_duplicates(plugin_info, collection_routing)
+    stubs_info = find_stubs(plugin_info, collection_routing)
+    # flog.fields(stubs_info=stubs_info).debug('Stubs info')
 
     plugin_info, nonfatal_errors = asyncio_run(normalize_all_plugin_info(plugin_info))
     flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
@@ -327,6 +342,11 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                collection_metadata=collection_metadata,
                                squash_hierarchy=squash_hierarchy))
     flog.notice('Finished writing indexes')
+
+    asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
+                                           collection_metadata=collection_metadata,
+                                           squash_hierarchy=squash_hierarchy))
+    flog.debug('Finished writing plugin subs')
 
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
