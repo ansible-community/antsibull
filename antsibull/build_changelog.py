@@ -557,7 +557,7 @@ class ReleaseNotes:
 
         if changelog.ansible_version.major == 2:
             ReleaseNotes._append_base_porting_guide_bytes(builder, changelog)
-        else:
+        elif changelog.ansible_version.major == 3:
             builder.add_raw_rst(
                 # noqa: E501
                 "\n"
@@ -566,8 +566,14 @@ class ReleaseNotes:
                 " guide.  If you are upgrading from Ansible 2.9, please first consult the"
                 " Ansible 2.10 porting guide before continuing with the Ansible 3 porting guide."
                 "\n\n"
-                "Due to a scheduling conflict, the latest version of Ansible 2.10 (2.10.7) has a"
-                " few collections which are newer than Ansible 3.0.0.  Ansible 3.1.0 will"
+                "We suggest you read this page along with the `Ansible Changelog for 3.0"
+                "<https://github.com/ansible-community/ansible-build-data/blob/main/3/"
+                "CHANGELOG-v3.rst>`_"
+                " to understand what updates you may need to make."
+                "\n\n"
+                ".. note::\n"
+                "    Due to a scheduling conflict, the latest version of Ansible 2.10 (2.10.7)"
+                " has a few collections which are newer than Ansible 3.0.0.  Ansible 3.1.0 will"
                 " contain updated versions of those collections."
                 "\n"
             )
