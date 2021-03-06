@@ -24,6 +24,7 @@ from antsibull_changelog.lint import lint_changelog_yaml
 from antsibull_changelog.logger import setup_logger
 
 from ..args import get_toplevel_parser, normalize_toplevel_options
+from ..lint_extra_docs import lint_collection_extra_docs_files
 
 
 def run(args: List[str]) -> int:
@@ -55,6 +56,16 @@ def run(args: List[str]) -> int:
                                     metavar='/path/to/changelog.yaml',
                                     help='path to changelogs/changelog.yaml')
 
+        collection_docs = subparsers.add_parser('collection-docs',
+                                                parents=[common],
+                                                help='Collection extra docs linter for inclusion'
+                                                     ' in docsite')
+        collection_docs.set_defaults(command=command_lint_collection_docs)
+
+        collection_docs.add_argument('collection_root_path',
+                                     metavar='/path/to/collection',
+                                     help='path to collection (directory that includes galaxy.yml)')
+
         if HAS_ARGCOMPLETE:
             argcomplete.autocomplete(parser)
 
@@ -83,6 +94,24 @@ def command_lint_changelog(args: Any) -> int:
     :arg args: Parsed arguments
     """
     errors = lint_changelog_yaml(args.changelog_yaml_path)
+
+    messages = sorted(set(
+        '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])
+        for error in errors))
+
+    for message in messages:
+        print(message)
+
+    return 3 if messages else 0
+
+
+def command_lint_collection_docs(args: Any) -> int:
+    """
+    Validate docs/docsite/rst/ in a collection.
+
+    :arg args: Parsed arguments
+    """
+    errors = lint_collection_extra_docs_files(args.collection_root_path)
 
     messages = sorted(set(
         '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])

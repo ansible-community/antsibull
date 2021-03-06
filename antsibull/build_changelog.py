@@ -247,7 +247,7 @@ def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
 
 def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
     plugins: PluginDumpT = []
-    for name, prefix, _, release_entry in data:
+    for name, prefix, dummy, release_entry in data:
         if release_entry:
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
@@ -261,7 +261,7 @@ def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
 
 def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
     objects: PluginDumpT = []
-    for name, prefix, _, release_entry in data:
+    for name, prefix, dummy, release_entry in data:
         if release_entry:
             for object_type, object_datas in release_entry.objects.items():
                 for object_data in object_datas:
@@ -274,7 +274,7 @@ def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
 
 def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
     modules: PluginDumpT = []
-    for name, prefix, _, release_entry in data:
+    for name, prefix, dummy, release_entry in data:
         if release_entry:
             for module in release_entry.modules:
                 namespace = module.get('namespace') or ''
@@ -351,7 +351,7 @@ def append_changelog(builder: RstBuilder,
     for section, section_title in DEFAULT_SECTIONS:
         maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
-        for name, _, _, release_entry in data:
+        for name, dummy, dummy, release_entry in data:
             if not release_entry or release_entry.has_no_changes([section]):
                 continue
 

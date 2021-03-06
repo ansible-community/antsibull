@@ -16,6 +16,7 @@ from jinja2 import Template
 from . import app_context
 from .jinja2.environment import doc_environment
 from .logging import log
+from .extra_docs import CollectionExtraDocsInfoT
 from .docs_parsing import AnsibleCollectionMetadata
 
 
@@ -35,6 +36,22 @@ PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
 ADD_TOCTREES = True
+
+
+async def write_file(path: str, content: str) -> None:
+    """
+    Write content to a given path.
+
+    :arg path: Path of the file to write.
+    :arg content: Content to write into the file.
+    """
+    flog = mlog.fields(func='write_file')
+    flog.debug('Enter')
+
+    async with aiofiles.open(path, 'w') as f:
+        await f.write(content)
+
+    flog.debug('Leave')
 
 
 async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
@@ -333,7 +350,8 @@ async def write_plugin_lists(collection_name: str,
                              plugin_maps: t.Mapping[str, t.Mapping[str, str]],
                              template: Template,
                              dest_dir: str,
-                             collection_meta: AnsibleCollectionMetadata) -> None:
+                             collection_meta: AnsibleCollectionMetadata,
+                             extra_docs_data: CollectionExtraDocsInfoT) -> None:
     """
     Write an index page for each collection.
 
@@ -343,12 +361,14 @@ async def write_plugin_lists(collection_name: str,
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
     :arg collection_meta: Metadata for the collection.
+    :arg extra_docs_data: Extra docs data for the collection.
     """
     index_contents = template.render(
         collection_name=collection_name,
         plugin_maps=plugin_maps,
         collection_version=collection_meta.version,
-        add_toctrees=ADD_TOCTREES)
+        add_toctrees=ADD_TOCTREES,
+        extra_docs_sections=extra_docs_data[0])
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
     # (docs/docsite/rst) is only writable by us.
@@ -464,6 +484,7 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
 async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          dest_dir: str,
                          collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
+                         extra_docs_data: t.Mapping[str, CollectionExtraDocsInfoT],
                          squash_hierarchy: bool = False,
                          ) -> None:
     """
@@ -473,6 +494,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
         of plugin_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
+    :arg extra_docs_data: Dictionary mapping collection names to CollectionExtraDocsInfoT.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
@@ -508,7 +530,47 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                 collection_dir = collection_toplevel
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
-                                   collection_dir, collection_metadata[collection_name])))
+                                   collection_dir, collection_metadata[collection_name],
+                                   extra_docs_data[collection_name])))
+
+        await asyncio.gather(*writers)
+
+    flog.debug('Leave')
+
+
+async def output_extra_docs(dest_dir: str,
+                            extra_docs_data: t.Mapping[str, CollectionExtraDocsInfoT],
+                            squash_hierarchy: bool = False) -> None:
+    """
+    Generate collection-level index pages for the collections.
+
+    :arg dest_dir: The directory to place the documentation in.
+    :arg extra_docs_data: Dictionary mapping collection names to CollectionExtraDocsInfoT.
+    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                           Undefined behavior if documentation for multiple collections are
+                           created.
+    """
+    flog = mlog.fields(func='output_extra_docs')
+    flog.debug('Enter')
+
+    writers = []
+    lib_ctx = app_context.lib_ctx.get()
+
+    if not squash_hierarchy:
+        collection_toplevel = os.path.join(dest_dir, 'collections')
+    else:
+        collection_toplevel = dest_dir
+
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+        for collection_name, (dummy, documents) in extra_docs_data.items():
+            if not squash_hierarchy:
+                collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
+            else:
+                collection_dir = collection_toplevel
+            for path, content in documents:
+                full_path = os.path.join(collection_dir, path)
+                os.makedirs(os.path.dirname(full_path), mode=0o755, exist_ok=True)
+                writers.append(await pool.spawn(write_file(full_path, content)))
 
         await asyncio.gather(*writers)
 
