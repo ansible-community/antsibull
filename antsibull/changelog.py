@@ -240,7 +240,7 @@ class AnsibleBaseChangelogCollector:
         path = await base_downloader(str(version))
         if os.path.isdir(path):
             changelog: t.Optional[ChangelogData] = None
-            for root, _, files in os.walk(path):
+            for root, dummy, files in os.walk(path):
                 if 'changelog.yaml' in files:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
                         changelog = f.read()
@@ -496,7 +496,7 @@ def get_changelog(
     changelog = []
 
     sorted_versions = collect_versions(versions, ansible_changelog.config)
-    for index, (version_str, _) in enumerate(sorted_versions):
+    for index, (version_str, dummy) in enumerate(sorted_versions):
         version, deps = versions[version_str]
         prev_version = None
         if index + 1 < len(sorted_versions):

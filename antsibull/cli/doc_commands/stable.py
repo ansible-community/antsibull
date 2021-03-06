@@ -21,6 +21,7 @@ from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
+from ...extra_docs import load_collections_extra_docs
 from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
 from ...docs_parsing.routing import (
@@ -39,6 +40,7 @@ from ...write_docs import (
     output_collection_namespace_indexes,
     output_indexes,
     output_plugin_indexes,
+    output_extra_docs,
 )
 from ...utils.transformations import get_collection_namespaces
 
@@ -329,8 +331,16 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.debug('Finished loading errors')
     """
 
+    # Load collection extra docs data
+    extra_docs_data = asyncio_run(load_collections_extra_docs(
+        {name: data.path for name, data in collection_metadata.items()}))
+    flog.debug('Finished getting collection extra docs data')
+
     plugin_contents = get_plugin_contents(plugin_info, nonfatal_errors)
     collection_to_plugin_info = get_collection_contents(plugin_contents)
+    # Make sure collections without documentable plugins are mentioned
+    for collection in collection_metadata:
+        collection_to_plugin_info[collection]
     flog.debug('Finished getting collection data')
 
     collection_namespaces = get_collection_namespaces(collection_to_plugin_info.keys())
@@ -347,19 +357,24 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
 
     asyncio_run(output_indexes(collection_to_plugin_info, dest_dir,
                                collection_metadata=collection_metadata,
-                               squash_hierarchy=squash_hierarchy))
+                               squash_hierarchy=squash_hierarchy,
+                               extra_docs_data=extra_docs_data))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
                                            collection_metadata=collection_metadata,
                                            squash_hierarchy=squash_hierarchy))
-    flog.debug('Finished writing plugin subs')
+    flog.debug('Finished writing plugin stubs')
 
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
                                       collection_metadata=collection_metadata,
                                       squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing plugin docs')
+
+    asyncio_run(output_extra_docs(dest_dir, extra_docs_data,
+                                  squash_hierarchy=squash_hierarchy))
+    flog.debug('Finished writing extra extra docs docs')
 
 
 def generate_docs() -> int:

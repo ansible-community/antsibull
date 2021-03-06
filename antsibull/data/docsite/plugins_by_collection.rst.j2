@@ -14,10 +14,29 @@ Collection version @{ collection_version }@
 .. toctree::
     :maxdepth: 1
 
+{% for section in extra_docs_sections %}
+@{section.title}@
+@{ '-' * (section.title | length) }@
+
+{%   if section.toctree %}
+.. toctree::
+    :maxdepth: 1
+
+{%     for toctree_entry in section.toctree %}
+    @{toctree_entry}@
+{%     endfor %}
+{%   endif %}
+
+{% endfor %}
+
 Plugin Index
 ------------
 
+{% if plugin_maps %}
 These are the plugins in the @{collection_name}@ collection
+{% else %}
+There are no plugins in the @{collection_name}@ collection with automatically generated documentation.
+{% endif %}
 
 {% for category, plugins in plugin_maps.items() | sort %}
 
