@@ -332,7 +332,6 @@ class ChangelogEntry:
     def __init__(self, version: PypiVer, version_str: str,
                  prev_version: t.Optional[PypiVer],
                  ancestor_version: t.Optional[PypiVer],
-                 has_ancestor_versions: bool,
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
                  base_collector: AnsibleBaseChangelogCollector,
@@ -371,7 +370,7 @@ class ChangelogEntry:
             )
             if prev_version:
                 if not prev_collection_version:
-                    if prev_version != ancestor_version or has_ancestor_versions:
+                    if prev_version != ancestor_version:
                         self.added_collections.append((collector, collection_version))
                 elif prev_collection_version == collection_version:
                     self.unchanged_collections.append((collector, collection_version))
@@ -477,9 +476,6 @@ def get_changelog(
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
 
-    # TODO: set to True if we have deps data for the ansible_ancestor_version
-    has_ancestor_versions = False
-
     base_versions: t.Dict[PypiVer, str] = dict()
     versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
@@ -511,7 +507,6 @@ def get_changelog(
             version_str,
             prev_version,
             ansible_ancestor_version,
-            has_ancestor_versions,
             base_versions,
             versions_per_collection,
             base_collector,
