@@ -503,7 +503,8 @@ class ReleaseNotes:
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
         if changelog.ansible_version.major > 2:
             version = f"{changelog.ansible_version.major}"
-            base_version = "2.10"  # FIXME
+            base_version = changelog.base_collector.latest
+            base_version = f"{base_version.major}.{base_version.minor}"
         else:
             version = f"{changelog.ansible_version.major}.{changelog.ansible_version.minor}"
             base_version = f"{changelog.ansible_version.major}.{changelog.ansible_version.minor}"
@@ -555,9 +556,18 @@ class ReleaseNotes:
 
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        if changelog.ansible_version.major == 2:
+        # Determine ansible-base/-core version in previous major release
+        prev_base_version = ''
+        ancestor_entry = next((entry for entry in changelog.entries if entry.is_ancestor), None)
+        if ancestor_entry is not None:
+            prev_base_version = ancestor_entry.base_collector.latest
+            prev_base_version = f"{prev_base_version.major}.{prev_base_version.minor}"
+
+        # Determine whether to include ansible-base/-core porting guide or not
+        if changelog.ansible_version.major == 2 or base_version != prev_base_version:
             ReleaseNotes._append_base_porting_guide_bytes(builder, changelog)
         elif changelog.ansible_version.major == 3:
+            # Special message for Ansible 3
             builder.add_raw_rst(
                 # noqa: E501
                 "\n"
@@ -568,13 +578,30 @@ class ReleaseNotes:
                 "\n\n"
                 "We suggest you read this page along with the `Ansible Changelog for 3.0"
                 "<https://github.com/ansible-community/ansible-build-data/blob/main/3/"
-                "CHANGELOG-v3.rst>`_"
-                " to understand what updates you may need to make."
+                "CHANGELOG-v3.rst>`_ to understand what updates you may need to make."
                 "\n\n"
                 ".. note::\n"
                 "    Due to a scheduling conflict, the latest version of Ansible 2.10 (2.10.7)"
                 " has a few collections which are newer than Ansible 3.0.0.  Ansible 3.1.0 will"
                 " contain updated versions of those collections."
+                "\n"
+            )
+        else:
+            # Generic message if we again have two consecutive versions with the same ansible-core
+            prev_version = changelog.ansible_version.major - 1
+            prev_prev_version = changelog.ansible_version.major - 2
+            builder.add_raw_rst(
+                # noqa: E501
+                "\n"
+                f"Ansible {version} is based on Ansible-core {base_version}, which is the same"
+                f" major release as Ansible {prev_version}.  Therefore, there is no section on"
+                " ansible-core in this porting guide.  If you are upgrading from Ansible"
+                f" {prev_prev_version}, please first consult the Ansible {prev_version} porting"
+                f" guide before continuing with the Ansible {version} porting guide."
+                "\n\n"
+                f"We suggest you read this page along with the `Ansible Changelog for {version}"
+                f"<https://github.com/ansible-community/ansible-build-data/blob/main/{version}/"
+                f"CHANGELOG-v{version}.rst>`_ to understand what updates you may need to make."
                 "\n"
             )
 
