@@ -1,0 +1,48 @@
+---
+# The directory where antsibull will build the Ansible release tarball
+antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
+
+# The build file
+antsibull_build_file: "ansible-2.10.build"
+
+# Force a rebuild by deleting an existing release tarball, if it exists
+antsibull_force_rebuild: false
+
+# Where to get the ansible-build-data repository from
+antsibull_data_git_repo: "https://github.com/ansible-community/ansible-build-data"
+
+# The tag (or branch) of the ansible-build-data git repo to checkout
+# Could be "main", "devel", etc
+antsibull_data_version: main
+
+# Whether to forcefully reset the ansible-build-data repo
+# ex: set to false if there are manual changes that should not be overwritten
+antsibull_data_reset: true
+
+# Where the ansible-build-data git repository will be cloned to
+antsibull_data_git_dir: "{{ antsibull_sdist_dir }}/ansible-build-data"
+
+# Directory to read .build and .deps files from
+antsibull_data_dir: "{{ antsibull_data_git_dir }}/2.10"
+
+# Where to clone the Ansible git repo from so we can run integration tests
+antsibull_ansible_git_repo: "https://github.com/ansible/ansible"
+
+# The git tag (or branch) of the ansible repo to check out
+antsibull_ansible_git_version: "stable-2.10"
+
+# Where to clone the Ansible git repo
+antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
+
+# The version of ansible to build
+antsibull_ansible_version: 2.10.6
+
+# Where the Ansible release tarball will be installed for test purposes
+antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
+
+# Whether or not to start from scratch with a new venv if one exists
+antsibull_venv_cleanup: true
+
+# TODO:
+# --dest-data-dir (Directory to write .build and .deps files to, as well as changelog and porting guide if applicable. Defaults to --data-dir)
+# --collection-cache (Directory of cached collection tarballs. Will be used if a collection tarball to be downloaded exists in here, and will be populated when downloading new tarballs.)
