@@ -37,10 +37,10 @@ def detect_bad_upgrade():
                 pip uninstall ansible
                 pip install ansible
 
-            If you have a broken installation, perhaps because ansible-base was installed before
+            If you have a broken installation, perhaps because {{ ansible_core_package_name }} was installed before
             ansible was upgraded, try this to resolve it:
 
-                pip install --force-reinstall ansible ansible-base
+                pip install --force-reinstall ansible {{ ansible_core_package_name }}
 
             If ansible is installed in a different location than you will be installing it now
             (for example, if the old version is installed by a system package manager to
@@ -71,10 +71,10 @@ def detect_bad_upgrade():
                 pip uninstall ansible
                 pip install ansible
 
-            If you have a broken installation, perhaps because ansible-base was installed before
+            If you have a broken installation, perhaps because {{ ansible_core_package_name }} was installed before
             ansible was upgraded, try this to resolve it:
 
-                pip install --force-reinstall ansible ansible-base
+                pip install --force-reinstall ansible {{ ansible_core_package_name }}
 
             If ansible is installed in a different location than you will be installing it now
             (for example, if the old version is installed by a system package manager to
@@ -125,7 +125,7 @@ setup(
     packages=['ansible_collections'],
     include_package_data=True,
     install_requires=[
-        'ansible-base>={{ ansible_base_version }},<{{ ansible_base_version.major }}.{{ ansible_base_version.minor + 1 }}',{{ collection_deps }}
+        '{{ ansible_core_package_name }}>={{ ansible_base_version }},<{{ ansible_base_version.major }}.{{ ansible_base_version.minor + 1 }}',{{ collection_deps }}
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

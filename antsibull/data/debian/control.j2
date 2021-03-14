@@ -11,9 +11,9 @@ Vcs-Git: https://github.com/ansible-community/antsibull.git
 
 Package: ansible
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, ansible-base
+Depends: ${python3:Depends}, ${misc:Depends}, {{ ansible_core_package_name }}
 #Suggests: python-ansible-doc
-Description: ansible collections for ansible-base
+Description: ansible collections for {{ ansible_core_package_name }}
 
 #Package: python-ansible-doc
 #Architecture: all

@@ -41,7 +41,8 @@ class AnsibleBasePyPiClient:
     """Class to retrieve information about AnsibleBase from Pypi."""
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
-                 pypi_server_url: str = _PYPI_SERVER_URL) -> None:
+                 pypi_server_url: str = _PYPI_SERVER_URL,
+                 package_name: str = 'ansible-base') -> None:
         """
         Initialize the AnsibleBasePypi class.
 
@@ -50,6 +51,7 @@ class AnsibleBasePyPiClient:
         """
         self.aio_session = aio_session
         self.pypi_server_url = pypi_server_url
+        self.package_name = package_name
 
     @lru_cache(None)
     async def get_info(self) -> t.Dict[str, t.Any]:
@@ -62,7 +64,7 @@ class AnsibleBasePyPiClient:
                 curl https://pypi.org/pypi/ansible-base/json| python3 -m json.tool
         """
         # Retrieve the ansible-base package info from pypi
-        query_url = urljoin(self.pypi_server_url, 'pypi/ansible-base/json')
+        query_url = urljoin(self.pypi_server_url, f'pypi/{self.package_name}/json')
         async with retry_get(self.aio_session, query_url) as response:
             pkg_info = await response.json()
         return pkg_info
@@ -101,12 +103,12 @@ class AnsibleBasePyPiClient:
 
         pypi_url = tar_filename = ''
         for release in pkg_info['releases'][ansible_base_version]:
-            if release['filename'].startswith(f'ansible-base-{ansible_base_version}.tar.'):
+            if release['filename'].startswith(f'{self.package_name}-{ansible_base_version}.tar.'):
                 tar_filename = release['filename']
                 pypi_url = release['url']
                 break
         else:  # for-else: http://bit.ly/1ElPkyg
-            raise UnknownVersion(f'ansible-base {ansible_base_version} does not'
+            raise UnknownVersion(f'{self.package_name} {ansible_base_version} does not'
                                  ' exist on {self.pypi_server_url}')
 
         tar_filename = os.path.join(download_dir, tar_filename)
@@ -120,6 +122,10 @@ class AnsibleBasePyPiClient:
                     chunk = await response.content.read(lib_ctx.chunksize)
 
         return tar_filename
+
+
+def get_ansible_core_package_name(ansible_version: PypiVer) -> str:
+    return 'ansible-core' if ansible_version.major >= 4 else 'ansible-base'
 
 
 def _get_source_version(ansible_base_source: str) -> PypiVer:
@@ -256,6 +262,7 @@ async def create_sdist(source_dir: str, dest_dir: str) -> str:
 
 
 async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
+                           ansible_version: PypiVer,
                            ansible_base_version: str,
                            tmpdir: str,
                            ansible_base_source: t.Optional[str] = None) -> str:
@@ -284,7 +291,8 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
         # Create an sdist from the source that can be installed
         install_file = await create_sdist(source_location, tmpdir)
     else:
-        pypi_client = AnsibleBasePyPiClient(aio_session)
+        pypi_client = AnsibleBasePyPiClient(
+            aio_session, package_name=get_ansible_core_package_name(ansible_version))
         if ansible_base_version == '@latest':
             ansible_base_version: PypiVer = await pypi_client.get_latest_version()
         else:

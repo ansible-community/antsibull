@@ -287,6 +287,7 @@ class AnsibleBaseChangelogCollector:
 
 async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                              base_collector: AnsibleBaseChangelogCollector,
+                             ansible_version: PypiVer,
                              collection_cache: t.Optional[str]):
     lib_ctx = app_context.lib_ctx.get()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -296,7 +297,7 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                                                   collection_cache=collection_cache)
 
                 async def base_downloader(version):
-                    return await get_ansible_base(aio_session, version, tmp_dir)
+                    return await get_ansible_base(aio_session, ansible_version, version, tmp_dir)
 
                 requestors = [
                     await pool.spawn(collector.download(downloader)) for collector in collectors
@@ -491,7 +492,7 @@ def get_changelog(
         CollectionChangelogCollector(collection, versions_per_collection[collection].values())
         for collection in sorted(versions_per_collection.keys())
     ]
-    asyncio.run(collect_changelogs(collectors, base_collector, collection_cache))
+    asyncio.run(collect_changelogs(collectors, base_collector, ansible_version, collection_cache))
 
     changelog = []
 

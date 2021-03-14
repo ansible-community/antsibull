@@ -13,6 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 import aiohttp
 import asyncio_pool
+from packaging.version import Version as PypiVer
 from pydantic import ValidationError
 
 from ... import app_context
@@ -50,7 +51,8 @@ mlog = log.fields(mod=__name__)
 PluginErrorsRT = t.DefaultDict[str, t.DefaultDict[str, t.List[str]]]
 
 
-async def retrieve(ansible_base_version: str,
+async def retrieve(ansible_version: PypiVer,
+                   ansible_base_version: str,
                    collections: t.Mapping[str, str],
                    tmp_dir: str,
                    galaxy_server: str,
@@ -59,7 +61,8 @@ async def retrieve(ansible_base_version: str,
     """
     Download ansible-base and the collections.
 
-    :arg ansible_base_version: Version of ansible-base to download.
+    :arg ansible_version: Verison of Ansible.
+    :arg ansible_base_version: Version of ansible-base/-core to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into
     :arg galaxy_server: URL to the galaxy server.
@@ -81,7 +84,7 @@ async def retrieve(ansible_base_version: str,
     async with aiohttp.ClientSession() as aio_session:
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             requestors['_ansible_base'] = await pool.spawn(
-                get_ansible_base(aio_session, ansible_base_version, tmp_dir,
+                get_ansible_base(aio_session, ansible_version, ansible_base_version, tmp_dir,
                                  ansible_base_source=ansible_base_source))
 
             downloader = CollectionDownloader(aio_session, collection_dir,
@@ -374,14 +377,14 @@ def generate_docs() -> int:
     # Parse the deps file
     flog.fields(deps_file=app_ctx.extra['deps_file']).info('Parse deps file')
     deps_file = DepsFile(app_ctx.extra['deps_file'])
-    dummy_, ansible_base_version, collections = deps_file.parse()
+    ansible_version, ansible_base_version, collections = deps_file.parse()
     flog.debug('Finished parsing deps file')
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # Retrieve ansible-base and the collections
         flog.fields(tmp_dir=tmp_dir).info('created tmpdir')
         collection_tarballs = asyncio_run(
-            retrieve(ansible_base_version, collections, tmp_dir,
+            retrieve(PypiVer(ansible_version), ansible_base_version, collections, tmp_dir,
                      galaxy_server=app_ctx.galaxy_url,
                      ansible_base_source=app_ctx.extra['ansible_base_source'],
                      collection_cache=app_ctx.extra['collection_cache']))
