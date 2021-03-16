@@ -31,7 +31,7 @@ def detect_bad_upgrade():
             {0}
 
 {% if ansible_core_package_name == 'ansible-core' %}
-            is of an unknown version.  Since upgrading directly from ansible-2.x or ansible-3 or
+            is of an unknown version.  Since upgrading directly from ansible-2.x, ansible-3, or
             ansible-base to ansible-4 or newer with pip is known to cause problems, please uninstall
             the old version and install the new version:
 
@@ -73,7 +73,7 @@ def detect_bad_upgrade():
             print("""\n
                 ### ERROR ###
 
-                Upgrading directly from ansible-2.10, ansible-3 or ansible-base-2.10 to ansible-4
+                Upgrading directly from ansible-2.10, ansible-3, or ansible-base-2.10 to ansible-4
                 or greater with pip is known to cause problems.  Please uninstall the old version found at:
 
                 {0}
