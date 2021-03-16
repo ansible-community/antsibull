@@ -559,7 +559,7 @@ class ReleaseNotes:
         # Determine ansible-base/-core version in previous major release
         prev_base_version = ''
         if any(entry.is_ancestor for entry in changelog.entries):
-            # If there is an ancestor, the earliest ansible-base/-core version will the
+            # If there is an ancestor, the earliest ansible-base/-core version will be the
             # version used in the previous major release.
             prev_base_version = changelog.base_collector.earliest
             prev_base_version = f"{prev_base_version.major}.{prev_base_version.minor}"
