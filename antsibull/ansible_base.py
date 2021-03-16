@@ -18,11 +18,14 @@ from packaging.version import Version as PypiVer
 
 from . import app_context
 from .compat import best_get_loop, create_task
+from .logging import log
 from .utils.http import retry_get
 
 if t.TYPE_CHECKING:
     import aiohttp.client
 
+
+mlog = log.fields(mod=__name__)
 
 #: URL to checkout ansible-base from.
 _ANSIBLE_BASE_URL = str(app_context.AppContext().ansible_base_url)
@@ -92,9 +95,15 @@ class AnsibleBasePyPiClient:
         :returns: A list of :pypkg:obj:`packaging.versioning.Version`s
             for all the versions on pypi, including prereleases.
         """
+        flog = mlog.fields(func='AnsibleBasePyPiClient.get_versions')
+        flog.debug('Enter')
+
         release_info = await self.get_release_info()
         versions = [PypiVer(r) for r in release_info]
         versions.sort(reverse=True)
+        flog.fields(versions=versions).info('sorted list of ansible-core versions')
+
+        flog.debug('Leave')
         return versions
 
     async def get_latest_version(self) -> PypiVer:
