@@ -59,7 +59,7 @@ async def retrieve(ansible_base_version: str,
     """
     Download ansible-base and the collections.
 
-    :arg ansible_base_version: Version of ansible-base to download.
+    :arg ansible_base_version: Version of ansible-base/-core to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into
     :arg galaxy_server: URL to the galaxy server.

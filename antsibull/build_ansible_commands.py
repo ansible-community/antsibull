@@ -21,6 +21,7 @@ from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 from . import app_context
+from .ansible_base import get_ansible_core_package_name
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
@@ -124,9 +125,11 @@ def write_setup(ansible_version: PypiVer,
     setup_filename = os.path.join(package_dir, 'setup.py')
 
     setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
-    setup_contents = setup_tmpl.render(version=ansible_version,
-                                       ansible_base_version=ansible_base_version,
-                                       collection_deps=collection_deps)
+    setup_contents = setup_tmpl.render(
+        version=ansible_version,
+        ansible_core_package_name=get_ansible_core_package_name(ansible_base_version),
+        ansible_base_version=ansible_base_version,
+        collection_deps=collection_deps)
 
     with open(setup_filename, 'w') as f:
         f.write(setup_contents)
@@ -143,10 +146,13 @@ def write_python_build_files(ansible_version: PypiVer,
     write_setup(ansible_version, ansible_base_version, collection_deps, package_dir)
 
 
-def write_debian_directory(ansible_version: str, package_dir: str) -> None:
+def write_debian_directory(ansible_version: PypiVer,
+                           ansible_base_version: PypiVer,
+                           package_dir: str) -> None:
     debian_dir = os.path.join(package_dir, 'debian')
     os.mkdir(debian_dir, mode=0o700)
-    debian_files = ('changelog.j2', 'control', 'copyright', 'rules')
+    debian_files = ('changelog.j2', 'control.j2', 'copyright', 'rules')
+    ansible_core_package_name = get_ansible_core_package_name(ansible_base_version)
     for filename in debian_files:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
@@ -159,8 +165,9 @@ def write_debian_directory(ansible_version: str, package_dir: str) -> None:
             # and update 'data' to be the result.
             tmpl = Template(data)
             data = tmpl.render(
-                version=ansible_version,
+                version=str(ansible_version),
                 date=datetime.datetime.utcnow().strftime('%a, %d %b %Y %T +0000'),
+                ansible_core_package_name=ansible_core_package_name,
             )
 
         with open(os.path.join(debian_dir, filename), 'w') as f:
@@ -259,7 +266,8 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
                                  package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
+            write_debian_directory(app_ctx.extra['ansible_version'], ansible_base_version,
+                                   package_dir)
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
     # Write changelog and porting guide also to destination directory

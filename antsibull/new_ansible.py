@@ -22,6 +22,9 @@ def display_exception(loop, context):
 
 
 async def get_version_info(collections, pypi_server_url):
+    """
+    Return the versions of all the collections and ansible-base/ansible-core
+    """
     loop = asyncio.get_running_loop()
     loop.set_exception_handler(display_exception)
 

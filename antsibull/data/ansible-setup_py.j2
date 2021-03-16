@@ -30,17 +30,27 @@ def detect_bad_upgrade():
 
             {0}
 
+{% if ansible_core_package_name == 'ansible-core' %}
+            is of an unknown version.  Since upgrading directly from ansible-2.x, ansible-3, or
+            ansible-base to ansible-4 or newer with pip is known to cause problems, please uninstall
+            the old version and install the new version:
+
+                pip uninstall ansible       # if installed
+                pip uninstall ansible-base  # if installed
+                pip install ansible
+{% else %}
             is of an unknown version.  Since upgrading directly from ansible-2.9 or less to
             ansible-2.10 with pip is known to cause problems, please uninstall the old version and
             install the new version:
 
                 pip uninstall ansible
                 pip install ansible
+{% endif %}
 
-            If you have a broken installation, perhaps because ansible-base was installed before
+            If you have a broken installation, perhaps because {{ ansible_core_package_name }} was installed before
             ansible was upgraded, try this to resolve it:
 
-                pip install --force-reinstall ansible ansible-base
+                pip install --force-reinstall ansible {{ ansible_core_package_name }}
 
             If ansible is installed in a different location than you will be installing it now
             (for example, if the old version is installed by a system package manager to
@@ -55,8 +65,46 @@ def detect_bad_upgrade():
 
             """.format(current_filename))
     else:
+{% if ansible_core_package_name == 'ansible-core' %}
+        if current_version >= (2, 11):
+            return False
+
+        if current_version == (2, 10):
+            print("""\n
+                ### ERROR ###
+
+                Upgrading directly from ansible-2.10, ansible-3, or ansible-base-2.10 to ansible-4
+                or greater with pip is known to cause problems.  Please uninstall the old version found at:
+
+                {0}
+
+                and install the new version:
+
+                    pip uninstall ansible       # if installed
+                    pip uninstall ansible-base  # if installed
+                    pip install ansible
+
+                If you have a broken installation, perhaps because {{ ansible_core_package_name }} was installed before
+                ansible was upgraded, try this to resolve it:
+
+                    pip install --force-reinstall ansible {{ ansible_core_package_name }}
+
+                If ansible is installed in a different location than you will be installing it now
+                (for example, if the old version is installed by a system package manager to
+                /usr/lib/python3.8/site-packages/ansible but you are installing the new version into
+                ~/.local/lib/python3.8/site-packages/ansible with `pip install --user ansible`)
+                or you want to install anyways and cleanup any breakage afterwards, then you may set
+                the ANSIBLE_SKIP_CONFLICT_CHECK environment variable to ignore this check:
+
+                    ANSIBLE_SKIP_CONFLICT_CHECK=1 pip install --user ansible
+
+                ### END ERROR ###
+
+                """.format(current_filename))
+{% else %}
         if current_version >= (2, 10):
             return False
+{% endif %}
 
         print("""\n
             ### ERROR ###
@@ -71,10 +119,10 @@ def detect_bad_upgrade():
                 pip uninstall ansible
                 pip install ansible
 
-            If you have a broken installation, perhaps because ansible-base was installed before
+            If you have a broken installation, perhaps because {{ ansible_core_package_name }} was installed before
             ansible was upgraded, try this to resolve it:
 
-                pip install --force-reinstall ansible ansible-base
+                pip install --force-reinstall ansible {{ ansible_core_package_name }}
 
             If ansible is installed in a different location than you will be installing it now
             (for example, if the old version is installed by a system package manager to
@@ -125,7 +173,7 @@ setup(
     packages=['ansible_collections'],
     include_package_data=True,
     install_requires=[
-        'ansible-base>={{ ansible_base_version }},<{{ ansible_base_version.major }}.{{ ansible_base_version.minor + 1 }}',{{ collection_deps }}
+        '{{ ansible_core_package_name }}>={{ ansible_base_version }},<{{ ansible_base_version.major }}.{{ ansible_base_version.minor + 1 }}',{{ collection_deps }}
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
