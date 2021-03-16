@@ -558,9 +558,10 @@ class ReleaseNotes:
 
         # Determine ansible-base/-core version in previous major release
         prev_base_version = ''
-        ancestor_entry = next((entry for entry in changelog.entries if entry.is_ancestor), None)
-        if ancestor_entry is not None:
-            prev_base_version = ancestor_entry.base_collector.latest
+        if any(entry.is_ancestor for entry in changelog.entries):
+            # If there is an ancestor, the earliest ansible-base/-core version will the
+            # version used in the previous major release.
+            prev_base_version = changelog.base_collector.earliest
             prev_base_version = f"{prev_base_version.major}.{prev_base_version.minor}"
 
         # Determine whether to include ansible-base/-core porting guide or not
