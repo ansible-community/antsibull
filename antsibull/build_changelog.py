@@ -172,13 +172,19 @@ def append_changelog_changes_ansible(builder: RstBuilder,
 
 def append_changelog_changes_base(builder: RstBuilder,
                                   changelog_entry: ChangelogEntry) -> PluginDataT:
-    builder.add_section('Ansible-base', 1)
+    base_name = 'Ansible-base'
+    if (
+            changelog_entry.base_collector.latest.major > 2 or
+            changelog_entry.base_collector.latest.minor > 10
+    ):
+        base_name = 'Ansible-core'
+    builder.add_section(base_name, 1)
 
-    builder.add_raw_rst(f"Ansible {changelog_entry.version} contains Ansible-base "
+    builder.add_raw_rst(f"Ansible {changelog_entry.version} contains {base_name} "
                         f"version {changelog_entry.ansible_base_version}.")
     if changelog_entry.prev_ansible_base_version:
         if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
-            builder.add_raw_rst("This is the same version of Ansible-base as in "
+            builder.add_raw_rst(f"This is the same version of {base_name} as in "
                                 "the previous Ansible release.\n")
             return []
 
@@ -196,7 +202,7 @@ def append_changelog_changes_base(builder: RstBuilder,
         until_version=changelog_entry.ansible_base_version)
 
     if not release_entries:
-        builder.add_raw_rst("Ansible-base did not have a changelog in this version.")
+        builder.add_raw_rst(f"{base_name} did not have a changelog in this version.")
         return []
 
     release_entry = release_entries[0]
@@ -206,7 +212,7 @@ def append_changelog_changes_base(builder: RstBuilder,
         return []
 
     builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible-base", "ansible.builtin.", changelog.generator, release_entry)]
+    return [(base_name, "ansible.builtin.", changelog.generator, release_entry)]
 
 
 def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
@@ -383,8 +389,12 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
         changelog_entry.ansible_changelog,
         changelog_entry.version_str,
         str(changelog_entry.prev_version) if changelog_entry.prev_version else None)
+    is_core = (
+        changelog_entry.base_collector.latest.major > 2 or
+        changelog_entry.base_collector.latest.minor > 10
+    )
     check_changelog(
-        'Ansible-base',
+        'Ansible-core' if is_core else 'Ansible-base',
         changelog_entry.base_collector.changelog,
         changelog_entry.ansible_base_version,
         changelog_entry.prev_ansible_base_version)
