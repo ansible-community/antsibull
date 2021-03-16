@@ -4,6 +4,7 @@
 # Copyright: Ansible Project, 2020
 """Functions for working with the ansible-base package."""
 import ast
+import asyncio
 import os
 import re
 import tempfile
@@ -16,7 +17,7 @@ import sh
 from packaging.version import Version as PypiVer
 
 from . import app_context
-from .compat import best_get_loop
+from .compat import best_get_loop, create_task
 from .utils.http import retry_get
 
 if t.TYPE_CHECKING:
@@ -41,8 +42,7 @@ class AnsibleBasePyPiClient:
     """Class to retrieve information about AnsibleBase from Pypi."""
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
-                 pypi_server_url: str = _PYPI_SERVER_URL,
-                 package_name: str = 'ansible-base') -> None:
+                 pypi_server_url: str = _PYPI_SERVER_URL) -> None:
         """
         Initialize the AnsibleBasePypi class.
 
@@ -51,23 +51,39 @@ class AnsibleBasePyPiClient:
         """
         self.aio_session = aio_session
         self.pypi_server_url = pypi_server_url
-        self.package_name = package_name
 
-    @lru_cache(None)
-    async def get_info(self) -> t.Dict[str, t.Any]:
+    async def _get_json(self, query_url: str) -> t.Dict[str, t.Any]:
         """
-        Retrieve information about the ansible-base package from pypi.
-
-        :returns: The dict which represents the information about the ansible-base package returned
-            from pypi.  To examine the data structure, use::
-
-                curl https://pypi.org/pypi/ansible-base/json| python3 -m json.tool
+        JSON data from a url with retries and return the data as python data structures.
         """
-        # Retrieve the ansible-base package info from pypi
-        query_url = urljoin(self.pypi_server_url, f'pypi/{self.package_name}/json')
         async with retry_get(self.aio_session, query_url) as response:
             pkg_info = await response.json()
         return pkg_info
+
+    @lru_cache(None)
+    async def get_release_info(self) -> t.Dict[str, t.Any]:
+        """
+        Retrieve information about releases of the ansible-base/ansible-core package from pypi.
+
+        :returns: The dict which represents the release info keyed by version number.
+            To examine the data structure, use::
+
+                curl https://pypi.org/pypi/ansible-core/json| python3 -m json.tool
+
+        .. note:: Returns an aggregate of ansible-base and ansible-core releases.
+        """
+        # Retrieve the ansible-base and ansible-core package info from pypi
+        tasks = []
+        for package_name in ('ansible-core', 'ansible-base'):
+            query_url = urljoin(self.pypi_server_url, f'pypi/{package_name}/json')
+            tasks.append(create_task(self._get_json(query_url)))
+
+        # Note: gather maintains the order of results
+        results = await asyncio.gather(*tasks)
+        release_info = results[1]['releases']  # ansible-base information
+        release_info.update(results[0]['releases'])  # ansible-core information
+
+        return release_info
 
     async def get_versions(self) -> t.List[PypiVer]:
         """
@@ -76,8 +92,8 @@ class AnsibleBasePyPiClient:
         :returns: A list of :pypkg:obj:`packaging.versioning.Version`s
             for all the versions on pypi, including prereleases.
         """
-        pkg_info = await self.get_info()
-        versions = [PypiVer(r) for r in pkg_info['releases']]
+        release_info = await self.get_release_info()
+        versions = [PypiVer(r) for r in release_info]
         versions.sort(reverse=True)
         return versions
 
@@ -99,16 +115,17 @@ class AnsibleBasePyPiClient:
         :arg download_dir: Directory to download the tarball to.
         :returns: The name of the downloaded tarball.
         """
-        pkg_info = await self.get_info()
+        package_name = get_ansible_core_package_name(ansible_base_version)
+        release_info = await self.get_release_info()
 
         pypi_url = tar_filename = ''
-        for release in pkg_info['releases'][ansible_base_version]:
-            if release['filename'].startswith(f'{self.package_name}-{ansible_base_version}.tar.'):
+        for release in release_info[ansible_base_version]:
+            if release['filename'].startswith(f'{package_name}-{ansible_base_version}.tar.'):
                 tar_filename = release['filename']
                 pypi_url = release['url']
                 break
         else:  # for-else: http://bit.ly/1ElPkyg
-            raise UnknownVersion(f'{self.package_name} {ansible_base_version} does not'
+            raise UnknownVersion(f'{package_name} {ansible_base_version} does not'
                                  ' exist on {self.pypi_server_url}')
 
         tar_filename = os.path.join(download_dir, tar_filename)
@@ -124,8 +141,21 @@ class AnsibleBasePyPiClient:
         return tar_filename
 
 
-def get_ansible_core_package_name(ansible_version: PypiVer) -> str:
-    return 'ansible-core' if ansible_version.major >= 4 else 'ansible-base'
+def get_ansible_core_package_name(ansible_base_version: t.Union[str, PypiVer]) -> str:
+    """
+    Returns the name of the minimal ansible package.
+
+    :arg ansible_base_version: The version of the minimal ansible package to retrieve the
+        name for.
+    :returns: 'ansible-core' when the version is 2.11 or higher. Otherwise 'ansible-base'.
+    """
+    if not isinstance(ansible_base_version, PypiVer):
+        ansible_base_version = PypiVer(ansible_base_version)
+
+    if ansible_base_version.major <= 2 and ansible_base_version.minor <= 10:
+        return 'ansible-base'
+
+    return 'ansible-core'
 
 
 def _get_source_version(ansible_base_source: str) -> PypiVer:
@@ -262,7 +292,6 @@ async def create_sdist(source_dir: str, dest_dir: str) -> str:
 
 
 async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
-                           ansible_version: PypiVer,
                            ansible_base_version: str,
                            tmpdir: str,
                            ansible_base_source: t.Optional[str] = None) -> str:
@@ -282,6 +311,7 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
     if ansible_base_version == '@devel':
         # is the source usable?
         if source_is_devel(ansible_base_source):
+            # source_is_devel() protects against this.  This assert is to inform the type checker
             assert ansible_base_source is not None
             source_location: str = ansible_base_source
 
@@ -291,8 +321,7 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
         # Create an sdist from the source that can be installed
         install_file = await create_sdist(source_location, tmpdir)
     else:
-        pypi_client = AnsibleBasePyPiClient(
-            aio_session, package_name=get_ansible_core_package_name(ansible_version))
+        pypi_client = AnsibleBasePyPiClient(aio_session)
         if ansible_base_version == '@latest':
             ansible_base_version: PypiVer = await pypi_client.get_latest_version()
         else:

@@ -127,7 +127,7 @@ def write_setup(ansible_version: PypiVer,
     setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(
         version=ansible_version,
-        ansible_core_package_name=get_ansible_core_package_name(ansible_version),
+        ansible_core_package_name=get_ansible_core_package_name(ansible_base_version),
         ansible_base_version=ansible_base_version,
         collection_deps=collection_deps)
 
@@ -146,11 +146,13 @@ def write_python_build_files(ansible_version: PypiVer,
     write_setup(ansible_version, ansible_base_version, collection_deps, package_dir)
 
 
-def write_debian_directory(ansible_version: PypiVer, package_dir: str) -> None:
+def write_debian_directory(ansible_version: PypiVer,
+                           ansible_base_version: PypiVer,
+                           package_dir: str) -> None:
     debian_dir = os.path.join(package_dir, 'debian')
     os.mkdir(debian_dir, mode=0o700)
     debian_files = ('changelog.j2', 'control.j2', 'copyright', 'rules')
-    ansible_core_package_name = get_ansible_core_package_name(ansible_version)
+    ansible_core_package_name = get_ansible_core_package_name(ansible_base_version)
     for filename in debian_files:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
@@ -264,7 +266,8 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
                                  package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['ansible_version'], package_dir)
+            write_debian_directory(app_ctx.extra['ansible_version'], ansible_base_version,
+                                   package_dir)
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
     # Write changelog and porting guide also to destination directory

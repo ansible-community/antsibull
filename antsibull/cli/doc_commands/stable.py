@@ -84,7 +84,7 @@ async def retrieve(ansible_version: PypiVer,
     async with aiohttp.ClientSession() as aio_session:
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             requestors['_ansible_base'] = await pool.spawn(
-                get_ansible_base(aio_session, ansible_version, ansible_base_version, tmp_dir,
+                get_ansible_base(aio_session, ansible_base_version, tmp_dir,
                                  ansible_base_source=ansible_base_source))
 
             downloader = CollectionDownloader(aio_session, collection_dir,
