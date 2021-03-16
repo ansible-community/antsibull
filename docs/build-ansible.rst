@@ -115,9 +115,10 @@ Any subsequent rcs and final
 
     # We do not run antsibull-build single because the compatible collection version information
     # is now set until final.
-    # If ansible-base needs a version update, change it in the .build and .deps file.
-    # If any collections have been granted an update exception, change the range manually in the
-    # .build and .deps file.
+    # * Change the _ansible_version field to the new version
+    # * If ansible-base needs a version update, change it in the .build and .deps file.
+    # * If any collections have been granted an update exception, change the range manually in the
+    #   .build and .deps file.
     # vim ansible-build-data/3/ansible-3.build
     # vim ansible-build-data/3/ansible-3.0.0rc2.deps
 
