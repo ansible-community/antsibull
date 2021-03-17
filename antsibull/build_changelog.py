@@ -609,7 +609,7 @@ class ReleaseNotes:
                 f"Ansible {version} is based on Ansible-core {base_version}, which is the same"
                 f" major release as Ansible {prev_version}.  Therefore, there is no section on"
                 " ansible-core in this porting guide.  If you are upgrading from Ansible"
-                f" {prev_prev_version}.x, please first consult the Ansible {prev_version} porting"
+                f" {prev_prev_version}, please first consult the Ansible {prev_version} porting"
                 f" guide before continuing with the Ansible {version} porting guide."
                 "\n\n"
                 f"We suggest you read this page along with the `Ansible {version} Changelog"
