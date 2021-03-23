@@ -23,37 +23,38 @@ antsibull-docs = "antsibull.cli.antsibull_docs:main"
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
+aiocontextvars = {version = "*", python = "~3.6"}
 aiofiles = "*"
 aiohttp = ">= 3.0.0"
+antsibull-changelog = ">= 0.7.0"
+asyncio-pool = "*"
+docutils = "*"
 jinja2 = "*"
 # major/minor was introduced here
 packaging = ">= 20.0"
+perky = "*"
+pydantic = "*"
+pygments = ">= 2.6.1"
+PyYAML = "*"
+rstcheck = "^3"
 semantic_version = "*"
 sh = "*"
-docutils = "*"
-rstcheck = "^3"
-PyYAML = "*"
-pydantic = "*"
-asyncio-pool = "*"
-perky = "*"
-antsibull-changelog = ">= 0.7.0"
+sphinx = "*"
 # 0.5.0 introduces dict_config
 twiggy = ">= 0.5.0"
-aiocontextvars = {version = "*", python = "~3.6"}
-pygments = ">= 2.6.1"
-sphinx = "*"
 
 [tool.poetry.dev-dependencies]
-asynctest = "^0.13.0"
-pytest = "^5.4.1"
-pytest-cov = "^2.8.1"
-cryptography = "^2.9.2"
-pytest-asyncio = ">= 0.12"
+asynctest = "*"
+cryptography = "*"
+codecov = "*"
 flake8 = ">= 3.8.0"
-codecov = "^2.0.22"
+mypy = "*"
+# https://github.com/facebook/pyre-check/issues/398
 pyre-check = "^0.0.46"
-pylint = "^2.5.2"
-mypy = "^0.770"
+pylint = "*"
+pytest = "*"
+pytest-asyncio = ">= 0.12"
+pytest-cov = "*"
 
 [tool.isort]
 line_length = 100
