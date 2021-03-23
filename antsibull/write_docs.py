@@ -266,8 +266,8 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
         await asyncio.gather(*writers)
 
 
-async def write_collection_list(collections: t.Iterable[str], template: Template,
-                                dest_dir: str) -> None:
+async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iterable[str],
+                                template: Template, dest_dir: str) -> None:
     """
     Write an index page listing all of the collections.
 
@@ -277,7 +277,26 @@ async def write_collection_list(collections: t.Iterable[str], template: Template
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
     """
-    index_contents = template.render(collections=collections)
+    index_contents = template.render(collections=collections, namespaces=namespaces)
+    index_file = os.path.join(dest_dir, 'index.rst')
+
+    async with aiofiles.open(index_file, 'w') as f:
+        await f.write(index_contents)
+
+
+async def write_collection_namespace_index(namespace: str, collections: t.Iterable[str],
+                                           template: Template, dest_dir: str) -> None:
+    """
+    Write an index page listing all of the collections for this namespace.
+
+    Each collection will link to an index page listing all content in the collection.
+
+    :arg namespace: The namespace.
+    :arg collections: Iterable of all the collection names.
+    :arg template: A template to render the collection index.
+    :arg dest_dir: The destination directory to output the index into.
+    """
+    index_contents = template.render(namespace=namespace, collections=collections)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -335,12 +354,14 @@ async def write_plugin_lists(collection_name: str,
 
 
 async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
+                                  collection_namespaces: t.Mapping[str, t.List[str]],
                                   dest_dir: str) -> None:
     """
     Generate top-level collection index page for the collections.
 
     :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
         of plugin_name to short_description.
+    :arg collection_namespaces: Mapping from collection namespaces to list of collection names.
     :arg dest_dir: The directory to place the documentation in.
     """
     flog = mlog.fields(func='output_collection_index')
@@ -357,8 +378,41 @@ async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
     # (docs/docsite/rst) is only writable by us.
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
-    await write_collection_list(collection_to_plugin_info.keys(), collection_list_tmpl,
-                                collection_toplevel)
+    await write_collection_list(collection_to_plugin_info.keys(), collection_namespaces.keys(),
+                                collection_list_tmpl, collection_toplevel)
+
+    flog.debug('Leave')
+
+
+async def output_collection_namespace_indexes(collection_namespaces: t.Mapping[str, t.List[str]],
+                                              dest_dir: str) -> None:
+    """
+    Generate collection namespace index pages for the collections.
+
+    :arg collection_namespaces: Mapping from collection namespaces to list of collection names.
+    :arg dest_dir: The directory to place the documentation in.
+    """
+    flog = mlog.fields(func='output_collection_namespace_indexes')
+    flog.debug('Enter')
+
+    env = doc_environment(('antsibull.data', 'docsite'))
+    # Get the templates
+    collection_list_tmpl = env.get_template('list_of_collections_by_namespace.rst.j2')
+
+    writers = []
+    lib_ctx = app_context.lib_ctx.get()
+    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+        for namespace, collection_names in collection_namespaces.items():
+            namespace_dir = os.path.join(dest_dir, 'collections', namespace)
+            # This is only safe because we made sure that the top of the directory tree we're
+            # writing to (docs/docsite/rst) is only writable by us.
+            os.makedirs(namespace_dir, mode=0o755, exist_ok=True)
+
+            writers.append(await pool.spawn(
+                write_collection_namespace_index(
+                    namespace, collection_names, collection_list_tmpl, namespace_dir)))
+
+        await asyncio.gather(*writers)
 
     flog.debug('Leave')
 

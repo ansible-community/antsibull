@@ -1,0 +1,22 @@
+:orphan:
+
+.. _list_of_collections_@{ namespace }@:
+
+{% set title = 'Collections in the ' ~ (namespace | title) ~ ' Namespace' | rst_ify -%}
+
+@{ title }@
+@{ '=' * title|length }@
+
+These are the collections with docs hosted on `docs.ansible.com <https://docs.ansible.com/>`_ in the **@{ namespace }@** namespace.
+
+{% for name in collections | sort %}
+* :ref:`@{ namespace }@.@{ name }@ <plugins_in_@{ namespace }@.@{ name }@>`
+{% endfor %}
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+{% for name in collections | sort %}
+    @{ name }@/index
+{% endfor %}
