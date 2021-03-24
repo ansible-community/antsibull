@@ -15,7 +15,7 @@ def _dummy():
 if sys.version_info < (3, 7):
     #: In Python3.7+, :python:func:`asyncio.get_running_loop` is the preferred way to get the loop.
     #: It gets the loop currently running.  When that's not available, we can use
-    #: :pyhton:func:`asyncio.get_event_loop` which gets the default loop.  These are close to the
+    #: :python:func:`asyncio.get_event_loop` which gets the default loop.  These are close to the
     #: same in our code since we use the default loop.  Just remember not to run it outside of an
     #: event loop.
     best_get_loop = asyncio.get_event_loop
@@ -36,5 +36,12 @@ else:
     asyncio_run = asyncio.run
     create_task = asyncio.create_task
 
+if sys.version_info < (3, 8):
+    #: In Python3.8+, :python:module:`importlib.metadata` exists to get information about installed
+    #: python packages.  In earlier versions of Python, we can use the importlib_metadata backport
+    #: from pypi.
+    import importlib_metadata as metadata
+else:
+    from importlib import metadata
 
-__all__ = ('asyncio_run', 'best_get_loop')
+__all__ = ('asyncio_run', 'best_get_loop', 'create_task', 'metadata')

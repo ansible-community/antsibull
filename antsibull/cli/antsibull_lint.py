@@ -23,6 +23,8 @@ except ImportError:
 from antsibull_changelog.lint import lint_changelog_yaml
 from antsibull_changelog.logger import setup_logger
 
+from ..args import get_toplevel_parser, normalize_toplevel_options
+
 
 def run(args: List[str]) -> int:
     """
@@ -31,7 +33,7 @@ def run(args: List[str]) -> int:
     verbosity = 0
     try:
         program_name = os.path.basename(args[0])
-        parser = argparse.ArgumentParser(
+        parser = get_toplevel_parser(
             prog=program_name,
             description='Linting tool')
 
@@ -57,6 +59,8 @@ def run(args: List[str]) -> int:
             argcomplete.autocomplete(parser)
 
         arguments = parser.parse_args(args[1:])
+
+        normalize_toplevel_options(arguments)
 
         verbosity = arguments.verbose
         setup_logger(verbosity)

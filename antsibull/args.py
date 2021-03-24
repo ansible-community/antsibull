@@ -7,23 +7,38 @@
 import argparse
 import os.path
 
+from .compat import metadata
+
 
 class InvalidArgumentError(Exception):
     """A problem parsing or validating a command line argument."""
 
 
-def get_common_parser() -> argparse.ArgumentParser:
-    """Return a parser with options common to all antsibull programs."""
-    antsibull_parser = argparse.ArgumentParser(add_help=False)
-    antsibull_parser.add_argument('--config-file', default=[], action='append',
-                                  help='Specify one or more config files to use to configure the'
-                                  ' program. If more than one are specified, keys from later'
-                                  ' config files override keys from earlier ones.')
+def get_toplevel_parser(**kwargs) -> argparse.ArgumentParser:
+    """
+    Create a toplevel argument parser with options common across all scripts.
 
-    return antsibull_parser
+    :args kwargs: This function takes any keyword arguments and passes them directly on to
+        the :class:`argparse.ArgumentParser` constructor.
+    :returns: :class:`argparse.ArgumentParser` with common script arguments added.
+    """
+    try:
+        version = metadata.version('antsibull')
+    except metadata.PackageNotFoundError:
+        # If there's no metadata foun, assume we're running from source
+        version = 'source'
+
+    toplevel_parser = argparse.ArgumentParser(**kwargs)
+    toplevel_parser.add_argument('--version', action='version', version=version,
+                                 help='Print the antsibull version')
+    toplevel_parser.add_argument('--config-file', default=[], action='append',
+                                 help='Specify one or more config files to use to configure the'
+                                 ' program. If more than one are specified, keys from later'
+                                 ' config files override keys from earlier ones.')
+    return toplevel_parser
 
 
-def normalize_common_options(args: argparse.Namespace) -> None:
+def normalize_toplevel_options(args: argparse.Namespace) -> None:
     """
     Normalize and validate the common cli arguments.
 
