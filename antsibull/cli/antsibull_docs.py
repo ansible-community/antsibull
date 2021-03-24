@@ -15,7 +15,7 @@ import twiggy
 
 from .. import app_context
 from ..app_logging import log
-from ..args import InvalidArgumentError, get_common_parser, normalize_common_options
+from ..args import InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
 from ..config import load_config
 from ..constants import DOCUMENTABLE_PLUGINS
 from ..filesystem import UnableToCheck, writable_via_acls
@@ -135,9 +135,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     flog = mlog.fields(func='parse_args')
     flog.fields(program_name=program_name, raw_args=args).info('Enter')
 
-    common_parser = get_common_parser()
-
-    docs_parser = argparse.ArgumentParser(add_help=False, parents=[common_parser])
+    docs_parser = argparse.ArgumentParser(add_help=False)
     docs_parser.add_argument('--dest-dir', default='.',
                              help='Directory to write the output to')
 
@@ -154,9 +152,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                               ' of downloading fresh versions provided that they meet the criteria'
                               ' (Latest version of the collections known to galaxy).')
 
-    parser = argparse.ArgumentParser(prog=program_name,
-                                     description='Script to manage generated documentation for'
-                                     ' ansible')
+    parser = get_toplevel_parser(prog=program_name,
+                                 description='Script to manage generated documentation for'
+                                 ' ansible')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
                                        help='for help use  SUBCOMMANDS -h')
     subparsers.required = True
@@ -233,7 +231,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     flog.fields(args=args).debug('Arguments parsed')
 
     # Validation and coercion
-    normalize_common_options(args)
+    normalize_toplevel_options(args)
     _normalize_docs_options(args)
     _normalize_devel_options(args)
     _normalize_stable_options(args)

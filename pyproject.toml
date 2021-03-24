@@ -29,6 +29,7 @@ aiohttp = ">= 3.0.0"
 antsibull-changelog = ">= 0.7.0"
 asyncio-pool = "*"
 docutils = "*"
+importlib-metadata = {version = "*", python =  "<3.8"}
 jinja2 = "*"
 # major/minor was introduced here
 packaging = ">= 20.0"

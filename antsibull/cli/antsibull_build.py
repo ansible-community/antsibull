@@ -14,14 +14,14 @@ from packaging.version import Version as PypiVer
 
 from .. import app_context
 from ..app_logging import log
-from ..args import InvalidArgumentError, get_common_parser, normalize_common_options
-from ..config import load_config
-from ..new_ansible import new_ansible_command
+from ..args import InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
 from ..build_collection import build_collection_command
 from ..build_ansible_commands import (
     build_single_command, build_multiple_command, rebuild_single_command,
 )
 from ..build_changelog import build_changelog
+from ..config import load_config
+from ..new_ansible import new_ansible_command
 
 
 mlog = log.fields(mod=__name__)
@@ -168,9 +168,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     :returns: A :python:`argparse.Namespace`
     :raises InvalidArgumentError: Whenever there's something wrong with the arguments.
     """
-    common_parser = get_common_parser()
-
-    build_parser = argparse.ArgumentParser(add_help=False, parents=[common_parser])
+    build_parser = argparse.ArgumentParser(add_help=False)
     build_parser.add_argument('ansible_version', type=PypiVer,
                               help='The X.Y.Z version of Ansible that this will be for')
     build_parser.add_argument('--data-dir', default='.',
@@ -207,8 +205,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        help='If this is given, then do not allow collections whose'
                                        ' version implies there are new features.')
 
-    parser = argparse.ArgumentParser(prog=program_name,
-                                     description='Script to manage building Ansible')
+    parser = get_toplevel_parser(prog=program_name,
+                                 description='Script to manage building Ansible')
+
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
                                        help='for help use antsibull-build SUBCOMMANDS -h')
     subparsers.required = True
@@ -281,7 +280,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     args: argparse.Namespace = parser.parse_args(args)
 
     # Validation and coercion
-    normalize_common_options(args)
+    normalize_toplevel_options(args)
     _normalize_build_options(args)
     _normalize_build_write_data_options(args)
     _normalize_new_release_options(args)
