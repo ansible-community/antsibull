@@ -118,6 +118,16 @@ def write_manifest(package_dir: str,
         f.write('recursive-include ansible_collections/ **\n')
 
 
+def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> None:
+    release_filename = os.path.join(ansible_collections_dir, 'ansible_release.py')
+
+    release_tmpl = Template(get_antsibull_data('ansible-release_py.j2').decode('utf-8'))
+    release_contents = release_tmpl.render(version=ansible_version)
+
+    with open(release_filename, 'w') as f:
+        f.write(release_contents)
+
+
 def write_setup(ansible_version: PypiVer,
                 ansible_base_version: PypiVer,
                 collection_deps: str,
@@ -243,6 +253,9 @@ def build_single_impl(dependency_data: DependencyFileData, add_release: bool = T
         os.mkdir(package_dir, mode=0o700)
         ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
         os.mkdir(ansible_collections_dir, mode=0o700)
+
+        # Write the ansible release info to the collections dir
+        write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
         # TODO: PY3.8:
