@@ -608,7 +608,7 @@ class ReleaseNotes:
                 " guide.  If you are upgrading from Ansible 2.9, please first consult the"
                 " Ansible 2.10 porting guide before continuing with the Ansible 3 porting guide."
                 "\n\n"
-                "We suggest you read this page along with the `Ansible 3.0 Changelog"
+                "We suggest you read this page along with the `Ansible 3 Changelog"
                 " <https://github.com/ansible-community/ansible-build-data/blob/main/3/"
                 "CHANGELOG-v3.rst>`_ to understand what updates you may need to make."
                 "\n"
