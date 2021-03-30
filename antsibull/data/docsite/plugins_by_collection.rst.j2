@@ -19,30 +19,20 @@ These are the plugins in the @{collection_name}@ collection
 
 {% for category, plugins in plugin_maps.items() | sort %}
 
-{%   if category == 'module' %}
+{% if category == 'module' %}
 Modules
 ~~~~~~~
-{%   else %}
+{% else %}
 @{ category | capitalize }@ Plugins
 @{ '~' * ((category | length) + 8) }@
-{%   endif %}
+{% endif %}
 
-{%   for name, desc in plugins.items() | sort %}
+{% for name, desc in plugins.items() | sort %}
 * :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | rst_ify | indent(width=2) }@
-{%   endfor %}
+{% endfor %}
 {% endfor %}
 
 
 .. seealso::
 
     List of :ref:`collections <list_of_collections>` with docs hosted here.
-
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-
-{% for category, plugins in plugin_maps.items() | sort %}
-{%   for name, desc in plugins.items() | sort %}
-    @{ name }@_@{ category }@
-{%   endfor %}
-{% endfor %}

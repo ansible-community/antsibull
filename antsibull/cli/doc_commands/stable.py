@@ -36,11 +36,9 @@ from ...write_docs import (
     output_all_plugin_rst,
     output_all_plugin_stub_rst,
     output_collection_index,
-    output_collection_namespace_indexes,
     output_indexes,
     output_plugin_indexes,
 )
-from ...utils.transformations import get_collection_namespaces
 
 if t.TYPE_CHECKING:
     import semantic_version as semver
@@ -333,15 +331,10 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_to_plugin_info = get_collection_contents(plugin_contents)
     flog.debug('Finished getting collection data')
 
-    collection_namespaces = get_collection_namespaces(collection_to_plugin_info.keys())
-
     # Only build top-level index if requested
     if create_indexes:
-        asyncio_run(output_collection_index(
-            collection_to_plugin_info, collection_namespaces, dest_dir))
+        asyncio_run(output_collection_index(collection_to_plugin_info, dest_dir))
         flog.notice('Finished writing collection index')
-        asyncio_run(output_collection_namespace_indexes(collection_namespaces, dest_dir))
-        flog.notice('Finished writing collection namespace index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
 
