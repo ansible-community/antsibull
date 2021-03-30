@@ -1,4 +1,6 @@
+{% if not add_toctrees %}
 :orphan:
+{% endif %}
 
 .. _plugins_in_@{collection_name}@:
 
@@ -37,12 +39,14 @@ Modules
 
     List of :ref:`collections <list_of_collections>` with docs hosted here.
 
+{% if add_toctrees %}
 .. toctree::
     :maxdepth: 1
     :hidden:
 
-{% for category, plugins in plugin_maps.items() | sort %}
-{%   for name, desc in plugins.items() | sort %}
+{%   for category, plugins in plugin_maps.items() | sort %}
+{%     for name, desc in plugins.items() | sort %}
     @{ name }@_@{ category }@
+{%     endfor %}
 {%   endfor %}
-{% endfor %}
+{% endif %}

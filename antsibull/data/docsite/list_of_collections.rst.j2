@@ -11,10 +11,12 @@ These are the collections with docs hosted on `docs.ansible.com <https://docs.an
 * :ref:`@{ name }@ <plugins_in_@{ name }@>`
 {% endfor %}
 
+{% if add_toctrees %}
 .. toctree::
     :maxdepth: 1
     :hidden:
 
-{% for namespace in namespaces | sort %}
+{%   for namespace in namespaces | sort %}
     @{ namespace }@/index
-{% endfor %}
+{%   endfor %}
+{% endif %}
