@@ -34,6 +34,9 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
+ADD_TOCTREES = False
+
+
 async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
                            plugin_short_name: str, plugin_type: str,
                            plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
@@ -277,7 +280,8 @@ async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iter
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
     """
-    index_contents = template.render(collections=collections, namespaces=namespaces)
+    index_contents = template.render(
+        collections=collections, namespaces=namespaces, add_toctrees=ADD_TOCTREES)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -296,7 +300,8 @@ async def write_collection_namespace_index(namespace: str, collections: t.Iterab
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
     """
-    index_contents = template.render(namespace=namespace, collections=collections)
+    index_contents = template.render(
+        namespace=namespace, collections=collections, add_toctrees=ADD_TOCTREES)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -342,7 +347,8 @@ async def write_plugin_lists(collection_name: str,
     index_contents = template.render(
         collection_name=collection_name,
         plugin_maps=plugin_maps,
-        collection_version=collection_meta.version)
+        collection_version=collection_meta.version,
+        add_toctrees=ADD_TOCTREES)
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
     # (docs/docsite/rst) is only writable by us.

@@ -1,4 +1,6 @@
+{% if not add_toctrees %}
 :orphan:
+{% endif %}
 
 .. _list_of_collections_@{ namespace }@:
 
@@ -13,10 +15,12 @@ These are the collections with docs hosted on `docs.ansible.com <https://docs.an
 * :ref:`@{ namespace }@.@{ name }@ <plugins_in_@{ namespace }@.@{ name }@>`
 {% endfor %}
 
+{% if add_toctrees %}
 .. toctree::
     :maxdepth: 1
     :hidden:
 
-{% for name in collections | sort %}
+{%   for name in collections | sort %}
     @{ name }@/index
-{% endfor %}
+{%   endfor %}
+{% endif %}
