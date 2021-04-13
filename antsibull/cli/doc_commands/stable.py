@@ -268,13 +268,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                          search path for Ansible.
     :arg dest_dir: The directory into which the documentation is written.
     :arg flog: A logger instance.
-    :arg collection_names: Optional list of collection names. If specified, only documentation
-                           for these collections will be collected and generated.
-    :arg create_indexes: Whether to create the collection index and plugin indexes. By default,
-                         they are created.
-    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
-                           Undefined behavior if documentation for multiple collections are
-                           created.
+    :kwarg collection_names: Optional list of collection names. If specified, only documentation
+                             for these collections will be collected and generated.
+    :kwarg create_indexes: Whether to create the collection index and plugin indexes. By default,
+                           they are created.
+    :kwarg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+                             Undefined behavior if documentation for multiple collections are
+                             created.
     """
 
     # Get the info from the plugins
@@ -290,18 +290,6 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.notice('Finished loading collection routing information')
     # flog.fields(collection_routing=collection_routing).debug('Collection routing infos')
 
-    """
-    # Turn these into some sort of decorator that will choose to dump or load the values
-    # if a command line arg is specified.
-    with open('dump_raw_plugin_info.json', 'w') as f:
-        import json
-        json.dump(plugin_info, f)
-    flog.debug('Finished dumping raw plugin_info')
-    with open('dump_formatted_plugin_info.json', 'r') as f:
-        import json
-        plugin_info = json.load(f)
-    """
-
     remove_redirect_duplicates(plugin_info, collection_routing)
     stubs_info = find_stubs(plugin_info, collection_routing)
     # flog.fields(stubs_info=stubs_info).debug('Stubs info')
@@ -310,26 +298,6 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     flog.fields(errors=len(nonfatal_errors)).notice('Finished data validation')
     augment_docs(plugin_info)
     flog.notice('Finished calculating new data')
-
-    """
-    with open('dump_normalized_plugin_info.json', 'w') as f:
-        json.dump(plugin_info, f)
-    flog.debug('Finished dumping normalized data')
-    with open('dump_errors.json', 'w') as f:
-        json.dump(nonfatal_errors, f)
-    flog.debug('Finished dump errors')
-    with open('dump_normalized_plugin_info.json', 'r') as f:
-        import json
-        plugin_info = json.load(f)
-    flog.debug('Finished loading normalized data')
-    with open('dump_errors.json', 'r') as f:
-        from collections import defaultdict
-        nonfatal_errors = json.load(f)
-        nonfatal_errors = defaultdict(lambda: defaultdict(list), nonfatal_errors)
-        for key, value in nonfatal_errors.items():
-            nonfatal_errors[key] = defaultdict(list, value)
-    flog.debug('Finished loading errors')
-    """
 
     # Load collection extra docs data
     extra_docs_data = asyncio_run(load_collections_extra_docs(
