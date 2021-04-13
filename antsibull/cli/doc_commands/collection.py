@@ -21,7 +21,7 @@ def generate_current_docs(skip_indexes: bool, squash_hierarchy: bool) -> int:
     venv = FakeVenvRunner()
 
     generate_docs_for_all_collections(
-        venv, None, app_ctx.extra['dest_dir'], flog, app_ctx.extra['collections'],
+        venv, None, app_ctx.extra['dest_dir'], app_ctx.extra['collections'],
         create_indexes=not skip_indexes and not squash_hierarchy,
         squash_hierarchy=squash_hierarchy)
 

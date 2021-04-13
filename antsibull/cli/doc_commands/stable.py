@@ -255,7 +255,6 @@ def get_collection_contents(plugin_content: t.Mapping[str, t.Mapping[str, t.Mapp
 def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       collection_dir: t.Optional[str],
                                       dest_dir: str,
-                                      flog,
                                       collection_names: t.Optional[t.List[str]] = None,
                                       create_indexes: bool = True,
                                       squash_hierarchy: bool = False) -> None:
@@ -267,7 +266,6 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                          If ``None``, the collections are assumed to be in the current
                          search path for Ansible.
     :arg dest_dir: The directory into which the documentation is written.
-    :arg flog: A logger instance.
     :kwarg collection_names: Optional list of collection names. If specified, only documentation
                              for these collections will be collected and generated.
     :kwarg create_indexes: Whether to create the collection index and plugin indexes. By default,
@@ -276,6 +274,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                              Undefined behavior if documentation for multiple collections are
                              created.
     """
+    flog = mlog.fields(func='generate_docs_for_all_collections')
+    flog.notice('Begin')
 
     # Get the info from the plugins
     plugin_info, collection_metadata = asyncio_run(get_ansible_plugin_info(
@@ -405,6 +405,6 @@ def generate_docs() -> int:
         venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
+        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'])
 
     return 0

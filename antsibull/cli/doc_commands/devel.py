@@ -136,6 +136,6 @@ def generate_docs() -> int:
         venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
+        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'])
 
     return 0
