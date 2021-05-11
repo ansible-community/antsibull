@@ -34,7 +34,7 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-ADD_TOCTREES = False
+ADD_TOCTREES = True
 
 
 async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
