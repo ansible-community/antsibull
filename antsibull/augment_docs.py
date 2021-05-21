@@ -56,5 +56,10 @@ def augment_docs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]
     """
     for plugin_type, plugin_map in plugin_info.items():
         for plugin_name, plugin_record in plugin_map.items():
-            add_full_key(plugin_record['return'], 'contains')
-            add_full_key(plugin_record['doc']['options'], 'suboptions')
+            if 'return' in plugin_record:
+                add_full_key(plugin_record['return'], 'contains')
+            if 'doc' in plugin_record:
+                add_full_key(plugin_record['doc']['options'], 'suboptions')
+            if 'entry_points' in plugin_record:
+                for entry_point in plugin_record['entry_points'].values():
+                    add_full_key(entry_point['options'], 'options')

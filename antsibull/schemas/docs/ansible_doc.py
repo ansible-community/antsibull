@@ -19,6 +19,7 @@ from .base import BaseModel
 from .callback import CallbackSchema
 from .module import ModuleSchema
 from .plugin import PluginSchema
+from .role import RoleSchema
 
 
 __all__ = ('ANSIBLE_DOC_SCHEMAS', 'AnsibleDocSchema', 'BecomePluginSchema', 'CachePluginSchema',
@@ -61,6 +62,7 @@ class AnsibleDocSchema(BaseModel):
     shell: t.Dict[str, PluginSchema]
     strategy: t.Dict[str, PluginSchema]
     vars: t.Dict[str, PluginSchema]
+    role: t.Dict[str, RoleSchema]
 
 
 class GenericPluginSchema(BaseModel):
@@ -99,6 +101,18 @@ class ModulePluginSchema(BaseModel):
     __root__: t.Dict[str, ModuleSchema]
 
 
+class RolePluginSchema(BaseModel):
+    """
+    Document the output of ``ansible-doc -t role ROLE_NAME``.
+
+    .. note:: Both the model and the dict will be wrapped in an outer dict with your data mapped
+        to the ``__root__`` key. This happens because the toplevel key of ansible-doc's output is
+        a dynamic key which we can't automatically map to an attribute name.
+    """
+
+    __root__: t.Dict[str, RoleSchema]
+
+
 #: Make sure users can access plugins using the plugin type rather than having to guess that
 #: these types use the GenericPluginSchema
 BecomePluginSchema = GenericPluginSchema
@@ -127,6 +141,7 @@ ANSIBLE_DOC_SCHEMAS = {
     'lookup': LookupPluginSchema,
     'module': ModulePluginSchema,
     'netconf': NetConfPluginSchema,
+    'role': RolePluginSchema,
     'shell': ShellPluginSchema,
     'strategy': StrategyPluginSchema,
     'vars': VarsPluginSchema,

@@ -107,15 +107,24 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                         nonfatal_errors=nonfatal_errors
                         ).error('{plugin_name} did not return correct RETURN or EXAMPLES.',
                                 plugin_name=plugin_name)
-        plugin_contents = plugin_tmpl.render(
-            collection=collection_name,
-            collection_version=collection_meta.version,
-            plugin_type=plugin_type,
-            plugin_name=plugin_name,
-            doc=plugin_record['doc'],
-            examples=plugin_record['examples'],
-            returndocs=plugin_record['return'],
-            nonfatal_errors=nonfatal_errors)
+        if plugin_type == 'role':
+            plugin_contents = plugin_tmpl.render(
+                collection=collection_name,
+                collection_version=collection_meta.version,
+                plugin_type=plugin_type,
+                plugin_name=plugin_name,
+                entry_points=plugin_record['entry_points'],
+                nonfatal_errors=nonfatal_errors)
+        else:
+            plugin_contents = plugin_tmpl.render(
+                collection=collection_name,
+                collection_version=collection_meta.version,
+                plugin_type=plugin_type,
+                plugin_name=plugin_name,
+                doc=plugin_record['doc'],
+                examples=plugin_record['examples'],
+                returndocs=plugin_record['return'],
+                nonfatal_errors=nonfatal_errors)
 
     if path_override is not None:
         plugin_file = path_override
@@ -228,6 +237,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     env = doc_environment(('antsibull.data', 'docsite'))
     # Get the templates
     plugin_tmpl = env.get_template('plugin.rst.j2')
+    role_tmpl = env.get_template('role.rst.j2')
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     writers = []
@@ -235,6 +245,9 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         for collection_name, plugins_by_type in collection_to_plugin_info.items():
             for plugin_type, plugins in plugins_by_type.items():
+                plugin_type_tmpl = plugin_tmpl
+                if plugin_type == 'role':
+                    plugin_type_tmpl = role_tmpl
                 for plugin_short_name, dummy_ in plugins.items():
                     plugin_name = '.'.join((collection_name, plugin_short_name))
                     writers.append(await pool.spawn(
@@ -242,8 +255,9 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                          collection_metadata[collection_name],
                                          plugin_short_name, plugin_type,
                                          plugin_info[plugin_type].get(plugin_name),
-                                         nonfatal_errors[plugin_type][plugin_name], plugin_tmpl,
-                                         error_tmpl, dest_dir, squash_hierarchy=squash_hierarchy)))
+                                         nonfatal_errors[plugin_type][plugin_name],
+                                         plugin_type_tmpl, error_tmpl,
+                                         dest_dir, squash_hierarchy=squash_hierarchy)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)
