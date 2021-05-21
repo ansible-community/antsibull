@@ -117,8 +117,14 @@ def normalize_plugin_info(plugin_type: str,
         in :mod:`antsibull.schemas.docs`.  The nonfatal errors are strings representing the problems
         encountered.
     """
-    new_info = {}
     errors = []
+    if plugin_type == 'role':
+        try:
+            return DOCS_SCHEMAS[plugin_type].parse_obj(plugin_info).dict(by_alias=True), errors
+        except ValidationError as e:
+            raise ValueError(str(e))
+
+    new_info = {}
     # Note: loop through "doc" before any other keys.
     for field in ('doc', 'examples', 'return'):
         try:
@@ -224,8 +230,13 @@ def get_plugin_contents(plugin_info: t.Mapping[str, t.Mapping[str, t.Any]],
     for plugin_type, plugin_list in plugin_info.items():
         for plugin_name, plugin_desc in plugin_list.items():
             namespace, collection, short_name = get_fqcn_parts(plugin_name)
-            plugin_contents[plugin_type]['.'.join((namespace, collection))][short_name] = (
-                plugin_desc['doc']['short_description'])
+            if plugin_type == 'role':
+                desc = ''
+                if 'main' in plugin_desc['entry_points']:
+                    desc = plugin_desc['entry_points']['main']['short_description']
+            else:
+                desc = plugin_desc['doc']['short_description']
+            plugin_contents[plugin_type]['.'.join((namespace, collection))][short_name] = desc
 
     return plugin_contents
 

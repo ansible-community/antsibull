@@ -1,0 +1,85 @@
+{
+    "felixfontein.acme.account_key_rollover": {
+        "collection": "felixfontein.acme",
+        "entry_points": {
+            "main": {
+                "author": [
+                    "Felix Fontein (@felixfontein)"
+                ],
+                "description": [
+                    "This is a role which can use any CA supporting the ACME protocol, such as L(Let's Encrypt,https://letsencrypt.org/), L(Buypass,https://www.buypass.com/ssl/products/acme>) or L(ZeroSSL,https://zerossl.com/features/acme/>), to rekey ACME account keys.",
+                    "This role will create a backup copy of the existing account key if requested to do so, re-create the account key, and then roll over the ACME account to the new key."
+                ],
+                "options": {
+                    "acme_certificate_account_algorithm": {
+                        "choices": [
+                            "rsa",
+                            "p-256",
+                            "p-384",
+                            "p-521"
+                        ],
+                        "default": "rsa",
+                        "description": [
+                            "The algorithm used for creating the account key.",
+                            "The default is C(rsa) for an RSA key.",
+                            "Other choices are C(p-256), C(p-384) or C(p-521) for the NIST elliptic curves C(prime256v1), C(secp384r1) and C(secp521r1), respectively."
+                        ],
+                        "type": "str"
+                    },
+                    "acme_certificate_account_key_backup": {
+                        "default": true,
+                        "description": [
+                            "Whether to create a backup of the old account key before rolling over."
+                        ],
+                        "type": "bool"
+                    },
+                    "acme_certificate_account_key_length": {
+                        "default": 4096,
+                        "description": [
+                            "The bit-size to use for RSA private keys.",
+                            "Should not be less than 2048. Also values above 4096 might not be supported by every ACME CA."
+                        ],
+                        "type": "int"
+                    },
+                    "acme_certificate_account_key_sops_encrypted": {
+                        "default": false,
+                        "description": [
+                            "Use L(Mozilla sops,https://github.com/mozilla/sops) to encrypt private key. Needs C(.sops.yaml) file inside the directory containing the account key or somewhere up the directory chain."
+                        ],
+                        "type": "bool"
+                    },
+                    "acme_certificate_acme_account": {
+                        "description": [
+                            "Path to the private ACME account key."
+                        ],
+                        "type": "str"
+                    },
+                    "acme_certificate_acme_account_uri": {
+                        "description": [
+                            "Instead of determining the account URI from the account key, assumes the given account URI."
+                        ],
+                        "type": "str"
+                    },
+                    "acme_certificate_acme_directory": {
+                        "default": "https://acme-v02.api.letsencrypt.org/directory",
+                        "description": [
+                            "The ACME directory to use.",
+                            "Default is C(https://acme-v02.api.letsencrypt.org/directory), which is the current production ACME v2 endpoint of Let's Encrypt."
+                        ],
+                        "type": "str"
+                    },
+                    "acme_certificate_acme_version": {
+                        "default": 2,
+                        "description": [
+                            "The ACME directory's version."
+                        ],
+                        "type": "int"
+                    }
+                },
+                "short_description": "Do account key rollover",
+                "version_added": "0.1.0"
+            }
+        },
+        "path": "/path/to/ansible_collections/felixfontein/acme"
+    }
+}

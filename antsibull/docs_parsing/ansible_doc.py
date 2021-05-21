@@ -12,10 +12,11 @@ import typing as t
 from concurrent.futures import ThreadPoolExecutor
 
 import sh
+from packaging.version import Version as PypiVer
 
 from .. import app_context
 from ..compat import best_get_loop, create_task
-from ..constants import DOCUMENTABLE_PLUGINS
+from ..constants import DOCUMENTABLE_PLUGINS, DOCUMENTABLE_PLUGINS_MIN_VERSION
 from ..logging import log
 from ..vendored.json_utils import _filter_non_json_lines
 from .fqcn import get_fqcn_parts
@@ -203,6 +204,16 @@ def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     return collection_metadata
 
 
+def get_ansible_core_version(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
+                             env: t.Dict[str, str],
+                             ) -> PypiVer:
+    venv_python = venv.get_command('python')
+    ansible_version_cmd = venv_python(
+        '-c', 'import ansible.release; print(ansible.release.__version__)', _env=env)
+    output = ansible_version_cmd.stdout.decode('utf-8', errors='surrogateescape').strip()
+    return PypiVer(output)
+
+
 async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                   collection_dir: t.Optional[str],
                                   collection_names: t.Optional[t.List[str]] = None
@@ -232,6 +243,8 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
 
     env = _get_environment(collection_dir)
 
+    ansible_core_version = get_ansible_core_version(venv, env)
+
     # Setup an sh.Command to run ansible-doc from the venv with only the collections we
     # found as providers of extra plugins.
 
@@ -253,8 +266,13 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     if other_workers < 1:
         other_workers = 1
 
+    plugin_map = {}
     extractors = {}
     for plugin_type in DOCUMENTABLE_PLUGINS:
+        min_ver = DOCUMENTABLE_PLUGINS_MIN_VERSION.get(plugin_type)
+        if min_ver is not None and PypiVer(min_ver) > ansible_core_version:
+            plugin_map[plugin_type] = {}
+            continue
         if plugin_type == 'module':
             max_workers = module_workers
         else:
@@ -264,7 +282,6 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
 
     results = await asyncio.gather(*extractors.values(), return_exceptions=True)
 
-    plugin_map = {}
     err_msg = []
     an_exception = None
     for plugin_type, extraction_result in zip(extractors, results):

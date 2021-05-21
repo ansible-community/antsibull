@@ -1,0 +1,286 @@
+.. Document meta
+
+:orphan:
+
+{# If we can put together source and github repo, we could make the Edit me of github button work.
+   See meta.get("source") in Ansible's docs/docsite/_themes/sphinx_rtd_theme/breadcrumbs.html
+   for more information
+:source: @{ source }@
+-#}
+
+.. Anchors
+
+.. _ansible_collections.@{plugin_name}@_@{plugin_type}@:
+
+.. Anchors: aliases
+
+{# TODO: This assumes that aliases will be short names.
+   If they're FQCN, then we need to change this
+#}
+
+.. Title
+
+{% if entry_points.main and entry_points.main.short_description -%}
+{%   set title = plugin_name + ' -- ' + entry_points.main.short_description | rst_ify -%}
+{% else -%}
+{%   set title = plugin_name -%}
+{% endif -%}
+
+@{ title }@
+@{ '+' * title|length }@
+
+.. Collection note
+
+{% if collection == 'ansible.builtin' -%}
+.. note::
+    This role is part of ``ansible-core`` and included in all Ansible
+    installations.
+{% else %}
+.. note::
+    This role is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
+
+    To install it use: :code:`ansible-galaxy collection install @{collection}@`.
+
+    To use it in a playbook, specify: :code:`@{plugin_name}@`.
+{% endif %}
+
+.. contents::
+   :local:
+   :depth: 2
+
+{% for entry_point, ep_doc in entry_points.items() | sort %}
+
+.. Entry point title
+
+{%   if ep_doc['short_description'] -%}
+{%     set title = 'Entry point ``' + entry_point + '`` -- ' + ep_doc['short_description'] | rst_ify -%}
+{%   else -%}
+{%     set title = 'Entry point ``' + entry_point + '``' -%}
+{%   endif -%}
+
+@{ title }@
+@{ '-' * title|length }@
+
+.. version_added
+
+{%   if ep_doc['version_added'] is still_relevant -%}
+.. versionadded:: @{ ep_doc['version_added'] }@ of @{ collection | rst_ify }@
+{%   endif %}
+
+.. Deprecated
+
+{%   if ep_doc['deprecated'] -%}
+DEPRECATED
+^^^^^^^^^^
+{%     if ep_doc['deprecated']['removed_at_date'] %}
+:Removed in: major release after @{ ep_doc['deprecated']['removed_at_date'] | rst_ify }@
+{%     elif ep_doc['deprecated']['removed_in'] %}
+:Removed in: version @{ ep_doc['deprecated']['removed_in'] | rst_ify }@
+{%     else %}
+:Removed in: a future release
+{%     endif %}
+:Why: @{ ep_doc['deprecated']['why'] | rst_ify }@
+:Alternative: @{ ep_doc['deprecated']['alternative'] | rst_ify }@
+{%   endif %}
+
+Synopsis
+^^^^^^^^
+
+.. Description
+
+{%   for desc in ep_doc['description'] -%}
+- @{ desc | rst_ify | indent(width=2) }@
+{%   endfor %}
+
+.. Requirements
+
+{%   if ep_doc['requirements'] -%}
+Requirements
+^^^^^^^^^^^^
+The below requirements are needed on the remote host and/or the local controller node.
+
+{%     for req in ep_doc['requirements'] %}
+- @{ req | rst_ify | indent(width=2) }@
+{%     endfor %}
+
+{%   endif %}
+
+.. Options
+
+{%   if ep_doc['options'] -%}
+
+Parameters
+^^^^^^^^^^
+
+.. raw:: html
+
+    <table  border=0 cellpadding=0 class="documentation-table">
+        {# Pre-compute the nesting depth to allocate columns -#}
+        @{ to_kludge_ns('maxdepth', 1) -}@
+        {% for key, value in ep_doc['options']|dictsort recursive -%}
+            @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
+            {% if value['options'] -%}
+                @{ loop(value['options'].items()) -}@
+            {% endif -%}
+        {% endfor -%}
+        {# Header of the documentation -#}
+        <tr>
+            <th colspan="@{ from_kludge_ns('maxdepth') }@">Parameter</th>
+            <th>Choices/<font color="blue">Defaults</font></th>
+            <th width="100%">Comments</th>
+        </tr>
+        {% for key, value in ep_doc['options']|dictsort recursive %}
+            <tr>
+                {# indentation based on nesting level #}
+                {% for i in range(1, loop.depth) %}
+                    <td class="elbow-placeholder"></td>
+                {% endfor %}
+                {# parameter name with required and/or introduced label #}
+                <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
+                    <div class="ansibleOptionAnchor" id="parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+                    <b>@{ key }@</b>
+                    <a class="ansibleOptionLink" href="#parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">@{ value['type'] | documented_type }@</span>
+                        {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
+                        {% if value['required'] %} / <span style="color: red">required</span>{% endif %}
+                    </div>
+                    {% if value['version_added'] is still_relevant %}
+                      <div style="font-style: italic; font-size: small; color: darkgreen">
+                        added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@
+                      </div>
+                    {% endif %}
+                    {% if value['deprecated'] %}
+                      <div>
+                        {% if value['deprecated']['removed_at_date'] %}
+                          Removed in: major release after @{ value['deprecated']['removed_at_date'] | escape }@
+                        {% elif value['deprecated']['removed_in'] %}
+                          Removed in: version @{ value['deprecated']['removed_in'] | escape }@
+                        {% else %}
+                          Removed in: a future release
+                        {% endif %}
+                        {% if value['deprecated']['removed_from_collection'] and value['deprecated']['removed_from_collection'] != collection %}
+                          of @{ value['deprecated']['removed_from_collection'] | escape }@
+                        {% endif %}
+                        <br>
+                        Why: @{ value['deprecated']['why'] | escape }@
+                        <br>
+                        Alternative: @{ value['deprecated']['alternative'] | escape }@
+                      </div>
+                    {% endif %}
+                </td>
+                {# default / choices #}
+                <td>
+                    {# Turn boolean values in 'yes' and 'no' values #}
+                    {% if value['default'] is sameas true %}
+                        {% set _x = value.update({'default': 'yes'}) %}
+                    {% elif value['default'] is not none and value['default'] is sameas false %}
+                        {% set _x = value.update({'default': 'no'}) %}
+                    {% endif %}
+                    {% if value['type'] == 'bool' %}
+                        {% set _x = value.update({'choices': ['no', 'yes']}) %}
+                    {% endif %}
+                    {# Show possible choices and highlight details #}
+                    {% if value['choices'] %}
+                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                            {% for choice in value['choices'] %}
+                                {# Turn boolean values in 'yes' and 'no' values #}
+                                {% if choice is sameas true %}
+                                    {% set choice = 'yes' %}
+                                {% elif choice is sameas false %}
+                                    {% set choice = 'no' %}
+                                {% endif %}
+                                {% if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+                                    <li><div style="color: blue"><b>@{ choice | escape }@</b>&nbsp;&larr;</div></li>
+                                {% else %}
+                                    <li>@{ choice | escape }@</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {# Show default value, when multiple choice or no choices #}
+                    {% if value['default'] is not none and value['default'] not in value['choices'] %}
+                        <b>Default:</b><br/><div style="color: blue">@{ value['default'] | tojson | escape }@</div>
+                    {% endif %}
+                </td>
+                {# description #}
+                <td>
+                    {% for desc in value['description'] %}
+                        <div>@{ desc | replace('\n', '\n    ') | html_ify }@</div>
+                    {% endfor %}
+                    {% if value['aliases'] %}
+                        <div style="font-size: small; color: darkgreen"><br/>aliases: @{ value['aliases']|join(', ') }@</div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if value['options'] %}
+                @{ loop(value['options']|dictsort) }@
+            {% endif %}
+        {% endfor %}
+    </table>
+    <br/>
+{%   endif %}
+
+.. Notes
+
+{%   if ep_doc['notes'] -%}
+Notes
+^^^^^
+
+.. note::
+{%     for note in ep_doc['notes'] %}
+   - @{ note | rst_ify | indent(width=5) }@
+{%     endfor %}
+{%   endif %}
+
+.. Seealso
+
+{%   if ep_doc['seealso'] -%}
+See Also
+^^^^^^^^
+
+.. seealso::
+
+{%     for item in ep_doc['seealso'] %}
+{%       if item.module is defined and item.description %}
+   @{ ('M(' + item['module'] + ')') | rst_ify }@
+       @{ item['description'] | rst_ify }@
+{%       elif item.module is defined %}
+   @{ ('M(' + item['module'] + ')') | rst_ify }@
+      The official documentation on the **@{ item['module'] }@** module.
+{%       elif item.name is defined and item.link is defined and item.description %}
+   `@{ item['name'] }@ <@{ item['link'] }@>`_
+       @{ item['description'] | rst_ify }@
+{%       elif item.ref is defined and item.description %}
+   :ref:`@{ item['ref'] }@`
+       @{ item['description'] | rst_ify }@
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+
+{%   if ep_doc['author'] -%}
+Authors
+^^^^^^^
+
+{%     for author_name in ep_doc['author'] %}
+- @{ author_name }@
+{%     endfor %}
+
+{%   endif %}
+
+{% endfor %}
+
+.. Parsing errors
+
+{% if nonfatal_errors %}
+There were some errors parsing the documentation for this role.  Please file a bug with the collection.
+
+The errors were:
+
+{% for error in nonfatal_errors %}
+* ::
+
+@{ error | indent(width=8, first=True) }@
+
+{% endfor %}
+{% endif %}

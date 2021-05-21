@@ -128,6 +128,40 @@ def load_all_plugins(plugin_type, basedir, coll_filter):
     return result
 
 
+def load_role(role_mixin, role_name, collection_name, collection_path):
+    result = {
+        'directory': collection_path,
+        'collection_name': collection_name,
+    }
+
+    argspec = role_mixin._load_argspec(role_name, collection_path=collection_path)
+    fqcn, ansible_doc = role_mixin._build_doc(
+        role_name, collection_path, collection_name, argspec, None)
+
+    try:
+        # If this fails, the documentation cannot be serialized as JSON
+        json.dumps(ansible_doc, cls=AnsibleJSONEncoder)
+        # Store result. This is guaranteed to be serializable
+        result['ansible-doc'] = ansible_doc
+    except Exception as e:
+        result['error'] = (
+            'Cannot serialize documentation as JSON: %s' % to_native(e)
+        )
+
+    return result
+
+
+def load_all_roles(RoleMixin, basedir, coll_filter):
+    role_mixin = RoleMixin()
+    roles = role_mixin._find_all_collection_roles()
+    result = {}
+    for role_name, collection_name, collection_path in roles:
+        fqcn = '{1}.{0}'.format(role_name, collection_name)
+        if match_filter(fqcn, coll_filter):
+            result[fqcn] = load_role(role_mixin, role_name, collection_name, collection_path)
+    return result
+
+
 def load_collection_meta_manifest(b_manifest_path):
     with open(b_manifest_path, 'rb') as f:
         meta = json.load(f)
@@ -194,6 +228,13 @@ def main(args):
     # Export plugin docs
     for plugin_type in C.DOCUMENTABLE_PLUGINS:
         result['plugins'][plugin_type] = load_all_plugins(plugin_type, basedir, coll_filter)
+
+    # Export role docs
+    RoleMixin = getattr(doc, 'RoleMixin', None)
+    if RoleMixin is not None:
+        result['plugins']['role'] = load_all_roles(RoleMixin, basedir, coll_filter)
+    else:
+        result['plugins']['role'] = {}
 
     # Export collection data
     b_colldirs = list_collection_dirs(coll_filter=ansible_doc_coll_filter(coll_filter))

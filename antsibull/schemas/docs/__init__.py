@@ -13,6 +13,7 @@ from .callback import CallbackDocSchema, CallbackSchema
 from .module import ModuleDocSchema, ModuleSchema
 from .plugin import (PluginDocSchema, PluginExamplesSchema,
                      PluginMetadataSchema, PluginReturnSchema, PluginSchema)
+from .role import RoleSchema
 
 BecomeSchema = PluginSchema
 CacheSchema = PluginSchema
@@ -67,4 +68,5 @@ DOCS_SCHEMAS = {
     'shell': _PLUGIN_SCHEMA_RECORD,
     'strategy': _PLUGIN_SCHEMA_RECORD,
     'vars': _PLUGIN_SCHEMA_RECORD,
+    'role': RoleSchema,
 }

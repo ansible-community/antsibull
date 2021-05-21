@@ -5,6 +5,9 @@
 {% if plugin_type == 'module' %}
 Index of all Modules
 ====================
+{% elif plugin_type == 'role' %}
+Index of all Roles
+==================
 {% else %}
 Index of all @{ plugin_type | capitalize }@ Plugins
 =============@{ '=' * (plugin_type | length) }@========
