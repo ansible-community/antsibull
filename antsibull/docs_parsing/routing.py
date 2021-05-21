@@ -15,10 +15,9 @@ import typing as t
 import asyncio
 import asyncio_pool
 
-from ansible.constants import DOCUMENTABLE_PLUGINS
-
 from .. import app_context
 from .. import yaml
+from ..constants import DOCUMENTABLE_PLUGINS
 from ..utils.collections import compare_all_but
 from ..utils.get_pkg_data import get_antsibull_data
 from . import AnsibleCollectionMetadata
