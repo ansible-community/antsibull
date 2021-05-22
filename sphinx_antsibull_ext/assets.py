@@ -28,6 +28,14 @@ def _copy_asset_files(app, exc):  # pylint: disable=unused-argument
         if data is None:
             raise Exception(
                 'Internal error: cannot find {0} in sphinx_antsibull_ext package'.format(file))
+        try:
+            os.makedirs(os.path.join(app.outdir, '_static'), exist_ok=True)
+        except TypeError:
+            # Python 2 does not have exist_ok parameter
+            try:
+                os.makedirs(os.path.join(app.outdir, '_static'))
+            except OSError:
+                pass
         destination = os.path.join(app.outdir, '_static', file)
         with open(destination, 'wb') as f:
             f.write(data)
