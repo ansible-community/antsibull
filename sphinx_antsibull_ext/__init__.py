@@ -8,7 +8,7 @@ Antsibull minimal Sphinx extension which adds some features from the Ansible doc
 
 from __future__ import (absolute_import, division, print_function)
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __license__ = "BSD license"
 __author__ = "Felix Fontein"
 __author_email__ = "felix@fontein.de"
@@ -26,7 +26,7 @@ def setup(app):
 
     # Add Pygments lexers
     for lexer in [
-        AnsibleOutputLexer(startinline=True)
+        AnsibleOutputLexer
     ]:
         app.add_lexer(lexer.name, lexer)
         for alias in lexer.aliases:
