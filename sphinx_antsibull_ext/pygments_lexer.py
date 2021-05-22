@@ -140,7 +140,7 @@ class AnsibleOutputPrimaryLexer(RegexLexer):
 
         'host-result': [
             (r'\n', token.Text, '#pop'),
-            (r'( +)(ok|changed|failed|skipped|unreachable)(=)([0-9]+)',
+            (r'( +)(ok|changed|failed|skipped|unreachable|rescued|ignored)(=)([0-9]+)',
                 bygroups(token.Text, token.Keyword, token.Punctuation, token.Number.Integer)),
         ],
 
