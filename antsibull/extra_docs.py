@@ -36,7 +36,7 @@ class Section:
 
 
 #: A tuple consisting of a list of sections and a list of RST documents as tuples
-#: (relative path in docs/docsite/rst, content).
+#: (absolute path to source file, relative path in collection's docs directory).
 CollectionExtraDocsInfoT = t.Tuple[t.List[Section], t.List[t.Tuple[str, str]]]
 
 
@@ -162,7 +162,7 @@ def load_extra_docs_index(index_path: str) -> t.Tuple[t.List[Section], t.List[st
 
 async def load_collection_extra_docs(collection_name: str,
                                      collection_path: str,
-                                     path_prefix: str = 'docsite/'
+                                     path_prefix: str = 'docsite'
                                      ) -> CollectionExtraDocsInfoT:
     '''Given a collection name and collection metadata, load extra docs data.
 
@@ -183,12 +183,12 @@ async def load_collection_extra_docs(collection_name: str,
 
     for section in sections:
         for i, toctree in enumerate(section.toctree):
-            section.toctree[i] = path_prefix + toctree
+            section.toctree[i] = f"{path_prefix}/{toctree}"
     documents = []
-    for doc in find_extra_docs(collection_path):
+    for abs_path, rel_path in find_extra_docs(collection_path):
         try:
             # Load content
-            async with aiofiles.open(doc[0], 'r', encoding='utf-8') as f:
+            async with aiofiles.open(abs_path, 'r', encoding='utf-8') as f:
                 content = await f.read()
 
             # Lint content
@@ -196,7 +196,7 @@ async def load_collection_extra_docs(collection_name: str,
 
             # When no errors were found, add to output
             if not errors:
-                documents.append((path_prefix + doc[1], content))
+                documents.append((abs_path, os.path.join(path_prefix, rel_path)))
         except Exception:
             pass
 
