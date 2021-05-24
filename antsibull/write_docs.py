@@ -38,17 +38,23 @@ PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 ADD_TOCTREES = True
 
 
-async def write_file(path: str, content: str) -> None:
+async def copy_file(source_path: str, dest_path: str) -> None:
     """
-    Write content to a given path.
+    Copy content from one file to another.
 
-    :arg path: Path of the file to write.
-    :arg content: Content to write into the file.
+    Note that this implementation is somewhat naive: it reads the whole content of the source file
+    and then proceeds to write it to the destination file.
+
+    :arg source_path: Source path. Must be a file.
+    :arg dest_path: Destination path.
     """
-    flog = mlog.fields(func='write_file')
+    flog = mlog.fields(func='copy_file')
     flog.debug('Enter')
 
-    async with aiofiles.open(path, 'w') as f:
+    async with aiofiles.open(source_path, 'rb') as f:
+        content = await f.read()
+
+    async with aiofiles.open(dest_path, 'wb') as f:
         await f.write(content)
 
     flog.debug('Leave')
@@ -567,10 +573,10 @@ async def output_extra_docs(dest_dir: str,
                 collection_dir = os.path.join(collection_toplevel, *(collection_name.split('.')))
             else:
                 collection_dir = collection_toplevel
-            for path, content in documents:
-                full_path = os.path.join(collection_dir, path)
+            for source_path, rel_path in documents:
+                full_path = os.path.join(collection_dir, rel_path)
                 os.makedirs(os.path.dirname(full_path), mode=0o755, exist_ok=True)
-                writers.append(await pool.spawn(write_file(full_path, content)))
+                writers.append(await pool.spawn(copy_file(source_path, full_path)))
 
         await asyncio.gather(*writers)
 
