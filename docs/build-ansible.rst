@@ -200,7 +200,7 @@ schedule too).
 * Build Ansible Docs to docs.ansible.com
 * Upload the tarball to pypi::
 
-    twine upload built/ansible-3.0.0.tar.gz
+    twine upload --sign built/ansible-3.0.0.tar.gz
 
 
 Announcing Ansible
