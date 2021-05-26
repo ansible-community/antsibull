@@ -129,6 +129,11 @@ import yaml
 _SENTINEL = object()
 
 
+#: Constrained string for valid Ansible cli args.
+#: Must not start or end with an underscore, must not contain double underscores, lowercase ascii
+#: letters, digits, and single underscores are okay.
+REQUIRED_CLI_F = p.Field(..., regex='^[a-z0-9]+(_[a-z0-9]+)*$')
+
 #: Constrained string for valid Ansible environment variables
 REQUIRED_ENV_VAR_F = p.Field(..., regex='[A-Z_]+')
 

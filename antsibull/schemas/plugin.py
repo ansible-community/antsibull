@@ -12,12 +12,19 @@ import typing as t
 
 import pydantic as p
 
-from .base import (REQUIRED_ENV_VAR_F, RETURN_TYPE_F,
+from .base import (REQUIRED_CLI_F, REQUIRED_ENV_VAR_F, RETURN_TYPE_F,
                    COLLECTION_NAME_F, BaseModel, DeprecationSchema, DocSchema,
                    LocalConfig, OptionsSchema, list_from_scalars, is_json_value,
                    normalize_return_type_names, transform_return_docs)
 
 _SENTINEL = object()
+
+
+class OptionCliSchema(BaseModel):
+    name: str = REQUIRED_CLI_F
+    deprecated: DeprecationSchema = p.Field({})
+    version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
 
 
 class OptionEnvSchema(BaseModel):
@@ -114,6 +121,7 @@ class OuterReturnSchema(ReturnSchema):
 
 
 class PluginOptionsSchema(OptionsSchema):
+    cli: t.List[OptionCliSchema] = []
     env: t.List[OptionEnvSchema] = []
     ini: t.List[OptionIniSchema] = []
     suboptions: t.Dict[str, 'PluginOptionsSchema'] = {}
