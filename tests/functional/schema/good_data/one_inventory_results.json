@@ -24,6 +24,7 @@
                             "aws_access_key_id"
                         ],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -63,6 +64,7 @@
                             "boto_profile"
                         ],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -96,6 +98,7 @@
                             "aws_secret_access_key"
                         ],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -133,6 +136,7 @@
                     "aws_security_token": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -170,6 +174,7 @@
                     "cache": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -203,6 +208,7 @@
                     "cache_connection": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -249,6 +255,7 @@
                     "cache_plugin": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "memory",
                         "deprecated": {},
                         "description": [
@@ -295,6 +302,7 @@
                     "cache_prefix": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "ansible_inventory_",
                         "deprecated": {},
                         "description": [
@@ -341,6 +349,7 @@
                     "cache_timeout": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 3600,
                         "deprecated": {},
                         "description": [
@@ -387,6 +396,7 @@
                     "compose": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": {},
                         "deprecated": {},
                         "description": [
@@ -405,6 +415,7 @@
                     "filters": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": {},
                         "deprecated": {},
                         "description": [
@@ -424,6 +435,7 @@
                     "groups": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": {},
                         "deprecated": {},
                         "description": [
@@ -442,6 +454,7 @@
                     "hostnames": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": [],
                         "deprecated": {},
                         "description": [
@@ -462,6 +475,7 @@
                     "iam_role_arn": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -480,6 +494,7 @@
                     "include_extra_api_calls": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -499,6 +514,7 @@
                     "keyed_groups": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": [],
                         "deprecated": {},
                         "description": [
@@ -519,6 +535,7 @@
                         "choices": [
                             "aws_ec2"
                         ],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -537,6 +554,7 @@
                     "regions": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": [],
                         "deprecated": {},
                         "description": [
@@ -556,6 +574,7 @@
                     "strict": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -575,6 +594,7 @@
                     "strict_permissions": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 1,
                         "deprecated": {},
                         "description": [
@@ -594,6 +614,7 @@
                     "use_contrib_script_compatible_sanitization": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [

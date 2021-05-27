@@ -19,6 +19,7 @@
                     "eos_use_sessions": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 1,
                         "deprecated": {},
                         "description": [

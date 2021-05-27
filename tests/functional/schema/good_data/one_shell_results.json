@@ -17,6 +17,7 @@
                     "admin_users": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": [
                             "root",
                             "toor"
@@ -60,6 +61,7 @@
                     "async_dir": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "~/.ansible_async",
                         "deprecated": {},
                         "description": [
@@ -100,6 +102,7 @@
                     "environment": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": {},
                         "deprecated": {},
                         "description": [
@@ -118,6 +121,7 @@
                     "remote_tmp": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "~/.ansible/tmp",
                         "deprecated": {},
                         "description": [
@@ -164,6 +168,7 @@
                     "system_tmpdirs": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": [
                             "/var/tmp",
                             "/tmp"

@@ -19,6 +19,7 @@
                     "become": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -60,6 +61,7 @@
                     "become_method": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "sudo",
                         "deprecated": {},
                         "description": [
@@ -100,6 +102,7 @@
                     "host": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "inventory_hostname",
                         "deprecated": {},
                         "description": [
@@ -125,6 +128,7 @@
                     "network_os": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -150,6 +154,7 @@
                     "password": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -187,6 +192,7 @@
                     "persistent_command_timeout": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 30,
                         "deprecated": {},
                         "description": [
@@ -227,6 +233,7 @@
                     "persistent_connect_timeout": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 30,
                         "deprecated": {},
                         "description": [
@@ -267,6 +274,7 @@
                     "persistent_log_messages": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -308,6 +316,7 @@
                     "port": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -349,6 +358,7 @@
                     "remote_user": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -390,6 +400,7 @@
                     "use_proxy": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 1,
                         "deprecated": {},
                         "description": [
@@ -415,6 +426,7 @@
                     "use_ssl": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -440,6 +452,7 @@
                     "validate_certs": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 1,
                         "deprecated": {},
                         "description": [

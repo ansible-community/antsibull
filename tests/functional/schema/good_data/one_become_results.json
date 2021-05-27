@@ -22,6 +22,7 @@
                     "become_pass": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
