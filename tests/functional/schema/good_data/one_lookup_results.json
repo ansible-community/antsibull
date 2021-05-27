@@ -18,6 +18,7 @@
                     "_raw": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -36,6 +37,7 @@
                     "client_cert": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -69,6 +71,7 @@
                     "datacenter": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -87,6 +90,7 @@
                     "host": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "localhost",
                         "deprecated": {},
                         "description": [
@@ -121,6 +125,7 @@
                     "index": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -139,6 +144,7 @@
                     "port": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 8500,
                         "deprecated": {},
                         "description": [
@@ -158,6 +164,7 @@
                     "recurse": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 0,
                         "deprecated": {},
                         "description": [
@@ -176,6 +183,7 @@
                     "scheme": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "http",
                         "deprecated": {},
                         "description": [
@@ -195,6 +203,7 @@
                     "token": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -213,6 +222,7 @@
                     "validate_certs": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 1,
                         "deprecated": {},
                         "description": [

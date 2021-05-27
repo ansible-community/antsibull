@@ -19,6 +19,7 @@
                     "ncclient_device_handler": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "iosxr",
                         "deprecated": {},
                         "description": [

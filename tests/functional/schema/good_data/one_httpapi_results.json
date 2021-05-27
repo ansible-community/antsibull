@@ -19,6 +19,7 @@
                     "root_path": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": "/restconf",
                         "deprecated": {},
                         "description": [

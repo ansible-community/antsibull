@@ -19,6 +19,7 @@
                     "_prefix": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
@@ -52,6 +53,7 @@
                     "_timeout": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": 86400,
                         "deprecated": {},
                         "description": [
@@ -85,6 +87,7 @@
                     "_uri": {
                         "aliases": [],
                         "choices": [],
+                        "cli": [],
                         "default": null,
                         "deprecated": {},
                         "description": [
