@@ -169,7 +169,7 @@ class AnsibleOutputLexer(DelegatingLexer):
     '''
 
     name = 'Ansible-output'  # pyre-ignore[15]
-    aliases = ['ansible-output']
+    aliases = ('ansible-output', )
 
     def __init__(self, **options):
         # pylint: disable=super-with-arguments
