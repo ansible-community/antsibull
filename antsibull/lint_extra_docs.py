@@ -19,6 +19,8 @@ from .extra_docs import (
 )
 from .yaml import load_yaml_file
 
+from sphinx_antsibull_ext.pygments_lexer import AnsibleOutputLexer
+
 
 _RST_LABEL_DEFINITION = re.compile(r'''^\.\. _([^:]+):''')
 
@@ -40,6 +42,22 @@ def lint_optional_conditions(content: str, path: str, collection_name: str
 
     Return a list of errors.
     '''
+
+    # Make sure Pygments knows about the additional lexers
+    try:
+        from pygments.lexers import LEXERS
+    except ImportError:
+        pass
+    else:
+        for lexer_name, lexer_class in [
+            ('AnsibleOutputLexer', AnsibleOutputLexer)
+        ]:
+            LEXERS[lexer_name] = (
+                'sphinx_antsibull_ext.pygments_lexer',
+                lexer_class.name, lexer_class.aliases, (), (),
+            )
+
+    # Run rstcheck
     results = rstcheck.check(
         content, filename=path,
         report_level=docutils.utils.Reporter.WARNING_LEVEL)
