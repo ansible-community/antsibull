@@ -12,7 +12,6 @@ readme = "README.md"
 repository = "https://github.com/ansible-community/antsibull"
 packages = [
     { include = "antsibull" },
-    { include = "sphinx_antsibull_ext" },
     { include = "tests", format = "sdist" }
 ]
 
@@ -35,14 +34,13 @@ jinja2 = "*"
 packaging = ">= 20.0"
 perky = "*"
 pydantic = "*"
-pygments = ">= 2.6.1"
 PyYAML = "*"
 rstcheck = "^3"
 semantic_version = "*"
 sh = "*"
-sphinx = "*"
 # 0.5.0 introduces dict_config
 twiggy = ">= 0.5.0"
+sphinx-antsibull-ext = "==0.32.0"
 
 [tool.poetry.dev-dependencies]
 asynctest = "*"

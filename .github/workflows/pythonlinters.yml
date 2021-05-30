@@ -30,8 +30,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry
+          sed -i '/sphinx-antsibull-ext = /d' pyproject.toml
           poetry install
           poetry update
+          poetry run pip install sphinx-extension/
 
       - name: Lint with flake8
         run: |
@@ -53,3 +55,36 @@ jobs:
         run: |
           ./lint-mypy.sh || :
         if: always()
+
+      # Sphinx extension:
+
+      - name: Install dependencies for Sphinx extension
+        run: |
+          poetry install
+          poetry update
+        working-directory: ./sphinx-extension
+
+      - name: Lint with flake8 for Sphinx extension
+        run: |
+          ./lint-flake8.sh
+        working-directory: ./sphinx-extension
+
+      - name: Lint with pyre for Sphinx extension
+        run: |
+          ./lint-pyre.sh
+        if: always()
+        working-directory: ./sphinx-extension
+
+      # note: pylint is run informationally, never to fail the build
+      - name: Lint with pylint for Sphinx extension
+        run: |
+          ./lint-pylint.sh || :
+        if: always()
+        working-directory: ./sphinx-extension
+
+      # note: mypy is run informationally, never to fail the build
+      - name: Lint with mypy for Sphinx extension
+        run: |
+          ./lint-mypy.sh || :
+        if: always()
+        working-directory: ./sphinx-extension

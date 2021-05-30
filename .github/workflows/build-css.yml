@@ -31,4 +31,4 @@ jobs:
       - name: Build CSS
         run: |
           ./build.sh
-        working-directory: ./sphinx_antsibull_ext/css
+        working-directory: ./sphinx-extension/sphinx_antsibull_ext/css

@@ -23,6 +23,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install poetry ansible-base
+          sed -i '/sphinx-antsibull-ext = /d' pyproject.toml
 
       - name: Test building a release with the defaults
         run: |

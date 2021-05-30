@@ -95,6 +95,12 @@ jobs:
         pip setuptools wheel
     - name: Install antsibull dist from PyPI
       run: python -m pip install -U --user antsibull
+    - name: Install Sphinx extension dist from GitHub
+      run: >-
+        python -m
+        pip install
+        -U --user
+        sphinx-extension/
     - name: Install antsibull dist from GitHub
       run: >-
         python -m
