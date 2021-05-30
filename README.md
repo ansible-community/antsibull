@@ -69,8 +69,13 @@ If you want to create a new release::
     poetry build
     poetry publish  # Uploads to pypi.  Be sure you really want to do this
 
+    cd sphinx-extension
+    poetry build
+    poetry publish  # Uploads to pypi.  Be sure you really want to do this
+    cd ..
+
     git tag $VERSION_NUMBER
     git push --tags
-    vim pyproject.toml    # Bump the version number
+    ./set-version-number.sh <version_number>  # Bump the version number
     git commit -m 'Update the version number for the next release' pyproject.toml
     git push
