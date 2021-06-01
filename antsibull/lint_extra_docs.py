@@ -40,8 +40,6 @@ def lint_optional_conditions(content: str, path: str, collection_name: str
 
     Return a list of errors.
     '''
-
-    # Run rstcheck
     results = rstcheck.check(
         content, filename=path,
         report_level=docutils.utils.Reporter.WARNING_LEVEL)
