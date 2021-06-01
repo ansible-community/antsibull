@@ -21,10 +21,6 @@ antsibull-build = "antsibull.cli.antsibull_build:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
 antsibull-docs = "antsibull.cli.antsibull_docs:main"
 
-[tool.poetry.plugins."pygments.lexers"]
-Ansible-output = "sphinx_antsibull_ext.pygments_lexer:AnsibleOutputLexer"
-ansible-output = "sphinx_antsibull_ext.pygments_lexer:AnsibleOutputLexer"
-
 [tool.poetry.dependencies]
 python = "^3.6.0"
 aiocontextvars = {version = "*", python = "~3.6"}
@@ -39,12 +35,12 @@ jinja2 = "*"
 packaging = ">= 20.0"
 perky = "*"
 pydantic = "*"
-pygments = ">= 2.6.1"
 PyYAML = "*"
 rstcheck = "^3"
 semantic_version = "*"
 sh = "*"
 sphinx = "*"
+sphinx-ansible-highlighter = "*"
 # 0.5.0 introduces dict_config
 twiggy = ">= 0.5.0"
 

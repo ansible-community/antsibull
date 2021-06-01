@@ -14,7 +14,6 @@ __author__ = "Felix Fontein"
 __author_email__ = "felix@fontein.de"
 
 
-from .pygments_lexer import AnsibleOutputLexer
 from .assets import setup_assets
 
 
@@ -23,14 +22,6 @@ def setup(app):
     Initializer for Sphinx extension API.
     See http://www.sphinx-doc.org/en/stable/extdev/index.html#dev-extensions.
     '''
-
-    # Add Pygments lexers
-    for lexer in [
-        AnsibleOutputLexer
-    ]:
-        app.add_lexer(lexer.name, lexer)
-        for alias in lexer.aliases:
-            app.add_lexer(alias, lexer)
 
     # Add assets
     setup_assets(app)
