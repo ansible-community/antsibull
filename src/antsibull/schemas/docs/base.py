@@ -440,6 +440,12 @@ class SeeAlsoModSchema(BaseModel):
     description: str = ""
 
 
+class SeeAlsoPluginSchema(BaseModel):
+    plugin: str
+    plugin_type: str
+    description: str = ""
+
+
 class SeeAlsoRefSchema(BaseModel):
     description: str
     ref: str
@@ -505,7 +511,10 @@ class DocSchema(BaseModel):
     filename: str = ''
     notes: t.List[str] = []
     requirements: t.List[str] = []
-    seealso: t.List[t.Union[SeeAlsoModSchema, SeeAlsoRefSchema, SeeAlsoLinkSchema]] = []
+    seealso: t.List[t.Union[SeeAlsoModSchema,
+                            SeeAlsoPluginSchema,
+                            SeeAlsoRefSchema,
+                            SeeAlsoLinkSchema]] = []
     todo: t.List[str] = []
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F

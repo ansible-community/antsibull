@@ -1,0 +1,2 @@
+major_changes:
+  - Support new semantic markup in documentation (https://github.com/ansible-community/antsibull/pull/281).

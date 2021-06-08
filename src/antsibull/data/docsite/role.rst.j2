@@ -161,6 +161,12 @@ See Also
 {%       elif item.module is defined %}
    @{ ('M(' + item['module'] + ')') | rst_ify }@
       The official documentation on the **@{ item['module'] }@** module.
+{%       elif item.plugin is defined and item.plugin_type is defined and item.description %}
+   @{ ('P(' + item['plugin'] + '#' + item['plugin_type'] + ')') | rst_ify }@ @{ item['plugin_type'] }@ plugin
+       @{ item['description'] | rst_ify }@
+{%       elif item.plugin is defined and item.plugin_type is defined %}
+   @{ ('P(' + item['plugin'] + '#' + item['plugin_type'] + ')') | rst_ify }@ @{ item['plugin_type'] }@ plugin
+      The official documentation on the **@{ item['plugin'] }@** @{ item['plugin_type'] }@ plugin.
 {%       elif item.name is defined and item.link is defined and item.description %}
    `@{ item['name'] }@ <@{ item['link'] }@>`_
        @{ item['description'] | rst_ify }@

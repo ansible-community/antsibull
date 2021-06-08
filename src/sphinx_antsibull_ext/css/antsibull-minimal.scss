@@ -331,3 +331,13 @@ table.ansible-option-table {
     }
   }
 }
+
+.ansible-option, .ansible-option-value, .ansible-return-value {
+  a.reference.internal {
+    color: unset;
+
+    &:hover {
+      color: unset;
+    }
+  }
+}
