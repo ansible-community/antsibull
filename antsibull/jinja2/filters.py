@@ -19,11 +19,22 @@ mlog = log.fields(mod=__name__)
 _ITALIC = re.compile(r"\bI\(([^)]+)\)")
 _BOLD = re.compile(r"\bB\(([^)]+)\)")
 _MODULE = re.compile(r"\bM\(([^)]+)\)")
+_PLUGIN = re.compile(r"\bP\(([^#)]+)#([a-z]+)\)")
 _URL = re.compile(r"\bU\(([^)]+)\)")
 _LINK = re.compile(r"\bL\(([^)]+), *([^)]+)\)")
 _REF = re.compile(r"\bR\(([^)]+), *([^)]+)\)")
 _CONST = re.compile(r"\bC\(([^)]+)\)")
+_SEM_OPTION_NAME = re.compile(r"\bO\(([^)]+)\)")
+_SEM_OPTION_VALUE = re.compile(r"\bV\(([^)]+)\)")
+_SEM_ENV_VARIABLE = re.compile(r"\bE\(([^)]+)\)")
 _RULER = re.compile(r"\bHORIZONTALLINE\b")
+
+
+def _option_name_html(matcher):
+    parts = matcher.group(1).split('=', 1)
+    if len(parts) == 1:
+        return f'<em>{parts[0]}</em>'
+    return f'<em>{parts[0]}</em>=<code>{parts[1]}</code>'
 
 
 def html_ify(text):
@@ -36,11 +47,15 @@ def html_ify(text):
     text = html_escape(text)
     text, _counts['italic'] = _ITALIC.subn(r"<em>\1</em>", text)
     text, _counts['bold'] = _BOLD.subn(r"<b>\1</b>", text)
-    text, _counts['module'] = _MODULE.subn(r"<span class='module'>\1</span>", text)
+    text, _counts['module'] = _MODULE.subn(r"<span class='module plugin-module'>\1</span>", text)
+    text, _counts['plugin'] = _PLUGIN.subn(r"<span class='module plugin-\2'>\1</span>", text)
     text, _counts['url'] = _URL.subn(r"<a href='\1'>\1</a>", text)
     text, _counts['ref'] = _REF.subn(r"<span class='module'>\1</span>", text)
     text, _counts['link'] = _LINK.subn(r"<a href='\2'>\1</a>", text)
     text, _counts['const'] = _CONST.subn(r"<code>\1</code>", text)
+    text, _counts['option-name'] = _SEM_OPTION_NAME.subn(_option_name_html, text)
+    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(r"<code>\1</code>", text)
+    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(r"<code>\1</code>", text)
     text, _counts['ruler'] = _RULER.subn(r"<hr/>", text)
 
     text = text.strip()
@@ -70,6 +85,13 @@ def do_max(seq):
     return max(seq)
 
 
+def _option_name_rst(matcher):
+    parts = matcher.group(1).split('=', 1)
+    if len(parts) == 1:
+        return f'*{parts[0]}*'
+    return f'*{parts[0]}* |equalsign| ``{parts[1]}``'
+
+
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
 
@@ -80,10 +102,14 @@ def rst_ify(text):
     text, _counts['italic'] = _ITALIC.subn(r"*\1*", text)
     text, _counts['bold'] = _BOLD.subn(r"**\1**", text)
     text, _counts['module'] = _MODULE.subn(r":ref:`\1 <ansible_collections.\1_module>`", text)
+    text, _counts['plugin'] = _PLUGIN.subn(r":ref:`\1 <ansible_collections.\1_\2>`", text)
     text, _counts['url'] = _LINK.subn(r"`\1 <\2>`_", text)
     text, _counts['ref'] = _URL.subn(r"\1", text)
     text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
     text, _counts['const'] = _CONST.subn(r"``\1``", text)
+    text, _counts['option-name'] = _SEM_OPTION_NAME.subn(_option_name_rst, text)
+    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(r"``\1``", text)
+    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(r"``\1``", text)
     text, _counts['ruler'] = _RULER.subn(f"\n\n{'-' * 13}\n\n", text)
 
     flog.fields(counts=_counts).info('Number of macros converted to rst equivalents')
