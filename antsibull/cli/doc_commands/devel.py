@@ -34,18 +34,18 @@ async def retrieve(collections: t.List[str],
                    ansible_base_source: t.Optional[str] = None,
                    collection_cache: t.Optional[str] = None) -> t.Dict[str, 'semver.Version']:
     """
-    Download ansible-base and the latest versions of the collections.
+    Download ansible-core and the latest versions of the collections.
 
     :arg collections: List of collection names.
     :arg tmp_dir: The directory to download into.
     :arg galaxy_server: URL to the galaxy server.
-    :kwarg ansible_base_source: If given, a path to an Ansible-base checkout or expanded sdist.
-        This will be used instead of downloading an ansible-base package if the version matches
+    :kwarg ansible_base_source: If given, a path to an Ansible-core checkout or expanded sdist.
+        This will be used instead of downloading an ansible-core package if the version matches
         with ``ansible_base_version``.
     :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
         These tarballs will be used instead of downloading new tarballs provided that the
         versions match the criteria (latest compatible version known to galaxy).
-    :returns: Map of collection name to directory it is in.  ansible-base will
+    :returns: Map of collection name to directory it is in.  ansible-core will
         use the special key, `_ansible_base`.
     """
     collection_dir = os.path.join(tmp_dir, 'collections')
@@ -109,13 +109,13 @@ def generate_docs() -> int:
         # flog.fields(tarballs=collection_tarballs).debug('Download complete')
         flog.notice('Finished retrieving tarballs')
 
-        # Get the ansible-base location
+        # Get the ansible-core location
         try:
             ansible_base_path = collection_tarballs.pop('_ansible_base')
         except KeyError:
-            print('ansible-base did not download successfully')
+            print('ansible-core did not download successfully')
             return 3
-        flog.fields(ansible_base_path=ansible_base_path).info('ansible-base location')
+        flog.fields(ansible_base_path=ansible_base_path).info('ansible-core location')
 
         # Install the collections to a directory
 
@@ -131,10 +131,10 @@ def generate_docs() -> int:
         asyncio_run(install_together(collection_tarballs.values(), collection_install_dir))
         flog.notice('Finished installing collections')
 
-        # Create venv for ansible-base
-        venv = VenvRunner('ansible-base-venv', tmp_dir)
+        # Create venv for ansible-core
+        venv = VenvRunner('ansible-core-venv', tmp_dir)
         venv.install_package(ansible_base_path)
-        flog.fields(venv=venv).notice('Finished installing ansible-base')
+        flog.fields(venv=venv).notice('Finished installing ansible-core')
 
         generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
 
