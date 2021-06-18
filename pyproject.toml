@@ -15,6 +15,11 @@ packages = [
     { include = "sphinx_antsibull_ext" },
     { include = "tests", format = "sdist" }
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Ansible",
+    "Intended Audience :: Developers"
+]
 
 [tool.poetry.urls]
 "Code of Conduct" = "https://docs.ansible.com/ansible/latest/community/code_of_conduct.html"
