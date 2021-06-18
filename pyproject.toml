@@ -16,6 +16,10 @@ packages = [
     { include = "tests", format = "sdist" }
 ]
 
+[tool.poetry.urls]
+"Code of Conduct" = "https://docs.ansible.com/ansible/latest/community/code_of_conduct.html"
+"Bug tracker" = "https://github.com/ansible-community/antsibull/issues"
+
 [tool.poetry.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
