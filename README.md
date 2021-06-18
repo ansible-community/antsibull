@@ -32,6 +32,8 @@ a checkout, you'll have to run them under poetry::
 Unless otherwise noted in the code, it is licensed under the terms of the GNU
 General Public License v3 or, at your option, later.
 
+antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
+
 ## Using the Sphinx extension
 
 Include it in your Sphinx configuration ``conf.py``::
