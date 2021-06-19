@@ -13,7 +13,6 @@ table.documentation-table {
   }
 
   td.elbow-placeholder {
-    border-left: 1px solid #000;
     border-top: 0;
     width: 30px;
     min-width: 30px;
@@ -25,22 +24,6 @@ table.documentation-table {
   }
   td:first-child {
     white-space: nowrap;
-  }
-
-  // Special formattings for elements
-  .value-type {
-    font-size: x-small;
-    color: purple;
-    display: inline;
-  }
-  .value-separator {
-    font-size: x-small;
-    display: inline;
-  }
-  .value-required {
-    font-size: x-small;
-    color: red;
-    display: inline;
   }
 
   // Direct links to options / return values
