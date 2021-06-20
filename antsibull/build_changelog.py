@@ -29,6 +29,20 @@ from .changelog import Changelog, ChangelogData, ChangelogEntry, CollectionsMeta
 PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogGeneratorEntry]]]
 
 
+def _cleanup_plugins(entries: t.List[t.Any]) -> t.List[t.Any]:
+    '''Remove duplicate module/plugin/object entries from the given list.
+    '''
+    result = []
+    found_names = set()
+    for entry in entries:
+        name = entry['name']
+        if name in found_names:
+            continue
+        result.append(entry)
+        found_names.add(name)
+    return result
+
+
 def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGeneratorEntry:
     '''Remove duplicate entries from changelog entry.
 
@@ -38,6 +52,11 @@ def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGenerator
     the 1.0.2 changelog. The 1.0.3 changes are usually a subset of the 1.1.0 changes as
     they are backported bugfixes.
     '''
+    entry.modules = _cleanup_plugins(entry.modules)
+    for plugin_type, plugins in entry.plugins.items():
+        entry.plugins[plugin_type] = _cleanup_plugins(plugins)
+    for object_type, objects in entry.objects.items():
+        entry.objects[object_type] = _cleanup_plugins(objects)
     for section, changes in entry.changes.items():
         if isinstance(changes, list):
             entry.changes[section] = sorted(set(changes))
