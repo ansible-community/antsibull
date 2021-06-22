@@ -36,10 +36,10 @@ async def retrieve(collections: t.List[str],
     """
     Download ansible-core and the latest versions of the collections.
 
-    :arg collections: List of collection names.
+    :arg collections: List of collection names to download.
     :arg tmp_dir: The directory to download into.
     :arg galaxy_server: URL to the galaxy server.
-    :kwarg ansible_base_source: If given, a path to an Ansible-core checkout or expanded sdist.
+    :kwarg ansible_base_source: If given, a path to an ansible-core checkout or expanded sdist.
         This will be used instead of downloading an ansible-core package if the version matches
         with ``ansible_base_version``.
     :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
@@ -81,7 +81,7 @@ def generate_docs() -> int:
     """
     Create documentation for the devel subcommand.
 
-    Devel documentation creates documentation for a the current development version of Ansible.
+    Devel documentation creates documentation for the current development version of Ansible.
     It uses the latest collection releases for the collections mentioned in the specified pieces
     file to generate rst files documenting those collections.
 
