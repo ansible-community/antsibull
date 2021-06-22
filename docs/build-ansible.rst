@@ -53,25 +53,6 @@ repo is where information about the release is saved:
     # Fork and clone github.com/ansible/ansible
     git clone git@github.com:${USER}/ansible.git
 
-Setup for the first alpha release
-`````````````````````````````````
-
-When the first alpha is created, we need to make the directory for the new major version:
-
-.. code-block:: shell
-
-    mkdir ansible-build-data/3
-    cd ansible-build-data/3
-    # Copy from previous version
-    cp ../2.10/ansible.in .
-    cp ../2.10/collection-meta.yaml .
-    # Link initial release of previous version as changelog ancestor
-    ln -s ../2.10/ansible-2.10.0.deps ancestor.deps
-    # Create changelog stub with ancestor
-    echo -n "ancestor: 2.10.0\nreleases: {}" > changelog.yaml
-    # Make any additions or subtractions to the set of collections in the ansible.in file
-
-
 Building the tarball
 ````````````````````
 
@@ -89,6 +70,26 @@ All alpha releases and the first beta
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
+
+
+Setup for the first beta release
+---------------------------------
+
+We want to create the directory for the **next** major release when the first beta of this release
+is made.  That way, there's no period when we're frozen with no place for new collections to go.
+
+.. code-block:: shell
+    # If the current version is 3:
+    mkdir ansible-build-data/4
+    cd ansible-build-data/4
+    # Copy from previous version
+    cp ../3/ansible.in .
+    cp ../3/collection-meta.yaml .
+    # Link initial release of previous version as changelog ancestor
+    ln -s ../3/ansible-3.0.0.deps ancestor.deps
+    # Create changelog stub with ancestor
+    echo -n "ancestor: 3.0.0\nreleases: {}" > changelog.yaml
+    # Make any additions or subtractions to the set of collections in the ansible.in file
 
 
 Beta2 up to and including rc1
