@@ -31,10 +31,10 @@ _RULER = re.compile(r"\bHORIZONTALLINE\b")
 
 
 def _option_name_html(matcher):
-    parts = matcher.group(1).split('=', 1)
-    if len(parts) == 1:
-        return f'<em>{parts[0]}</em>'
-    return f'<em>{parts[0]}</em>=<code>{parts[1]}</code>'
+    text = matcher.group(1)
+    if '=' not in text and ':' not in text:
+        return f'<code class="ansible-option literal"><strong>{text}</strong></code>'
+    return f'<code class="ansible-option-value literal">{text}</code>'
 
 
 def html_ify(text):
@@ -54,8 +54,10 @@ def html_ify(text):
     text, _counts['link'] = _LINK.subn(r"<a href='\2'>\1</a>", text)
     text, _counts['const'] = _CONST.subn(r"<code>\1</code>", text)
     text, _counts['option-name'] = _SEM_OPTION_NAME.subn(_option_name_html, text)
-    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(r"<code>\1</code>", text)
-    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(r"<code>\1</code>", text)
+    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(
+        r"""<code class="ansible-value literal">\1</code>""", text)
+    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(
+        r"""<code class="xref std std-envvar literal">\1</code>""", text)
     text, _counts['ruler'] = _RULER.subn(r"<hr/>", text)
 
     text = text.strip()
@@ -85,13 +87,6 @@ def do_max(seq):
     return max(seq)
 
 
-def _option_name_rst(matcher):
-    parts = matcher.group(1).split('=', 1)
-    if len(parts) == 1:
-        return f'*{parts[0]}*'
-    return f'*{parts[0]}* |equalsign| ``{parts[1]}``'
-
-
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
 
@@ -107,9 +102,9 @@ def rst_ify(text):
     text, _counts['ref'] = _URL.subn(r"\1", text)
     text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
     text, _counts['const'] = _CONST.subn(r"``\1``", text)
-    text, _counts['option-name'] = _SEM_OPTION_NAME.subn(_option_name_rst, text)
-    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(r"``\1``", text)
-    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(r"``\1``", text)
+    text, _counts['option-name'] = _SEM_OPTION_NAME.subn(r":ansopt:`\1`", text)
+    text, _counts['option-value'] = _SEM_OPTION_VALUE.subn(r":ansval:`\1`", text)
+    text, _counts['environment-var'] = _SEM_ENV_VARIABLE.subn(r":envvar:`\1`", text)
     text, _counts['ruler'] = _RULER.subn(f"\n\n{'-' * 13}\n\n", text)
 
     flog.fields(counts=_counts).info('Number of macros converted to rst equivalents')
