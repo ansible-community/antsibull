@@ -70,7 +70,7 @@ if sys.version_info < (3, 7):
 
 
 #: Field names in the args and config which whose value will be added to the app_ctx
-_FIELDS_IN_APP_CTX = frozenset(('galaxy_url', 'logging_cfg', 'pypi_url'))
+_FIELDS_IN_APP_CTX = frozenset(('galaxy_url', 'logging_cfg', 'pypi_url', 'doc_add_toctrees'))
 
 #: Field names in the args and config which whose value will be added to the lib_ctx
 _FIELDS_IN_LIB_CTX = frozenset(
@@ -228,6 +228,7 @@ class AppContext(BaseModel):
     logging_cfg: LoggingModel = LoggingModel.parse_obj(DEFAULT_LOGGING_CONFIG)
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
+    doc_add_toctrees: bool = True
 
 
 class LibContext(BaseModel):

@@ -17,13 +17,16 @@ def generate_current_docs(skip_indexes: bool, squash_hierarchy: bool) -> int:
     flog.debug('Begin processing docs')
 
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
+    add_toctrees = lib_ctx.doc_add_toctrees
 
     venv = FakeVenvRunner()
 
     generate_docs_for_all_collections(
         venv, None, app_ctx.extra['dest_dir'], flog, app_ctx.extra['collections'],
         create_indexes=not skip_indexes and not squash_hierarchy,
-        squash_hierarchy=squash_hierarchy)
+        squash_hierarchy=squash_hierarchy,
+        add_toctrees=add_toctrees)
 
     return 0
 

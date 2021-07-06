@@ -92,6 +92,8 @@ def generate_docs() -> int:
     flog.notice('Begin generating docs')
 
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
+    add_toctrees = lib_ctx.doc_add_toctrees
 
     # Parse the pieces file
     flog.fields(deps_file=app_ctx.extra['pieces_file']).info('Parse pieces file')
@@ -136,6 +138,7 @@ def generate_docs() -> int:
         venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'], flog)
+        generate_docs_for_all_collections(
+            venv, collection_dir, app_ctx.extra['dest_dir'], flog, add_toctrees=add_toctrees)
 
     return 0

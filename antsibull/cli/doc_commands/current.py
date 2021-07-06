@@ -26,10 +26,13 @@ def generate_docs() -> int:
     flog.debug('Begin processing docs')
 
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
+    add_toctrees = lib_ctx.doc_add_toctrees
 
     venv = FakeVenvRunner()
 
     generate_docs_for_all_collections(
-        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'], flog)
+        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'], flog,
+        add_toctrees=add_toctrees)
 
     return 0

@@ -136,6 +136,7 @@ class ConfigModel(BaseModel):
     thread_max: int = 80
     max_retries: int = 10
     doc_parsing_backend: str = DOC_PARSING_BACKEND_CHOICES_F
+    doc_add_toctrees: bool = True
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
