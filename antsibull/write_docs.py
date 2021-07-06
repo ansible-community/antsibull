@@ -35,7 +35,7 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-ADD_TOCTREES = True
+ADD_TOCTREES = False
 
 
 async def copy_file(source_path: str, dest_path: str) -> None:
