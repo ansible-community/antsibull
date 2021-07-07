@@ -42,20 +42,20 @@ async def copy_file(source_path: str, dest_path: str) -> None:
     """
     Copy content from one file to another.
 
-    Note that this implementation is somewhat naive: it reads the whole content of the source file
-    and then proceeds to write it to the destination file.
-
     :arg source_path: Source path. Must be a file.
     :arg dest_path: Destination path.
     """
     flog = mlog.fields(func='copy_file')
     flog.debug('Enter')
 
-    async with aiofiles.open(source_path, 'rb') as f:
-        content = await f.read()
-
-    async with aiofiles.open(dest_path, 'wb') as f:
-        await f.write(content)
+    lib_ctx = app_context.lib_ctx.get()
+    async with aiofiles.open(source_path, 'rb') as f_in:
+        async with aiofiles.open(dest_path, 'wb') as f_out:
+            # TODO: PY3.8: while chunk := await f.read(lib_ctx.chunksize)
+            chunk = await f_in.read(lib_ctx.chunksize)
+            while chunk:
+                await f_out.write(chunk)
+                chunk = await f_in.read(lib_ctx.chunksize)
 
     flog.debug('Leave')
 
