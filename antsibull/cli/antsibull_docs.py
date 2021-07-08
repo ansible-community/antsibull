@@ -13,14 +13,22 @@ from typing import Callable, Dict, List
 
 import twiggy
 
-from .. import app_context
-from ..app_logging import log
-from ..args import InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
-from ..config import load_config
-from ..constants import DOCUMENTABLE_PLUGINS
-from ..filesystem import UnableToCheck, writable_via_acls
-from ..docs_parsing.fqcn import is_fqcn
-from .doc_commands import collection, current, devel, plugin, stable
+from ..logging import log, initialize_app_logging
+initialize_app_logging()
+
+# We have to call initialize_app_logging() before these imports so that the log object is configured
+# correctly before other antisbull modules make copies of it.
+# pylint: disable=wrong-import-position
+from .. import app_context  # noqa: E402
+from ..args import (  # noqa: E402
+    InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
+)
+from ..config import load_config  # noqa: E402
+from ..constants import DOCUMENTABLE_PLUGINS  # noqa: E402
+from ..filesystem import UnableToCheck, writable_via_acls  # noqa: E402
+from ..docs_parsing.fqcn import is_fqcn  # noqa: E402
+from .doc_commands import collection, current, devel, plugin, stable  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 mlog = log.fields(mod=__name__)

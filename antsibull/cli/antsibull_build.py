@@ -12,16 +12,24 @@ from typing import List
 import twiggy
 from packaging.version import Version as PypiVer
 
-from .. import app_context
-from ..app_logging import log
-from ..args import InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
-from ..build_collection import build_collection_command
-from ..build_ansible_commands import (
+from ..logging import log, initialize_app_logging
+initialize_app_logging()
+
+# We have to call initialize_app_logging() before these imports so that the log object is configured
+# correctly before other antisbull modules make copies of it.
+# pylint: disable=wrong-import-position
+from .. import app_context  # noqa: E402
+from ..args import (  # noqa: E402
+    InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
+)
+from ..build_collection import build_collection_command  # noqa: E402
+from ..build_ansible_commands import (  # noqa: E402
     build_single_command, build_multiple_command, rebuild_single_command,
 )
-from ..build_changelog import build_changelog
-from ..config import load_config
-from ..new_ansible import new_ansible_command
+from ..build_changelog import build_changelog  # noqa: E402
+from ..config import load_config  # noqa: E402
+from ..new_ansible import new_ansible_command  # noqa: E402
+# pylint: enable=wrong-import-position
 
 
 mlog = log.fields(mod=__name__)
