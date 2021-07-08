@@ -10,7 +10,7 @@ import warnings
 import aiohttp
 
 from .. import app_context
-from ..app_logging import log
+from ..logging import log
 
 
 mlog = log.fields(mod=__name__)
