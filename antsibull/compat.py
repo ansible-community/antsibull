@@ -44,4 +44,12 @@ if sys.version_info < (3, 8):
 else:
     from importlib import metadata
 
-__all__ = ('asyncio_run', 'best_get_loop', 'create_task', 'metadata')
+if sys.version_info < (3, 9):
+    #: In Python3.9+, argparse.BooleanOptionalAction gives us a simple way to add
+    #: --feature/--no-feature command line switches.  In earluer versions, we use
+    #: code that we've copied from the upstream code.
+    from .vendored._argparse_booleanoptionalaction import BooleanOptionalAction
+else:
+    from argparse import BooleanOptionalAction
+
+__all__ = ('BooleanOptionalAction', 'asyncio_run', 'best_get_loop', 'create_task', 'metadata')
