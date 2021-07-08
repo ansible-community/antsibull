@@ -100,6 +100,11 @@ def load_toctree(yaml_section: t.Dict[str, t.Any], section_index: int = 0
     errors: t.List[str] = []
     toctree: t.List[str] = []
     if 'toctree' in yaml_section:
+        if not isinstance(yaml_section['toctree'], list):
+            errors.append(
+                f'Toctree entry in section #{section_index} is not a list')
+            return toctree, errors
+
         for toctree_index, toctree_name in enumerate(yaml_section['toctree']):
             if not isinstance(toctree_name, str):
                 errors.append(
