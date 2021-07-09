@@ -55,12 +55,9 @@ import contextvars
 import functools
 import sys
 import typing as t
-from collections.abc import Container, Mapping, Sequence, Set
 from contextlib import contextmanager
 
-import pydantic as p
-
-from .config import DEFAULT_LOGGING_CONFIG, LoggingModel
+from .schemas.context import AppContext, LibContext
 from .vendored.collections import ImmutableDict
 
 if sys.version_info < (3, 7):
@@ -109,179 +106,6 @@ lib_ctx = contextvars.ContextVar('lib_ctx')
 #: as an attribute and the functions can be converted into methods of the object.  Then the
 #: application code can initialize the object once and thereafter call the object's methods.
 app_ctx = contextvars.ContextVar('app_ctx')
-
-
-def _make_contained_containers_immutable(obj):
-    """
-    Make contained containers into immutable containers.
-
-    This is a helper for :func:`_make_immutable`.  It takes an iterable container and turns all
-    values inside of it into an immutable container.  Be careful what containers you pass in.
-    Mappings, for instance, will be processed without error but the results are likely not what you
-    want because Mappings have both a key and a value.
-    """
-    temp_list = []
-    for value in obj:
-        if isinstance(value, Container):
-            value = _make_immutable(value)
-        temp_list.append(value)
-    return temp_list
-
-
-def _make_immutable(obj: t.Any) -> t.Any:
-    """Recursively convert a container and objects inside of it into immutable data types."""
-    if isinstance(obj, (str, bytes)):
-        # Strings first because they are also sequences
-        return obj
-
-    if isinstance(obj, Mapping):
-        temp_dict = {}
-        for key, value in obj.items():
-            if isinstance(value, Container):
-                value = _make_immutable(value)
-            temp_dict[key] = value
-        return ImmutableDict(temp_dict)
-
-    if isinstance(obj, Set):
-        temp_sequence = _make_contained_containers_immutable(obj)
-        return frozenset(temp_sequence)
-
-    if isinstance(obj, Sequence):
-        temp_sequence = _make_contained_containers_immutable(obj)
-        return tuple(temp_sequence)
-
-    return obj
-
-
-class ContextDict(ImmutableDict):
-    def __init__(self, *args, **kwargs) -> None:
-        if not kwargs and len(args) == 1 and isinstance(args[0], Mapping):
-            # Avoid making an intermediate dict if we were only passed a dict to initialize with
-            tmp_dict = args[0]
-        else:
-            # Otherwise we need the dict constructor to initialize a new dict for us
-            tmp_dict = dict(*args, **kwargs)
-
-        toplevel = {}
-        for key, value in tmp_dict.items():
-            toplevel[key] = _make_immutable(value)
-        super().__init__(toplevel)
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate_and_convert
-
-    @classmethod
-    def validate_and_convert(cls, value: t.Mapping) -> 'ContextDict':
-        if isinstance(value, ContextDict):
-            # optimization.  If it's already an ImmutableContext, we don't need to recursively
-            # convert things to immutable again.
-            return value
-
-        # Typically this will convert from a dict to an ImmutableContext
-        return cls(value)
-
-
-class BaseModel(p.BaseModel):
-    """
-    Configuration for all Context object classes.
-
-    :cvar Config: Sets the following information
-
-        :cvar allow_mutation: ``False``.  Prevents setattr on the contexts.
-        :cvar extra: ``p.Extra.forbid``.  Prevents extra fields on the contexts.
-        :cvar validate_all: ``True``.  Validates default values as well as user supplied ones.
-    """
-
-    class Config:
-        """
-        Set default configuration for building the context models.
-
-        :cvar allow_mutation: ``False``.  Prevents setattr on the contexts.
-        :cvar extra: ``p.Extra.forbid``.  Prevents extra fields on the contexts.
-        :cvar validate_all: ``True``.  Validates default values as well as user supplied ones.
-        """
-
-        allow_mutation = False
-        extra = p.Extra.forbid
-        validate_all = True
-
-
-class AppContext(BaseModel):
-    """
-    Structure and defaults of the app_ctx.
-
-    :ivar extra: a mapping of arg/config keys to values.  Anything in here is unchecked by a
-        schema.  These are usually leftover command line arguments and config entries. If
-        values stored in extras need default values, they need to be set outside of the context
-        or the entries can be given an actual entry in the AppContext to take advantage of the
-        schema's checking, normalization, and default setting.
-    :ivar ansible_base_url: Url to the ansible-core git repo.
-    :ivar breadcrumbs: If True, build with breadcrumbs on the plugin pages (this takes more memory).
-    :ivar galaxy_url: URL of the galaxy server to get collection info from
-    :ivar indexes: If True, create index pages for all collections and all plugins in a collection.
-    :ivar logging_cfg: Configuration of the application logging
-    :ivar pypi_url: URL of the pypi server to query for information
-    """
-
-    extra: ContextDict = ContextDict()
-    # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
-    ansible_base_url: p.HttpUrl = 'https://github.com/ansible/ansible/'
-    breadcrumbs: p.StrictBool = True
-    # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
-    galaxy_url: p.HttpUrl = 'https://galaxy.ansible.com/'
-    indexes: p.StrictBool = True
-    logging_cfg: LoggingModel = LoggingModel.parse_obj(DEFAULT_LOGGING_CONFIG)
-    # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
-    pypi_url: p.HttpUrl = 'https://pypi.org/'
-
-    @p.validator('breadcrumbs', 'indexes', pre=True)
-    def convert_to_bool(cls, value):
-        if isinstance(value, str):
-            if value.lower() in ('0', 'false', 'no', 'n', 'f', ''):
-                value = False
-            else:
-                value = True
-        elif isinstance(value, int):
-            if value == 0:
-                value = False
-            else:
-                value = True
-        return value
-
-
-class LibContext(BaseModel):
-    """
-    Structure and defaults of the lib_ctx.
-
-    :ivar chunksize: number of bytes to read or write at one time for network or file IO
-    :ivar process_max: Maximum number of worker processes for parallel operations
-    :ivar thread_max: Maximum number of helper threads for parallel operations
-    :ivar max_retries: Maximum number of times to retry an http request (in case of timeouts and
-        other transient problems.
-    :ivar doc_parsing_backend: The backend to use for parsing the documentation strings from
-        plugins.  'ansible-internal' is the fastest.  'ansible-doc' exists in case of problems with
-        the ansible-internal backend.
-    """
-
-    chunksize: int = 4096
-    doc_parsing_backend: str = 'ansible-internal'
-    max_retries: int = 10
-    process_max: t.Optional[int] = None
-    thread_max: int = 64
-
-    @p.validator('process_max', pre=True)
-    def convert_to_none(cls, value):
-        """
-        Convert process_max "null" and "none" to None.
-
-        When this is set in a config file, it could be the string "None" or "Null" to mean, use
-        all available CPU cores.  The :python:mod:`multiprocessing` API that this is sent to
-        needs a Python None, though.  So convert the string into an actual None in this validator.
-        """
-        if isinstance(value, str) and value.lower() in ('none', 'null'):
-            value = None
-        return value
 
 
 class ContextReturn(t.NamedTuple):
@@ -461,9 +285,9 @@ def app_and_lib_context(context_data: ContextReturn):
         with app_and_lib_context(context_data):
             do_something()
     """
-    with lib_context(context_data.lib_ctx) as lib_ctx:
-        with app_context(context_data.app_ctx) as app_ctx:
-            yield (app_ctx, lib_ctx)
+    with lib_context(context_data.lib_ctx) as new_lib_ctx:
+        with app_context(context_data.app_ctx) as new_app_ctx:
+            yield (new_app_ctx, new_lib_ctx)
 
 
 #

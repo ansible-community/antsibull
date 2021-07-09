@@ -27,22 +27,22 @@ To use these schemas, follow these steps:
 * Choose the Schema that matches with the level of data that you want to validate and normalize.
 
     * If you want to validate and normalize :ansible:cmd:`ansible-doc` output, use the schemas in
-      :mod:`antsibull.schemas.ansible_doc`.
+      :mod:`antsibull.schemas.docs.ansible_doc`.
 
-      * :obj:`~antsibull.schemas.ansible_doc.AnsibleDocSchema` lets you validate the documentation
-        for multiple plugins at once.  It is useful if all you want to do is validate documentation
-        as you can run it once and then get all the errors.
+      * :obj:`~antsibull.schemas.docs.ansible_doc.AnsibleDocSchema` lets you validate the
+        documentation for multiple plugins at once.  It is useful if all you want to do is
+        validate documentation as you can run it once and then get all the errors.
 
       * If you want to normalize the data and use it to make documentation then the schemas in
-        :attr:`~antsibull.schemas.ansible_doc.ANSIBLE_DOC_SCHEMAS` might be more appropriate.
-        These schemas can be run on individual plugin data.  The advantage of using them is that
-        an error in documentation will only fail that one plugin, not all of them.
+        :attr:`~antsibull.schemas.docs.ansible_doc.ANSIBLE_DOC_SCHEMAS` might be more
+        appropriate.  These schemas can be run on individual plugin data.  The advantage of using
+        them is that an error in documentation will only fail that one plugin, not all of them.
 
     * If you need more fine grained control, you can use the schemas in
-      :mod:`antsibull.schemas.docs.DOCS_SCHEMAS`.  These schemas give you access to the individual
-      components of a plugin's documentation, doc, example, metadata, and return.  That way you can
-      create documentation if any one of these (or specific ones) can be normalized even if the
-      others cannot.
+      :mod:`antsibull.schemas.docs.DOCS_SCHEMAS`.  These schemas give you access to the
+      individual components of a plugin's documentation, doc, example, metadata, and return.
+      That way you can create documentation if any one of these (or specific ones) can be
+      normalized even if the others cannot.
 
 * Use one of the pydantic.BaseModel `alternate constructors
   <https://pydantic-docs.helpmanual.io/usage/models/#helper-functions>`_
@@ -63,7 +63,7 @@ One example of doing all this:
 .. code-block:: pycon
 
     >>> import sh, jinja2
-    >>> from antsibull.schemas import ansible_doc
+    >>> from antsibull.schemas.docs import ansible_doc
     >>> template = jinja2.Template('{{ name }} -- {{ doc["short_description"] }}')
     >>> module_json = sh.ansible_doc('-t', 'module', '--json', 'yum').stdout
     >>> module_model = ansible_doc.ModulePluginSchema.parse_raw(module_json)

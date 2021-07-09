@@ -110,11 +110,11 @@ def normalize_plugin_info(plugin_type: str,
 
     :arg plugin_type: The type of plugins that we're getting docs for.
     :arg plugin_info: Mapping of plugin_info.  The toplevel keys are plugin names.
-        See the schema in :mod:`antsibull.schemas` for what the data should look like and just how
-        much conversion we can perform on it.
+        See the schema in :mod:`antsibull.schemas.docs` for what the data should look like and just
+        how much conversion we can perform on it.
     :returns: A tuple containing a "copy" of plugin_info with all of the data normalized and a list
         of nonfatal errors.  The plugin_info dict will follow the structure expressed in the schemas
-        in :mod:`antsibull.schemas`.  The nonfatal errors are strings representing the problems
+        in :mod:`antsibull.schemas.docs`.  The nonfatal errors are strings representing the problems
         encountered.
     """
     new_info = {}
@@ -149,8 +149,8 @@ async def normalize_all_plugin_info(plugin_info: t.Mapping[str, t.Mapping[str, t
     Normalize the data in plugin_info so that it is ready to be passed to the templates.
 
     :arg plugin_info: Mapping of information about plugins.  This contains information about all of
-        the plugins that are to be documented. See the schema in :mod:`antsibull.schemas` for the
-        structure of the information.
+        the plugins that are to be documented. See the schema in :mod:`antsibull.schemas.docs` for
+        the structure of the information.
     :returns: A tuple of plugin_info (this is a "copy" of the input plugin_info with all of the
         data normalized) and a mapping of errors.  The plugin_info may have less records than the
         input plugin_info if there were plugin records which failed to validate.  The mapping of

@@ -1,32 +1,9 @@
 import argparse
 
 import antsibull.app_context as ap
-from antsibull import config
+from antsibull.schemas.config import LoggingModel
+from antsibull.utils.collections import ContextDict
 
-
-#
-# _make_immutable tests
-#
-
-def test_make_immutable_known():
-    mutable_in = {'str': '123',
-                  'bytes': b'testing',
-                  'map': {'one': 1, 'two': 2, 'three': set('nested')},
-                  'set': set(('one', 2, ('nested',))),
-                  'sequence': [1, 2, 3, {'nested': [True]}],
-                  'scalar': 2,
-                  }
-
-    immutable_out = ap.ContextDict({'str': '123',
-                                    'bytes': b'testing',
-                                    'map': ap.ContextDict({'one': 1, 'two': 2,
-                                                           'three': frozenset('nested')}),
-                                    'set': frozenset(('one', 2, ('nested',))),
-                                    'sequence': (1, 2, 3, ap.ContextDict({'nested': (True,)})),
-                                    'scalar': 2,
-                                    })
-
-    assert ap._make_immutable(mutable_in) == immutable_out
 #
 # Context creation tests
 #
@@ -40,9 +17,9 @@ def test_default():
     assert lib_ctx.max_retries == 10
 
     app_ctx = ap.app_ctx.get()
-    assert app_ctx.extra == ap.ContextDict()
+    assert app_ctx.extra == ContextDict()
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://pypi.org/'
 
 
@@ -59,9 +36,9 @@ def test_create_contexts_with_cfg():
     assert lib_ctx.thread_max == 64
     assert lib_ctx.max_retries == 10
 
-    assert app_ctx.extra == ap.ContextDict({'unknown': True})
+    assert app_ctx.extra == ContextDict({'unknown': True})
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://test.pypi.org/'
 
 
@@ -79,9 +56,9 @@ def test_create_contexts_with_args():
     assert lib_ctx.thread_max == 64
     assert lib_ctx.max_retries == 10
 
-    assert app_ctx.extra == ap.ContextDict({'unknown': True})
+    assert app_ctx.extra == ContextDict({'unknown': True})
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://test.pypi.org/'
 
 
@@ -101,9 +78,9 @@ def test_create_contexts_with_args_and_cfg():
     assert lib_ctx.thread_max == 2
     assert lib_ctx.max_retries == 10
 
-    assert app_ctx.extra == ap.ContextDict({'unknown': False, 'cfg': 1, 'args': 2})
+    assert app_ctx.extra == ContextDict({'unknown': False, 'cfg': 1, 'args': 2})
     assert app_ctx.galaxy_url == 'https://dev.galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://other.pypi.org/'
 
 
@@ -123,9 +100,9 @@ def test_create_contexts_without_extra():
     assert lib_ctx.thread_max == 10
     assert lib_ctx.max_retries == 10
 
-    assert app_ctx.extra == ap.ContextDict()
+    assert app_ctx.extra == ContextDict()
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://pypi.org/'
 
 
@@ -154,9 +131,9 @@ def test_context_overrides():
 
     # Check that once we return from the context managers, the old values have been restored
     app_ctx = ap.app_ctx.get()
-    assert app_ctx.extra == ap.ContextDict()
+    assert app_ctx.extra == ContextDict()
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://pypi.org/'
 
     lib_ctx = ap.lib_ctx.get()
@@ -217,9 +194,9 @@ def test_app_and_lib_context():
 
     # Check that once we return from the context manager, the old values have been restored
     app_ctx = ap.app_ctx.get()
-    assert app_ctx.extra == ap.ContextDict()
+    assert app_ctx.extra == ContextDict()
     assert app_ctx.galaxy_url == 'https://galaxy.ansible.com/'
-    assert isinstance(app_ctx.logging_cfg, config.LoggingModel)
+    assert isinstance(app_ctx.logging_cfg, LoggingModel)
     assert app_ctx.pypi_url == 'https://pypi.org/'
 
     lib_ctx = ap.lib_ctx.get()
