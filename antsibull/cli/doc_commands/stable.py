@@ -257,7 +257,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       dest_dir: str,
                                       collection_names: t.Optional[t.List[str]] = None,
                                       create_indexes: bool = True,
-                                      squash_hierarchy: bool = False) -> None:
+                                      squash_hierarchy: bool = False,
+                                      breadcrumbs: bool = True) -> None:
     """
     Create documentation for a set of installed collections.
 
@@ -268,11 +269,13 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     :arg dest_dir: The directory into which the documentation is written.
     :kwarg collection_names: Optional list of collection names. If specified, only documentation
                              for these collections will be collected and generated.
-    :kwarg create_indexes: Whether to create the collection index and plugin indexes. By default,
-                           they are created.
+    :kwarg create_indexes: Whether to create the collection, namespace, and plugin indexes. By
+                           default, they are created.
     :kwarg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                              Undefined behavior if documentation for multiple collections are
                              created.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     flog = mlog.fields(func='generate_docs_for_all_collections')
     flog.notice('Begin')
@@ -316,9 +319,10 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     # Only build top-level index if requested
     if create_indexes:
         asyncio_run(output_collection_index(
-            collection_to_plugin_info, collection_namespaces, dest_dir))
+            collection_to_plugin_info, collection_namespaces, dest_dir, breadcrumbs=breadcrumbs))
         flog.notice('Finished writing collection index')
-        asyncio_run(output_collection_namespace_indexes(collection_namespaces, dest_dir))
+        asyncio_run(output_collection_namespace_indexes(collection_namespaces, dest_dir,
+                                                        breadcrumbs=breadcrumbs))
         flog.notice('Finished writing collection namespace index')
         asyncio_run(output_plugin_indexes(plugin_contents, dest_dir))
         flog.notice('Finished writing plugin indexes')
@@ -326,7 +330,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     asyncio_run(output_indexes(collection_to_plugin_info, dest_dir,
                                collection_metadata=collection_metadata,
                                squash_hierarchy=squash_hierarchy,
-                               extra_docs_data=extra_docs_data))
+                               extra_docs_data=extra_docs_data,
+                               breadcrumbs=breadcrumbs))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
@@ -405,6 +410,7 @@ def generate_docs() -> int:
         venv.install_package(ansible_base_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'])
+        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],
+                                          breadcrumbs=app_ctx.breadcrumbs)
 
     return 0

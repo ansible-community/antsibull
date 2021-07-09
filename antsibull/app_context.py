@@ -18,7 +18,7 @@ For Python3.6 compatibility, this file needs to be loaded early, before any even
 This is due to limitations in the backport of the contextvars library to Python3.6.  For code which
 targets Python3.7 and above, there is no such limitation.
 
-.. warn:: This is not a stable interface.
+.. warning:: This is not a stable interface.
 
     The API has quite a few rough edges that need to be ironed out before this is finished.  Some of
     this code and data will be moved into an antibull.context module which can deal with the generic
@@ -69,12 +69,13 @@ if sys.version_info < (3, 7):
     import aiocontextvars  # noqa: F401
 
 
-#: Field names in the args and config which whose value will be added to the app_ctx
-_FIELDS_IN_APP_CTX = frozenset(('galaxy_url', 'logging_cfg', 'pypi_url'))
+#: Field names in the args and config whose value will be added to the app_ctx
+_FIELDS_IN_APP_CTX = frozenset(('ansible_base_url', 'breadcrumbs', 'galaxy_url', 'indexes',
+                                'logging_cfg', 'pypi_url'))
 
-#: Field names in the args and config which whose value will be added to the lib_ctx
+#: Field names in the args and config whose value will be added to the lib_ctx
 _FIELDS_IN_LIB_CTX = frozenset(
-    ('chunksize', 'process_max', 'thread_max', 'max_retries', 'doc_parsing_backend'))
+    ('chunksize', 'doc_parsing_backend', 'max_retries', 'process_max', 'thread_max'))
 
 #: lib_ctx should be restricted to things which do not belong in the API but an application or
 #: user might want to tweak.  Global, internal, incidental values are good to store here.  Things
@@ -103,7 +104,7 @@ lib_ctx = contextvars.ContextVar('lib_ctx')
 #: a single place and then consult them globally.  The values should be passed explicitly from
 #: the application code to the library code as a function parameter.
 #:
-#: If the library provides several function to retrieve different pieces of information from the
+#: If the library provides several functions to retrieve different pieces of information from the
 #: server, the library can provide a class which takes the server's URL as a parameter and stores
 #: as an attribute and the functions can be converted into methods of the object.  Then the
 #: application code can initialize the object once and thereafter call the object's methods.
@@ -215,19 +216,38 @@ class AppContext(BaseModel):
         values stored in extras need default values, they need to be set outside of the context
         or the entries can be given an actual entry in the AppContext to take advantage of the
         schema's checking, normalization, and default setting.
+    :ivar ansible_base_url: Url to the ansible-core git repo.
+    :ivar breadcrumbs: If True, build with breadcrumbs on the plugin pages (this takes more memory).
     :ivar galaxy_url: URL of the galaxy server to get collection info from
+    :ivar indexes: If True, create index pages for all collections and all plugins in a collection.
     :ivar logging_cfg: Configuration of the application logging
-    :ivar pypi_url: URL of thepypi server to query for information
+    :ivar pypi_url: URL of the pypi server to query for information
     """
 
     extra: ContextDict = ContextDict()
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     ansible_base_url: p.HttpUrl = 'https://github.com/ansible/ansible/'
+    breadcrumbs: p.StrictBool = True
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     galaxy_url: p.HttpUrl = 'https://galaxy.ansible.com/'
+    indexes: p.StrictBool = True
     logging_cfg: LoggingModel = LoggingModel.parse_obj(DEFAULT_LOGGING_CONFIG)
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
+
+    @p.validator('breadcrumbs', 'indexes', pre=True)
+    def convert_to_bool(cls, value):
+        if isinstance(value, str):
+            if value.lower() in ('0', 'false', 'no', 'n', 'f', ''):
+                value = False
+            else:
+                value = True
+        elif isinstance(value, int):
+            if value == 0:
+                value = False
+            else:
+                value = True
+        return value
 
 
 class LibContext(BaseModel):
@@ -237,13 +257,18 @@ class LibContext(BaseModel):
     :ivar chunksize: number of bytes to read or write at one time for network or file IO
     :ivar process_max: Maximum number of worker processes for parallel operations
     :ivar thread_max: Maximum number of helper threads for parallel operations
+    :ivar max_retries: Maximum number of times to retry an http request (in case of timeouts and
+        other transient problems.
+    :ivar doc_parsing_backend: The backend to use for parsing the documentation strings from
+        plugins.  'ansible-internal' is the fastest.  'ansible-doc' exists in case of problems with
+        the ansible-internal backend.
     """
 
     chunksize: int = 4096
+    doc_parsing_backend: str = 'ansible-internal'
+    max_retries: int = 10
     process_max: t.Optional[int] = None
     thread_max: int = 64
-    max_retries: int = 10
-    doc_parsing_backend: str = 'ansible-internal'
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
@@ -316,16 +341,24 @@ def create_contexts(args: t.Optional[argparse.Namespace] = None,
     the context.  It validates, normalizes, and sets defaults for the contexts based on what is
     available in the arguments and configuration.
 
-    :kwarg args: An :python:obj:`argparse.Namespace` holding the program's command line arguments.
-        Note argparse's ability to add default values should not be used with fields which are fully
-        expressed in the :obj:`AppContext` or :obj:`LibContext` models.  Instead, set a default in
-        the context model.  You can use argpase defaults with fields that get set in
-        :attr:`AppContext.extra`.
+    :kwarg args: An :python:obj:`argparse.Namespace` holding the program's command line
+        arguments.  See the warning below about working with :python:mod:`argpase`.
     :kwarg cfg: A dictionary holding the program's configuration.
     :kwarg use_extra: When True, the default, all extra arguments and config values will be set as
         fields in ``app_ctx.extra``.  When False, the extra arguments and config values will be
         returned as part of the ContextReturn.
     :returns: A ContextReturn NamedTuple.
+
+    .. warning::
+        We cannot tell whether a user set a value via the command line if :python:mod:`argparse`
+        sets the field to a default value.  That means when you specify the field in the
+        :obj:`AppContext` or :obj:`LibContext` models, you must tell :python:mod:`argparse` not to
+        set the field to a default like this::
+
+            parser.add_argument('--breadcrumbs', default=argparse.SUPPRESS)
+
+        If the field is only used via the :attr:`AppContext.extra` mechanism (not explictly set),
+        then you should ignore this section and use :python:mod:`argparse`'s default mechanism.
     """
     lib_values = _extract_lib_context_values(args, cfg)
     app_values = _extract_app_context_values(args, cfg)

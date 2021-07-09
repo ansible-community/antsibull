@@ -35,9 +35,6 @@ CollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 PluginCollectionInfoT = t.Mapping[str, t.Mapping[str, t.Mapping[str, str]]]
 
 
-ADD_TOCTREES = False
-
-
 async def copy_file(source_path: str, dest_path: str) -> None:
     """
     Copy content from one file to another.
@@ -293,18 +290,22 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
 
 
 async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iterable[str],
-                                template: Template, dest_dir: str) -> None:
+                                template: Template, dest_dir: str,
+                                breadcrumbs: bool = True) -> None:
     """
     Write an index page listing all of the collections.
 
     Each collection will link to an index page listing all content in the collection.
 
     :arg collections: Iterable of all the collection names.
+    :arg namespaces: Iterable of all namespace names.
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     index_contents = template.render(
-        collections=collections, namespaces=namespaces, add_toctrees=ADD_TOCTREES)
+        collections=collections, namespaces=namespaces, breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -312,7 +313,8 @@ async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iter
 
 
 async def write_collection_namespace_index(namespace: str, collections: t.Iterable[str],
-                                           template: Template, dest_dir: str) -> None:
+                                           template: Template, dest_dir: str,
+                                           breadcrumbs: bool = True) -> None:
     """
     Write an index page listing all of the collections for this namespace.
 
@@ -322,9 +324,11 @@ async def write_collection_namespace_index(namespace: str, collections: t.Iterab
     :arg collections: Iterable of all the collection names.
     :arg template: A template to render the collection index.
     :arg dest_dir: The destination directory to output the index into.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should
+        be disabled.  This will disable breadcrumbs but save on memory usage.
     """
     index_contents = template.render(
-        namespace=namespace, collections=collections, add_toctrees=ADD_TOCTREES)
+        namespace=namespace, collections=collections, breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -357,7 +361,8 @@ async def write_plugin_lists(collection_name: str,
                              template: Template,
                              dest_dir: str,
                              collection_meta: AnsibleCollectionMetadata,
-                             extra_docs_data: CollectionExtraDocsInfoT) -> None:
+                             extra_docs_data: CollectionExtraDocsInfoT,
+                             breadcrumbs: bool = True) -> None:
     """
     Write an index page for each collection.
 
@@ -368,12 +373,14 @@ async def write_plugin_lists(collection_name: str,
     :arg dest_dir: The destination directory to output the index into.
     :arg collection_meta: Metadata for the collection.
     :arg extra_docs_data: Extra docs data for the collection.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     index_contents = template.render(
         collection_name=collection_name,
         plugin_maps=plugin_maps,
         collection_version=collection_meta.version,
-        add_toctrees=ADD_TOCTREES,
+        breadcrumbs=breadcrumbs,
         extra_docs_sections=extra_docs_data[0])
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
@@ -387,14 +394,17 @@ async def write_plugin_lists(collection_name: str,
 
 async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
                                   collection_namespaces: t.Mapping[str, t.List[str]],
-                                  dest_dir: str) -> None:
+                                  dest_dir: str,
+                                  breadcrumbs: bool = True) -> None:
     """
     Generate top-level collection index page for the collections.
 
-    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
-        of plugin_name to short_description.
+    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to
+        Mapping of plugin_name to short_description.
     :arg collection_namespaces: Mapping from collection namespaces to list of collection names.
     :arg dest_dir: The directory to place the documentation in.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     flog = mlog.fields(func='output_collection_index')
     flog.debug('Enter')
@@ -411,18 +421,21 @@ async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
     os.makedirs(collection_toplevel, mode=0o755, exist_ok=True)
 
     await write_collection_list(collection_to_plugin_info.keys(), collection_namespaces.keys(),
-                                collection_list_tmpl, collection_toplevel)
+                                collection_list_tmpl, collection_toplevel, breadcrumbs=breadcrumbs)
 
     flog.debug('Leave')
 
 
 async def output_collection_namespace_indexes(collection_namespaces: t.Mapping[str, t.List[str]],
-                                              dest_dir: str) -> None:
+                                              dest_dir: str,
+                                              breadcrumbs: bool = True) -> None:
     """
     Generate collection namespace index pages for the collections.
 
     :arg collection_namespaces: Mapping from collection namespaces to list of collection names.
     :arg dest_dir: The directory to place the documentation in.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     flog = mlog.fields(func='output_collection_namespace_indexes')
     flog.debug('Enter')
@@ -442,7 +455,8 @@ async def output_collection_namespace_indexes(collection_namespaces: t.Mapping[s
 
             writers.append(await pool.spawn(
                 write_collection_namespace_index(
-                    namespace, collection_names, collection_list_tmpl, namespace_dir)))
+                    namespace, collection_names, collection_list_tmpl, namespace_dir,
+                    breadcrumbs=breadcrumbs)))
 
         await asyncio.gather(*writers)
 
@@ -492,18 +506,20 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
                          extra_docs_data: t.Mapping[str, CollectionExtraDocsInfoT],
                          squash_hierarchy: bool = False,
+                         breadcrumbs: bool = True
                          ) -> None:
     """
     Generate collection-level index pages for the collections.
 
-    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to Mapping
-        of plugin_name to short_description.
+    :arg collection_to_plugin_info: Mapping of collection_name to Mapping of plugin_type to
+        Mapping of plugin_name to short_description.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
     :arg extra_docs_data: Dictionary mapping collection names to CollectionExtraDocsInfoT.
-    :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
-                           Undefined behavior if documentation for multiple collections are
-                           created.
+    :kwarg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
+        Undefined behavior if documentation for multiple collections are created.
+    :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
+        disabled.  This will disable breadcrumbs but save on memory usage.
     """
     flog = mlog.fields(func='output_indexes')
     flog.debug('Enter')
@@ -537,7 +553,8 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
             writers.append(await pool.spawn(
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
                                    collection_dir, collection_metadata[collection_name],
-                                   extra_docs_data[collection_name])))
+                                   extra_docs_data[collection_name],
+                                   breadcrumbs=breadcrumbs)))
 
         await asyncio.gather(*writers)
 

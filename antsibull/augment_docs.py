@@ -23,7 +23,7 @@ def add_full_key(options_data: t.Mapping[str, t.Any], suboption_entry: str,
     :kwarg _full_key: This is a recursive function.  After we pass the first level of nesting,
         ``_full_key`` is set to record the names of the upper levels of the hierarchy.
 
-    .. warn:: This function operates by side-effect.  The options_data dictionay is modified
+    .. warning:: This function operates by side-effect.  The options_data dictionay is modified
         directly.
     """
     if _full_key is None:
@@ -51,7 +51,7 @@ def augment_docs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]
 
     :arg plugin_info: The plugin_info that will be analyzed and augmented.
 
-    .. warn:: This function operates by side-effect.  The plugin_info dictionay is modified
+    .. warning:: This function operates by side-effect.  The plugin_info dictionay is modified
         directly.
     """
     for plugin_type, plugin_map in plugin_info.items():
