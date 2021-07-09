@@ -4,7 +4,9 @@
 """General functions for working with python collections and classes for new data types."""
 
 import typing as t
-from collections.abc import Sequence, Set
+from collections.abc import Container, Mapping, Sequence, Set
+
+from ..vendored.collections import ImmutableDict
 
 
 def is_sequence(obj: t.Any, include_string: bool = False) -> bool:
@@ -58,3 +60,74 @@ def compare_all_but(dict_a: t.Mapping, dict_b: t.Mapping,
             return False
 
     return True
+
+
+def _make_contained_containers_immutable(obj):
+    """
+    Make contained containers into immutable containers.
+
+    This is a helper for :func:`_make_immutable`.  It takes an iterable container and turns all
+    values inside of it into an immutable container.  Be careful what containers you pass in.
+    Mappings, for instance, will be processed without error but the results are likely not what you
+    want because Mappings have both a key and a value.
+    """
+    temp_list = []
+    for value in obj:
+        if isinstance(value, Container):
+            value = _make_immutable(value)
+        temp_list.append(value)
+    return temp_list
+
+
+def _make_immutable(obj: t.Any) -> t.Any:
+    """Recursively convert a container and objects inside of it into immutable data types."""
+    if isinstance(obj, (str, bytes)):
+        # Strings first because they are also sequences
+        return obj
+
+    if isinstance(obj, Mapping):
+        temp_dict = {}
+        for key, value in obj.items():
+            if isinstance(value, Container):
+                value = _make_immutable(value)
+            temp_dict[key] = value
+        return ImmutableDict(temp_dict)
+
+    if isinstance(obj, Set):
+        temp_sequence = _make_contained_containers_immutable(obj)
+        return frozenset(temp_sequence)
+
+    if isinstance(obj, Sequence):
+        temp_sequence = _make_contained_containers_immutable(obj)
+        return tuple(temp_sequence)
+
+    return obj
+
+
+class ContextDict(ImmutableDict):
+    def __init__(self, *args, **kwargs) -> None:
+        if not kwargs and len(args) == 1 and isinstance(args[0], Mapping):
+            # Avoid making an intermediate dict if we were only passed a dict to initialize with
+            tmp_dict = args[0]
+        else:
+            # Otherwise we need the dict constructor to initialize a new dict for us
+            tmp_dict = dict(*args, **kwargs)
+
+        toplevel = {}
+        for key, value in tmp_dict.items():
+            toplevel[key] = _make_immutable(value)
+        super().__init__(toplevel)
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate_and_convert
+
+    @classmethod
+    def validate_and_convert(cls, value: t.Mapping) -> 'ContextDict':
+        if isinstance(value, ContextDict):
+            # optimization.  If it's already an ImmutableContext, we don't need to recursively
+            # convert things to immutable again.
+            return value
+
+        # Typically this will convert from a dict to an ImmutableContext
+        return cls(value)

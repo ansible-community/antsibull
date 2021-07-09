@@ -7,7 +7,7 @@ import os.path
 
 import pytest
 
-from antsibull.schemas import ansible_doc as ad
+from antsibull.schemas.docs import ansible_doc as ad
 
 
 # To generate the data in the one_*.json files, run::
@@ -21,7 +21,7 @@ from antsibull.schemas import ansible_doc as ad
 # dumping the file::
 #
 #   import json
-#   from antsibull.schemas.ansible_doc import ConnectionPluginSchema
+#   from antsibull.schemas.docs.ansible_doc import ConnectionPluginSchema
 #   raw = open('one_connection.json').read()
 #   normalized = ConnectionPluginSchema.parse_raw(raw)
 #   out = json.dumps(normalized.dict(), indent=4, sort_keys=True)
