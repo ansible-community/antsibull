@@ -23,6 +23,7 @@ from .. import app_context  # noqa: E402
 from ..args import (  # noqa: E402
     InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
 )
+from ..compat import BooleanOptionalAction  # noqa: E402
 from ..config import load_config  # noqa: E402
 from ..constants import DOCUMENTABLE_PLUGINS  # noqa: E402
 from ..filesystem import UnableToCheck, writable_via_acls  # noqa: E402
@@ -143,6 +144,16 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     flog = mlog.fields(func='parse_args')
     flog.fields(program_name=program_name, raw_args=args).info('Enter')
 
+    # Overview of parsers:
+    # * docs_parser is an abstract parser.  Contains options that all of the antisbull-docs
+    #   subcommands use.
+    # * cache_parser is a mixin for subcommands which operate on the ansible-core sources and
+    #   therefore they can use a preinstalled version of the code instead of downloading it
+    #   themselves.
+    # * whole_site_parser is a mixin for subcommands which can choose to build a structure
+    #   for integration into a comprehensive website.
+    # * devel, stable, current, collection, file: These parsers contain all of the options for those
+    #   respective subcommands.
     docs_parser = argparse.ArgumentParser(add_help=False)
     docs_parser.add_argument('--dest-dir', default='.',
                              help='Directory to write the output to')
@@ -160,28 +171,58 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                               ' of downloading fresh versions provided that they meet the criteria'
                               ' (Latest version of the collections known to galaxy).')
 
+    whole_site_parser = argparse.ArgumentParser(add_help=False)
+    whole_site_parser.add_argument('--breadcrumbs', '--gretel',
+                                   dest='breadcrumbs', action=BooleanOptionalAction,
+                                   default=argparse.SUPPRESS,
+                                   help='Determines whether to add breadcrumbs to plugin docs via'
+                                   ' hidden sphinx toctrees. This can take up a significant'
+                                   ' amount of memory if there are a large number of plugins so'
+                                   ' you can disable this if necessary. (default: True)')
+    whole_site_parser.add_argument('--indexes',
+                                   dest='indexes', action=BooleanOptionalAction,
+                                   default=argparse.SUPPRESS,
+                                   help='Determines whether to create the collection index and'
+                                   ' plugin indexes. They may not be needed if you have'
+                                   ' a different structure for your website. (default: True)')
+    # --skip-indexes is for backwards compat.  We want all negations to be --no-* in the future.
+    whole_site_parser.add_argument('--skip-indexes',
+                                   dest='indexes', action='store_false',
+                                   default=argparse.SUPPRESS,
+                                   help='Do not create the collection index and plugin indexes.'
+                                   ' This option is deprecated in favor of --no-indexes')
+
     parser = get_toplevel_parser(prog=program_name,
                                  description='Script to manage generated documentation for'
                                  ' ansible')
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',
-                                       help='for help use  SUBCOMMANDS -h')
+                                       help='for help use: `SUBCOMMANDS -h`')
     subparsers.required = True
 
+    #
     # Document the next version of ansible
-    devel_parser = subparsers.add_parser('devel', parents=[docs_parser, cache_parser],
+    #
+    devel_parser = subparsers.add_parser('devel',
+                                         parents=[docs_parser, cache_parser, whole_site_parser],
                                          description='Generate documentation for the next major'
                                          ' release of Ansible')
     devel_parser.add_argument('--pieces-file', default=DEFAULT_PIECES_FILE,
                               help='File containing a list of collections to include')
 
+    #
+    # Document a released version of ansible
+    #
     stable_parser = subparsers.add_parser('stable',
-                                          parents=[docs_parser, cache_parser],
+                                          parents=[docs_parser, cache_parser, whole_site_parser],
                                           description='Generate documentation for a current'
                                           ' version of ansible')
     stable_parser.add_argument('--deps-file', required=True,
                                help='File which contains the list of collections and'
                                ' versions which were included in this version of Ansible')
 
+    #
+    # Document the currently installed version of ansible
+    #
     current_parser = subparsers.add_parser('current',
                                            parents=[docs_parser],
                                            description='Generate documentation for the current'
@@ -192,10 +233,13 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                 ' specified, all collections in the currently configured ansible'
                                 ' search paths will be used')
 
+    #
+    # Document one or more specified collections
+    #
     collection_parser = subparsers.add_parser('collection',
-                                              parents=[docs_parser],
-                                              description='Generate documentation for a single'
-                                              ' collection')
+                                              parents=[docs_parser, whole_site_parser],
+                                              description='Generate documentation for specified'
+                                              ' collections')
     collection_parser.add_argument('--collection-version', default='@latest',
                                    help='The version of the collection to document.  The special'
                                    ' version, "@latest" can be used to download and document the'
@@ -205,19 +249,19 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' these collections have been installed with the current'
                                    ' version of ansible. Specified --collection-version will be'
                                    ' ignored.')
-    collection_parser.add_argument('--skip-indexes', action='store_true',
-                                   help='Do not create the collection index and plugin indexes.'
-                                   ' Automatically assumed when --squash-hierarchy is specified.')
     collection_parser.add_argument('--squash-hierarchy', action='store_true',
                                    help='Do not use the full hierarchy collections/namespace/name/'
                                    ' in the destination directory. Only valid if there is only'
-                                   ' one collection specified.')
+                                   ' one collection specified.  Implies --no-indexes.')
     collection_parser.add_argument(nargs='+', dest='collections',
                                    help='One or more collections to document.  If the names are'
                                    ' directories on disk, they will be parsed as expanded'
                                    ' collections. Otherwise, if they could be collection'
                                    ' names, they will be downloaded from galaxy.')
 
+    #
+    # Document a specifically named plugin
+    #
     file_parser = subparsers.add_parser('plugin',
                                         parents=[docs_parser],
                                         description='Generate documentation for a single plugin')
@@ -234,6 +278,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     if '--ansible-base-cache' in args:
         flog.warning('The CLI parameter, `--ansible-base-cache` has been renamed to'
                      ' `--ansible-base-source.  Please use that instead')
+
+    if '--skip-indexes' in args:
+        flog.warning('The CLI parameter, `--skip-indexes` has been renamed to'
+                     ' `--no-indexes`.  Please use that instead')
+        if '--indexes' or '--no-indexes' in args:
+            raise InvalidArgumentError('You cannot use `--indexes`/`--no-indexes` with'
+                                       ' `--skip-indexes`. Please remove `--skip-indexes`'
+                                       ' and try again.')
 
     args: argparse.Namespace = parser.parse_args(args)
     flog.fields(args=args).debug('Arguments parsed')
@@ -270,6 +322,7 @@ def run(args: List[str]) -> int:
     try:
         args: argparse.Namespace = parse_args(program_name, args[1:])
     except InvalidArgumentError as e:
+        flog.error(e)
         print(e)
         return 2
     flog.fields(args=args).info('Arguments parsed')

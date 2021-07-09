@@ -126,16 +126,18 @@ DEFAULT_LOGGING_CONFIG = LoggingModel.parse_obj(
 class ConfigModel(BaseModel):
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     ansible_base_url: p.HttpUrl = 'https://github.com/ansible/ansible'
+    breadcrumbs: p.StrictBool = True
     chunksize: int = 4096
+    doc_parsing_backend: str = DOC_PARSING_BACKEND_CHOICES_F
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     galaxy_url: p.HttpUrl = 'https://galaxy.ansible.com/'
+    indexes: p.StrictBool = True
     logging_cfg: LoggingModel = DEFAULT_LOGGING_CONFIG
+    max_retries: int = 10
     process_max: t.Optional[int] = None
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
     thread_max: int = 80
-    max_retries: int = 10
-    doc_parsing_backend: str = DOC_PARSING_BACKEND_CHOICES_F
 
     @p.validator('process_max', pre=True)
     def convert_to_none(cls, value):
@@ -144,6 +146,20 @@ class ConfigModel(BaseModel):
             return None
         if value.lower() in ('none', 'null'):
             value = None
+        return value
+
+    @p.validator('breadcrumbs', 'indexes', pre=True)
+    def convert_to_bool(cls, value):
+        if isinstance(value, str):
+            if value.lower() in ('0', 'false', 'no', 'n', 'f', ''):
+                value = False
+            else:
+                value = True
+        elif isinstance(value, int):
+            if value == 0:
+                value = False
+            else:
+                value = True
         return value
 
 

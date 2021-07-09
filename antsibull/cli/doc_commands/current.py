@@ -26,10 +26,12 @@ def generate_docs() -> int:
     flog.debug('Begin processing docs')
 
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
 
     venv = FakeVenvRunner()
 
     generate_docs_for_all_collections(
-        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'])
+        venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'],
+        breadcrumbs=lib_ctx.breadcrumbs)
 
     return 0
