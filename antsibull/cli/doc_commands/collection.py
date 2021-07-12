@@ -17,7 +17,6 @@ def generate_current_docs(indexes: bool, squash_hierarchy: bool) -> int:
     flog.debug('Begin processing docs')
 
     app_ctx = app_context.app_ctx.get()
-    lib_ctx = app_context.lib_ctx.get()
 
     venv = FakeVenvRunner()
 
@@ -25,7 +24,7 @@ def generate_current_docs(indexes: bool, squash_hierarchy: bool) -> int:
         venv, None, app_ctx.extra['dest_dir'], app_ctx.extra['collections'],
         create_indexes=indexes and not squash_hierarchy,
         squash_hierarchy=squash_hierarchy,
-        breadcrumbs=lib_ctx.breadcrumbs)
+        breadcrumbs=app_ctx.breadcrumbs)
 
     return 0
 
