@@ -32,6 +32,6 @@ def generate_docs() -> int:
 
     generate_docs_for_all_collections(
         venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'],
-        breadcrumbs=lib_ctx.breadcrumbs)
+        breadcrumbs=app_ctx.breadcrumbs)
 
     return 0

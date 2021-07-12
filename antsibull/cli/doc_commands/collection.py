@@ -25,7 +25,7 @@ def generate_current_docs(indexes: bool, squash_hierarchy: bool) -> int:
         venv, None, app_ctx.extra['dest_dir'], app_ctx.extra['collections'],
         create_indexes=indexes and not squash_hierarchy,
         squash_hierarchy=squash_hierarchy,
-        breadcrumbs=lib_ctx.breadcrumbs)
+        breadcrumbs=app_ctx.breadcrumbs)
 
     return 0
 
