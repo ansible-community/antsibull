@@ -17,7 +17,6 @@ def generate_current_docs(indexes: bool, squash_hierarchy: bool) -> int:
     flog.debug('Begin processing docs')
 
     app_ctx = app_context.app_ctx.get()
-    lib_ctx = app_context.lib_ctx.get()
 
     venv = FakeVenvRunner()
 
