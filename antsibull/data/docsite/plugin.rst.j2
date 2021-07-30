@@ -44,10 +44,10 @@
 
 {% if collection == 'ansible.builtin' -%}
 .. note::
-    This module is part of ``ansible-base`` and included in all Ansible
+    This module is part of ``ansible-core`` and included in all Ansible
     installations. In most cases, you can use the short module name
     @{ plugin_name.rsplit('.', 1)[-1] }@ even without specifying the ``collections:`` keyword.
-    Despite that, we recommend you use the FQCN for easy linking to the module
+    However, we recommend you use the FQCN for easy linking to the module
     documentation and to avoid conflicting with other collections that may have
     the same module name.
 {% else %}
