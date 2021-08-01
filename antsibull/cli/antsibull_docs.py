@@ -28,7 +28,7 @@ from ..config import load_config  # noqa: E402
 from ..constants import DOCUMENTABLE_PLUGINS  # noqa: E402
 from ..filesystem import UnableToCheck, writable_via_acls  # noqa: E402
 from ..docs_parsing.fqcn import is_fqcn  # noqa: E402
-from .doc_commands import collection, current, devel, plugin, stable  # noqa: E402
+from .doc_commands import collection, current, devel, plugin, stable, sphinx_init  # noqa: E402
 # pylint: enable=wrong-import-position
 
 
@@ -41,6 +41,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'current': current.generate_docs,
                                  'collection': collection.generate_docs,
                                  'plugin': plugin.generate_docs,
+                                 'sphinx-init': sphinx_init.site_init,
                                  }
 
 #: The filename for the file which lists raw collection names
@@ -49,6 +50,9 @@ DEFAULT_PIECES_FILE: str = 'ansible.in'
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
+
+    if args.command == 'sphinx-init':
+        return
 
     # We're going to be writing a deep hierarchy of files into this directory so we need to make
     # sure that the user understands that this needs to be a directory which has been secured
@@ -130,6 +134,19 @@ def _normalize_plugin_options(args: argparse.Namespace) -> None:
         if not is_fqcn(plugin_name) and not os.path.isfile(plugin_name):
             raise InvalidArgumentError(f'The plugin, {plugin_name}, must be an existing file,'
                                        f' or it must be a FQCN.')
+
+
+def _normalize_sphinx_init_options(args: argparse.Namespace) -> None:
+    if args.command != 'sphinx-init':
+        return
+
+    if args.squash_hierarchy and len(args.collections) != 1:
+        raise InvalidArgumentError('The option --squash-hierarchy can only be used when'
+                                   ' exactly one collection is specified')
+
+    if not args.use_current and len(args.collections) == 0:
+        raise InvalidArgumentError('If no collection is provided, --use-current must be'
+                                   ' specified')
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -273,6 +290,35 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                              choices=DOCUMENTABLE_PLUGINS,
                              help='The type of the plugin')
 
+    #
+    # Create a Sphinx site template
+    #
+    sphinx_init_parser = subparsers.add_parser('sphinx-init',
+                                               parents=[docs_parser],
+                                               description='Generate a Spinx site template for a'
+                                               ' collection docsite')
+
+    sphinx_init_parser.add_argument('--collection-version', default='@latest',
+                                    help='The version of the collection to document.  The special'
+                                    ' version, "@latest" can be used to download and document the'
+                                    ' latest version from galaxy.')
+    sphinx_init_parser.add_argument('--use-current', action='store_true',
+                                    help='Assumes that all arguments are collection names, and'
+                                    ' these collections have been installed with the current'
+                                    ' version of ansible. Specified --collection-version will be'
+                                    ' ignored.')
+    sphinx_init_parser.add_argument('--squash-hierarchy', action='store_true',
+                                    help='Do not use the full hierarchy collections/namespace/name/'
+                                    ' in the destination directory. Only valid if there is exactly'
+                                    ' one collection specified.')
+    sphinx_init_parser.add_argument(nargs='*', dest='collections',
+                                    help='One or more collections to document.  If the names are'
+                                    ' directories on disk, they will be parsed as expanded'
+                                    ' collections. Otherwise, if they could be collection'
+                                    ' names, they will be downloaded from galaxy.  If no names are'
+                                    ' provided, --use-current must be supplied and docs are built'
+                                    ' for all collections found.')
+
     flog.debug('Argument parser setup')
 
     if '--ansible-base-cache' in args:
@@ -298,6 +344,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_current_options(args)
     _normalize_collection_options(args)
     _normalize_plugin_options(args)
+    _normalize_sphinx_init_options(args)
     flog.fields(args=args).debug('Arguments normalized')
 
     # Note: collections aren't validated as existing files or collection names here because talking
