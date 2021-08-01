@@ -1,0 +1,27 @@
+.. _docsite_root_index:
+
+Welcome to my Ansible collection documentation
+==============================================
+
+{% if collections | length == 1 %}
+This docsite contains documentation of @{ collections[0] }@.
+{% elif collections | length > 1 %}
+This docsite contains documentation of @{ ', '.join(collections[:-1]) }@, and @{ collections[-1] }@.
+{% else %}
+This docsite contains documentation of some collections.
+{% endif %}
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Collections:
+
+   collections/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Plugin indexes:
+   :glob:
+
+   collections/index_*

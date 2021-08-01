@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+cd @{ dest_dir }@
+
+# Create collection documentation into temporary directory
+rm -rf temp-rst
+mkdir -p temp-rst
+{% if use_current %}
+{%   if collections | length > 0 %}
+antsibull-docs collection \
+    --use-current \
+    --dest-dir temp-rst \
+{%     if squash_hierarchy %}
+    --squash-hierarchy \
+{%     endif %}
+    @{ ' '.join(collections) }@
+{%   else %}
+antsibull-docs current --dest-dir temp-rst
+{%   endif %}
+{% else %}
+antsibull-docs collection \
+{%     if collection_version != '@latest' %}
+    --collection-version @{ collection_version }@ \
+{%     endif %}
+    --dest-dir temp-rst \
+{%     if squash_hierarchy %}
+    --squash-hierarchy \
+{%     endif %}
+    @{ ' '.join(collections) }@
+{% endif %}
+
+# Copy collection documentation into source directory
+rsync -avc --delete-after temp-rst/collections/ rst/collections/
+
+# Build Sphinx site
+sphinx-build -M html rst build -c .
