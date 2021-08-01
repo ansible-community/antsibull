@@ -53,6 +53,9 @@ async def get_version_info(collections, pypi_server_url):
 # pylint:disable-next=unused-argument
 def version_is_compatible(ansible_core_version, collection, version):
     # Metadata for this is not currently implemented.  So everything is rated as compatible
+    # as long as it is no prerelease
+    if version.prerelease:
+        return False
     return True
 
 
