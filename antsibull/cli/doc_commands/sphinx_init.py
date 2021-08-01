@@ -90,4 +90,7 @@ def site_init() -> int:
         if filename.endswith('.sh'):
             os.chmod(destination, 0o755)
 
+    print(f'To build the docsite, go into {dest_dir} and run:')
+    print('    pip install -r requirements.txt  # possibly use a venv')
+    print('    ./build.sh')
     return 0
