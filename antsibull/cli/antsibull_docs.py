@@ -405,3 +405,7 @@ def main() -> int:
         :3: Unexpected problem downloading ansible-base
     """
     return run(sys.argv)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
