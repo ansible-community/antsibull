@@ -60,11 +60,10 @@ def site_init() -> int:
     use_current = app_ctx.extra['use_current']
     squash_hierarchy = app_ctx.extra['squash_hierarchy']
 
-    if not os.path.exists(dest_dir):
-        os.makedirs(dest_dir)
-    elif not os.path.isdir(dest_dir):
+    if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
         print(f'Expecting {dest_dir} to be a directory')
         return 3
+    os.makedirs(dest_dir, exist_ok=True)
 
     env = doc_environment(('antsibull.data', 'sphinx_init'))
 
@@ -81,9 +80,7 @@ def site_init() -> int:
         ) + '\n'
 
         destination = os.path.join(dest_dir, filename)
-        destination_path = os.path.dirname(destination)
-        if not os.path.exists(destination_path):
-            os.makedirs(destination_path)
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
         write_file(destination, content)
 
         # Make scripts executable
