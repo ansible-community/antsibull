@@ -37,15 +37,12 @@ from .utils.get_pkg_data import get_antsibull_data
 
 async def get_collection_versions(deps: t.Mapping[str, str],
                                   galaxy_url: str,
-                                  pre: bool = False
                                   ) -> t.Dict[str, SemVer]:
     """
     Retrieve the latest version of each collection.
 
     :arg deps: Mapping of collection name to a version specification.
     :arg galaxy_url: The url for the galaxy server to use.
-    :kwarg pre: If True, allow prereleases (versions which have the form X.Y.Z-SOMETHING).
-        This is **not** for excluding 0.Y.Z versions.  The default is False.
     :returns: Dict mapping collection name to latest version.
     """
     requestors = {}
@@ -55,7 +52,7 @@ async def get_collection_versions(deps: t.Mapping[str, str],
             client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
-                    client.get_latest_matching_version(collection_name, version_spec, pre=pre))
+                    client.get_latest_matching_version(collection_name, version_spec, pre=True))
 
             responses = await asyncio.gather(*requestors.values())
 

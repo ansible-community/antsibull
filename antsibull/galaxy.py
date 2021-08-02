@@ -164,23 +164,40 @@ class GalaxyClient:
         :arg collection: Namespace.collection identifying a collection.
         :arg version_spec: String specifying the allowable versions.
         :kwarg pre: If True, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
-            This is **not** for excluding 0.Y.Z versions.  The default is False.
+            This is **not** for excluding 0.Y.Z versions.  non-pre-releases are still
+            preferred over pre-releases (for instance, with version_spec='>2.0.0-a1,<3.0.0'
+            and pre=True, if the available versions are 2.0.0-a1 and 2.0.0-a2, then 2.0.0-a2
+            will be returned.  If the available versions are 2.0.0 and 2.1.0-b2, 2.0.0 will be
+            returned since non-pre-releases are preferred.  The default is False
         :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
             the specification.
 
         .. seealso:: For the format of the version_spec, see the documentation
             of :obj:`semantic_version.SimpleSpec`
+
+        .. versionchanged:: 0.37.0
+            Giving True to the ``pre`` parameter now means that prereleases will be
+            *allowed* but stable releases will still be *preferred*.  Previously, the
+            latest release, whether stable or prerelease was returned when pre was True.
         """
         versions = await self.get_versions(collection)
         versions = [semver.Version(v) for v in versions]
         versions.sort(reverse=True)
 
         spec = semver.SimpleSpec(version_spec)
+        prereleases = []
         for version in (v for v in versions if v in spec):
-            # If we're excluding prereleases and this is a prerelease, then skip it.
-            if not pre and version.prerelease:
+            # If this is a pre-release, first check if there's a non-pre-release that
+            # will satisfy the version_spec.
+            if version.prerelease:
+                prereleases.append(version)
                 continue
             return version
+
+        # We did not find a stable version that satisies the version_spec.  If we
+        # allow prereleases, return the latest of those here.
+        if pre and prereleases:
+            return prereleases[0]
 
         # No matching versions were found
         raise NoSuchVersion(f'{version_spec} did not match with any version of {collection}.')
