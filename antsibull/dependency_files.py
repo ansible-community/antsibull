@@ -155,7 +155,13 @@ class BuildFile:
         """
         records = []
         for dep, version in dependencies.items():
-            records.append(f'{dep}: >={version.major}.{version.minor}.0,<{version.next_major()}')
+            if version.prerelease and version.patch == 0:
+                # Prereleases (ex: 2.0.0-b1, 2.1.0-a1) are a special case because they sort before
+                # the major.minor that they are for.
+                records.append(f'{dep}: >={version},<{version.major + 1}.0.0')
+            else:
+                records.append(f'{dep}: >={version.major}.{version.minor}.0,'
+                               f'<{version.next_major()}')
         records.sort()
 
         with open(self.filename, 'w') as f:
