@@ -5,6 +5,7 @@
 project = 'Ansible collections'
 copyright = 'Ansible contributors'
 
+title = 'Ansible Collections Documentation'
 html_short_title = 'Ansible Collections Documentation'
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx_antsibull_ext']
@@ -29,3 +30,7 @@ intersphinx_mapping = {
     'jinja2': ('http://jinja.palletsprojects.com/', (None, '../jinja2.inv')),
     'ansible_4': ('https://docs.ansible.com/ansible/4/', (None, '../ansible_4.inv')),
 }
+
+default_role = 'any'
+
+nitpicky = True
