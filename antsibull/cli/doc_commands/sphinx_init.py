@@ -59,6 +59,7 @@ def site_init() -> int:
     collection_version = app_ctx.extra['collection_version']
     use_current = app_ctx.extra['use_current']
     squash_hierarchy = app_ctx.extra['squash_hierarchy']
+    lenient = app_ctx.extra['lenient']
 
     if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
         print(f'Expecting {dest_dir} to be a directory')
@@ -77,6 +78,7 @@ def site_init() -> int:
             use_current=use_current,
             squash_hierarchy=squash_hierarchy,
             collections=collections,
+            lenient=lenient,
         ) + '\n'
 
         destination = os.path.join(dest_dir, filename)

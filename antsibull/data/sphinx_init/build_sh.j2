@@ -33,4 +33,8 @@ antsibull-docs collection \
 rsync -avc --delete-after temp-rst/collections/ rst/collections/
 
 # Build Sphinx site
+{% if lenient %}
+sphinx-build -M html rst build -c .
+{% else %}
 sphinx-build -M html rst build -c . -W --keep-going
+{% endif %}

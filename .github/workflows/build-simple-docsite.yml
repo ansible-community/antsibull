@@ -29,7 +29,7 @@ jobs:
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          antsibull-docs sphinx-init --use-current --dest-dir test-docsite/
+          antsibull-docs sphinx-init --use-current --lenient --dest-dir test-docsite/
 
       - name: Install dependencies
         run: |
