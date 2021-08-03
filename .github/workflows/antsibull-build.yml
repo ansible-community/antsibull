@@ -30,7 +30,6 @@ jobs:
 
       - name: Combine and upload coverage stats
         run: |
-          ls -lahR
           poetry run coverage combine .coverage.*
           poetry run coverage report
           poetry run coverage xml -i
