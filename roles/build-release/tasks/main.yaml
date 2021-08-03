@@ -31,7 +31,7 @@
 
 - name: Build a release with new dependencies
   command: >-
-    poetry run antsibull-build single {{ antsibull_ansible_version }}
+    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build single {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       --sdist-dir {{ antsibull_sdist_dir }}
       --debian
@@ -53,7 +53,7 @@
 # If the release archive is already there it won't be re-built if we run again
 - name: Build a release with existing deps
   command: >-
-    poetry run antsibull-build rebuild-single {{ antsibull_ansible_version }}
+    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build rebuild-single {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       --sdist-dir {{ antsibull_sdist_dir }}
       --build-file {{ antsibull_build_file }}
