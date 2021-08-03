@@ -346,3 +346,7 @@ def main() -> int:
         :4: Needs to be run on a newer version of Python
     """
     return run(sys.argv)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
