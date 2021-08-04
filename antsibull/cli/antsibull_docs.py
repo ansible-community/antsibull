@@ -51,9 +51,6 @@ DEFAULT_PIECES_FILE: str = 'ansible.in'
 def _normalize_docs_options(args: argparse.Namespace) -> None:
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
 
-    if args.command == 'sphinx-init':
-        return
-
     # We're going to be writing a deep hierarchy of files into this directory so we need to make
     # sure that the user understands that this needs to be a directory which has been secured
     # against malicious usage:

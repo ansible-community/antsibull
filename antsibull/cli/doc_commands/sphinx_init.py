@@ -61,11 +61,6 @@ def site_init() -> int:
     squash_hierarchy = app_ctx.extra['squash_hierarchy']
     lenient = app_ctx.extra['lenient']
 
-    if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
-        print(f'Expecting {dest_dir} to be a directory')
-        return 3
-    os.makedirs(dest_dir, exist_ok=True)
-
     env = doc_environment(('antsibull.data', 'sphinx_init'))
 
     for filename in TEMPLATES:
