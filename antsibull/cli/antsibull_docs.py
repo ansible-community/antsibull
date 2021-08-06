@@ -292,7 +292,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     #
     sphinx_init_parser = subparsers.add_parser('sphinx-init',
                                                parents=[docs_parser],
-                                               description='Generate a Spinx site template for a'
+                                               description='Generate a Sphinx site template for a'
                                                ' collection docsite')
 
     sphinx_init_parser.add_argument('--collection-version', default='@latest',
