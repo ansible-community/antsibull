@@ -6,6 +6,7 @@
                 "author": [
                     "Ansible Core (@ansible-core)"
                 ],
+                "attributes": {},
                 "collection": "",
                 "deprecated": {},
                 "description": [

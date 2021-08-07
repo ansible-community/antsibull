@@ -425,6 +425,18 @@ class SeeAlsoLinkSchema(BaseModel):
     name: str
 
 
+class AttributeSchema(BaseModel):
+    description: str
+    support: str = p.Field('str', regex='^(full|partial|none)$')
+    version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
+
+    # The following fields are only allowed for specific attributes:
+    membership: t.List[str] = []  # for 'action_group'
+    action_plugin: str = ''  # for 'forced_action_plugin'
+    platforms: t.List[str] = []  # for 'proprietary'
+
+
 class DocSchema(BaseModel):
     collection: str = REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F
     description: t.List[str]
@@ -441,6 +453,7 @@ class DocSchema(BaseModel):
     todo: t.List[str] = []
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
+    attributes: t.Dict[str, AttributeSchema] = {}
 
     @p.validator('author', 'description', 'extends_documentation_fragment', 'notes',
                  'requirements', 'todo', pre=True)
