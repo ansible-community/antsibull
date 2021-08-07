@@ -36,4 +36,4 @@ jobs:
         run: |
           ./test-pytest.sh
           poetry run coverage xml -i
-          poetry run codecov --token=${{ secrets.CODECOV_TOKEN }}
+          poetry run codecov

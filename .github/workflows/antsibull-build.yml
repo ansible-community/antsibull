@@ -33,4 +33,4 @@ jobs:
           poetry run coverage combine .coverage.*
           poetry run coverage report
           poetry run coverage xml -i
-          poetry run codecov --token=${{ secrets.CODECOV_TOKEN }}
+          poetry run codecov

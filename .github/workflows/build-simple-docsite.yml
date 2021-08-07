@@ -54,4 +54,4 @@ jobs:
           coverage combine .coverage.*
           coverage report
           coverage xml -i
-          codecov --token=${{ secrets.CODECOV_TOKEN }}
+          codecov
