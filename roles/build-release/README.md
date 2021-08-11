@@ -8,7 +8,7 @@ This role is expected to run directly from an antsibull git repository checkout.
 
 Otherwise:
 
-- ansible-base to run this role
+- ansible-core to run this role
 - poetry to install and run antsibull
 - git to checkout ansible-build-data and ansible repositories
 
@@ -34,9 +34,9 @@ To re-build a specific version with some additional settings and a forked ansibl
   hosts: localhost
   gather_facts: no
   vars:
-    antsibull_ansible_version: 2.10.10
+    antsibull_ansible_version: 4.10.10
     antsibull_data_git_repo: https://github.com/dmsimard/ansible-build-data
-    antsibull_data_version: 2.10.10-branch
+    antsibull_data_version: 4.10.10-branch
     antsibull_force_rebuild: true
   roles:
     - build-release

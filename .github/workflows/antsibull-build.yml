@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install poetry ansible-base
+          python3 -m pip install poetry ansible-core
 
       - name: Test building a release with the defaults
         run: |
