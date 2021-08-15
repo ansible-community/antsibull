@@ -9,74 +9,109 @@
                 ],
                 "attributes": {
                     "action": {
+                        "action_plugin": "",
                         "description": "Indicates this has a corresponding action plugin so some parts of the options can be executed on the controller",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "action_group": {
+                        "action_plugin": "",
                         "description": "Action is part of action_group(s), for convenient setting of module_defaults.",
                         "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "api": {
+                        "action_plugin": "",
                         "description": "Instead of executing code on a target, this action interacts with an API on behalf of the target.",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "async": {
+                        "action_plugin": "",
                         "description": "Supports being used with the ``async`` keyword",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "become": {
+                        "action_plugin": "",
                         "description": "Is usable alongside become keywords",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "bypass_host_loop": {
+                        "action_plugin": "",
                         "description": "Forces a 'global' task that does not execute per host, this bypasses per host templating and serial, throttle and other loop considerations.  Also, this action cannot be used in non lockstep strategies",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "check_mode": {
+                        "action_plugin": "",
                         "description": "Can run in check_mode and return changed status prediction withought modifying target",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "conditional": {
+                        "action_plugin": "",
                         "description": "Will respect the `when` keyword  per item loop or task (when no loop is present)",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "connection": {
+                        "action_plugin": "",
                         "description": "Uses the target's configured connection information to execute code on it",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "delegation": {
+                        "action_plugin": "",
                         "description": "Can be used in conjunction with delegate_to and related keywords",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "diff_mode": {
+                        "action_plugin": "",
                         "description": "Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "facts": {
+                        "action_plugin": "",
                         "description": "Action returns an ``ansible_facts`` dictionary that will update existing host facts",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
@@ -84,79 +119,116 @@
                     "forced_action_plugin": {
                         "action_plugin": "none",
                         "description": "This action uses a specific action plugin instead of 'normal' or matching by name",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "forced_local": {
+                        "action_plugin": "",
                         "description": "The connection itself is passed to the action while the code is still executed on the controller",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "info": {
+                        "action_plugin": "",
                         "description": "This returns general info (not facts) that you might want to register into a variable for later use",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "loops": {
+                        "action_plugin": "",
                         "description": "both ``loop`` and ``with_`` looping keywords will be honored",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "posix": {
+                        "action_plugin": "",
                         "description": "Can be run against most POSIX (and GNU/Linux) OS targets",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "proprietary": {
+                        "action_plugin": "",
                         "description": "Designed to only be run against specific proprietary OS(s), normally a network appliance or similar",
+                        "membership": [],
                         "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "safe_file_operations": {
+                        "action_plugin": "",
                         "description": "Uses Ansbile's strict file operation functions to ensure proper permissions and avoid data corruption",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "tags": {
+                        "action_plugin": "",
                         "description": "Tags will be evaluated to determine if this task considered for execution",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "tty": {
+                        "action_plugin": "",
                         "description": "requires direct access to a TTY",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "turbo": {
+                        "action_plugin": "",
                         "description": "Uses an Ansible supplied caching mechanism (Turbo!) on the remote for authentication and 3rd party libraries to speed up recurrent execution",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "until": {
+                        "action_plugin": "",
                         "description": "Usable with until/retry loops",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "historical",
                         "version_added_collection": ""
                     },
                     "vault": {
+                        "action_plugin": "",
                         "description": "Can automatically decrypt Ansible vaulted files",
+                        "membership": [],
+                        "platforms": [],
                         "support": "full",
                         "version_added": "2.2",
                         "version_added_collection": "ansible.builtin"
                     },
                     "windows": {
+                        "action_plugin": "",
                         "description": "Can be run against Windows OS targets",
+                        "membership": [],
+                        "platforms": [],
                         "support": "none",
                         "version_added": "historical",
                         "version_added_collection": ""
