@@ -431,10 +431,17 @@ class AttributeSchema(BaseModel):
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
-    # The following fields are only allowed for specific attributes:
-    membership: t.List[str] = []  # for 'action_group'
-    action_plugin: str = ''  # for 'forced_action_plugin'
-    platforms: t.List[str] = []  # for 'proprietary'
+
+class AttributeSchemaActionGroup(AttributeSchema):  # for 'action_group'
+    membership: t.List[str] = []
+
+
+class AttributeSchemaForcedActionPlugin(AttributeSchema):  # for 'forced_action_plugin'
+    action_plugin: str = ''
+
+
+class AttributeSchemaProprietary(AttributeSchema):  # for 'proprietary'
+    platforms: t.List[str] = []
 
 
 class DocSchema(BaseModel):
@@ -453,7 +460,10 @@ class DocSchema(BaseModel):
     todo: t.List[str] = []
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
-    attributes: t.Dict[str, AttributeSchema] = {}
+    attributes: t.Dict[str, t.Union[AttributeSchema,
+                                    AttributeSchemaActionGroup,
+                                    AttributeSchemaForcedActionPlugin,
+                                    AttributeSchemaProprietary]] = {}
 
     @p.validator('author', 'description', 'extends_documentation_fragment', 'notes',
                  'requirements', 'todo', pre=True)
