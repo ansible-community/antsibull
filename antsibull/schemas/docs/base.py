@@ -425,22 +425,26 @@ class SeeAlsoLinkSchema(BaseModel):
     name: str
 
 
-class AttributeSchema(BaseModel):
+class AttributeSchemaBase(BaseModel):
     description: str
     support: str = p.Field('str', regex='^(full|partial|none)$')
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
 
-class AttributeSchemaActionGroup(AttributeSchema):  # for 'action_group'
+class AttributeSchema(AttributeSchemaBase):
+    pass
+
+
+class AttributeSchemaActionGroup(AttributeSchemaBase):  # for 'action_group'
     membership: t.List[str] = []
 
 
-class AttributeSchemaForcedActionPlugin(AttributeSchema):  # for 'forced_action_plugin'
+class AttributeSchemaForcedActionPlugin(AttributeSchemaBase):  # for 'forced_action_plugin'
     action_plugin: str = ''
 
 
-class AttributeSchemaProprietary(AttributeSchema):  # for 'proprietary'
+class AttributeSchemaProprietary(AttributeSchemaBase):  # for 'proprietary'
     platforms: t.List[str] = []
 
 
