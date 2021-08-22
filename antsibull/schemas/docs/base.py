@@ -120,6 +120,7 @@ An example of both of the above:
               return values
 
 """
+import abc
 import typing as t
 from collections.abc import Mapping
 
@@ -425,7 +426,10 @@ class SeeAlsoLinkSchema(BaseModel):
     name: str
 
 
-class AttributeSchemaBase(BaseModel):
+class AttributeSchemaBase(BaseModel, metaclass=abc.ABCMeta):
+    # We use an abstract base class instead of deriving the other classes directly from
+    # AttributeSchema to make Union[AttributeSchema, ...] work with Pydantic and  Python 3.6.
+    # Without this base class, we would hit https://github.com/samuelcolvin/pydantic/issues/1259
     description: str
     support: str = p.Field('str', regex='^(full|partial|none)$')
     version_added: str = 'historical'
