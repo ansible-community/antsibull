@@ -11,8 +11,10 @@ import typing as t
 import docutils.utils
 import rstcheck
 
+from docutils.parsers.rst import directives as docutils_directives
 from docutils.parsers.rst import roles as docutils_roles
 
+from sphinx_antsibull_ext import directives as antsibull_directives
 from sphinx_antsibull_ext import roles as antsibull_roles
 
 from .extra_docs import (
@@ -51,7 +53,9 @@ def lint_optional_conditions(content: str, path: str, collection_name: str
 
 
 def _setup_rstcheck():
-    '''Make sure that rstcheck knows about our roles.'''
+    '''Make sure that rstcheck knows about our directives and roles.'''
+    for name, directive in antsibull_directives.DIRECTIVES.items():
+        docutils_directives.register_directive(name, directive)
     for name, role in antsibull_roles.ROLES.items():
         docutils_roles.register_local_role(name, role)
 
