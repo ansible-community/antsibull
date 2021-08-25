@@ -13,7 +13,7 @@ from docutils import nodes
 from docutils.parsers.rst import Directive
 
 
-class DetailsDirective(Directive):
+class DetailsDirective(Directive):  # pyre-ignore[11]
     """Details directive.
 
     Creates a HTML <details> element with an optional <summary>.
