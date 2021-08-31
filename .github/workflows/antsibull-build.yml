@@ -22,15 +22,15 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install poetry ansible-core
+          python3 -m pip install poetry ansible
 
       - name: Test building a release with the defaults
         run: |
-          ansible-playbook -vv playbooks/build-single-release.yaml
+          ANSIBLE_CALLBACK_WHITELIST=ansible.posix.profile_tasks ansible-playbook -vv playbooks/build-single-release.yaml
 
-      - name: Combine and upload coverage stats
-        run: |
-          poetry run coverage combine .coverage.*
-          poetry run coverage report
-          poetry run coverage xml -i
-          poetry run codecov
+#      - name: Combine and upload coverage stats
+#        run: |
+#          poetry run coverage combine .coverage.*
+#          poetry run coverage report
+#          poetry run coverage xml -i
+#          poetry run codecov
