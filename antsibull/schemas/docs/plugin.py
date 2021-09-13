@@ -23,8 +23,21 @@ _SENTINEL = object()
 class OptionCliSchema(BaseModel):
     name: str = REQUIRED_CLI_F
     deprecated: DeprecationSchema = p.Field({})
+    option: str = ''
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
+
+    @p.root_validator(pre=True)
+    def add_option(cls, values):
+        """
+        Add option if not present
+        """
+        option = values.get('option', _SENTINEL)
+
+        if option is _SENTINEL:
+            values['option'] = '--{0}'.format(values['name'].replace('_', '-'))
+
+        return values
 
 
 class OptionEnvSchema(BaseModel):

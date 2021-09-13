@@ -197,7 +197,8 @@
                 "private_key_file": {
                     "cli": [
                         {
-                            "name": "private_key_file"
+                            "name": "private_key_file",
+                            "option": "--private-key"
                         }
                     ],
                     "description": [
