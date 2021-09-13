@@ -369,6 +369,7 @@
                             {
                                 "deprecated": {},
                                 "name": "private_key_file",
+                                "option": "--private-key",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -423,6 +424,7 @@
                             {
                                 "deprecated": {},
                                 "name": "user",
+                                "option": "--user",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -567,6 +569,7 @@
                             {
                                 "deprecated": {},
                                 "name": "scp_extra_args",
+                                "option": "--scp-extra-args",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -740,6 +743,7 @@
                             {
                                 "deprecated": {},
                                 "name": "sftp_extra_args",
+                                "option": "--sftp-extra-args",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -788,6 +792,7 @@
                             {
                                 "deprecated": {},
                                 "name": "ssh_args",
+                                "option": "--ssh-args",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -836,6 +841,7 @@
                             {
                                 "deprecated": {},
                                 "name": "ssh_common_args",
+                                "option": "--ssh-common-args",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -926,6 +932,7 @@
                             {
                                 "deprecated": {},
                                 "name": "ssh_extra_args",
+                                "option": "--ssh-extra-args",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -1056,6 +1063,7 @@
                             {
                                 "deprecated": {},
                                 "name": "timeout",
+                                "option": "--timeout",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
