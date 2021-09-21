@@ -430,10 +430,15 @@ class AttributeSchemaBase(BaseModel, metaclass=abc.ABCMeta):
     # We use an abstract base class instead of deriving the other classes directly from
     # AttributeSchema to make Union[AttributeSchema, ...] work with Pydantic and  Python 3.6.
     # Without this base class, we would hit https://github.com/samuelcolvin/pydantic/issues/1259
-    description: str
+    description: t.List[str]
+    details: t.List[str] = []
     support: str = p.Field('str', regex='^(full|partial|none)$')
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
+
+    @p.validator('description', 'details', pre=True)
+    def list_from_scalars(cls, obj):
+        return list_from_scalars(obj)
 
 
 class AttributeSchema(AttributeSchemaBase):
@@ -441,15 +446,15 @@ class AttributeSchema(AttributeSchemaBase):
 
 
 class AttributeSchemaActionGroup(AttributeSchemaBase):  # for 'action_group'
-    membership: t.List[str] = []
+    membership: t.List[str]
 
 
 class AttributeSchemaForcedActionPlugin(AttributeSchemaBase):  # for 'forced_action_plugin'
-    action_plugin: str = ''
+    action_plugin: str
 
 
-class AttributeSchemaProprietary(AttributeSchemaBase):  # for 'proprietary'
-    platforms: t.List[str] = []
+class AttributeSchemaPlatform(AttributeSchemaBase):  # for 'platform'
+    platforms: t.List[str]
 
 
 class DocSchema(BaseModel):
@@ -471,7 +476,7 @@ class DocSchema(BaseModel):
     attributes: t.Dict[str, t.Union[AttributeSchema,
                                     AttributeSchemaActionGroup,
                                     AttributeSchemaForcedActionPlugin,
-                                    AttributeSchemaProprietary]] = {}
+                                    AttributeSchemaPlatform]] = {}
 
     @p.validator('author', 'description', 'extends_documentation_fragment', 'notes',
                  'requirements', 'todo', pre=True)
