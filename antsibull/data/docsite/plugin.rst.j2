@@ -317,6 +317,34 @@ Parameters
                                 {% endif %}
                             </div>
                         {% endfor %}
+                        {% for mycli in value['cli'] %}
+                            <div>
+                                cli: @{ mycli['option'] }@
+                                {% if mycli['version_added'] is still_relevant %}
+                                  <div style="font-style: italic; font-size: small; color: darkgreen">
+                                    added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | escape }@
+                                  </div>
+                                {% endif %}
+                                {% if mycli['deprecated'] %}
+                                  <div>
+                                    {% if mycli['deprecated']['removed_at_date'] %}
+                                      Removed in: major release after @{ mycli['deprecated']['removed_at_date'] | escape }@
+                                    {% elif mycli['deprecated']['removed_in'] %}
+                                      Removed in: version @{ mycli['deprecated']['removed_in'] | escape }@
+                                    {% else %}
+                                      Removed in: a future release
+                                    {% endif %}
+                                    {% if mycli['deprecated']['removed_from_collection'] and mycli['deprecated']['removed_from_collection'] != collection %}
+                                      of @{ mycli['deprecated']['removed_from_collection'] | escape }@
+                                    {% endif %}
+                                    <br>
+                                    Why: @{ mycli['deprecated']['why'] | escape }@
+                                    <br>
+                                    Alternative: @{ mycli['deprecated']['alternative'] | escape }@
+                                  </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                     </td>
                 {% endif %}
                 {# description #}
