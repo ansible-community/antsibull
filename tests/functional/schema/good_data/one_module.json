@@ -11,7 +11,7 @@
                     "support": "full"
                 },
                 "action_group": {
-                    "description": "Action is part of action_group(s), for convenient setting of module_defaults.",
+                    "description": ["Action is part of action_group(s), for convenient setting of module_defaults."],
                     "membership": [],
                     "support": "none"
                 },
@@ -21,14 +21,22 @@
                 },
                 "async": {
                     "description": "Supports being used with the ``async`` keyword",
+                    "details": [
+                        "One",
+                        "Two"
+                    ],
                     "support": "full"
                 },
                 "become": {
                     "description": "Is usable alongside become keywords",
+                    "details": "Test",
                     "support": "full"
                 },
                 "bypass_host_loop": {
-                    "description": "Forces a 'global' task that does not execute per host, this bypasses per host templating and serial, throttle and other loop considerations.  Also, this action cannot be used in non lockstep strategies",
+                    "description": [
+                        "Forces a 'global' task that does not execute per host, this bypasses per host templating and serial, throttle and other loop considerations.",
+                        "Also, this action cannot be used in non lockstep strategies"
+                    ],
                     "support": "none"
                 },
                 "check_mode": {
