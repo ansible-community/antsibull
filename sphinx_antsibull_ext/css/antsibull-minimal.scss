@@ -42,3 +42,76 @@ table.documentation-table {
     }
   }
 }
+
+dl.ansible-attributes {
+  dt:nth-of-type(1), dd:nth-of-type(1) {
+    display: none;
+  }
+
+  .ansible-attribute-support-label {
+    font-weight: bold;
+  }
+
+  .ansible-attribute-support-none {
+    font-weight: bold;
+    color: red;
+  }
+
+  .ansible-attribute-support-partial {
+    font-weight: bold;
+    color: #a5a500;
+  }
+
+  .ansible-attribute-support-full {
+    font-weight: bold;
+    color: green;
+  }
+
+  .ansible-attribute-details {
+    font-style: italic;
+  }
+}
+
+@media (min-width: 1000px) {
+  dl.ansible-attributes {
+    display: grid;
+    border: solid 1px #777;
+    box-sizing: border-box;
+
+    dt:nth-of-type(1), dd:nth-of-type(1) {
+      display: table-row;
+      font-weight: bold;
+    }
+
+    dt:not(:nth-of-type(1)), dd:not(:nth-of-type(1)) {
+      border-top: solid 1px #777;
+      box-sizing: border-box;
+    }
+
+    dt {
+      margin: 0 !important;
+      padding: 0.5rem !important;
+    }
+
+    dt:after {
+      display: none;
+    }
+
+    dd {
+      display: grid !important;
+      grid-template-columns: 4fr 2fr;
+      margin: 0 !important;
+    }
+
+    .ansible-attribute-desc, .ansible-attribute-support {
+      border-left: solid 1px #777;
+      box-sizing: border-box;
+      margin: 0 !important;
+      padding: 0.5rem !important;
+    }
+
+    .ansible-attribute-support-label {
+      display: none;
+    }
+  }
+}

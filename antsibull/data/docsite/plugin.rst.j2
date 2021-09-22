@@ -2,6 +2,14 @@
 
 :orphan:
 
+.. |_| unicode:: 0xA0
+    :trim:
+
+.. role:: ansible-attribute-support-label
+.. role:: ansible-attribute-support-full
+.. role:: ansible-attribute-support-partial
+.. role:: ansible-attribute-support-none
+
 {# If we can put together source and github repo, we could make the Edit me of github button work.
    See meta.get("source") in Ansible's docs/docsite/_themes/sphinx_rtd_theme/breadcrumbs.html
    for more information
@@ -121,6 +129,71 @@ The below requirements are needed on the local controller node that executes thi
 
 {%   for req in doc['requirements'] %}
 - @{ req | rst_ify | indent(width=2) }@
+{%   endfor %}
+
+{% endif %}
+
+.. Attributes
+
+{% if doc['attributes'] %}
+
+Attributes
+----------
+
+.. rst-class:: ansible-attributes
+
+  :Attribute:
+
+    .. rst-class:: ansible-attribute-desc
+
+      Description
+
+    .. rst-class:: ansible-attribute-support
+
+      Support
+
+{%   for attribute, data in doc['attributes'] | dictsort %}
+  :@{ attribute }@:
+
+    .. raw:: html
+
+      <div class="ansible-attribute-desc">
+{%     for line in data.description %}
+
+    @{ line | rst_ify | indent(width=4) }@
+{%     endfor %}
+
+    .. raw:: html
+
+      </div><div class="ansible-attribute-support">
+
+    :ansible-attribute-support-label:`Support:` |_|
+{%     if data.support == 'full' %}
+    :ansible-attribute-support-full:`@{ data.support }@`
+{%     elif data.support == 'partial' %}
+    :ansible-attribute-support-partial:`@{ data.support }@`
+{%     elif data.support == 'none' %}
+    :ansible-attribute-support-none:`@{ data.support }@`
+{%     else %}
+{#       For unknown etc. #}
+    @{ data.support }@
+{%     endif %}
+
+{% if data['version_added'] is still_relevant %}
+    .. versionadded:: @{ data['version_added'] }@ of @{ data['version_added_collection'] | rst_ify }@
+{% endif %}
+{%     if data.details %}
+
+    .. rst-class:: ansible-attribute-details
+{%       for line in data.details %}
+
+      @{ line | rst_ify | indent(width=6) }@
+{%       endfor %}
+{%     endif %}
+
+    .. raw:: html
+
+      </div>
 {%   endfor %}
 
 {% endif %}
