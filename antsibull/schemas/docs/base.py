@@ -456,6 +456,10 @@ class AttributeSchemaForcedActionPlugin(AttributeSchemaBase):  # for 'forced_act
 class AttributeSchemaPlatform(AttributeSchemaBase):  # for 'platform'
     platforms: t.List[str]
 
+    @p.validator('platforms', pre=True)
+    def list_from_scalars_sub(cls, obj):
+        return list_from_scalars(obj)
+
 
 class DocSchema(BaseModel):
     collection: str = REQUIRED_COLLECTION_NAME_OR_EMPTY_STR_F
