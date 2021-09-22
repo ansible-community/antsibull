@@ -6,6 +6,7 @@
     :trim:
 
 .. role:: ansible-attribute-support-label
+.. role:: ansible-attribute-support-property
 .. role:: ansible-attribute-support-full
 .. role:: ansible-attribute-support-partial
 .. role:: ansible-attribute-support-none
@@ -167,21 +168,41 @@ Attributes
 
       </div><div class="ansible-attribute-support">
 
-    :ansible-attribute-support-label:`Support:` |_|
-{%     if data.support == 'full' %}
-    :ansible-attribute-support-full:`@{ data.support }@`
-{%     elif data.support == 'partial' %}
-    :ansible-attribute-support-partial:`@{ data.support }@`
-{%     elif data.support == 'none' %}
-    :ansible-attribute-support-none:`@{ data.support }@`
+{%     if attribute == 'action_group' %}
+    :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |_|`
+{%-      for member in data.memberships -%}
+           :ansible-attribute-support-full:`@{- member | rst_ify -}@`
+{%-        if not loop.last -%}
+             ,
+{%-        endif -%}
+{%-      endfor %}
+{%     elif attribute == 'forced_action_plugin' %}
+    :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
+{%     elif attribute == 'platform' %}
+    :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |_|
+{%-      for platform in data.platforms -%}
+           :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
+{%-        if not loop.last -%}
+             ,
+{%-        endif -%}
+{%-      endfor %}
 {%     else %}
-{#       For unknown etc. #}
+    :ansible-attribute-support-label:`Support:` |_|
+{%       if data.support == 'full' %}
+    :ansible-attribute-support-full:`@{ data.support }@`
+{%       elif data.support == 'partial' %}
+    :ansible-attribute-support-partial:`@{ data.support }@`
+{%       elif data.support == 'none' %}
+    :ansible-attribute-support-none:`@{ data.support }@`
+{%       else %}
+{#         For unknown etc. #}
     @{ data.support }@
+{%       endif %}
 {%     endif %}
 
-{% if data['version_added'] is still_relevant %}
+{%     if data['version_added'] is still_relevant %}
     .. versionadded:: @{ data['version_added'] }@ of @{ data['version_added_collection'] | rst_ify }@
-{% endif %}
+{%     endif %}
 {%     if data.details %}
 
     .. rst-class:: ansible-attribute-details
