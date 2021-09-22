@@ -197,6 +197,21 @@ def list_from_scalars(obj):
     return obj
 
 
+def list_from_scalars_comma_separated(obj):
+    """
+    Create a list if the obj is a select scalary object. Strings are split by commas.
+
+    obj must be int, str, float, or None to be converted to a list.  Note that None converts to
+    the empty list, rather than a list with None as its sole element.
+
+    :arg obj: The object to convert if necessary.
+    :return: obj wrapped in a list or the list itself.
+    """
+    if isinstance(obj, str):
+        return [part.strip() for part in obj.split(',')]
+    return list_from_scalars(obj)
+
+
 def transform_return_docs(obj):
     """
     Attempt to convert data to a dict using a known strategy otherwise return.
@@ -448,6 +463,10 @@ class AttributeSchema(AttributeSchemaBase):
 class AttributeSchemaActionGroup(AttributeSchemaBase):  # for 'action_group'
     membership: t.List[str]
 
+    @p.validator('membership', pre=True)
+    def list_from_scalars_sub(cls, obj):
+        return list_from_scalars_comma_separated(obj)
+
 
 class AttributeSchemaForcedActionPlugin(AttributeSchemaBase):  # for 'forced_action_plugin'
     action_plugin: str
@@ -458,7 +477,7 @@ class AttributeSchemaPlatform(AttributeSchemaBase):  # for 'platform'
 
     @p.validator('platforms', pre=True)
     def list_from_scalars_sub(cls, obj):
-        return list_from_scalars(obj)
+        return list_from_scalars_comma_separated(obj)
 
 
 class DocSchema(BaseModel):

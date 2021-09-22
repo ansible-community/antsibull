@@ -172,9 +172,7 @@ Attributes
     :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |_|`
 {%-      for member in data.memberships -%}
            :ansible-attribute-support-full:`@{- member | rst_ify -}@`
-{%-        if not loop.last -%}
-             ,
-{%-        endif -%}
+{%-        if not loop.last %}, {% endif -%}
 {%-      endfor %}
 {%     elif attribute == 'forced_action_plugin' %}
     :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
@@ -182,9 +180,7 @@ Attributes
     :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |_|
 {%-      for platform in data.platforms -%}
            :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
-{%-        if not loop.last -%}
-             ,
-{%-        endif -%}
+{%-        if not loop.last %}, {% endif -%}
 {%-      endfor %}
 {%     else %}
     :ansible-attribute-support-label:`Support:` |_|
