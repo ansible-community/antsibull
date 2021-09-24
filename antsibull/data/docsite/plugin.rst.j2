@@ -134,87 +134,6 @@ The below requirements are needed on the local controller node that executes thi
 
 {% endif %}
 
-.. Attributes
-
-{% if doc['attributes'] %}
-
-Attributes
-----------
-
-.. rst-class:: ansible-attributes
-
-  :Attribute:
-
-    .. rst-class:: ansible-attribute-desc
-
-      Description
-
-    .. rst-class:: ansible-attribute-support
-
-      Support
-
-{%   for attribute, data in doc['attributes'] | dictsort %}
-  :@{ attribute }@:
-
-    .. raw:: html
-
-      <div class="ansible-attribute-desc">
-{%     for line in data.description %}
-
-    @{ line | rst_ify | indent(width=4) }@
-{%     endfor %}
-
-    .. raw:: html
-
-      </div><div class="ansible-attribute-support">
-
-{%     if attribute == 'action_group' %}
-    :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |_|`
-{%-      for member in data.memberships -%}
-           :ansible-attribute-support-full:`@{- member | rst_ify -}@`
-{%-        if not loop.last %}, {% endif -%}
-{%-      endfor %}
-{%     elif attribute == 'forced_action_plugin' %}
-    :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
-{%     elif attribute == 'platform' %}
-    :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |_|
-{%-      for platform in data.platforms -%}
-           :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
-{%-        if not loop.last %}, {% endif -%}
-{%-      endfor %}
-{%     else %}
-    :ansible-attribute-support-label:`Support:` |_|
-{%       if data.support == 'full' %}
-    :ansible-attribute-support-full:`@{ data.support }@`
-{%       elif data.support == 'partial' %}
-    :ansible-attribute-support-partial:`@{ data.support }@`
-{%       elif data.support == 'none' %}
-    :ansible-attribute-support-none:`@{ data.support }@`
-{%       else %}
-{#         For unknown etc. #}
-    @{ data.support }@
-{%       endif %}
-{%     endif %}
-
-{%     if data['version_added'] is still_relevant %}
-    .. versionadded:: @{ data['version_added'] }@ of @{ data['version_added_collection'] | rst_ify }@
-{%     endif %}
-{%     if data.details %}
-
-    .. rst-class:: ansible-attribute-details
-{%       for line in data.details %}
-
-      @{ line | rst_ify | indent(width=6) }@
-{%       endfor %}
-{%     endif %}
-
-    .. raw:: html
-
-      </div>
-{%   endfor %}
-
-{% endif %}
-
 .. Options
 
 {% if doc['options'] -%}
@@ -453,6 +372,87 @@ Parameters
         {% endfor %}
     </table>
     <br/>
+{% endif %}
+
+.. Attributes
+
+{% if doc['attributes'] %}
+
+Attributes
+----------
+
+.. rst-class:: ansible-attributes
+
+  :Attribute:
+
+    .. rst-class:: ansible-attribute-support
+
+      Support
+
+    .. rst-class:: ansible-attribute-desc
+
+      Description
+
+{%   for attribute, data in doc['attributes'] | dictsort %}
+  :@{ attribute }@:
+
+    .. raw:: html
+
+      <div class="ansible-attribute-support">
+
+{%     if attribute == 'action_group' %}
+    :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |_|`
+{%-      for member in data.memberships -%}
+           :ansible-attribute-support-full:`@{- member | rst_ify -}@`
+{%-        if not loop.last %}, {% endif -%}
+{%-      endfor %}
+{%     elif attribute == 'forced_action_plugin' %}
+    :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
+{%     elif attribute == 'platform' %}
+    :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |_|
+{%-      for platform in data.platforms -%}
+           :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
+{%-        if not loop.last %}, {% endif -%}
+{%-      endfor %}
+{%     else %}
+    :ansible-attribute-support-label:`Support:` |_|
+{%       if data.support == 'full' %}
+    :ansible-attribute-support-full:`@{ data.support }@`
+{%       elif data.support == 'partial' %}
+    :ansible-attribute-support-partial:`@{ data.support }@`
+{%       elif data.support == 'none' %}
+    :ansible-attribute-support-none:`@{ data.support }@`
+{%       else %}
+{#         For unknown etc. #}
+    @{ data.support }@
+{%       endif %}
+{%     endif %}
+
+{%     if data['version_added'] is still_relevant %}
+    .. versionadded:: @{ data['version_added'] }@ of @{ data['version_added_collection'] | rst_ify }@
+{%     endif %}
+{%     if data.details %}
+
+    .. rst-class:: ansible-attribute-details
+{%       for line in data.details %}
+
+      @{ line | rst_ify | indent(width=6) }@
+{%       endfor %}
+{%     endif %}
+
+    .. raw:: html
+
+      </div><div class="ansible-attribute-desc">
+{%     for line in data.description %}
+
+    @{ line | rst_ify | indent(width=4) }@
+{%     endfor %}
+
+    .. raw:: html
+
+      </div>
+{%   endfor %}
+
 {% endif %}
 
 .. Notes
