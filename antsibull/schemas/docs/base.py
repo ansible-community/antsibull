@@ -447,7 +447,7 @@ class AttributeSchemaBase(BaseModel, metaclass=abc.ABCMeta):
     # Without this base class, we would hit https://github.com/samuelcolvin/pydantic/issues/1259
     description: t.List[str]
     details: t.List[str] = []
-    support: str = p.Field('str', regex='^(full|partial|none)$')
+    support: str = p.Field('str', regex='^(full|partial|none|N/A)$')
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
 
