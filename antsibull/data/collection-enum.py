@@ -158,7 +158,10 @@ def load_all_roles(RoleMixin, basedir, coll_filter):
     for role_name, collection_name, collection_path in roles:
         fqcn = '{1}.{0}'.format(role_name, collection_name)
         if match_filter(fqcn, coll_filter):
-            result[fqcn] = load_role(role_mixin, role_name, collection_name, collection_path)
+            role_data = load_role(role_mixin, role_name, collection_name, collection_path)
+            if role_data['ansible-doc'] is None:
+                continue
+            result[fqcn] = role_data
     return result
 
 
