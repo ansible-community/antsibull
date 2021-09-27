@@ -2,7 +2,7 @@
 
 :orphan:
 
-.. |_| unicode:: 0xA0
+.. |antsibull-internal-nbsp| unicode:: 0xA0
     :trim:
 
 .. role:: ansible-attribute-support-label
@@ -402,7 +402,7 @@ Attributes
       <div class="ansible-attribute-support">
 
 {%     if attribute == 'action_group' %}
-    :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |_|`
+    :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |antsibull-internal-nbsp|`
 {%-      for member in data.memberships -%}
            :ansible-attribute-support-full:`@{- member | rst_ify -}@`
 {%-        if not loop.last %}, {% endif -%}
@@ -410,13 +410,13 @@ Attributes
 {%     elif attribute == 'forced_action_plugin' %}
     :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
 {%     elif attribute == 'platform' %}
-    :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |_|
+    :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |antsibull-internal-nbsp|
 {%-      for platform in data.platforms -%}
            :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
 {%-        if not loop.last %}, {% endif -%}
 {%-      endfor %}
 {%     else %}
-    :ansible-attribute-support-label:`Support:` |_|
+    :ansible-attribute-support-label:`Support:` |antsibull-internal-nbsp|
 {%       if data.support == 'full' %}
     :ansible-attribute-support-full:`@{ data.support }@`
 {%       elif data.support == 'partial' %}
