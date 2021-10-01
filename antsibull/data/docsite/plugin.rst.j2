@@ -1,3 +1,4 @@
+{% from 'macros/deprecates.rst.j2' import invdiv as deprecates %}
 .. Document meta
 
 :orphan:
@@ -183,23 +184,8 @@ Parameters
                         added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@
                       </div>
                     {% endif %}
-                    {% if plugin_type != 'module' and value['deprecated'] %}
-                      <div>
-                        {% if value['deprecated']['removed_at_date'] %}
-                          Removed in: major release after @{ value['deprecated']['removed_at_date'] | escape }@
-                        {% elif value['deprecated']['removed_in'] %}
-                          Removed in: version @{ value['deprecated']['removed_in'] | escape }@
-                        {% else %}
-                          Removed in: a future release
-                        {% endif %}
-                        {% if value['deprecated']['removed_from_collection'] and value['deprecated']['removed_from_collection'] != collection %}
-                          of @{ value['deprecated']['removed_from_collection'] | escape }@
-                        {% endif %}
-                        <br>
-                        Why: @{ value['deprecated']['why'] | escape }@
-                        <br>
-                        Alternative: @{ value['deprecated']['alternative'] | escape }@
-                      </div>
+                    {% if plugin_type != 'module' %}
+                    {{ deprecates(value['deprecated'], collection) }}
                     {% endif %}
                 </td>
                 {# default / choices #}
@@ -249,24 +235,7 @@ Parameters
                                             added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | escape }@
                                           </div>
                                         {% endif %}
-                                        {% if ini['deprecated'] %}
-                                          <div>
-                                            {% if ini['deprecated']['removed_at_date'] %}
-                                              Removed in: major release after @{ ini['deprecated']['removed_at_date'] | escape }@
-                                            {% elif ini['deprecated']['removed_in'] %}
-                                              Removed in: version @{ ini['deprecated']['removed_in'] | escape }@
-                                            {% else %}
-                                              Removed in: a future release
-                                            {% endif %}
-                                            {% if ini['deprecated']['removed_from_collection'] and ini['deprecated']['removed_from_collection'] != collection %}
-                                              of @{ ini['deprecated']['removed_from_collection'] | escape }@
-                                            {% endif %}
-                                            <br>
-                                            Why: @{ ini['deprecated']['why'] | escape }@
-                                            <br>
-                                            Alternative: @{ ini['deprecated']['alternative'] | escape }@
-                                          </div>
-                                        {% endif %}
+                                        {{ deprecates(ini['deprecated'], collection) }}
                                     </p>
                                 {% endfor %}
                             </div>
@@ -279,24 +248,7 @@ Parameters
                                     added in @{env['version_added']}@ of @{ env['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {% if env['deprecated'] %}
-                                  <div>
-                                    {% if env['deprecated']['removed_at_date'] %}
-                                      Removed in: major release after @{ env['deprecated']['removed_at_date'] | escape }@
-                                    {% elif env['deprecated']['removed_in'] %}
-                                      Removed in: version @{ env['deprecated']['removed_in'] | escape }@
-                                    {% else %}
-                                      Removed in: a future release
-                                    {% endif %}
-                                    {% if env['deprecated']['removed_from_collection'] and env['deprecated']['removed_from_collection'] != collection %}
-                                      of @{ env['deprecated']['removed_from_collection'] | escape }@
-                                    {% endif %}
-                                    <br>
-                                    Why: @{ env['deprecated']['why'] | escape }@
-                                    <br>
-                                    Alternative: @{ env['deprecated']['alternative'] | escape }@
-                                  </div>
-                                {% endif %}
+                                {{ deprecates(env['deprecated'], collection) }}
                             </div>
                         {% endfor %}
                         {% for myvar in value['vars'] %}
@@ -307,24 +259,7 @@ Parameters
                                     added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {% if myvar['deprecated'] %}
-                                  <div>
-                                    {% if myvar['deprecated']['removed_at_date'] %}
-                                      Removed in: major release after @{ myvar['deprecated']['removed_at_date'] | escape }@
-                                    {% elif myvar['deprecated']['removed_in'] %}
-                                      Removed in: version @{ myvar['deprecated']['removed_in'] | escape }@
-                                    {% else %}
-                                      Removed in: a future release
-                                    {% endif %}
-                                    {% if myvar['deprecated']['removed_from_collection'] and myvar['deprecated']['removed_from_collection'] != collection %}
-                                      of @{ myvar['deprecated']['removed_from_collection'] | escape }@
-                                    {% endif %}
-                                    <br>
-                                    Why: @{ myvar['deprecated']['why'] | escape }@
-                                    <br>
-                                    Alternative: @{ myvar['deprecated']['alternative'] | escape }@
-                                  </div>
-                                {% endif %}
+                                {{ deprecates(myvar['deprecated'], collection) }}
                             </div>
                         {% endfor %}
                         {% for mycli in value['cli'] %}
@@ -335,24 +270,7 @@ Parameters
                                     added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {% if mycli['deprecated'] %}
-                                  <div>
-                                    {% if mycli['deprecated']['removed_at_date'] %}
-                                      Removed in: major release after @{ mycli['deprecated']['removed_at_date'] | escape }@
-                                    {% elif mycli['deprecated']['removed_in'] %}
-                                      Removed in: version @{ mycli['deprecated']['removed_in'] | escape }@
-                                    {% else %}
-                                      Removed in: a future release
-                                    {% endif %}
-                                    {% if mycli['deprecated']['removed_from_collection'] and mycli['deprecated']['removed_from_collection'] != collection %}
-                                      of @{ mycli['deprecated']['removed_from_collection'] | escape }@
-                                    {% endif %}
-                                    <br>
-                                    Why: @{ mycli['deprecated']['why'] | escape }@
-                                    <br>
-                                    Alternative: @{ mycli['deprecated']['alternative'] | escape }@
-                                  </div>
-                                {% endif %}
+                                {{ deprecates(mycli['deprecated'], collection) }}
                             </div>
                         {% endfor %}
                     </td>
