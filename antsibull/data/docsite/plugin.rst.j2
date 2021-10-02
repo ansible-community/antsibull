@@ -185,7 +185,7 @@ Parameters
                       </div>
                     {% endif %}
                     {% if plugin_type != 'module' %}
-                    {{ deprecates(value['deprecated'], collection) }}
+                      @{ deprecates(value['deprecated'], collection) }@
                     {% endif %}
                 </td>
                 {# default / choices #}
@@ -235,7 +235,7 @@ Parameters
                                             added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | escape }@
                                           </div>
                                         {% endif %}
-                                        {{ deprecates(ini['deprecated'], collection) }}
+                                        @{ deprecates(ini['deprecated'], collection) }@
                                     </p>
                                 {% endfor %}
                             </div>
@@ -248,7 +248,7 @@ Parameters
                                     added in @{env['version_added']}@ of @{ env['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {{ deprecates(env['deprecated'], collection) }}
+                                @{ deprecates(env['deprecated'], collection) }@
                             </div>
                         {% endfor %}
                         {% for myvar in value['vars'] %}
@@ -259,7 +259,7 @@ Parameters
                                     added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {{ deprecates(myvar['deprecated'], collection) }}
+                                @{ deprecates(myvar['deprecated'], collection) }@
                             </div>
                         {% endfor %}
                         {% for mycli in value['cli'] %}
@@ -270,7 +270,7 @@ Parameters
                                     added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
-                                {{ deprecates(mycli['deprecated'], collection) }}
+                                @{ deprecates(mycli['deprecated'], collection) }@
                             </div>
                         {% endfor %}
                     </td>
