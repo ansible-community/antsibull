@@ -1,0 +1,20 @@
+{% macro in_html(data, collection) %}
+	{% if data %}
+	<div>
+	  {% if data['removed_at_date'] %}
+	    Removed in: major release after @{ data['removed_at_date'] | escape }@
+	  {% elif data['removed_in'] %}
+	    Removed in: version @{ data['removed_in'] | escape }@
+	  {% else %}
+	    Removed in: a future release
+	  {% endif %}
+	  {% if data['removed_from_collection'] and data['removed_from_collection'] != collection %}
+	    of @{ data['removed_from_collection'] | escape }@
+	  {% endif %}
+	  <br>
+	  Why: @{ data['why'] | escape }@
+	  <br>
+	  Alternative: @{ data['alternative'] | escape }@
+	</div>
+	{% endif %}
+{% endmacro %}
