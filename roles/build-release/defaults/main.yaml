@@ -3,7 +3,7 @@
 antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 
 # The build file
-antsibull_build_file: "ansible-4.build"
+antsibull_build_file: "ansible-5.build"
 
 # Force a rebuild by deleting an existing release tarball, if it exists
 antsibull_force_rebuild: false
@@ -23,19 +23,19 @@ antsibull_data_reset: true
 antsibull_data_git_dir: "{{ antsibull_sdist_dir }}/ansible-build-data"
 
 # Directory to read .build and .deps files from
-antsibull_data_dir: "{{ antsibull_data_git_dir }}/4"
+antsibull_data_dir: "{{ antsibull_data_git_dir }}/5"
 
 # Where to clone the Ansible git repo from so we can run integration tests
 antsibull_ansible_git_repo: "https://github.com/ansible/ansible"
 
 # The git tag (or branch) of the ansible repo to check out
-antsibull_ansible_git_version: "stable-2.11"
+antsibull_ansible_git_version: "stable-2.12"
 
 # Where to clone the Ansible git repo
 antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
 
 # The version of ansible to build
-antsibull_ansible_version: 4.4.0
+antsibull_ansible_version: 5.0.0a1
 
 # Where the Ansible release tarball will be installed for test purposes
 antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
