@@ -42,12 +42,13 @@ table.documentation-table {
     &:hover .ansibleOptionLink::after {
       visibility: visible;
     }
-  }
-  tr::nth-child(odd) {
-    background-color: #FFFFFF;
-  }
-  tr::nth-child(even) {
-    background-color: #E7F2FA;
+
+    &:nth-child(odd) {
+      background-color: #FFFFFF;
+    }
+    &:nth-child(even) {
+      background-color: #E7F2FA;
+    }
   }
 }
 
