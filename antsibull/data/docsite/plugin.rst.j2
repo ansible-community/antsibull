@@ -55,12 +55,15 @@
 
 {% if collection == 'ansible.builtin' -%}
 .. note::
-    This module is part of ``ansible-core`` and included in all Ansible
-    installations. In most cases, you can use the short module name
+    This {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %}
+    is part of ``ansible-core`` and included in all Ansible
+    installations. In most cases, you can use the short
+    {% if plugin_type == 'module' %}module{% else %}plugin{% endif %} name
     @{ plugin_name.rsplit('.', 1)[-1] }@ even without specifying the ``collections:`` keyword.
-    However, we recommend you use the FQCN for easy linking to the module
+    However, we recommend you use the FQCN for easy linking to the
+    {% if plugin_type == 'module' %}module{% else %}plugin{% endif %}
     documentation and to avoid conflicting with other collections that may have
-    the same module name.
+    the same {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %} name.
 {% else %}
 .. note::
     This plugin is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
