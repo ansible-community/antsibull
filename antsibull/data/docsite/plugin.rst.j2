@@ -480,7 +480,7 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                     {% endfor %}
                     <br/>
                     {% if value['choices'] %}
-                        <div style="font-size: smaller"><b>Choices:</b>
+                        <div style="font-size: smaller"><b>Can only return:</b>
                             {% for choice in value['choices'] -%}
                                 {#- Turn boolean values in 'yes' and 'no' values -#}
                                 {%- if choice is sameas true -%}
@@ -553,7 +553,7 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                     {% endfor %}
                     <br/>
                     {% if value['choices'] %}
-                        <div style="font-size: smaller"><b>Choices:</b>
+                        <div style="font-size: smaller"><b>Can only return:</b>
                             {% for choice in value['choices'] -%}
                                 {#- Turn boolean values in 'yes' and 'no' values -#}
                                 {%- if choice is sameas true -%}
