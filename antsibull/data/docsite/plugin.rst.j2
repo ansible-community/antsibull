@@ -59,7 +59,7 @@
     is part of ``ansible-core`` and included in all Ansible
     installations. In most cases, you can use the short
     {% if plugin_type == 'module' %}module{% else %}plugin{% endif %} name
-    @{ plugin_name.rsplit('.', 1)[-1] }@ even without specifying the ``collections:`` keyword.
+    ``@{ plugin_name.rsplit('.', 1)[-1] }@`` even without specifying the ``collections:`` keyword.
     However, we recommend you use the FQCN for easy linking to the
     {% if plugin_type == 'module' %}module{% else %}plugin{% endif %}
     documentation and to avoid conflicting with other collections that may have
