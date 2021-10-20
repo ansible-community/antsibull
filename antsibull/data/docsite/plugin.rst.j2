@@ -482,6 +482,21 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                         </div>
                     {% endfor %}
                     <br/>
+                    {% if value['choices'] %}
+                        <div style="font-size: smaller"><b>Can only return:</b>
+                            {% for choice in value['choices'] -%}
+                                {#- Turn boolean values in 'yes' and 'no' values -#}
+                                {%- if choice is sameas true -%}
+                                    {%- set choice = 'yes' -%}
+                                {%- elif choice is sameas false -%}
+                                    {%- set choice = 'no' -%}
+                                {%- endif -%}
+                                <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ choice | escape }@</span>
+                                {%- if not loop.last %}, {% endif -%}
+                            {%- endfor -%}
+                        </div>
+                        {% if value['sample'] %}<br/>{% endif %}
+                    {% endif %}
                     {% if value['sample'] %}
                         <div style="font-size: smaller"><b>Sample:</b></div>
                         {# TODO: The sample should be escaped, using | escape or | htmlify, but both mess things up beyond repair with dicts #}
@@ -540,6 +555,21 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                         <div>@{ desc | html_ify |indent(4) | trim}@</div>
                     {% endfor %}
                     <br/>
+                    {% if value['choices'] %}
+                        <div style="font-size: smaller"><b>Can only return:</b>
+                            {% for choice in value['choices'] -%}
+                                {#- Turn boolean values in 'yes' and 'no' values -#}
+                                {%- if choice is sameas true -%}
+                                    {%- set choice = 'yes' -%}
+                                {%- elif choice is sameas false -%}
+                                    {%- set choice = 'no' -%}
+                                {%- endif -%}
+                                <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ choice | escape }@</span>
+                                {%- if not loop.last %}, {% endif -%}
+                            {%- endfor -%}
+                        </div>
+                        {% if value['sample'] %}<br/>{% endif %}
+                    {% endif %}
                     {% if value['sample'] %}
                         <div style="font-size: smaller"><b>Sample:</b></div>
                         {# TODO: The sample should be escaped, using |escape or |htmlify, but both mess things up beyond repair with dicts #}
