@@ -50,7 +50,7 @@ class RetryGetManager:
         for retry in range(self.max_retries):
             flog.debug('Execute {0}', self.call_string)
             try:
-                response = await self.aio_session.get(*self.args, **self.kwargs)
+                response = await self.aio_session.get(*self.args, **self.kwargs, timeout=20)
                 status_code = response.status
                 flog.debug('Status code {0}'.format(status_code))
                 if status_code < 400 or status_code in self.acceptable_error_codes:
@@ -59,6 +59,10 @@ class RetryGetManager:
                     return response
                 error_codes.append(status_code)
                 response.close()
+            except asyncio.TimeoutError:
+                flog.trace()
+                status_code = 'timeout'
+                error_codes.append(status_code)
             except Exception as error:
                 flog.trace()
                 status_code = str(error)
