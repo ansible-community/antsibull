@@ -21,8 +21,9 @@
     repo: "{{ antsibull_data_git_repo }}"
     dest: "{{ antsibull_data_git_dir }}"
     version: "{{ antsibull_data_version }}"
-    # TODO: Building a release means we may create or change files which would be overwritten by force
-    force: "{{ antsibull_data_reset | bool }}"
+    force: true
+  # By setting antsibull_data_reset to false, we can run with an edited or otherwise prepared version of ansible-build-data
+  when: antsibull_data_reset | bool
 
 - name: Set expected path to deps file and release archive
   ansible.builtin.set_fact:
