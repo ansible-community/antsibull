@@ -187,23 +187,19 @@ def load_collection_meta_galaxy(b_galaxy_path):
 
 def load_collection_meta(b_path):
     b_manifest_path = os.path.join(b_path, b'MANIFEST.json')
+    b_galaxy_path = os.path.join(b_path, b'galaxy.yml')
     if os.path.exists(b_manifest_path):
         data = load_collection_meta_manifest(b_manifest_path)
+    elif os.path.exists(b_galaxy_path):
+        data = load_collection_meta_galaxy(b_galaxy_path)
     else:
-        data = {}
-        b_galaxy_path = os.path.join(b_path, b'galaxy.yml')
-        b_galaxy_alt_path = os.path.join(b_path, b'galaxy.yaml')
-        for path in (b_galaxy_path, b_galaxy_alt_path):
-            if os.path.exists(path):
-                data = load_collection_meta_galaxy(path)
-        if not data:
-            # Fallback in case no galaxy.yml is around. This happens for collections
-            # checked out from source where galaxy.yml is templated on build.
-            data = {
-                'version': None,
-                'namespace': to_native(os.path.basename(os.path.dirname(b_path))),
-                'name': to_native(os.path.basename(b_path)),
-            }
+        # Fallback in case no galaxy.yml is around. This happens for collections
+        # checked out from source where galaxy.yml is templated on build.
+        data = {
+            'version': None,
+            'namespace': to_native(os.path.basename(os.path.dirname(b_path))),
+            'name': to_native(os.path.basename(b_path)),
+        }
     data['path'] = to_native(b_path)
     return data
 
