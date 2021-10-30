@@ -4,6 +4,7 @@
 """General functions for working with aiohttp."""
 
 import asyncio
+import math
 import random
 import typing as t
 import warnings
@@ -80,7 +81,7 @@ class RetryGetManager:
             if failed:
                 break
 
-            await asyncio.sleep(retry * wait_factor + random.uniform(0, 1))
+            await asyncio.sleep(math.pow(1.5, retry) * wait_factor + (0.5 + random.uniform(0, 1)))
 
         flog.debug('Raise error')
         raise Exception('Repeated error when calling {0}: received status codes {1}'.format(
