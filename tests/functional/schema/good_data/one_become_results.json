@@ -53,6 +53,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",

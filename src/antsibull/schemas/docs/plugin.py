@@ -63,6 +63,13 @@ class OptionVarsSchema(BaseModel):
     version_added_collection: str = COLLECTION_NAME_F
 
 
+class OptionKeywordSchema(BaseModel):
+    name: str
+    deprecated: DeprecationSchema = p.Field({})
+    version_added: str = 'historical'
+    version_added_collection: str = COLLECTION_NAME_F
+
+
 class ReturnSchema(BaseModel):
     """Schema of plugin return data docs."""
 
@@ -145,6 +152,7 @@ class PluginOptionsSchema(OptionsSchema):
     ini: t.List[OptionIniSchema] = []
     suboptions: t.Dict[str, 'PluginOptionsSchema'] = {}
     vars: t.List[OptionVarsSchema] = []
+    keyword: t.List[OptionKeywordSchema] = []
     deprecated: DeprecationSchema = p.Field({})
 
 

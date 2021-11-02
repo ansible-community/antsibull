@@ -28,6 +28,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": true,
                         "suboptions": {},
                         "type": "list",
@@ -62,6 +63,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -81,6 +83,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -116,6 +119,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -135,6 +139,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -155,6 +160,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -174,6 +180,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -194,6 +201,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -213,6 +221,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -247,6 +256,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",

@@ -45,6 +45,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
@@ -86,6 +87,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -112,6 +114,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "dict",
@@ -152,6 +155,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -196,6 +200,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
