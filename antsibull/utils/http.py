@@ -4,6 +4,8 @@
 """General functions for working with aiohttp."""
 
 import asyncio
+import math
+import random
 import typing as t
 import warnings
 
@@ -49,6 +51,7 @@ class RetryGetManager:
         error_codes = []
         for retry in range(self.max_retries):
             flog.debug('Execute {0}', self.call_string)
+            wait_factor = 5
             try:
                 response = await self.aio_session.get(*self.args, **self.kwargs, timeout=20)
                 status_code = response.status
@@ -63,6 +66,7 @@ class RetryGetManager:
                 flog.trace()
                 status_code = 'timeout'
                 error_codes.append(status_code)
+                wait_factor = 0.5
             except Exception as error:
                 flog.trace()
                 status_code = str(error)
@@ -77,7 +81,7 @@ class RetryGetManager:
             if failed:
                 break
 
-            await asyncio.sleep(retry * 0.5)
+            await asyncio.sleep(math.pow(1.5, retry) * wait_factor + (0.5 + random.uniform(0, 1)))
 
         flog.debug('Raise error')
         raise Exception('Repeated error when calling {0}: received status codes {1}'.format(
