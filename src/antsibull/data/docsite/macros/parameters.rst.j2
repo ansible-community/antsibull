@@ -145,6 +145,14 @@
 {%       endif %}
 @{       deprecates_rst(myvar['deprecated'], collection, 8) }@
 {%     endfor %}
+{%     for kw in value['keyword'] %}
+      - Keyword: @{ kw['name'] | rst_escape }@
+{%       if kw['version_added'] is still_relevant(collection=kw['version_added_collection']) %}
+
+        :ansible-option-versionadded:`added in @{kw['version_added']}@ of @{ kw['version_added_collection'] | rst_ify }@`
+{%       endif %}
+@{       deprecates_rst(kw['deprecated'], collection, 8) }@
+{%     endfor %}
 {%     for mycli in value['cli'] %}
       - CLI argument: @{ mycli['option'] | rst_escape }@
 {%       if mycli['version_added'] is still_relevant(collection=mycli['version_added_collection']) %}
@@ -277,6 +285,15 @@
         <p><span class="ansible-option-versionadded">added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | html_ify }@</span></p>
 {%       endif %}
 @{       deprecates_html(myvar['deprecated'], collection) }@
+      </li>
+{%     endfor %}
+{%     for kw in value['keyword'] %}
+      <li>
+        <p>Keyword: @{ kw['name'] | escape }@</p>
+{%       if kw['version_added'] is still_relevant(collection=kw['version_added_collection']) %}
+        <p><span class="ansible-option-versionadded">added in @{kw['version_added']}@ of @{ kw['version_added_collection'] | html_ify }@</span></p>
+{%       endif %}
+@{       deprecates_html(kw['deprecated'], collection) }@
       </li>
 {%     endfor %}
 {%     for mycli in value['cli'] %}
