@@ -36,7 +36,8 @@ def html_ify(text):
     text = html_escape(text)
     text, _counts['italic'] = _ITALIC.subn(r"<em>\1</em>", text)
     text, _counts['bold'] = _BOLD.subn(r"<b>\1</b>", text)
-    text, _counts['module'] = _MODULE.subn(r"<a href='../../\1/\2/\3_module.html' class='module'>\1.\2.\3</a>", text)
+    text, _counts['module'] = _MODULE.subn(
+        r"<a href='../../\1/\2/\3_module.html' class='module'>\1.\2.\3</a>", text)
     text, _counts['url'] = _URL.subn(r"<a href='\1'>\1</a>", text)
     text, _counts['ref'] = _REF.subn(r"<span class='module'>\1</span>", text)
     text, _counts['link'] = _LINK.subn(r"<a href='\2'>\1</a>", text)
@@ -79,7 +80,8 @@ def rst_ify(text):
 
     text, _counts['italic'] = _ITALIC.subn(r"*\1*", text)
     text, _counts['bold'] = _BOLD.subn(r"**\1**", text)
-    text, _counts['module'] = _MODULE.subn(r":ref:`\1.\2.\3 <ansible_collections.\1.\2.\3_module>`", text)
+    text, _counts['module'] = _MODULE.subn(
+        r":ref:`\1.\2.\3 <ansible_collections.\1.\2.\3_module>`", text)
     text, _counts['url'] = _LINK.subn(r"`\1 <\2>`_", text)
     text, _counts['ref'] = _URL.subn(r"\1", text)
     text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
