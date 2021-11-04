@@ -1,0 +1,65 @@
+---
+# These tests are meant to be run by another Ansible (i.e, the one built with build-single-release.yaml)
+- name: Run nested Ansible tests
+  hosts: localhost
+  gather_facts: no
+  vars:
+    # These can be supplied as extra-vars but are expected to come from roles/build-release/tasks/tests.yaml
+    antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
+    antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
+    antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
+    antsibull_ansible_git_version: "stable-2.12"
+    _python_version: "python3.9"
+  tasks:
+    - name: Parse installed ansible_builtin_runtime
+      parse_ansible_runtime:
+        runtime_file: "{{ antsibull_ansible_venv }}/lib/{{ _python_version }}/site-packages/ansible/config/ansible_builtin_runtime.yml"
+      register: _parsed_runtime
+
+    - name: Validate collection availability
+      assert:
+        that:
+          - query("community.general.collection_version", item) != [none]
+        success_msg: "{{ item }}: available"
+        fail_msg: "{{ item }}: not available"
+      loop: "{{ _parsed_runtime.collections }}"
+      ignore_errors: true
+      register: _collection_availability
+
+    - name: Validate module availability
+      assert:
+        that:
+          - item is community.general.a_module
+        success_msg: "{{ item }}: found"
+        fail_msg: "{{ item }}: not found"
+      loop: "{{ _parsed_runtime.modules }}"
+      ignore_errors: true
+      register: _module_availability
+
+    - name: Retrieve unavailable collections and modules
+      set_fact:
+        _unavailable_collections: "{{ _collection_availability.results | selectattr('failed', '==', true) | selectattr('item', '!=', 'testns.testcoll') }}"
+        _unavailable_modules: "{{ _module_availability.results | selectattr('failed', '==', true) }}"
+
+    - name: Print unavailable collections
+      debug:
+        msg: "The following collections are not available: {{ _unavailable_collections | map(attribute='item') | join(', ') }}"
+
+    - name: Print unavailable modules
+      debug:
+        msg: "The following modules are not available: {{ _unavailable_modules | map(attribute='item') | join(', ') }}"
+
+    - name: Clone the ansible git repository
+      ansible.builtin.git:
+        repo: "https://github.com/ansible/ansible"
+        dest: "{{ antsibull_ansible_git_dir }}"
+        version: "{{ antsibull_ansible_git_version }}"
+        depth: 1
+
+    - name: Run a simple ad-hoc integration test
+      environment:
+        ANSIBLE_ROLES_PATH: "{{ antsibull_ansible_git_dir }}/test/integration/targets"
+      # Note: this didn't work prior to ansible-base 2.10.4: https://github.com/ansible/ansible/pull/71824
+      command: >-
+        {{ antsibull_ansible_venv }}/bin/ansible -vv localhost -m include_role -a "name=include_vars"
+      changed_when: false
