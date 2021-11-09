@@ -108,12 +108,11 @@
         path: "{{ antsibull_sdist_dir }}/ansible_collections"
         state: directory
 
-    # TODO: Install the latest version once https://github.com/ansible-collections/community.general/pull/3660 is released
-    - name: Install community.general from source
-      ansible.builtin.git:
-        repo: "https://github.com/ansible-collections/community.general"
-        dest: "{{ antsibull_sdist_dir }}/ansible_collections/community/general"
-        version: c23bbb5c4a7a1c4c2ed913967a0b62e5a0a34846
+    - name: Install community.general for tests using 'a_module' and 'collection_version'
+      environment:
+        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_sdist_dir }}/ansible_collections"
+      command: >-
+        {{ antsibull_ansible_venv }}/bin/ansible-galaxy collection install community.general
 
     - name: Run nested Ansible tests with the Ansible we just built
       environment:
