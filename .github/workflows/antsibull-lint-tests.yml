@@ -27,9 +27,10 @@ jobs:
 
       - name: Check out community.general's stable-4 branch
         uses: actions/checkout@v2
-        repository: ansible-collections/community.general
-        ref: stable-4
-        path: community.general
+        with:
+          repository: ansible-collections/community.general
+          ref: stable-4
+          path: community.general
 
       - name: antsibull-lint collection-docs
         run: |
