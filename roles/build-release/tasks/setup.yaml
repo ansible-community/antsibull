@@ -1,0 +1,26 @@
+---
+- name: Install antsibull from current source in a virtualenv with poetry
+  command: poetry install
+  args:
+    chdir: "{{ playbook_dir | dirname }}"
+
+# Existing poetry installs are not updated and it could lead to stale deps
+- name: Ensure poetry virtualenv is up to date
+  command: poetry update
+  args:
+    chdir: "{{ playbook_dir | dirname }}"
+
+- name: Ensure the sdist directory exists
+  ansible.builtin.file:
+    name: "{{ antsibull_sdist_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Clone the ansible-build-data git repository
+  ansible.builtin.git:
+    repo: "{{ antsibull_data_git_repo }}"
+    dest: "{{ antsibull_data_git_dir }}"
+    version: "{{ antsibull_data_version }}"
+    force: true
+  # By setting antsibull_data_reset to false, we can run with an edited or otherwise prepared version of ansible-build-data
+  when: antsibull_data_reset | bool
