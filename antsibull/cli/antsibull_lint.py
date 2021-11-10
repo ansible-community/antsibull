@@ -50,7 +50,7 @@ def run(args: List[str]) -> int:
         changelog_yaml = subparsers.add_parser('changelog-yaml',
                                                parents=[common],
                                                help='changelogs/changelog.yaml linter')
-        changelog_yaml.set_defaults(command=command_lint_changelog)
+        changelog_yaml.set_defaults(func=command_lint_changelog)
 
         changelog_yaml.add_argument('changelog_yaml_path',
                                     metavar='/path/to/changelog.yaml',
@@ -60,7 +60,7 @@ def run(args: List[str]) -> int:
                                                 parents=[common],
                                                 help='Collection extra docs linter for inclusion'
                                                      ' in docsite')
-        collection_docs.set_defaults(command=command_lint_collection_docs)
+        collection_docs.set_defaults(func=command_lint_collection_docs)
 
         collection_docs.add_argument('collection_root_path',
                                      metavar='/path/to/collection',
@@ -71,12 +71,16 @@ def run(args: List[str]) -> int:
 
         arguments = parser.parse_args(args[1:])
 
+        if getattr(arguments, 'func', None) is None:
+            parser.print_help()
+            return 2
+
         normalize_toplevel_options(arguments)
 
         verbosity = arguments.verbose
         setup_logger(verbosity)
 
-        return arguments.command(arguments)
+        return arguments.func(arguments)
     except SystemExit as e:
         return e.code
     except Exception:  # pylint: disable=broad-except
@@ -145,3 +149,7 @@ def main() -> int:
         return 4
 
     return run(sys.argv)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
