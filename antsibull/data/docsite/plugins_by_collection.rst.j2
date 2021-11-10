@@ -40,13 +40,13 @@ There are no plugins in the @{collection_name}@ collection with automatically ge
 
 {% for category, plugins in plugin_maps.items() | sort | rejectattr('0', 'eq', 'role') %}
 
-{%   if category == 'module' %}
+{%  if category == 'module' %}
 Modules
 ~~~~~~~
 {%   for name, desc in plugins.items() | sort %}
   * :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | rst_ify | indent(width=2) }@
 {%   endfor %}
-{%   else %}
+{%  else %}
 {%   if category == 'role' %}
 Roles
 ~~~~~
@@ -58,7 +58,7 @@ Roles
 {%   for name, desc in plugins.items() | sort %}
 * :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | rst_ify | indent(width=2) }@
 {%   endfor %}
-{%   endif %}
+{%  endif %}
 {% endfor %}
 
 {% if 'role' in plugin_maps %}
