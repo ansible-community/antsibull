@@ -149,3 +149,7 @@ def main() -> int:
         return 4
 
     return run(sys.argv)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
