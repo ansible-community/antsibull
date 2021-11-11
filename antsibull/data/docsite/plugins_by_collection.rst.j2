@@ -43,9 +43,6 @@ There are no plugins in the @{collection_name}@ collection with automatically ge
 {%   if category == 'module' %}
 Modules
 ~~~~~~~
-{%   elif category == 'role' %}
-Roles
-~~~~~
 {%   else %}
 @{ category | capitalize }@ Plugins
 @{ '~' * ((category | length) + 8) }@
