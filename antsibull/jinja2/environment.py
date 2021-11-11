@@ -7,7 +7,9 @@ import os.path
 
 from jinja2 import Environment, FileSystemLoader, PackageLoader
 
-from .filters import do_max, documented_type, html_ify, rst_ify, rst_fmt, rst_xline
+from .filters import (
+    do_max, documented_type, html_ify, rst_ify, rst_fmt, rst_xline, move_first_on_first_elt,
+)
 from .tests import still_relevant, test_list
 
 
@@ -64,6 +66,7 @@ def doc_environment(template_location):
     env.filters['fmt'] = rst_fmt
     env.filters['xline'] = rst_xline
     env.filters['documented_type'] = documented_type
+    env.filters['move_first_on_first_elt'] = move_first_on_first_elt
     env.tests['list'] = test_list
     env.tests['still_relevant'] = still_relevant
 

@@ -38,7 +38,7 @@ These are the plugins in the @{collection_name}@ collection
 There are no plugins in the @{collection_name}@ collection with automatically generated documentation.
 {% endif %}
 
-{% for category, plugins in plugin_maps.items() | sort | rejectattr('0', 'eq', 'role') %}
+{% for category, plugins in plugin_maps.items() | sort | rejectattr('0', 'eq', 'role') | move_first_on_first_elt('module') %}
 
 {%   if category == 'module' %}
 Modules
