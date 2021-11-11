@@ -2,6 +2,12 @@
 :orphan:
 {% endif %}
 
+{% macro list_plugins(plugin_type) %}
+{%   for name, desc in plugin_maps[plugin_type].items() | sort %}
+* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ plugin_type }@>` -- @{ desc | rst_ify | indent(width=2) }@
+{%   endfor %}
+{% endmacro %}
+
 .. _plugins_in_@{collection_name}@:
 
 @{collection_name.title()}@
@@ -33,12 +39,12 @@ Plugin Index
 ------------
 
 {% if plugin_maps | reject('eq', 'role') | list %}
-These are the plugins in the @{collection_name}@ collection
+These are the plugins in the @{collection_name}@ collection:
 {% else %}
 There are no plugins in the @{collection_name}@ collection with automatically generated documentation.
 {% endif %}
 
-{% for category, plugins in plugin_maps.items() | sort | rejectattr('0', 'eq', 'role') %}
+{% for category in plugin_maps | reject('eq', 'role') | sort | move_first('module') %}
 
 {%   if category == 'module' %}
 Modules
@@ -48,23 +54,17 @@ Modules
 @{ '~' * ((category | length) + 8) }@
 {%   endif %}
 
-{%   for name, desc in plugins.items() | sort %}
-* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ category }@>` -- @{ desc | rst_ify | indent(width=2) }@
-{%   endfor %}
+@{   list_plugins(category) }@
 {% endfor %}
 
 {% if 'role' in plugin_maps %}
 Role Index
 ----------
 
-These are the roles in the @{collection_name}@ collection
+These are the roles in the @{collection_name}@ collection:
 
-{%   for name, desc in plugin_maps['role'].items() | sort %}
-* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_role>` -- @{ desc | rst_ify | indent(width=2) }@
-{%   endfor %}
-
+@{   list_plugins('role') }@
 {% endif %}
-
 
 .. seealso::
 
