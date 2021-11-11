@@ -164,10 +164,6 @@ Parameters
         {# Header of the documentation -#}
         <tr>
             <th colspan="@{ from_kludge_ns('maxdepth') }@">Parameter</th>
-            <th>Choices/<font color="blue">Defaults</font></th>
-            {% if plugin_type != 'module' %}
-                <th>Configuration</th>
-            {% endif %}
             <th width="100%">Comments</th>
         </tr>
         {% for key, value in doc['options']|dictsort recursive %}
@@ -195,8 +191,17 @@ Parameters
                       @{ deprecates(value['deprecated'], collection) }@
                     {% endif %}
                 </td>
-                {# default / choices #}
+                {# description #}
                 <td>
+                    {% for desc in value['description'] %}
+                        <div>@{ desc | replace('\n', '\n    ') | html_ify }@</div>
+                    {% endfor %}
+
+                    {% if value['aliases'] %}
+                        <div style="font-size: small; color: darkgreen"><br/>aliases: @{ value['aliases']|join(', ') }@</div>
+                    {% endif %}
+
+                    {# default / choices #}
                     {# Turn boolean values in 'yes' and 'no' values #}
                     {% if value['default'] is sameas true %}
                         {% set _x = value.update({'default': 'yes'}) %}
@@ -208,7 +213,9 @@ Parameters
                     {% endif %}
                     {# Show possible choices and highlight details #}
                     {% if value['choices'] %}
-                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                        <br/>
+                        <div style="font-size: smaller"><b>Choices:</b></div>
+                        <ul style="margin: 0; padding: 0; font-size: smaller">
                             {% for choice in value['choices'] %}
                                 {# Turn boolean values in 'yes' and 'no' values #}
                                 {% if choice is sameas true %}
@@ -217,7 +224,7 @@ Parameters
                                     {% set choice = 'no' %}
                                 {% endif %}
                                 {% if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
-                                    <li><div style="color: blue"><b>@{ choice | escape }@</b>&nbsp;&larr;</div></li>
+                                    <li><div style="color: blue; margin: 0"><b>@{ choice | escape }@</b>&nbsp;&larr; (default)</div></li>
                                 {% else %}
                                     <li>@{ choice | escape }@</li>
                                 {% endif %}
@@ -226,14 +233,17 @@ Parameters
                     {% endif %}
                     {# Show default value, when multiple choice or no choices #}
                     {% if value['default'] is not none and value['default'] not in value['choices'] %}
-                        <b>Default:</b><br/><div style="color: blue">@{ value['default'] | tojson | escape }@</div>
+                        <br/>
+                        <div style="font-size: smaller"><b>Default:</b> <span style="color: blue">@{ value['default'] | tojson | escape }@</span></div>
                     {% endif %}
-                </td>
-                {# configuration #}
-                {% if plugin_type != 'module' %}
-                    <td>
+
+                    {# configuration #}
+                    {% if plugin_type != 'module' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
+                        <br/>
+                        <div style="font-size: smaller"><b>Configuration:</b></div>
+                        <ul style="margin: 0; padding: 0; font-size: smaller">
                         {% if value['ini'] %}
-                            <div> ini entries:
+                            <li> INI {% if value['ini'] | length == 1 %}entry{% else %}entries{% endif %}:
                                 {% for ini in value['ini'] %}
                                     <p>
                                         [@{ ini['section'] }@]<br>@{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@
@@ -245,50 +255,42 @@ Parameters
                                         @{ deprecates(ini['deprecated'], collection) }@
                                     </p>
                                 {% endfor %}
-                            </div>
+                            </li>
                         {% endif %}
                         {% for env in value['env'] %}
-                            <div>
-                                env:@{ env['name'] }@
+                            <li>
+                                Environment variable: @{ env['name'] }@
                                 {% if env['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
                                     added in @{env['version_added']}@ of @{ env['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 @{ deprecates(env['deprecated'], collection) }@
-                            </div>
+                            </li>
                         {% endfor %}
                         {% for myvar in value['vars'] %}
-                            <div>
-                                var: @{ myvar['name'] }@
+                            <li>
+                                Variable: @{ myvar['name'] }@
                                 {% if myvar['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
                                     added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 @{ deprecates(myvar['deprecated'], collection) }@
-                            </div>
+                            </li>
                         {% endfor %}
                         {% for mycli in value['cli'] %}
-                            <div>
-                                cli: @{ mycli['option'] }@
+                            <li>
+                                CLI argument: @{ mycli['option'] }@
                                 {% if mycli['version_added'] is still_relevant %}
                                   <div style="font-style: italic; font-size: small; color: darkgreen">
                                     added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | escape }@
                                   </div>
                                 {% endif %}
                                 @{ deprecates(mycli['deprecated'], collection) }@
-                            </div>
+                            </li>
                         {% endfor %}
-                    </td>
-                {% endif %}
-                {# description #}
-                <td>
-                    {% for desc in value['description'] %}
-                        <div>@{ desc | replace('\n', '\n    ') | html_ify }@</div>
-                    {% endfor %}
-                    {% if value['aliases'] %}
-                        <div style="font-size: small; color: darkgreen"><br/>aliases: @{ value['aliases']|join(', ') }@</div>
+                        </ul>
                     {% endif %}
                 </td>
             </tr>
@@ -455,7 +457,6 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
         {% endfor -%}
         <tr>
             <th colspan="@{ from_kludge_ns('maxdepth') }@">Fact</th>
-            <th>Returned</th>
             <th width="100%">Description</th>
         </tr>
         {% for key, value in returnfacts|dictsort recursive %}
@@ -477,13 +478,15 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                       </div>
                     {% endif %}
                 </td>
-                <td>@{ value['returned'] | html_ify }@</td>
                 <td>
                     {% for desc in value['description'] %}
                         <div>@{ desc | html_ify }@
                         </div>
                     {% endfor %}
                     <br/>
+                    {% if value['returned'] %}
+                        <div style="font-size: smaller"><b>Returned:</b> @{ value['returned'] | html_ify }@</div>
+                    {% endif %}
                     {% if value['choices'] %}
                         <div style="font-size: smaller"><b>Can only return:</b>
                             {% for choice in value['choices'] -%}
@@ -500,9 +503,9 @@ Facts returned by this module are added/updated in the ``hostvars`` host facts a
                         {% if value['sample'] %}<br/>{% endif %}
                     {% endif %}
                     {% if value['sample'] %}
-                        <div style="font-size: smaller"><b>Sample:</b></div>
+                        <div style="font-size: smaller"><b>Sample:</b>
                         {# TODO: The sample should be escaped, using | escape or | htmlify, but both mess things up beyond repair with dicts #}
-                        <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</div>
+                        <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</span></div>
                     {% endif %}
                 </td>
             </tr>
@@ -533,7 +536,6 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         {% endfor -%}
         <tr>
             <th colspan="@{ from_kludge_ns('maxdepth') }@">Key</th>
-            <th>Returned</th>
             <th width="100%">Description</th>
         </tr>
         {% for key, value in returndocs|dictsort recursive %}
@@ -551,12 +553,14 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                     </div>
                     {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@ of @{value['version_added_collection']}@</div>{% endif %}
                 </td>
-                <td>@{ value['returned'] | html_ify }@</td>
                 <td>
                     {% for desc in value['description'] %}
                         <div>@{ desc | html_ify |indent(4) | trim}@</div>
                     {% endfor %}
                     <br/>
+                    {% if value['returned'] %}
+                        <div style="font-size: smaller"><b>Returned:</b> @{ value['returned'] | html_ify }@</div>
+                    {% endif %}
                     {% if value['choices'] %}
                         <div style="font-size: smaller"><b>Can only return:</b>
                             {% for choice in value['choices'] -%}
@@ -573,9 +577,9 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
                         {% if value['sample'] %}<br/>{% endif %}
                     {% endif %}
                     {% if value['sample'] %}
-                        <div style="font-size: smaller"><b>Sample:</b></div>
+                        <div style="font-size: smaller"><b>Sample:</b>
                         {# TODO: The sample should be escaped, using |escape or |htmlify, but both mess things up beyond repair with dicts #}
-                        <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</div>
+                        <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</span></div>
                     {% endif %}
                 </td>
             </tr>
