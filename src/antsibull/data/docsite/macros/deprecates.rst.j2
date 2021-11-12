@@ -18,3 +18,26 @@
 	</div>
 	{% endif %}
 {% endmacro %}
+
+{% macro in_rst(data, collection, indent) %}
+{%   if data %}
+
+@{ ' ' * indent }@
+{%-    if data['removed_at_date'] -%}
+Removed in: major release after @{ data['removed_at_date'] | rst_ify }@
+{%-    elif data['removed_in'] -%}
+Removed in: version @{ data['removed_in'] | rst_ify }@
+{%-    else -%}
+Removed in: a future release
+{%-    endif -%}
+{%-    if data['removed_from_collection'] and data['removed_from_collection'] != collection %}
+ of @{ data['removed_from_collection'] | rst_ify }@
+{%     endif %}
+
+
+@{ ('Why: ' ~ data['why'] | rst_ify) | indent(indent, first=true) }@
+
+@{ ('Alternative: ' ~ data['alternative'] | rst_ify) | indent(indent, first=true) }@
+
+{%   endif %}
+{% endmacro %}
