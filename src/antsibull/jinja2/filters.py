@@ -82,11 +82,11 @@ def rst_ify(text):
     text, _counts['bold'] = _BOLD.subn(r"**\1**", text)
     text, _counts['module'] = _MODULE.subn(
         r":ref:`\1.\2.\3 <ansible_collections.\1.\2.\3_module>`", text)
-    text, _counts['url'] = _LINK.subn(r"`\1 <\2>`_", text)
+    text, _counts['url'] = _LINK.subn(r"`\1 <\2>`__", text)
     text, _counts['ref'] = _URL.subn(r"\1", text)
     text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
     text, _counts['const'] = _CONST.subn(r"``\1``", text)
-    text, _counts['ruler'] = _RULER.subn(f"\n\n{'-' * 13}\n\n", text)
+    text, _counts['ruler'] = _RULER.subn(f"\n\n.. raw:: html\n\n  <hr>\n\n", text)
 
     flog.fields(counts=_counts).info('Number of macros converted to rst equivalents')
     flog.debug('Leave')
