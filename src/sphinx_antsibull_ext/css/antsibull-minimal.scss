@@ -337,17 +337,17 @@ dl.ansible-attributes {
       flex-direction: row;
       
       > div.ansible-option-cell {
-        margin-left: 2em;
+        margin-left: 1em;
       }
     }
 
-    .ansible-option-indent-desc {
-      margin-left: 2em;
+    .ansible-option-indent, .ansible-option-indent-desc {
+      margin-left: 1em;
     }
 
     .ansible-option-indent, .ansible-option-indent-desc {
       border: none;
-      border-right: solid 5px #E7F2FA;
+      border-right: solid 3px #E7F2FA;
     }
   }
 }
