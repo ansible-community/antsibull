@@ -86,7 +86,7 @@ def rst_ify(text):
     text, _counts['ref'] = _URL.subn(r"\1", text)
     text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
     text, _counts['const'] = _CONST.subn(r"``\1``", text)
-    text, _counts['ruler'] = _RULER.subn(f"\n\n.. raw:: html\n\n  <hr>\n\n", text)
+    text, _counts['ruler'] = _RULER.subn('\n\n.. raw:: html\n\n  <hr>\n\n', text)
 
     flog.fields(counts=_counts).info('Number of macros converted to rst equivalents')
     flog.debug('Leave')

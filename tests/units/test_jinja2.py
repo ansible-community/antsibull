@@ -14,16 +14,16 @@ RST_IFY_DATA = {
     ' <ansible_collections.ansible.builtin.yum_module>`',
     'U(https://docs.ansible.com)': 'https://docs.ansible.com',
     'L(the user guide,https://docs.ansible.com/user-guide.html)': '`the user guide'
-    ' <https://docs.ansible.com/user-guide.html>`_',
+    ' <https://docs.ansible.com/user-guide.html>`__',
     'R(the user guide,user-guide)': ':ref:`the user guide <user-guide>`',
     'C(/usr/bin/file)': '``/usr/bin/file``',
-    'HORIZONTALLINE': '\n\n{0}\n\n'.format('-' * 13),
+    'HORIZONTALLINE': '\n\n.. raw:: html\n\n  <hr>\n\n',
     # Multiple substitutions
     'The M(ansible.builtin.yum) module B(MUST) be given the C(package) parameter.  See the R(looping docs,using-loops) for more info':
     'The :ref:`ansible.builtin.yum <ansible_collections.ansible.builtin.yum_module>` module **MUST** be given the ``package`` parameter.  See the :ref:`looping docs <using-loops>` for more info',
     # Problem cases
     'IBM(International Business Machines)': 'IBM(International Business Machines)',
-    'L(the user guide, https://docs.ansible.com/)': '`the user guide <https://docs.ansible.com/>`_',
+    'L(the user guide, https://docs.ansible.com/)': '`the user guide <https://docs.ansible.com/>`__',
     'R(the user guide, user-guide)': ':ref:`the user guide <user-guide>`',
 }
 
