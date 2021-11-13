@@ -22,6 +22,10 @@
 .. role:: ansible-option-default
 .. role:: ansible-option-default-bold
 .. role:: ansible-option-configuration
+.. role:: ansible-option-returned
+.. role:: ansible-option-returned-bold
+.. role:: ansible-option-sample
+.. role:: ansible-option-sample-bold
 
 {# If we can put together source and github repo, we could make the Edit me of github button work.
    See meta.get("source") in Ansible's docs/docsite/_themes/sphinx_rtd_theme/breadcrumbs.html
@@ -257,7 +261,7 @@ Parameters
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_ify }@`
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_ify | indent(6) }@`
 {%   endif %}
 {#   configuration #}
 {%   if plugin_type != 'module' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
@@ -447,72 +451,88 @@ Examples
 {% endif %}
 
 {% macro return_docs_table(elements) %}
-.. raw:: html
 
-    <table border=0 cellpadding=0 class="documentation-table">
-        {# Pre-compute the nesting depth to allocate columns #}
-        @{ to_kludge_ns('maxdepth', 1) -}@
-        {% for key, value in elements | dictsort recursive -%}
-            @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
-            {% if value['contains'] -%}
-                @{ loop(value['contains'].items()) -}@
-            {% endif -%}
-        {% endfor -%}
-        <tr>
-            <th colspan="@{ from_kludge_ns('maxdepth') }@">Key</th>
-            <th width="100%">Description</th>
-        </tr>
-        {% for key, value in returndocs|dictsort recursive %}
-            <tr>
-                {% for i in range(1, loop.depth) %}
-                    <td class="elbow-placeholder">&nbsp;</td>
-                {% endfor %}
-                <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
-                    <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
-                    <b>@{ key }@</b>
-                    <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
-                    <div style="font-size: small">
-                      <span style="color: purple">@{ value['type'] | documented_type }@</span>
-                      {% if value['type'] == 'list' and value['elements'] is not none %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
-                    </div>
-                    {% if value['version_added'] is still_relevant %}<div style="font-style: italic; font-size: small; color: darkgreen">added in @{value['version_added']}@ of @{value['version_added_collection']}@</div>{% endif %}
-                </td>
-                <td>
-                    {% for desc in value['description'] %}
-                        <div>@{ desc | html_ify |indent(4) | trim}@</div>
-                    {% endfor %}
-                    <br/>
-                    {% if value['returned'] %}
-                        <div style="font-size: smaller"><b>Returned:</b> @{ value['returned'] | html_ify }@</div>
-                    {% endif %}
-                    {% if value['choices'] %}
-                        <div style="font-size: smaller"><b>Can only return:</b>
-                            {% for choice in value['choices'] -%}
-                                {#- Turn boolean values in 'yes' and 'no' values -#}
-                                {%- if choice is sameas true -%}
-                                    {%- set choice = 'yes' -%}
-                                {%- elif choice is sameas false -%}
-                                    {%- set choice = 'no' -%}
-                                {%- endif -%}
-                                <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ choice | escape }@</span>
-                                {%- if not loop.last %}, {% endif -%}
-                            {%- endfor -%}
-                        </div>
-                        {% if value['sample'] %}<br/>{% endif %}
-                    {% endif %}
-                    {% if value['sample'] %}
-                        <div style="font-size: smaller"><b>Sample:</b>
-                        {# TODO: The sample should be escaped, using |escape or |htmlify, but both mess things up beyond repair with dicts #}
-                        <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</span></div>
-                    {% endif %}
-                </td>
-            </tr>
-            {% if value['contains'] %}
-                @{ loop(value['contains']|dictsort) }@
-            {% endif %}
-        {% endfor %}
-    </table>
-    <br/><br/>
+.. rst-class:: ansible-option-table
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+
+  * - Key
+    - Description
+{% for key, value in elements | dictsort recursive %}
+{#   parameter name with required and/or introduced label #}
+
+  * - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+
+      .. rst-class:: ansible-option-title
+
+      **@{ key }@**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`@{ value['type'] | documented_type }@`
+      {%- if value['type'] == 'list' and value['elements'] is not none %} / :ansible-option-elements:`elements=@{ value['elements'] | documented_type }@`{% endif %}
+{%-   if value['version_added'] is still_relevant %}
+
+
+      :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
+{%   endif %}
+{#   description #}
+
+    - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
+
+{% for desc in value['description'] %}
+      @{ desc | rst_ify | indent(6) }@
+
+{%   endfor %}
+{% if value['returned'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` :ansible-option-returned:`@{ value['returned'] | rst_ify | indent(6) }@`
+{% endif %}
+{#   Show possible choices and highlight details #}
+{%   if value['choices'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Can only return:`
+
+{%     for choice in value['choices'] %}
+{#       Turn boolean values in 'yes' and 'no' values #}
+{%       if choice is sameas true %}
+{%         set choice = 'yes' %}
+{%       elif choice is sameas false %}
+{%         set choice = 'no' %}
+{%       endif %}
+{%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+      - :ansible-option-default-bold:`@{ choice | rst_ify }@` :ansible-option-default:`← (default)`
+{%       else %}
+      - :ansible-option-choices-entry:`@{ choice | rst_ify }@`
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{%   if value['sample'] is not none %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-sample-bold:`Sample:` :ansible-option-sample:`@{ value['sample'] | tojson | rst_ify | indent(6) }@`
+{%   endif %}
+{%   if value['contains'] %}
+    @{ loop(value['contains'] | dictsort) }@
+{%   endif %}
+{% endfor %}
 {% endmacro %}
 
 {% if 'ansible_facts' in returndocs %}

@@ -150,6 +150,27 @@ table.ansible-option-table {
     font-weight: 700;
   }
 
+  .ansible-option-returned {
+    font-size: smaller;
+  }
+
+  .ansible-option-returned-bold {
+    font-size: smaller;
+    font-weight: 700;
+  }
+
+  .ansible-option-sample {
+    font-size: smaller;
+    color: blue;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+
+  .ansible-option-sample-bold {
+    font-size: smaller;
+    font-weight: 700;
+  }
+
   .ansible-option-configuration {
     font-size: smaller;
     font-weight: 700;
