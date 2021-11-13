@@ -1,5 +1,4 @@
-{% from 'macros/deprecates.rst.j2' import in_html as deprecates %}
-{% from 'macros/deprecates.rst.j2' import in_rst as deprecates_rst %}
+{% from 'macros/deprecates.rst.j2' import in_rst as deprecates %}
 .. Document meta
 
 :orphan:
@@ -199,7 +198,7 @@ Parameters
 {%-   if plugin_type != 'module' %}
 
 
-@{     deprecates_rst(value['deprecated'], collection, 6) }@
+@{     deprecates(value['deprecated'], collection, 6) }@
 {%   endif %}
 
 
@@ -279,7 +278,7 @@ Parameters
 {%         if ini['version_added'] is still_relevant %}
         :ansible-option-versionadded:`added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | rst_ify }@`
 {%         endif %}
-@{         deprecates_rst(ini['deprecated'], collection, 8) }@
+@{         deprecates(ini['deprecated'], collection, 8) }@
 {%       endfor %}
 {%     endif %}
 {%     for env in value['env'] %}
@@ -288,7 +287,7 @@ Parameters
 
         :ansible-option-versionadded:`added in @{env['version_added']}@ of @{ env['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates_rst(env['deprecated'], collection, 8) }@
+@{       deprecates(env['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for myvar in value['vars'] %}
       - Variable: @{ myvar['name'] }@
@@ -296,7 +295,7 @@ Parameters
 
         :ansible-option-versionadded:`added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates_rst(myvar['deprecated'], collection, 8) }@
+@{       deprecates(myvar['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for mycli in value['cli'] %}
       - CLI argument: @{ mycli['option'] }@
@@ -304,7 +303,7 @@ Parameters
 
         :ansible-option-versionadded:`added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates_rst(mycli['deprecated'], collection, 8) }@
+@{       deprecates(mycli['deprecated'], collection, 8) }@
 {%     endfor %}
 {%   endif %}
 
