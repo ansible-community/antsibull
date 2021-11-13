@@ -280,7 +280,7 @@
                     ],
                     "elements": "str",
                     "returned": "success",
-                    "sample": "",
+                    "sample": null,
                     "type": "str",
                     "version_added": "historical",
                     "version_added_collection": ""

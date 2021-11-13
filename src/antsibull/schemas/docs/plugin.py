@@ -69,7 +69,7 @@ class ReturnSchema(BaseModel):
     choices: t.List[str] = []
     elements: str = RETURN_TYPE_F
     returned: str = 'success'
-    sample: t.Any = ''  # JSON value
+    sample: t.Any = None  # JSON value
     type: str = RETURN_TYPE_F
     version_added: str = 'historical'
     version_added_collection: str = COLLECTION_NAME_F
