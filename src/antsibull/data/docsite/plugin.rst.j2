@@ -446,103 +446,13 @@ Examples
 
 {% endif %}
 
-{% if 'ansible_facts' in returndocs %}
-{%   set returnfacts = returndocs['ansible_facts']['contains'] %}
-{%   set _x = returndocs.pop('ansible_facts', None) %}
-{% endif %}
-
-.. Facts
-
-{% if returnfacts -%}
-Returned Facts
---------------
-Facts returned by this module are added/updated in the ``hostvars`` host facts and can be referenced by name just like any other host fact. They do not need to be registered in order to use them.
-
+{% macro return_docs_table(elements) %}
 .. raw:: html
 
     <table border=0 cellpadding=0 class="documentation-table">
         {# Pre-compute the nesting depth to allocate columns #}
         @{ to_kludge_ns('maxdepth', 1) -}@
-        {% for key, value in returnfacts|dictsort recursive %}
-            @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
-            {% if value['contains'] -%}
-                @{ loop(value['contains'].items()) -}@
-            {% endif -%}
-        {% endfor -%}
-        <tr>
-            <th colspan="@{ from_kludge_ns('maxdepth') }@">Fact</th>
-            <th width="100%">Description</th>
-        </tr>
-        {% for key, value in returnfacts|dictsort recursive %}
-            <tr>
-                {% for i in range(1, loop.depth) %}
-                    <td class="elbow-placeholder"></td>
-                {% endfor %}
-                <td colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@" colspan="@{ from_kludge_ns('maxdepth') - loop.depth0 }@">
-                    <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
-                    <b>@{ key }@</b>
-                    <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this fact"></a>
-                    <div style="font-size: small">
-                      <span style="color: purple">@{ value['type'] | documented_type }@</span>
-                      {% if value['elements'] %} / <span style="color: purple">elements=@{ value['elements'] | documented_type }@</span>{% endif %}
-                    </div>
-                    {% if value['version_added'] is still_relevant %}
-                      <div style="font-style: italic; font-size: small; color: darkgreen">
-                        added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@
-                      </div>
-                    {% endif %}
-                </td>
-                <td>
-                    {% for desc in value['description'] %}
-                        <div>@{ desc | html_ify }@
-                        </div>
-                    {% endfor %}
-                    <br/>
-                    {% if value['returned'] %}
-                        <div style="font-size: smaller"><b>Returned:</b> @{ value['returned'] | html_ify }@</div>
-                    {% endif %}
-                    {% if value['choices'] %}
-                        <div style="font-size: smaller"><b>Can only return:</b>
-                            {% for choice in value['choices'] -%}
-                                {#- Turn boolean values in 'yes' and 'no' values -#}
-                                {%- if choice is sameas true -%}
-                                    {%- set choice = 'yes' -%}
-                                {%- elif choice is sameas false -%}
-                                    {%- set choice = 'no' -%}
-                                {%- endif -%}
-                                <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ choice | escape }@</span>
-                                {%- if not loop.last %}, {% endif -%}
-                            {%- endfor -%}
-                        </div>
-                        {% if value['sample'] %}<br/>{% endif %}
-                    {% endif %}
-                    {% if value['sample'] %}
-                        <div style="font-size: smaller"><b>Sample:</b>
-                        {# TODO: The sample should be escaped, using | escape or | htmlify, but both mess things up beyond repair with dicts #}
-                        <span style="color: blue; word-wrap: break-word; word-break: break-all;">@{ value['sample'] | replace('\n', '\n    ') | html_ify }@</span></div>
-                    {% endif %}
-                </td>
-            </tr>
-            {% if value['contains'] %}
-                @{ loop(value['contains']|dictsort) }@
-            {% endif %}
-        {% endfor %}
-    </table>
-    <br/><br/>
-{% endif %}
-
-.. Return values
-
-{% if returndocs -%}
-Return Values
--------------
-Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this @{ plugin_type }@:
-
-.. raw:: html
-
-    <table border=0 cellpadding=0 class="documentation-table">
-        @{ to_kludge_ns('maxdepth', 1) -}@
-        {% for key, value in returndocs|dictsort recursive -%}
+        {% for key, value in elements | dictsort recursive -%}
             @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
             {% if value['contains'] -%}
                 @{ loop(value['contains'].items()) -}@
@@ -603,6 +513,31 @@ Common return values are documented :ref:`here <common_return_values>`, the foll
         {% endfor %}
     </table>
     <br/><br/>
+{% endmacro %}
+
+{% if 'ansible_facts' in returndocs %}
+{%   set returnfacts = returndocs['ansible_facts']['contains'] %}
+{%   set _x = returndocs.pop('ansible_facts', None) %}
+{% endif %}
+
+.. Facts
+
+{% if returnfacts -%}
+Returned Facts
+--------------
+Facts returned by this module are added/updated in the ``hostvars`` host facts and can be referenced by name just like any other host fact. They do not need to be registered in order to use them.
+
+@{ return_docs_table(returnfacts) }@
+{% endif %}
+
+.. Return values
+
+{% if returndocs -%}
+Return Values
+-------------
+Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this @{ plugin_type }@:
+
+@{ return_docs_table(returndocs) }@
 {% endif %}
 
 ..  Status (Presently only deprecated)
