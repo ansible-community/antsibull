@@ -161,15 +161,6 @@ The below requirements are needed on the local controller node that executes thi
 Parameters
 ----------
 
-{# Pre-compute the nesting depth to allocate columns -#}
-@{ to_kludge_ns('maxdepth', 1) -}@
-{% for key, value in doc['options']|dictsort recursive -%}
-    @{ to_kludge_ns('maxdepth', [loop.depth, from_kludge_ns('maxdepth')] | max) -}@
-    {% if value['suboptions'] -%}
-        @{ loop(value['suboptions'].items()) -}@
-    {% endif -%}
-{% endfor -%}
-
 .. rst-class:: ansible-option-table
 
 .. list-table::
@@ -219,7 +210,7 @@ Parameters
 {#   description #}
     - .. raw:: html
 
-        <div class="ansible-option-cell ansible-option-indent-@{ loop.depth - 1 }@-desc">
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
 
 {% for desc in value['description'] %}
       @{ desc | replace('\n', '\n    ') | rst_ify | indent(6) }@

@@ -198,15 +198,6 @@ table.ansible-option-table {
     margin-left: 2em;
     border-right: 1px solid #000000;
   }
-
-  $i: 1;
-  @while $i <= 32 {
-    .ansible-option-indent-#{$i} {
-      margin-left: #{$i * 2}em;
-      border-left: 1px solid #000000;
-    }
-    $i: $i + 1;
-  }
 }
 
 dl.ansible-attributes {
@@ -281,6 +272,61 @@ dl.ansible-attributes {
 
     .ansible-attribute-support-label {
       display: none;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  table.ansible-option-table {
+    display: block;
+    height: unset;
+    border: none !important;
+  
+    thead {
+      display: none;
+    }
+  
+    tbody, tr, td {
+      display: block;
+      border: none !important;
+    }
+
+    tbody {
+      .row-odd td {
+        background-color: unset !important;
+      }
+
+      .row-even td {
+        background-color: unset !important;
+      }
+    }
+
+    td {
+      > div.ansible-option-cell {
+        border-top: none;
+      }
+
+      &:first-child > div.ansible-option-cell {
+        background-color: #E7F2FA !important;
+      }
+    }
+
+    td:last-child {
+      display: flex;
+      flex-direction: row;
+      
+      > div.ansible-option-cell {
+        margin-left: 2em;
+      }
+    }
+
+    .ansible-option-indent-desc {
+      margin-left: 2em;
+    }
+
+    .ansible-option-indent, .ansible-option-indent-desc {
+      border: none;
+      border-right: solid 5px #E7F2FA;
     }
   }
 }
