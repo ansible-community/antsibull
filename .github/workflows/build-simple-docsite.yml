@@ -29,12 +29,12 @@ jobs:
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir .
+          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir .
 
       - name: Patch build.sh to supply code coverage
         run: |
-          sed -i build.sh -e 's/antsibull-docs /coverage run -p --source antsibull -m antsibull.cli.antsibull_docs /g'
-          sed -i build.sh -e 's/sphinx-build /coverage run -p --source antsibull --source sphinx_antsibull_ext -m sphinx.cmd.build /g'
+          sed -i build.sh -e 's!antsibull-docs !coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs !g'
+          sed -i build.sh -e 's!sphinx-build !coverage run -p --source src/antsibull --source src/sphinx_antsibull_ext -m sphinx.cmd.build !g'
 
       - name: Install dependencies
         run: |
