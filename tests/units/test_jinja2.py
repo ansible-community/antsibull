@@ -1,6 +1,6 @@
 import pytest
 
-from antsibull.jinja2.filters import rst_ify
+from antsibull.jinja2.filters import rst_ify, move_first
 
 
 RST_IFY_DATA = {
@@ -31,3 +31,18 @@ RST_IFY_DATA = {
 @pytest.mark.parametrize('text, expected', RST_IFY_DATA.items())
 def test_rst_ify(text, expected):
     assert rst_ify(text) == expected
+
+
+MOVE_FIRST_DATA = [
+    ([], [], []),
+    (['a', 'b', 'c'], ['d'], ['a', 'b', 'c']),
+    (['a', 'b', 'c'], ['b'], ['b', 'a', 'c']),
+    (['a', 'b', 'b', 'c'], ['b'], ['b', 'a', 'b', 'c']),
+    (['a', 'b', 'c'], ['b', 'c'], ['b', 'c', 'a']),
+    (['a', 'b', 'c'], ['c', 'b'], ['c', 'b', 'a']),
+]
+
+
+@pytest.mark.parametrize('input, move_to_beginning, expected', MOVE_FIRST_DATA)
+def test_move_first(input, move_to_beginning, expected):
+    assert move_first(input, *move_to_beginning) == expected

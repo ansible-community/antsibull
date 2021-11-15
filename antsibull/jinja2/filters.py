@@ -103,3 +103,20 @@ def rst_xline(width, char="="):
     ''' return a restructured text line of a given length '''
 
     return char * width
+
+
+def move_first(sequence, *move_to_beginning):
+    ''' return a copy of sequence where the elements which are in move_to_beginning are
+        moved to its beginning if they appear in the list '''
+
+    remaining = list(sequence)
+    beginning = []
+    for elt in move_to_beginning:
+        try:
+            remaining.remove(elt)
+            beginning.append(elt)
+        except ValueError:
+            # elt not found in remaining
+            pass
+
+    return beginning + remaining
