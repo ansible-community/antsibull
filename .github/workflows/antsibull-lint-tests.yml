@@ -34,11 +34,11 @@ jobs:
 
       - name: antsibull-lint collection-docs
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_lint collection-docs community.general
+          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_lint collection-docs community.general
 
       - name: antsibull-lint changelog-yaml
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml community.general/changelogs/changelog.yaml
+          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_lint changelog-yaml community.general/changelogs/changelog.yaml
 
       - name: Combine and upload coverage stats
         run: |
