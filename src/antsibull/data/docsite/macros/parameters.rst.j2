@@ -36,6 +36,11 @@
 
       :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
 {%   endif %}
+{%-  if value['aliases'] %}
+
+
+      :ansible-option-aliases:`aliases: @{ value['aliases']|join(', ') }@`
+{%   endif %}
 {%-   if plugin_type != 'module' %}
 
 
@@ -56,12 +61,6 @@
       @{ desc | replace('\n', '\n    ') | rst_ify | indent(6) }@
 
 {%   endfor %}
-{%   if value['aliases'] %}
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-aliases:`aliases: @{ value['aliases']|join(', ') }@`
-{%   endif %}
 {#   default / choices #}
 {#   Turn boolean values in 'yes' and 'no' values #}
 {%   if value['default'] is sameas true %}
