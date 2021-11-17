@@ -4,11 +4,19 @@
     _deps_file: "ansible-{{ antsibull_ansible_version }}.deps"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
 
+# Documentation for the following commands:
+# https://github.com/ansible-community/antsibull/blob/main/docs/build-ansible.rst
+
 - name: Update version ranges in the build file for alpha and beta releases
   command: >-
     poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build new-ansible {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$")
+
+- name: Set up feature freeze for b2 through rc1
+  set_fact:
+    _feature_freeze: "--feature-frozen"
+  when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b2|b3|rc1)$")
 
 - name: Build a release with new dependencies
   command: >-
@@ -16,6 +24,7 @@
       --data-dir {{ antsibull_data_dir }}
       --sdist-dir {{ antsibull_sdist_dir }}
       --debian
+      {{ _feature_freeze | default('') }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
@@ -40,6 +49,7 @@
       --build-file {{ antsibull_build_file }}
       --deps-file {{ _deps_file }}
       --debian
+      {{ _feature_freeze | default('') }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
