@@ -7,9 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out antsibull
         uses: actions/checkout@v2
@@ -21,11 +20,22 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install poetry ansible-core
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user poetry ansible-core ara
 
       - name: Test building a release with the defaults
+        shell: bash
+        env:
+          ARA_API_CLIENT: http
+          ARA_API_SERVER: https://demo.recordsansible.org
+          ARA_API_USERNAME: ${{ secrets.ARA_API_USERNAME }}
+          ARA_API_PASSWORD: "${{ secrets.ARA_API_PASSWORD }}"
+          ARA_CALLBACK_THREADS: 4
+          # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+          ARA_DEFAULT_LABELS: >-
+            repository:${{ github.repository }},pr:${{ github.event.number }},ref:${{ github.ref }},sha:${{ github.sha }}
         run: |
+          export ANSIBLE_CALLBACK_PLUGINS=$(python3 -m ara.setup.callback_plugins)
           ansible-playbook -vv playbooks/build-single-release.yaml
 
       - name: Combine and upload coverage stats
