@@ -14,7 +14,9 @@
   * - .. raw:: html
 
         {% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{% for full_key in value['full_keys'] %}
+        <div class="ansibleOptionAnchor" id="return-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{% endfor %}
 
       .. rst-class:: ansible-option-title
 
