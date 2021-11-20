@@ -1,6 +1,6 @@
 {% from 'macros/deprecates.rst.j2' import in_rst as deprecates %}
 
-{% macro in_rst(elements, plugin_type, suboption_key='suboptions') %}
+{% macro in_rst(elements, plugin_name, plugin_type, suboption_key='suboptions') %}
 .. rst-class:: ansible-option-table
 
 .. list-table::
@@ -18,6 +18,10 @@
         {% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
 {% for full_key in value['full_keys'] %}
         <div class="ansibleOptionAnchor" id="parameter-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{% endfor %}
+
+{% for full_key in value['full_keys'] %}
+      .. _ansible_collections.@{plugin_name}@_@{plugin_type}@__parameter-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}:
 {% endfor %}
 
       .. rst-class:: ansible-option-title
