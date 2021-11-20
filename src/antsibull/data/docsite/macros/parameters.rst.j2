@@ -25,6 +25,12 @@
       .. raw:: html
 
         <a class="ansibleOptionLink" href="#parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
+{%   if value['aliases'] %}
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-aliases:`aliases: @{ value['aliases']|join(', ') }@`
+{%   endif %}
 
       .. rst-class:: ansible-option-type-line
 
@@ -35,11 +41,6 @@
 
 
       :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
-{%   endif %}
-{%-  if value['aliases'] %}
-
-
-      :ansible-option-aliases:`aliases: @{ value['aliases']|join(', ') }@`
 {%   endif %}
 {%-   if plugin_type != 'module' %}
 
