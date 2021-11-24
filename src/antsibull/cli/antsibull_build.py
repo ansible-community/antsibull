@@ -52,6 +52,33 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             }
 
 
+def _normalize_commands(args: argparse.Namespace) -> None:
+    flog = mlog.fields(func='_normalize_commands')
+
+    if args.command == 'new-acd':
+        flog.warning('The new-acd command is deprecated.  Use `new-ansible` instead.')
+        args.command = 'new-ansible'
+
+    if args.command == 'single':
+        flog.warning(
+            'The single command is deprecated.  Use `prepare` followed by `rebuild-single`'
+            ' instead.')
+
+    if args.command == 'build-single':
+        flog.warning(
+            'The build-single command is deprecated.  Use `prepare` followed by'
+            ' `rebuild-single` instead.')
+        args.command = 'single'
+
+    if args.command == 'build-multiple':
+        flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
+        args.command = 'multiple'
+
+    if args.command == 'build-collection':
+        flog.warning('The build-collection command is deprecated.  Use `collection` instead.')
+        args.command = 'collection'
+
+
 def _normalize_build_options(args: argparse.Namespace) -> None:
     if not os.path.isdir(args.data_dir):
         raise InvalidArgumentError(f'{args.data_dir} must be an existing directory')
@@ -71,12 +98,6 @@ def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_new_release_options(args: argparse.Namespace) -> None:
-    flog = mlog.fields(func='_normalize_new_release_options')
-
-    if args.command == 'new-acd':
-        flog.warning('The new-acd command is deprecated.  Use `new-ansible` instead.')
-        args.command = 'new-ansible'
-
     if args.command != 'new-ansible':
         return
 
@@ -102,24 +123,6 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
-    flog = mlog.fields(func='_normalize_release_build_options')
-
-    if args.command == 'single':
-        flog.warning(
-            'The single command is deprecated.  Use `prepare` followed by `rebuild-single`'
-            ' instead.')
-        args.command = 'single'
-
-    if args.command == 'build-single':
-        flog.warning(
-            'The build-single command is deprecated.  Use `prepare` followed by'
-            ' `rebuild-single` instead.')
-        args.command = 'single'
-
-    if args.command == 'build-multiple':
-        flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
-        args.command = 'multiple'
-
     if args.command not in ('prepare', 'single', 'multiple', 'rebuild-single'):
         return
 
@@ -160,12 +163,6 @@ def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_collection_build_options(args: argparse.Namespace) -> None:
-    flog = mlog.fields(func='_normalize_collection_build_options')
-
-    if args.command == 'build-collection':
-        flog.warning('The build-collection command is deprecated.  Use `collection` instead.')
-        args.command = 'collection'
-
     if args.command != 'collection':
         return
 
@@ -243,11 +240,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' relative to --dest-data-dir.  The default is'
                             ' $BASENAME_OF_PIECES_FILE-X.Y.build')
 
-    prepare_parser = subparsers.add_parser('prepare',
-                                           parents=[build_write_data_parser, cache_parser,
-                                                    build_step_parser, feature_freeze_parser],
-                                           description='Collect dependencies for an Ansible'
-                                           ' release')
+    subparsers.add_parser('prepare',
+                          parents=[build_write_data_parser, cache_parser,
+                                   build_step_parser, feature_freeze_parser],
+                          description='Collect dependencies for an Ansible release')
 
     build_single_parser = subparsers.add_parser('single',
                                                 parents=[build_write_data_parser, cache_parser,
@@ -305,6 +301,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     # Validation and coercion
     normalize_toplevel_options(args)
+    _normalize_commands(args)
     _normalize_build_options(args)
     _normalize_build_write_data_options(args)
     _normalize_new_release_options(args)
