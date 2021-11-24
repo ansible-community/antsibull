@@ -129,6 +129,7 @@ def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> 
 
 def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
+                collections: t.List[t.Tuple[str, str]],
                 collection_deps: str,
                 package_dir: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
@@ -138,6 +139,7 @@ def write_setup(ansible_version: PypiVer,
         version=ansible_version,
         ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
         ansible_core_version=ansible_core_version,
+        collections=collections,
         collection_deps=collection_deps)
 
     with open(setup_filename, 'w', encoding='utf-8') as f:
@@ -146,13 +148,14 @@ def write_setup(ansible_version: PypiVer,
 
 def write_python_build_files(ansible_version: PypiVer,
                              ansible_core_version: PypiVer,
+                             collections: t.List[t.Tuple[str, str]],
                              collection_deps: str,
                              package_dir: str,
                              release_notes: t.Optional[ReleaseNotes] = None,
                              debian: bool = False) -> None:
     copy_boilerplate_files(package_dir)
     write_manifest(package_dir, release_notes, debian)
-    write_setup(ansible_version, ansible_core_version, collection_deps, package_dir)
+    write_setup(ansible_version, ansible_core_version, collections, collection_deps, package_dir)
 
 
 def write_debian_directory(ansible_version: PypiVer,
@@ -379,10 +382,13 @@ def rebuild_single_command() -> int:
         release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
         release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
+        collections = [name.split('.', 1) for name in sorted(dependency_data.deps)]
+
         # Write build scripts and files
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version, '',
-                                 package_dir, release_notes, app_ctx.extra['debian'])
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
+                                 collections, '', package_dir, release_notes,
+                                 app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)
@@ -511,7 +517,7 @@ def build_multiple_command() -> int:
         collection_deps = '\n' + ',\n'.join(collection_deps)
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
-                                 collection_deps, package_dir)
+                                 [], collection_deps, package_dir)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
