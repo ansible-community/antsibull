@@ -24,7 +24,7 @@ from ..args import (  # noqa: E402
 )
 from ..build_collection import build_collection_command  # noqa: E402
 from ..build_ansible_commands import (  # noqa: E402
-    build_single_command, build_multiple_command, rebuild_single_command,
+    prepare_command, build_single_command, build_multiple_command, rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
 from ..config import load_config  # noqa: E402
@@ -38,6 +38,7 @@ DEFAULT_FILE_BASE = 'ansible'
 DEFAULT_PIECES_FILE = f'{DEFAULT_FILE_BASE}.in'
 
 ARGS_MAP = {'new-ansible': new_ansible_command,
+            'prepare': prepare_command,
             'single': build_single_command,
             'multiple': build_multiple_command,
             'collection': build_collection_command,
@@ -58,7 +59,7 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
 
 def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
     if args.command not in (
-            'new-ansible', 'single', 'rebuild-single', 'multiple', 'changelog',
+            'new-ansible', 'prepare', 'single', 'rebuild-single', 'multiple', 'changelog',
             'new-acd', 'build-single', 'build-multiple'):
         return
 
@@ -103,15 +104,23 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
     flog = mlog.fields(func='_normalize_release_build_options')
 
+    if args.command == 'single':
+        flog.warning(
+            'The single command is deprecated.  Use `prepare` followed by `rebuild-single`'
+            ' instead.')
+        args.command = 'single'
+
     if args.command == 'build-single':
-        flog.warning('The build-single command is deprecated.  Use `single` instead.')
+        flog.warning(
+            'The build-single command is deprecated.  Use `prepare` followed by'
+            ' `rebuild-single` instead.')
         args.command = 'single'
 
     if args.command == 'build-multiple':
         flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
         args.command = 'multiple'
 
-    if args.command not in ('single', 'multiple', 'rebuild-single'):
+    if args.command not in ('prepare', 'single', 'multiple', 'rebuild-single'):
         return
 
     compat_version_part = (
@@ -136,7 +145,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
-    if args.command in ('single', 'multiple'):
+    if args.command in ('single', 'multiple', 'rebuild-single'):
         if not os.path.isdir(args.sdist_dir):
             raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
 
@@ -234,10 +243,17 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' relative to --dest-data-dir.  The default is'
                             ' $BASENAME_OF_PIECES_FILE-X.Y.build')
 
+    prepare_parser = subparsers.add_parser('prepare',
+                                           parents=[build_write_data_parser, cache_parser,
+                                                    build_step_parser, feature_freeze_parser],
+                                           description='Collect dependencies for an Ansible'
+                                           ' release')
+
     build_single_parser = subparsers.add_parser('single',
                                                 parents=[build_write_data_parser, cache_parser,
                                                          build_step_parser, feature_freeze_parser],
-                                                description='Build a single-file Ansible')
+                                                description='Build a single-file Ansible'
+                                                ' [deprecated]')
     build_single_parser.add_argument('--sdist-dir', default='.',
                                      help='Directory to write the generated sdist tarball to')
     build_single_parser.add_argument('--debian', action='store_true',
