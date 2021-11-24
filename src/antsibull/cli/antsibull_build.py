@@ -241,8 +241,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' $BASENAME_OF_PIECES_FILE-X.Y.build')
 
     subparsers.add_parser('prepare',
-                          parents=[build_write_data_parser, cache_parser,
-                                   build_step_parser, feature_freeze_parser],
+                          parents=[
+                              build_write_data_parser, build_step_parser, feature_freeze_parser,
+                          ],
                           description='Collect dependencies for an Ansible release')
 
     build_single_parser = subparsers.add_parser('single',

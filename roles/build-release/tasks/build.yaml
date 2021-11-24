@@ -18,58 +18,43 @@
     _feature_freeze: "--feature-frozen"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b2|b3|rc1)$")
 
-- block:
-  - name: Create temporary collection cache directory
-    tempfile:
-      state: directory
-      suffix: .antsibull-collection-cache
-    register: collection_cache
+- name: Prepare a release with new dependencies
+  command: >-
+    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build prepare {{ antsibull_ansible_version }}
+      --data-dir {{ antsibull_data_dir }}
+      {{ _feature_freeze | default('') }}
+  # Minimal failure tolerance to galaxy collection download errors
+  retries: 3
+  delay: 5
+  register: _build
+  until: _build.rc == 0
+  args:
+    chdir: "{{ playbook_dir | dirname }}"
+    creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
 
-  - name: Prepare a release with new dependencies
-    command: >-
-      poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build prepare {{ antsibull_ansible_version }}
-        --collection-cache {{ collection_cache.path }}
-        --data-dir {{ antsibull_data_dir }}
-        {{ _feature_freeze | default('') }}
-    # Minimal failure tolerance to galaxy collection download errors
-    retries: 3
-    delay: 5
-    register: _build
-    until: _build.rc == 0
-    args:
-      chdir: "{{ playbook_dir | dirname }}"
-      creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
+- name: Remove existing release archive if it exists
+  file:
+    path: "{{ _release_archive }}"
+    state: absent
+  when: antsibull_force_rebuild | bool
 
-  - name: Remove existing release archive if it exists
-    file:
-      path: "{{ _release_archive }}"
-      state: absent
-    when: antsibull_force_rebuild | bool
-
-  # If the release archive is already there it won't be re-built if we run again
-  - name: Build a release with existing deps
-    command: >-
-      poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build rebuild-single {{ antsibull_ansible_version }}
-        --collection-cache {{ collection_cache.path }}
-        --data-dir {{ antsibull_data_dir }}
-        --sdist-dir {{ antsibull_sdist_dir }}
-        --build-file {{ antsibull_build_file }}
-        --deps-file {{ _deps_file }}
-        --debian
-    # Minimal failure tolerance to galaxy collection download errors
-    retries: 3
-    delay: 5
-    register: _rebuild
-    until: _rebuild.rc == 0
-    args:
-      chdir: "{{ playbook_dir | dirname }}"
-      creates: "{{ _release_archive }}"
-
-  finally:
-  - name: Remove collection cache
-    file:
-      path: "{{ collection_cache.path }}"
-      state: absent
+# If the release archive is already there it won't be re-built if we run again
+- name: Build a release with existing deps
+  command: >-
+    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build rebuild-single {{ antsibull_ansible_version }}
+      --data-dir {{ antsibull_data_dir }}
+      --sdist-dir {{ antsibull_sdist_dir }}
+      --build-file {{ antsibull_build_file }}
+      --deps-file {{ _deps_file }}
+      --debian
+  # Minimal failure tolerance to galaxy collection download errors
+  retries: 3
+  delay: 5
+  register: _rebuild
+  until: _rebuild.rc == 0
+  args:
+    chdir: "{{ playbook_dir | dirname }}"
+    creates: "{{ _release_archive }}"
 
 # We can use this to test that the release on PyPi matches later (for example)
 - name: Record the sha256sum for the built tarball
