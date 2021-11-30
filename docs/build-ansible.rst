@@ -79,16 +79,17 @@ We want to create the directory for the **next** major release when the first be
 is made.  That way, there's no period when we're frozen with no place for new collections to go.
 
 .. code-block:: shell
-    # If the current version is 3:
-    mkdir ansible-build-data/4
-    cd ansible-build-data/4
+
+    # If the current version is 5:
+    mkdir ansible-build-data/6
+    cd ansible-build-data/6
     # Copy from previous version
-    cp ../3/ansible.in .
-    cp ../3/collection-meta.yaml .
+    cp ../5/ansible.in .
+    cp ../5/collection-meta.yaml .
     # Link initial release of previous version as changelog ancestor
-    ln -s ../3/ansible-3.0.0.deps ancestor.deps
+    ln -s ../5/ansible-5.0.0.deps ancestor.deps
     # Create changelog stub with ancestor
-    echo -n "ancestor: 3.0.0\nreleases: {}" > changelog.yaml
+    echo -n "ancestor: 5.0.0\nreleases: {}" > changelog.yaml
     # Make any additions or subtractions to the set of collections in the ansible.in file
 
 
