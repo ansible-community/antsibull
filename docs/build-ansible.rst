@@ -89,7 +89,7 @@ is made.  That way, there's no period when we're frozen with no place for new co
     # Link initial release of previous version as changelog ancestor
     ln -s ../5/ansible-5.0.0.deps ancestor.deps
     # Create changelog stub with ancestor
-    echo -n "ancestor: 5.0.0\nreleases: {}" > changelog.yaml
+    echo -e "ancestor: 5.0.0\nreleases: {}" > changelog.yaml
     # Make any additions or subtractions to the set of collections in the ansible.in file
 
 
