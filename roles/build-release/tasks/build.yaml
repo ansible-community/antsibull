@@ -49,7 +49,6 @@
       --build-file {{ antsibull_build_file }}
       --deps-file {{ _deps_file }}
       --debian
-      {{ _feature_freeze | default('') }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
