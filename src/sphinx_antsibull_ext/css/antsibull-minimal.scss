@@ -71,6 +71,10 @@ table.ansible-option-table {
     vertical-align: top !important;
   }
 
+  th > p {
+    font-size: initial !important;
+  }
+
   thead tr {
     background-color: #6AB0DE;
   }
