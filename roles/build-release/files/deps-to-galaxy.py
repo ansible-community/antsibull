@@ -5,7 +5,11 @@ import yaml
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--depsfile", help="Path to the ansible.deps file", required=True)
+    parser.add_argument(
+        "--depsfile",
+        help="Path to an ansible.deps file",
+        required=True
+    )
     args = parser.parse_args()
     return args
 
@@ -21,9 +25,13 @@ def main():
     for dep in deps:
         if not dep.startswith("#") and not dep.startswith("_"):
             collection, version = dep.split(":")
-            galaxy_reqs.append(dict(name=collection, version=version.strip()))
+            galaxy_reqs.append(dict(
+                name=collection,
+                version=version.strip(),
+                source="https://galaxy.ansible.com"
+            ))
 
-    print(yaml.dump(galaxy_reqs, default_flow_style=False))
+    print(yaml.dump({"collections": galaxy_reqs}, default_flow_style=False))
 
 
 if __name__ == "__main__":
