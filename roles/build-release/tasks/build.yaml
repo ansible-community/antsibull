@@ -58,6 +58,12 @@
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ _release_archive }}"
 
+# We can use this to test that the release on PyPi matches later (for example)
+- name: Record the sha256sum for the built tarball
+  command: sha256sum {{ _release_archive }}
+  changed_when: false
+  register: _tarball_checksum
+
 - name: Compute a galaxy-requirements.yml file for the release
   command: >-
     poetry run {{ role_path }}/files/deps-to-galaxy.py --depsfile {{ antsibull_data_dir }}/{{ _deps_file }}
