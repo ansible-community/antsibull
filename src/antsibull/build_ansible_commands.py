@@ -207,88 +207,17 @@ def write_build_script(ansible_version: PypiVer,
     os.chmod(build_ansible_filename, mode=0o755)
 
 
-def build_single_impl(dependency_data: DependencyFileData, add_release: bool = True) -> None:
-    app_ctx = app_context.app_ctx.get()
-
-    # Determine included collection versions
-    ansible_base_version = PypiVer(dependency_data.ansible_base_version)
-    included_versions = {
-        collection: SemVer(version)
-        for collection, version in dependency_data.deps.items()
-    }
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        download_dir = os.path.join(tmp_dir, 'collections')
-        os.mkdir(download_dir, mode=0o700)
-
-        # Download included collections
-        asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
-                                         download_dir, app_ctx.extra['collection_cache']))
-
-        # Get Ansible changelog, add new release
-        ansible_changelog = ChangelogData.ansible(
-            app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
-        if add_release:
-            date = datetime.date.today()
-            ansible_changelog.add_ansible_release(
-                str(app_ctx.extra['ansible_version']),
-                date,
-                f'Release Date: {date}'
-                f'\n\n'
-                f'`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_')
-
-        # Get changelog and porting guide data
-        changelog = get_changelog(
-            app_ctx.extra['ansible_version'],
-            deps_dir=app_ctx.extra['data_dir'],
-            deps_data=[dependency_data],
-            collection_cache=app_ctx.extra['collection_cache'],
-            ansible_changelog=ansible_changelog)
-
-        # Create package and collections directories
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
-        os.mkdir(package_dir, mode=0o700)
-        ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
-        os.mkdir(ansible_collections_dir, mode=0o700)
-
-        # Write the ansible release info to the collections dir
-        write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
-
-        # Install collections
-        # TODO: PY3.8:
-        # collections_to_install = [p for f in os.listdir(download_dir)
-        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
-        collections_to_install = []
-        for collection in os.listdir(download_dir):
-            path = os.path.join(download_dir, collection)
-            if os.path.isfile(path):
-                collections_to_install.append(path)
-
-        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
-
-        # Compose and write release notes
-        release_notes = ReleaseNotes.build(changelog)
-        release_notes.write_changelog_to(package_dir)
-        release_notes.write_porting_guide_to(package_dir)
-
-        # Write build scripts and files
-        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
-                                 package_dir, release_notes, app_ctx.extra['debian'])
-        if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['ansible_version'], ansible_base_version,
-                                   package_dir)
-        make_dist(package_dir, app_ctx.extra['sdist_dir'])
-
-    # Write changelog and porting guide also to destination directory
-    release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
-    release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
-
-    if add_release:
-        ansible_changelog.changes.save()
-
-
 def build_single_command() -> int:
+    # This is deprecated; in the future users will have to first run prepare, and then
+    # rebuild-single.
+    result = prepare_command()
+    if result != 0:
+        return result
+
+    return rebuild_single_command()
+
+
+def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
@@ -337,8 +266,19 @@ def build_single_command() -> int:
         str(ansible_base_version),
         {collection: str(version) for collection, version in included_versions.items()})
 
-    build_single_impl(dependency_data)
+    # Get Ansible changelog, add new release
+    ansible_changelog = ChangelogData.ansible(
+        app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
+    date = datetime.date.today()
+    ansible_changelog.add_ansible_release(
+        str(app_ctx.extra['ansible_version']),
+        date,
+        f'Release Date: {date}'
+        f'\n\n'
+        f'`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_')
+    ansible_changelog.changes.save()
 
+    # Write dependency file
     deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     deps_file.write(
@@ -356,7 +296,73 @@ def rebuild_single_command() -> int:
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
 
-    build_single_impl(dependency_data, add_release=False)
+    # Determine included collection versions
+    ansible_base_version = PypiVer(dependency_data.ansible_base_version)
+    included_versions = {
+        collection: SemVer(version)
+        for collection, version in dependency_data.deps.items()
+    }
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        download_dir = os.path.join(tmp_dir, 'collections')
+        os.mkdir(download_dir, mode=0o700)
+
+        # Download included collections
+        asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
+                                         download_dir, app_ctx.extra['collection_cache']))
+
+        # Get Ansible changelog, add new release
+        ansible_changelog = ChangelogData.ansible(
+            app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
+
+        # Get changelog and porting guide data
+        changelog = get_changelog(
+            app_ctx.extra['ansible_version'],
+            deps_dir=app_ctx.extra['data_dir'],
+            deps_data=[dependency_data],
+            collection_cache=app_ctx.extra['collection_cache'],
+            ansible_changelog=ansible_changelog)
+
+        # Create package and collections directories
+        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
+        os.mkdir(package_dir, mode=0o700)
+        ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
+        os.mkdir(ansible_collections_dir, mode=0o700)
+
+        # Write the ansible release info to the collections dir
+        write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
+
+        # Install collections
+        # TODO: PY3.8:
+        # collections_to_install = [p for f in os.listdir(download_dir)
+        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
+        collections_to_install = []
+        for collection in os.listdir(download_dir):
+            path = os.path.join(download_dir, collection)
+            if os.path.isfile(path):
+                collections_to_install.append(path)
+
+        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
+
+        # Compose and write release notes to destination directory
+        release_notes = ReleaseNotes.build(changelog)
+        release_notes.write_changelog_to(package_dir)
+        release_notes.write_porting_guide_to(package_dir)
+
+        # Write changelog and porting guide also to destination directory
+        release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
+        release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
+
+        # Write build scripts and files
+        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
+                                 package_dir, release_notes, app_ctx.extra['debian'])
+        if app_ctx.extra['debian']:
+            write_debian_directory(app_ctx.extra['ansible_version'], ansible_base_version,
+                                   package_dir)
+
+        # Create source distribution
+        make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
     return 0
 

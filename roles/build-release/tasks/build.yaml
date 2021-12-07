@@ -18,12 +18,10 @@
     _feature_freeze: "--feature-frozen"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b2|b3|rc1)$")
 
-- name: Build a release with new dependencies
+- name: Prepare a release with new dependencies
   command: >-
-    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build single {{ antsibull_ansible_version }}
+    poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build prepare {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
-      --sdist-dir {{ antsibull_sdist_dir }}
-      --debian
       {{ _feature_freeze | default('') }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
