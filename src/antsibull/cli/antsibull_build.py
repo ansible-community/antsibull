@@ -71,8 +71,11 @@ def _normalize_commands(args: argparse.Namespace) -> None:
         args.command = 'single'
 
     if args.command == 'build-multiple':
-        flog.warning('The build-multiple command is deprecated.  Use `multiple` instead.')
+        flog.warning(
+            'The build-multiple command is deprecated and will be removed in a future release.')
         args.command = 'multiple'
+    elif args.command == 'multiple':
+        flog.warning('The multiple command is deprecated and will be removed in a future release.')
 
     if args.command == 'build-collection':
         flog.warning('The build-collection command is deprecated.  Use `collection` instead.')
