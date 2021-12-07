@@ -157,7 +157,7 @@ New minor releases (3.Y.0)
     # Change the ansible-base version information in here to the latest compatible version on pypi
 
     # Create the ansible release
-    # (This generates a single tarball for ansible with a dep on the ansible-base package)
+    # (This generates a single tarball for ansible with a dep on the ansible-core package)
     antsibull-build rebuild-single 3.1.0 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.1.0.deps --sdist-dir built --debian
 
 
