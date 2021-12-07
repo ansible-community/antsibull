@@ -67,9 +67,13 @@ All alpha releases and the first beta
     # Generate the list of compatible versions.
     antsibull-build new-ansible 3.0.0a1 --data-dir ansible-build-data/3
 
+    # Prepare the ansible release
+    # (This generates the dependency file and updates changelog.yaml)
+    antsibull-build prepare 3.0.0a1 --data-dir ansible-build-data/3
+
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
+    antsibull-build rebuild-single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
 Setup for the first beta release
@@ -102,9 +106,13 @@ Beta2 up to and including rc1
     rm -rf built
     mkdir built
 
+    # Prepare the ansible release
+    # (This generates the dependency file and updates changelog.yaml)
+    antsibull-build prepare 3.0.0b2 --feature-frozen --data-dir ansible-build-data/3
+
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 3.0.0b2 --feature-frozen --data-dir ansible-build-data/3 --sdist-dir built --debian
+    antsibull-build rebuild-single 3.0.0b2 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
 Any subsequent rcs and final
@@ -115,7 +123,7 @@ Any subsequent rcs and final
     # Copy the previous rc's .deps file to the new rc version
     cp ansible-build-data/3/ansible-3.0.0rc1.deps ansible-build-data/3/ansible-3.0.0rc2.deps
 
-    # We do not run antsibull-build single because the compatible collection version information
+    # We do not run antsibull-build prepare because the compatible collection version information
     # is now set until final.
     # * Change the _ansible_version field to the new version
     # * If ansible-base needs a version update, change it in the .build and .deps file.
@@ -137,19 +145,19 @@ New minor releases (3.Y.0)
     rm -rf built
     mkdir built
 
-    # Create the ansible release
-    # (This generates a single tarball for ansible with a dep on the ansible-base package)
-    antsibull-build single 3.1.0 --data-dir ansible-build-data/3 --sdist-dir built --debian
+    # Prepare the ansible release
+    # (This generates the dependency file and updates changelog.yaml)
+    antsibull-build prepare 3.1.0 --data-dir ansible-build-data/3
 
     # Until we get separate versions for ansible-base working correctly:
     # https://github.com/ansible-community/antsibull/issues/187
-    # We'll need to update the ansible-base version manually and then rebuild the release. Follow
-    # these steps after running antsibull-build single above:
+    # We'll need to update the ansible-core version manually. Follow
+    # these steps after running antsibull-build prepare above:
     # vim ansible-build-data/3/ansible-3.1.0.deps
     # Change the ansible-base version information in here to the latest compatible version on pypi
 
-    rm -rf built
-    mkdir built
+    # Create the ansible release
+    # (This generates a single tarball for ansible with a dep on the ansible-base package)
     antsibull-build rebuild-single 3.1.0 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.1.0.deps --sdist-dir built --debian
 
 
@@ -192,8 +200,8 @@ We want to sync docs and releases.  So the first thing to do is to alert the doc
 ``#ansible-docs`` that we're making a release (they should know ahead of time if they're watching the
 schedule too).
 
-* In patch releases, check the porting guide for unwanted breaking changes (collections that are new
-  in this patch release are allowed to have breaking changes but existing collections should not.)
+* In minor/patch releases, check the porting guide for unwanted (breaking) changes (collections that are
+  new in this patch release are allowed to have breaking changes but existing collections should not.)
 
   * Fixing this requires manually changing the .deps file and re-running rebuild-single (and then
     pinging the collection maintainer to find out what should happen for the next release.)
