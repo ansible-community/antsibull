@@ -1,0 +1,89 @@
+{% macro in_rst(elements, plugin_name, plugin_type) %}
+.. rst-class:: ansible-option-table
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+
+  * - Key
+    - Description
+{% for key, value in elements | dictsort recursive %}
+{#   parameter name with required and/or introduced label #}
+
+  * - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
+{% for full_key in value['full_keys'] %}
+        <div class="ansibleOptionAnchor" id="return-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{% endfor %}
+
+{% for full_key in value['full_keys'] %}
+      .. _ansible_collections.@{plugin_name}@_@{plugin_type}@__return-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}:
+{% endfor %}
+
+      .. rst-class:: ansible-option-title
+
+      **@{ key }@**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`@{ value['type'] | documented_type }@`
+      {%- if value['type'] == 'list' and value['elements'] is not none %} / :ansible-option-elements:`elements=@{ value['elements'] | documented_type }@`{% endif %}
+{%-   if value['version_added'] is still_relevant %}
+
+
+      :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
+{%   endif %}
+{#   description #}
+
+    - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
+
+{% for desc in value['description'] %}
+      @{ desc | rst_ify | indent(6) }@
+
+{%   endfor %}
+{% if value['returned'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-returned-bold:`Returned:` @{ value['returned'] | rst_ify | indent(6) }@
+{% endif %}
+{#   Show possible choices and highlight details #}
+{%   if value['choices'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Can only return:`
+
+{%     for choice in value['choices'] %}
+{#       Turn boolean values in 'yes' and 'no' values #}
+{%       if choice is sameas true %}
+{%         set choice = 'yes' %}
+{%       elif choice is sameas false %}
+{%         set choice = 'no' %}
+{%       endif %}
+{%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+      - :ansible-option-default-bold:`@{ choice | rst_ify }@` :ansible-option-default:`← (default)`
+{%       else %}
+      - :ansible-option-choices-entry:`@{ choice | rst_ify }@`
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{%   if value['sample'] is not none %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-sample-bold:`Sample:` :ansible-option-sample:`@{ value['sample'] | tojson | rst_ify | indent(6) }@`
+{%   endif %}
+{%   if value['contains'] %}
+    @{ loop(value['contains'] | dictsort) }@
+{%   endif %}
+{% endfor %}
+{% endmacro %}

@@ -1,0 +1,164 @@
+{% from 'macros/deprecates.rst.j2' import in_rst as deprecates %}
+
+{% macro in_rst(elements, plugin_name, plugin_type, suboption_key='suboptions') %}
+.. rst-class:: ansible-option-table
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+
+  * - Parameter
+    - Comments
+{% for key, value in elements | dictsort recursive %}
+{#   parameter name with required and/or introduced label #}
+
+  * - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
+{% for full_key in value['full_keys'] %}
+        <div class="ansibleOptionAnchor" id="parameter-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{% endfor %}
+
+{% for full_key in value['full_keys'] %}
+      .. _ansible_collections.@{plugin_name}@_@{plugin_type}@__parameter-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}:
+{% endfor %}
+
+      .. rst-class:: ansible-option-title
+
+      **@{ key }@**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#parameter-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
+{%   if value['aliases'] %}
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-aliases:`aliases: @{ value['aliases']|join(', ') }@`
+{%   endif %}
+
+      .. rst-class:: ansible-option-type-line
+
+      :ansible-option-type:`@{ value['type'] | documented_type }@`
+      {%- if value['type'] == 'list' and value['elements'] is not none %} / :ansible-option-elements:`elements=@{ value['elements'] | documented_type }@`{% endif -%}
+      {%- if value['required'] %} / :ansible-option-required:`required`{% endif %}
+{%-   if value['version_added'] is still_relevant %}
+
+
+      :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
+{%   endif %}
+{%-   if plugin_type != 'module' %}
+
+
+@{     deprecates(value['deprecated'], collection, 6) }@
+{%   endif %}
+
+
+      .. raw:: html
+
+        </div>
+
+{#   description #}
+    - .. raw:: html
+
+        {% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
+
+{% for desc in value['description'] %}
+      @{ desc | replace('\n', '\n    ') | rst_ify | indent(6) }@
+
+{%   endfor %}
+{#   default / choices #}
+{#   Turn boolean values in 'yes' and 'no' values #}
+{%   if value['default'] is sameas true %}
+{%     set _x = value.update({'default': 'yes'}) %}
+{%   elif value['default'] is not none and value['default'] is sameas false %}
+{%     set _x = value.update({'default': 'no'}) %}
+{%   endif %}
+{%   if value['type'] == 'bool' %}
+{%     set _x = value.update({'choices': ['no', 'yes']}) %}
+{%   endif %}
+{#   Show possible choices and highlight details #}
+{%   if value['choices'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-choices:`Choices:`
+
+{%     for choice in value['choices'] %}
+{#       Turn boolean values in 'yes' and 'no' values #}
+{%       if choice is sameas true %}
+{%         set choice = 'yes' %}
+{%       elif choice is sameas false %}
+{%         set choice = 'no' %}
+{%       endif %}
+{%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+      - :ansible-option-default-bold:`@{ choice | rst_ify }@` :ansible-option-default:`← (default)`
+{%       else %}
+      - :ansible-option-choices-entry:`@{ choice | rst_ify }@`
+{%       endif %}
+{%     endfor %}
+{%   endif %}
+{# Show default value, when multiple choice or no choices #}
+{%   if value['default'] is not none and value['default'] not in value['choices'] %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_ify | indent(6) }@`
+{%   endif %}
+{#   configuration #}
+{%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
+
+      .. rst-class:: ansible-option-line
+
+      :ansible-option-configuration:`Configuration:`
+
+{%     if value['ini'] %}
+      - INI {% if value['ini'] | length == 1 %}entry{% else %}entries{% endif %}:
+{%       for ini in value['ini'] %}
+
+        .. code-block::
+
+          [@{ ini['section'] }@]
+          @{ ini['key'] }@ = @{ value['default'] | default('VALUE') }@
+
+{%         if ini['version_added'] is still_relevant %}
+        :ansible-option-versionadded:`added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | rst_ify }@`
+{%         endif %}
+@{         deprecates(ini['deprecated'], collection, 8) }@
+{%       endfor %}
+{%     endif %}
+{%     for env in value['env'] %}
+      - Environment variable: @{ env['name'] | rst_ify }@
+{%       if env['version_added'] is still_relevant %}
+
+        :ansible-option-versionadded:`added in @{env['version_added']}@ of @{ env['version_added_collection'] | rst_ify }@`
+{%       endif %}
+@{       deprecates(env['deprecated'], collection, 8) }@
+{%     endfor %}
+{%     for myvar in value['vars'] %}
+      - Variable: @{ myvar['name'] }@
+{%       if myvar['version_added'] is still_relevant %}
+
+        :ansible-option-versionadded:`added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | rst_ify }@`
+{%       endif %}
+@{       deprecates(myvar['deprecated'], collection, 8) }@
+{%     endfor %}
+{%     for mycli in value['cli'] %}
+      - CLI argument: @{ mycli['option'] }@
+{%       if mycli['version_added'] is still_relevant %}
+
+        :ansible-option-versionadded:`added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | rst_ify }@`
+{%       endif %}
+@{       deprecates(mycli['deprecated'], collection, 8) }@
+{%     endfor %}
+{%   endif %}
+
+      .. raw:: html
+
+        </div>
+{%   if value[suboption_key] %}
+    @{ loop(value[suboption_key]|dictsort) }@
+{%   endif %}
+{% endfor %}
+{% endmacro %}

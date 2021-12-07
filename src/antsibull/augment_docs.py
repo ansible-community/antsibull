@@ -7,7 +7,8 @@ import typing as t
 
 
 def add_full_key(options_data: t.Mapping[str, t.Any], suboption_entry: str,
-                 _full_key: t.Optional[list] = None) -> None:
+                 _full_key: t.Optional[t.List[str]] = None,
+                 _full_keys: t.Optional[t.List[t.List[str]]] = None) -> None:
     """
     Add information on the strucfture of a dict value in options or returns.
 
@@ -22,22 +23,36 @@ def add_full_key(options_data: t.Mapping[str, t.Any], suboption_entry: str,
         ``suboptions``.  For returndocs, it is ``contains``.
     :kwarg _full_key: This is a recursive function.  After we pass the first level of nesting,
         ``_full_key`` is set to record the names of the upper levels of the hierarchy.
+    :kwarg _full_keys: This is a recursive function.  After we pass the first level of nesting,
+        ``_full_keys`` is a list of sets to record the names of the upper levels of the hierarchy,
+        including all aliases for all names involved.
 
     .. warning:: This function operates by side-effect.  The options_data dictionay is modified
         directly.
     """
     if _full_key is None:
         _full_key = []
+    if _full_keys is None:
+        _full_keys = [[]]
 
     for (key, entry) in options_data.items():
         # Make sure that "full key" is contained
         full_key_k = _full_key + [key]
+        full_keys_k = [fk + [key] for fk in _full_keys]
+        if 'aliases' in entry:
+            for alias in entry['aliases']:
+                full_keys_k.extend([fk + [alias] for fk in _full_keys])
         entry['full_key'] = full_key_k
+        entry['full_keys'] = full_keys_k
 
         # Process suboptions
         suboptions = entry.get(suboption_entry)
         if suboptions:
-            add_full_key(suboptions, suboption_entry=suboption_entry, _full_key=full_key_k)
+            add_full_key(
+                suboptions,
+                suboption_entry=suboption_entry,
+                _full_key=full_key_k,
+                _full_keys=full_keys_k)
 
 
 def augment_docs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]]) -> None:
