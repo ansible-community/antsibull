@@ -59,10 +59,11 @@ def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
             ansible_version = record[1]
             continue
 
-        if record[0] == '_ansible_base_version':
+        if record[0] in ('_ansible_base_version', '_ansible_core_version'):
             if ansible_core_version is not None:
-                raise InvalidFileFormat(f'{filename} specified _ansible_base_version'
-                                        ' more' ' than once')
+                raise InvalidFileFormat(
+                    f'{filename} specified _ansible_base_version/_ansible_core_version more than'
+                    ' once')
             ansible_core_version = record[1]
             continue
 
@@ -70,7 +71,7 @@ def _parse_name_version_spec_file(filename: str) -> DependencyFileData:
 
     if ansible_core_version is None:
         raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
-                                ' the required ansible_base_version field')
+                                ' the required ansible_core_version field')
     if ansible_version is None:
         raise InvalidFileFormat(f'{filename} was invalid.  It did not contain'
                                 ' the required ansible_version field')
@@ -89,7 +90,9 @@ class DepsFile:
     The deps file has two special lines which are not collections.  They are::
 
         _ansible_version: X1.Y1.Z1
-        _ansible_base_version: X2.Y2.Z2
+        _ansible_core_version: X2.Y2.Z2
+
+    (Instead of _ansible_core_version, _ansible_base_version can also be used.)
 
     These are, respectively, the ansible version that was built and the ansible-core version which
     it was built against.  Note that the ansible release will depend on a compatible version of that
@@ -125,7 +128,10 @@ class DepsFile:
 
         with open(self.filename, 'w') as f:
             f.write(f'_ansible_version: {ansible_version}\n')
-            f.write(f'_ansible_base_version: {ansible_core_version}\n')
+            if ansible_version.major > 5:
+                f.write(f'_ansible_core_version: {ansible_core_version}\n')
+            else:
+                f.write(f'_ansible_base_version: {ansible_core_version}\n')
             f.write('\n'.join(records))
             f.write('\n')
 
@@ -170,6 +176,9 @@ class BuildFile:
                 f.write(f'_ansible_version: {ansible_version.major}\n')
             else:
                 f.write(f'_ansible_version: {ansible_version.major}.{ansible_version.minor}\n')
-            f.write(f'_ansible_base_version: {ansible_core_version}\n')
+            if ansible_version.major > 5:
+                f.write(f'_ansible_core_version: {ansible_core_version}\n')
+            else:
+                f.write(f'_ansible_base_version: {ansible_core_version}\n')
             f.write('\n'.join(records))
             f.write('\n')
