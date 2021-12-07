@@ -91,7 +91,7 @@ class DepsFile:
         _ansible_version: X1.Y1.Z1
         _ansible_base_version: X2.Y2.Z2
 
-    These are, respectively, the ansible version that was built and the ansible-base version which
+    These are, respectively, the ansible version that was built and the ansible-core version which
     it was built against.  Note that the ansible release will depend on a compatible version of that
     ansible base version, not an exact dependency on that precise version.
     """

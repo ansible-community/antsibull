@@ -15,7 +15,7 @@
 
 {% if collection == 'ansible.builtin' -%}
 .. note::
-    This module was part of ``ansible-base`` and was included in all Ansible installations.
+    This module was part of ``ansible-core`` and was included in all Ansible installations.
 {% else %}
 .. note::
     This plugin was part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.

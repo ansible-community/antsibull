@@ -231,7 +231,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     new_parser = subparsers.add_parser('new-ansible', parents=[build_write_data_parser],
                                        description='Generate a new build description from the'
-                                       ' latest available versions of ansible-base and the'
+                                       ' latest available versions of ansible-core and the'
                                        ' included collections')
     new_parser.add_argument('--pieces-file', default=None,
                             help='File containing a list of collections to include.  This is'

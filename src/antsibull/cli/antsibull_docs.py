@@ -399,7 +399,7 @@ def main() -> int:
         :0: Success
         :1: Unhandled error.  See the Traceback for more information.
         :2: There was a problem with the command line arguments
-        :3: Unexpected problem downloading ansible-base
+        :3: Unexpected problem downloading ansible-core
     """
     return run(sys.argv)
 

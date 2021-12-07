@@ -33,7 +33,7 @@ from .galaxy import CollectionDownloader
 
 class ChangelogData:
     '''
-    Data for a single changelog (for a collection, for ansible-base, for Ansible)
+    Data for a single changelog (for a collection, for ansible-core, for Ansible)
     '''
 
     paths: PathsConfig

@@ -69,7 +69,7 @@ def _process_plugin_results(plugin_type: str,
 
         stdout = ansible_doc_results.stdout.decode('utf-8', errors='surrogateescape')
 
-        # ansible-doc returns plugins shipped with ansible-base using no namespace and collection.
+        # ansible-doc returns plugins shipped with ansible-core using no namespace and collection.
         # For now, we fix these entries to use the ansible.builtin collection here.  The reason we
         # do it here instead of as part of a general normalization step is that other plugins
         # (site-specific ones from ANSIBLE_LIBRARY, for instance) will also be returned with no
@@ -114,7 +114,7 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
                 plugin_name:  # This is the canonical name for the plugin and includes
                               # namespace.collection_name unless the plugin comes from
-                              # ansible-base.
+                              # ansible-core.
                     {information from ansible-doc --json.  See the ansible-doc documentation for
                      more info.}
     :kwarg max_workers: The maximum number of threads that should be run in parallel by this

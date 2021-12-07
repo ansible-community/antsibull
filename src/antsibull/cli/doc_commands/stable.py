@@ -63,7 +63,7 @@ async def retrieve(ansible_base_version: str,
     """
     Download ansible-core and the collections.
 
-    :arg ansible_base_version: Version of ansible-base/-core to download.
+    :arg ansible_base_version: Version of ansible-core to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into.
     :arg galaxy_server: URL to the galaxy server.
@@ -273,7 +273,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     """
     Create documentation for a set of installed collections.
 
-    :arg venv: The venv in which ansible-base is installed.
+    :arg venv: The venv in which ansible-core is installed.
     :arg collection_dir: The directory in which the collections have been installed.
                          If ``None``, the collections are assumed to be in the current
                          search path for Ansible.
@@ -384,7 +384,7 @@ def generate_docs() -> int:
     flog.debug('Finished parsing deps file')
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Retrieve ansible-base and the collections
+        # Retrieve ansible-core and the collections
         flog.fields(tmp_dir=tmp_dir).info('created tmpdir')
         collection_tarballs = asyncio_run(
             retrieve(ansible_base_version, collections, tmp_dir,

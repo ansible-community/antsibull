@@ -2,7 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""Functions for working with the ansible-base package."""
+"""Functions for working with the ansible-core package."""
 import ast
 import asyncio
 import os
@@ -27,7 +27,7 @@ if t.TYPE_CHECKING:
 
 mlog = log.fields(mod=__name__)
 
-#: URL to checkout ansible-base from.
+#: URL to checkout ansible-core from.
 _ANSIBLE_BASE_URL = str(app_context.AppContext().ansible_base_url)
 #: URL to pypi.
 _PYPI_SERVER_URL = str(app_context.AppContext().pypi_url)
@@ -66,7 +66,7 @@ class AnsibleBasePyPiClient:
     @lru_cache(None)
     async def get_release_info(self) -> t.Dict[str, t.Any]:
         """
-        Retrieve information about releases of the ansible-base/ansible-core package from pypi.
+        Retrieve information about releases of the ansible-core/ansible-core package from pypi.
 
         :returns: The dict which represents the release info keyed by version number.
             To examine the data structure, use::
@@ -90,7 +90,7 @@ class AnsibleBasePyPiClient:
 
     async def get_versions(self) -> t.List[PypiVer]:
         """
-        Get the versions of the ansible-base package on pypi.
+        Get the versions of the ansible-core package on pypi.
 
         :returns: A list of :pypkg:obj:`packaging.versioning.Version`s
             for all the versions on pypi, including prereleases.
@@ -108,7 +108,7 @@ class AnsibleBasePyPiClient:
 
     async def get_latest_version(self) -> PypiVer:
         """
-        Get the latest version of ansible-base uploaded to pypi.
+        Get the latest version of ansible-core uploaded to pypi.
 
         :return: A :pypkg:obj:`packaging.versioning.Version` object representing the latest version
             of the package on pypi.  This may be a pre-release.
@@ -120,7 +120,7 @@ class AnsibleBasePyPiClient:
         """
         Get the release from pypi.
 
-        :arg ansible_base_version: Version of ansible-base to download.
+        :arg ansible_base_version: Version of ansible-core to download.
         :arg download_dir: Directory to download the tarball to.
         :returns: The name of the downloaded tarball.
         """
@@ -193,8 +193,8 @@ def _get_source_version(ansible_base_source: str) -> PypiVer:
 
 def source_is_devel(ansible_base_source: t.Optional[str]) -> bool:
     """
-    :arg ansible_base_source: A path to an Ansible-base checkout or expanded sdist or None.
-        This will be used instead of downloading an ansible-base package if the version matches
+    :arg ansible_base_source: A path to an Ansible-core checkout or expanded sdist or None.
+        This will be used instead of downloading an ansible-core package if the version matches
         with ``ansible_base_version``.
     :returns: True if the source looks like it is for the devel branch.
     """
@@ -216,10 +216,10 @@ def source_is_devel(ansible_base_source: t.Optional[str]) -> bool:
 def source_is_correct_version(ansible_base_source: t.Optional[str],
                               ansible_base_version: PypiVer) -> bool:
     """
-    :arg ansible_base_source: A path to an Ansible-base checkout or expanded sdist or None.
-        This will be used instead of downloading an ansible-base package if the version matches
+    :arg ansible_base_source: A path to an Ansible-core checkout or expanded sdist or None.
+        This will be used instead of downloading an ansible-core package if the version matches
         with ``ansible_base_version``.
-    :arg ansible_base_version: Version of ansible-base to retrieve.
+    :arg ansible_base_version: Version of ansible-core to retrieve.
     :returns: True if the source is for a compatible version at or newer than the requested version
     """
     if ansible_base_source is None:
@@ -230,7 +230,7 @@ def source_is_correct_version(ansible_base_source: t.Optional[str],
     except Exception:
         return False
 
-    # If the source is a compatible version of ansible-base and it is the same or more recent than
+    # If the source is a compatible version of ansible-core and it is the same or more recent than
     # the requested version then allow this.
     if (source_version.major == ansible_base_version.major
             and source_version.minor == ansible_base_version.minor
@@ -243,14 +243,14 @@ def source_is_correct_version(ansible_base_source: t.Optional[str],
 @lru_cache(None)
 async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_BASE_URL) -> str:
     """
-    Checkout the ansible-base git repo.
+    Checkout the ansible-core git repo.
 
     :arg download_dir: Directory to checkout into.
     :kwarg: repo_url: The url to the git repo.
-    :return: The directory that ansible-base has been checked out to.
+    :return: The directory that ansible-core has been checked out to.
     """
     loop = best_get_loop()
-    ansible_base_dir = os.path.join(download_dir, 'ansible-base')
+    ansible_base_dir = os.path.join(download_dir, 'ansible-core')
     await loop.run_in_executor(None, sh.git, 'clone', repo_url, ansible_base_dir)
 
     return ansible_base_dir
@@ -305,16 +305,16 @@ async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
                            tmpdir: str,
                            ansible_base_source: t.Optional[str] = None) -> str:
     """
-    Create an ansible-base directory of the requested version.
+    Create an ansible-core directory of the requested version.
 
     :arg aio_session: :obj:`aiohttp.client.ClientSession` to make http requests with.
-    :arg ansible_base_version: Version of ansible-base to retrieve.  If it is the special string
-        ``@devel``, then we will retrieve ansible-base from its git repository.  If it is the
+    :arg ansible_base_version: Version of ansible-core to retrieve.  If it is the special string
+        ``@devel``, then we will retrieve ansible-core from its git repository.  If it is the
         special string ``@latest``, then we will retrieve the latest version from pypi.
     :arg tmpdir: Temporary directory use as a scratch area for downloading to and the place that the
-        ansible-base directory should be placed in.
-    :kwarg ansible_base_source: If given, a path to an ansible-base checkout or expanded sdist.
-        This will be used instead of downloading an ansible-base package if the version matches
+        ansible-core directory should be placed in.
+    :kwarg ansible_base_source: If given, a path to an ansible-core checkout or expanded sdist.
+        This will be used instead of downloading an ansible-core package if the version matches
         with ``ansible_base_version``.
     """
     if ansible_base_version == '@devel':

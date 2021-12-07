@@ -23,7 +23,7 @@ def display_exception(loop, context):
 
 async def get_version_info(collections, pypi_server_url):
     """
-    Return the versions of all the collections and ansible-base/ansible-core
+    Return the versions of all the collections and ansible-core
     """
     loop = asyncio.get_running_loop()
     loop.set_exception_handler(display_exception)
@@ -55,7 +55,7 @@ def version_is_compatible(ansible_base_version, collection, version):
 
 
 def find_latest_compatible(ansible_base_version, raw_dependency_versions):
-    # Note: ansible-base compatibility is not currently implemented.  It will be a piece of
+    # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
     # collection metadata that is present in the collection but may not be present in galaxy.  We'll
     # have to figure that out once the pieces are finalized
 

@@ -99,7 +99,7 @@ def generate_docs() -> int:
     flog.debug('Finished parsing deps file')
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Retrieve ansible-base and the collections
+        # Retrieve ansible-core and the collections
         flog.fields(tmp_dir=tmp_dir).info('created tmpdir')
         collection_tarballs = asyncio_run(
             retrieve(collections, tmp_dir,
