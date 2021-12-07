@@ -11,7 +11,7 @@ import asyncio_pool
 import semantic_version as semver
 
 from . import app_context
-from .ansible_core import AnsibleBasePyPiClient
+from .ansible_core import AnsibleCorePyPiClient
 from .changelog import ChangelogData
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
@@ -32,7 +32,7 @@ async def get_version_info(collections, pypi_server_url):
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            pypi_client = AnsibleBasePyPiClient(aio_session, pypi_server_url=pypi_server_url)
+            pypi_client = AnsibleCorePyPiClient(aio_session, pypi_server_url=pypi_server_url)
             requestors['_ansible_core'] = await pool.spawn(pypi_client.get_versions())
             galaxy_client = GalaxyClient(aio_session)
 

@@ -41,13 +41,13 @@ class CannotBuild(Exception):
     """Raised when we can't figure out how to build a package."""
 
 
-class AnsibleBasePyPiClient:
-    """Class to retrieve information about AnsibleBase from Pypi."""
+class AnsibleCorePyPiClient:
+    """Class to retrieve information about ansible-core from Pypi."""
 
     def __init__(self, aio_session: 'aiohttp.client.ClientSession',
                  pypi_server_url: str = _PYPI_SERVER_URL) -> None:
         """
-        Initialize the AnsibleBasePypi class.
+        Initialize the AnsibleCorePypiClient class.
 
         :arg aio_session: :obj:`aiohttp.client.ClientSession` to make requests to pypi from.
         :kwarg pypi_server_url: URL to the pypi server to use.
@@ -95,7 +95,7 @@ class AnsibleBasePyPiClient:
         :returns: A list of :pypkg:obj:`packaging.versioning.Version`s
             for all the versions on pypi, including prereleases.
         """
-        flog = mlog.fields(func='AnsibleBasePyPiClient.get_versions')
+        flog = mlog.fields(func='AnsibleCorePyPiClient.get_versions')
         flog.debug('Enter')
 
         release_info = await self.get_release_info()
@@ -330,7 +330,7 @@ async def get_ansible_core(aio_session: 'aiohttp.client.ClientSession',
         # Create an sdist from the source that can be installed
         install_file = await create_sdist(source_location, tmpdir)
     else:
-        pypi_client = AnsibleBasePyPiClient(aio_session)
+        pypi_client = AnsibleCorePyPiClient(aio_session)
         if ansible_core_version == '@latest':
             ansible_core_version: PypiVer = await pypi_client.get_latest_version()
         else:
