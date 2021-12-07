@@ -15,8 +15,9 @@ don't want to install backwards incompatible collections until the next major An
 
 from typing import TYPE_CHECKING, Dict, List, Mapping, NamedTuple, Optional
 
+from packaging.version import Version as PypiVer
+
 if TYPE_CHECKING:
-    from packaging.version import Version as PypiVer
     from semantic_version import Version as SemVer
 
 
@@ -128,7 +129,7 @@ class DepsFile:
 
         with open(self.filename, 'w') as f:
             f.write(f'_ansible_version: {ansible_version}\n')
-            if ansible_version.major > 5:
+            if PypiVer(ansible_version).major > 5:
                 f.write(f'_ansible_core_version: {ansible_core_version}\n')
             else:
                 f.write(f'_ansible_base_version: {ansible_core_version}\n')
