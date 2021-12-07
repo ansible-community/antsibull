@@ -126,7 +126,7 @@ def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> 
 
 
 def write_setup(ansible_version: PypiVer,
-                ansible_base_version: PypiVer,
+                ansible_core_version: PypiVer,
                 collection_deps: str,
                 package_dir: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
@@ -134,8 +134,8 @@ def write_setup(ansible_version: PypiVer,
     setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(
         version=ansible_version,
-        ansible_core_package_name=get_ansible_core_package_name(ansible_base_version),
-        ansible_base_version=ansible_base_version,
+        ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
+        ansible_core_version=ansible_core_version,
         collection_deps=collection_deps)
 
     with open(setup_filename, 'w') as f:
@@ -143,23 +143,23 @@ def write_setup(ansible_version: PypiVer,
 
 
 def write_python_build_files(ansible_version: PypiVer,
-                             ansible_base_version: PypiVer,
+                             ansible_core_version: PypiVer,
                              collection_deps: str,
                              package_dir: str,
                              release_notes: t.Optional[ReleaseNotes] = None,
                              debian: bool = False) -> None:
     copy_boilerplate_files(package_dir)
     write_manifest(package_dir, release_notes, debian)
-    write_setup(ansible_version, ansible_base_version, collection_deps, package_dir)
+    write_setup(ansible_version, ansible_core_version, collection_deps, package_dir)
 
 
 def write_debian_directory(ansible_version: PypiVer,
-                           ansible_base_version: PypiVer,
+                           ansible_core_version: PypiVer,
                            package_dir: str) -> None:
     debian_dir = os.path.join(package_dir, 'debian')
     os.mkdir(debian_dir, mode=0o700)
     debian_files = ('changelog.j2', 'control.j2', 'copyright', 'rules')
-    ansible_core_package_name = get_ansible_core_package_name(ansible_base_version)
+    ansible_core_package_name = get_ansible_core_package_name(ansible_core_version)
     for filename in debian_files:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
@@ -193,14 +193,14 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
 
 
 def write_build_script(ansible_version: PypiVer,
-                       ansible_base_version: PypiVer,
+                       ansible_core_version: PypiVer,
                        package_dir: str) -> None:
     """Write a build-script that tells how to build this tarball."""
     build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
 
     build_ansible_tmpl = Template(get_antsibull_data('build-ansible.sh.j2').decode('utf-8'))
     build_ansible_contents = build_ansible_tmpl.render(version=ansible_version,
-                                                       ansible_base_version=ansible_base_version)
+                                                       ansible_core_version=ansible_core_version)
 
     with open(build_ansible_filename, 'w') as f:
         f.write(build_ansible_contents)
@@ -222,8 +222,8 @@ def prepare_command() -> int:
 
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
-    build_ansible_version, ansible_base_version, deps = build_file.parse()
-    ansible_base_version = PypiVer(ansible_base_version)
+    build_ansible_version, ansible_core_version, deps = build_file.parse()
+    ansible_core_version = PypiVer(ansible_core_version)
 
     # If we're building a feature frozen release (betas and rcs) then we need to
     # change the upper version limit to not include new features.
@@ -263,7 +263,7 @@ def prepare_command() -> int:
 
     dependency_data = DependencyFileData(
         str(app_ctx.extra['ansible_version']),
-        str(ansible_base_version),
+        str(ansible_core_version),
         {collection: str(version) for collection, version in included_versions.items()})
 
     # Get Ansible changelog, add new release
@@ -283,7 +283,7 @@ def prepare_command() -> int:
     deps_file = DepsFile(deps_filename)
     deps_file.write(
         dependency_data.ansible_version,
-        dependency_data.ansible_base_version,
+        dependency_data.ansible_core_version,
         dependency_data.deps)
 
     return 0
@@ -297,7 +297,7 @@ def rebuild_single_command() -> int:
     dependency_data = deps_file.parse()
 
     # Determine included collection versions
-    ansible_base_version = PypiVer(dependency_data.ansible_base_version)
+    ansible_core_version = PypiVer(dependency_data.ansible_core_version)
     included_versions = {
         collection: SemVer(version)
         for collection, version in dependency_data.deps.items()
@@ -354,11 +354,11 @@ def rebuild_single_command() -> int:
         release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
         # Write build scripts and files
-        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version, '',
+        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version, '',
                                  package_dir, release_notes, app_ctx.extra['debian'])
         if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['ansible_version'], ansible_base_version,
+            write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)
 
         # Create source distribution
@@ -440,8 +440,8 @@ def build_multiple_command() -> int:
 
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
-    build_ansible_version, ansible_base_version, deps = build_file.parse()
-    ansible_base_version = PypiVer(ansible_base_version)
+    build_ansible_version, ansible_core_version, deps = build_file.parse()
+    ansible_core_version = PypiVer(ansible_core_version)
 
     # TODO: implement --feature-frozen support
 
@@ -482,8 +482,8 @@ def build_multiple_command() -> int:
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
         collection_deps = '\n' + ',\n'.join(collection_deps)
-        write_build_script(app_ctx.extra['ansible_version'], ansible_base_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_base_version,
+        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
                                  collection_deps, package_dir)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
@@ -491,6 +491,6 @@ def build_multiple_command() -> int:
     # Write the deps file
     deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(app_ctx.extra['ansible_version'], ansible_base_version, included_versions)
+    deps_file.write(app_ctx.extra['ansible_version'], ansible_core_version, included_versions)
 
     return 0

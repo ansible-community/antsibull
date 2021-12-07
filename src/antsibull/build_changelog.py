@@ -200,15 +200,15 @@ def append_changelog_changes_base(builder: RstBuilder,
     builder.add_section(base_name, 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains {base_name} "
-                        f"version {changelog_entry.ansible_base_version}.")
-    if changelog_entry.prev_ansible_base_version:
-        if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
+                        f"version {changelog_entry.ansible_core_version}.")
+    if changelog_entry.prev_ansible_core_version:
+        if changelog_entry.prev_ansible_core_version == changelog_entry.ansible_core_version:
             builder.add_raw_rst(f"This is the same version of {base_name} as in "
                                 "the previous Ansible release.\n")
             return []
 
         builder.add_raw_rst(f"This is a newer version than version "
-                            f"{changelog_entry.prev_ansible_base_version} contained in the "
+                            f"{changelog_entry.prev_ansible_core_version} contained in the "
                             f"previous Ansible release.\n")
 
     changelog = changelog_entry.base_collector.changelog
@@ -217,8 +217,8 @@ def append_changelog_changes_base(builder: RstBuilder,
 
     release_entries = changelog.generator.collect(
         squash=True,
-        after_version=changelog_entry.prev_ansible_base_version,
-        until_version=changelog_entry.ansible_base_version)
+        after_version=changelog_entry.prev_ansible_core_version,
+        until_version=changelog_entry.ansible_core_version)
 
     if not release_entries:
         builder.add_raw_rst(f"{base_name} did not have a changelog in this version.")
@@ -429,8 +429,8 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
     check_changelog(
         'Ansible-core' if is_core else 'Ansible-base',
         changelog_entry.base_collector.changelog,
-        changelog_entry.ansible_base_version,
-        changelog_entry.prev_ansible_base_version)
+        changelog_entry.ansible_core_version,
+        changelog_entry.prev_ansible_core_version)
     for (
             collector, collection_version, prev_collection_version
     ) in changelog_entry.changed_collections:
