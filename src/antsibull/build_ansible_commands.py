@@ -278,6 +278,7 @@ def prepare_command() -> int:
         f'`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_')
     ansible_changelog.changes.save()
 
+    # Write dependency file
     deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     deps_file.write(
