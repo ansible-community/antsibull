@@ -11,7 +11,7 @@ import asyncio_pool
 import semantic_version as semver
 
 from . import app_context
-from .ansible_base import AnsibleBasePyPiClient
+from .ansible_core import AnsibleBasePyPiClient
 from .changelog import ChangelogData
 from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient

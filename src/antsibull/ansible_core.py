@@ -28,7 +28,7 @@ if t.TYPE_CHECKING:
 mlog = log.fields(mod=__name__)
 
 #: URL to checkout ansible-core from.
-_ANSIBLE_BASE_URL = str(app_context.AppContext().ansible_base_url)
+_ANSIBLE_CORE_URL = str(app_context.AppContext().ansible_base_url)
 #: URL to pypi.
 _PYPI_SERVER_URL = str(app_context.AppContext().pypi_url)
 
@@ -241,7 +241,7 @@ def source_is_correct_version(ansible_base_source: t.Optional[str],
 
 
 @lru_cache(None)
-async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_BASE_URL) -> str:
+async def checkout_from_git(download_dir: str, repo_url: str = _ANSIBLE_CORE_URL) -> str:
     """
     Checkout the ansible-core git repo.
 
@@ -300,7 +300,7 @@ async def create_sdist(source_dir: str, dest_dir: str) -> str:
     return os.path.join(dist_dir, dist_files[0])
 
 
-async def get_ansible_base(aio_session: 'aiohttp.client.ClientSession',
+async def get_ansible_core(aio_session: 'aiohttp.client.ClientSession',
                            ansible_base_version: str,
                            tmpdir: str,
                            ansible_base_source: t.Optional[str] = None) -> str:

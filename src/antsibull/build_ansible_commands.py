@@ -21,7 +21,7 @@ from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 from . import app_context
-from .ansible_base import get_ansible_core_package_name
+from .ansible_core import get_ansible_core_package_name
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together

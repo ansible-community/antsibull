@@ -26,7 +26,7 @@ from antsibull_changelog.changelog_generator import ChangelogGenerator
 from antsibull_changelog.utils import collect_versions
 
 from . import app_context
-from .ansible_base import get_ansible_base
+from .ansible_core import get_ansible_core
 from .dependency_files import DepsFile, DependencyFileData
 from .galaxy import CollectionDownloader
 
@@ -297,7 +297,7 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                                                   collection_cache=collection_cache)
 
                 async def base_downloader(version):
-                    return await get_ansible_base(aio_session, version, tmp_dir)
+                    return await get_ansible_core(aio_session, version, tmp_dir)
 
                 requestors = [
                     await pool.spawn(collector.download(downloader)) for collector in collectors
