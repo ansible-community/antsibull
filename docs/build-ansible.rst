@@ -72,7 +72,7 @@ All alpha releases and the first beta
     antsibull-build prepare 3.0.0a1 --data-dir ansible-build-data/3
 
     # Create the ansible release
-    # (This generates a single tarball for ansible with a dep on the ansible-base package)
+    # (This generates a single tarball for ansible with a dep on the ansible-core package)
     antsibull-build rebuild-single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
@@ -111,7 +111,7 @@ Beta2 up to and including rc1
     antsibull-build prepare 3.0.0b2 --feature-frozen --data-dir ansible-build-data/3
 
     # Create the ansible release
-    # (This generates a single tarball for ansible with a dep on the ansible-base package)
+    # (This generates a single tarball for ansible with a dep on the ansible-core package)
     antsibull-build rebuild-single 3.0.0b2 --data-dir ansible-build-data/3 --sdist-dir built --debian
 
 
@@ -126,7 +126,7 @@ Any subsequent rcs and final
     # We do not run antsibull-build prepare because the compatible collection version information
     # is now set until final.
     # * Change the _ansible_version field to the new version
-    # * If ansible-base needs a version update, change it in the .build and .deps file.
+    # * If ansible-core needs a version update, change it in the .build and .deps file.
     # * If any collections have been granted an update exception, change the range manually in the
     #   .build and .deps file.
     # vim ansible-build-data/3/ansible-3.build
@@ -149,12 +149,12 @@ New minor releases (3.Y.0)
     # (This generates the dependency file and updates changelog.yaml)
     antsibull-build prepare 3.1.0 --data-dir ansible-build-data/3
 
-    # Until we get separate versions for ansible-base working correctly:
+    # Until we get separate versions for ansible-core working correctly:
     # https://github.com/ansible-community/antsibull/issues/187
     # We'll need to update the ansible-core version manually. Follow
     # these steps after running antsibull-build prepare above:
     # vim ansible-build-data/3/ansible-3.1.0.deps
-    # Change the ansible-base version information in here to the latest compatible version on pypi
+    # Change the ansible-core version information in here to the latest compatible version on pypi
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-core package)
@@ -240,7 +240,7 @@ Update the topic in the #ansible channel with the new version
 TODO
 ====
 
-* Right now the script assumes ansible-base and ansible will have the same version.  This is true
-  for 2.10 and possibly for 3 but in the longer term ansible-base major releases are going to
+* Right now the script assumes ansible-core and ansible will have the same version.  This is true
+  for 2.10 and possibly for 3 but in the longer term ansible-core major releases are going to
   slow down while ansible releases may speed up slightly.  We'll need to adapt the script to handle
   these diverged versions.
