@@ -93,6 +93,22 @@ def rst_ify(text):
     return text
 
 
+def rst_escape(value):
+    ''' make sure value is converted to a string, and RST special characters are escaped '''
+
+    if not isinstance(value, str):
+        value = str(value)
+
+    value = value.replace('\\', '\\\\')
+    value = value.replace('<', '\\<')
+    value = value.replace('>', '\\>')
+    value = value.replace('_', '\\_')
+    value = value.replace('*', '\\*')
+    value = value.replace('`', '\\`')
+
+    return value
+
+
 def rst_fmt(text, fmt):
     ''' helper for Jinja2 to do format strings '''
 

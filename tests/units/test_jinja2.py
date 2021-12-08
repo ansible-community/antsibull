@@ -1,6 +1,6 @@
 import pytest
 
-from antsibull.jinja2.filters import rst_ify, move_first
+from antsibull.jinja2.filters import rst_ify, rst_escape, move_first
 
 
 RST_IFY_DATA = {
@@ -31,6 +31,28 @@ RST_IFY_DATA = {
 @pytest.mark.parametrize('text, expected', RST_IFY_DATA.items())
 def test_rst_ify(text, expected):
     assert rst_ify(text) == expected
+
+
+RST_ESCAPE_DATA = {
+    '': '',
+    'no-op': 'no-op',
+    None: 'None',
+    1: '1',
+    '*': '\\*',
+    '_': '\\_',
+    '<': '\\<',
+    '>': '\\>',
+    '`': '\\`',
+    '\\': '\\\\',
+    '\\*': '\\\\\\*',
+    '*\\': '\\*\\\\',
+    ':role:`test`': ':role:\\`test\\`',
+}
+
+
+@pytest.mark.parametrize('value, expected', RST_ESCAPE_DATA.items())
+def test_escape_ify(value, expected):
+    assert rst_escape(value) == expected
 
 
 MOVE_FIRST_DATA = [

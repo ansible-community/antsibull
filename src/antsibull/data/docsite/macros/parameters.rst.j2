@@ -93,9 +93,9 @@
 {%         set choice = 'no' %}
 {%       endif %}
 {%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
-      - :ansible-option-default-bold:`@{ choice | rst_ify }@` :ansible-option-default:`← (default)`
+      - :ansible-option-default-bold:`@{ choice | rst_escape }@` :ansible-option-default:`← (default)`
 {%       else %}
-      - :ansible-option-choices-entry:`@{ choice | rst_ify }@`
+      - :ansible-option-choices-entry:`@{ choice | rst_escape }@`
 {%       endif %}
 {%     endfor %}
 {%   endif %}
@@ -104,7 +104,7 @@
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_ify | indent(6) }@`
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_escape | indent(6) }@`
 {%   endif %}
 {#   configuration #}
 {%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
@@ -129,7 +129,7 @@
 {%       endfor %}
 {%     endif %}
 {%     for env in value['env'] %}
-      - Environment variable: @{ env['name'] | rst_ify }@
+      - Environment variable: @{ env['name'] | rst_escape }@
 {%       if env['version_added'] is still_relevant %}
 
         :ansible-option-versionadded:`added in @{env['version_added']}@ of @{ env['version_added_collection'] | rst_ify }@`
@@ -137,7 +137,7 @@
 @{       deprecates(env['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for myvar in value['vars'] %}
-      - Variable: @{ myvar['name'] }@
+      - Variable: @{ myvar['name'] | rst_escape }@
 {%       if myvar['version_added'] is still_relevant %}
 
         :ansible-option-versionadded:`added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | rst_ify }@`
@@ -145,7 +145,7 @@
 @{       deprecates(myvar['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for mycli in value['cli'] %}
-      - CLI argument: @{ mycli['option'] }@
+      - CLI argument: @{ mycli['option'] | rst_escape }@
 {%       if mycli['version_added'] is still_relevant %}
 
         :ansible-option-versionadded:`added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | rst_ify }@`
