@@ -79,8 +79,9 @@
 {%   if value['sample'] is not none %}
 
       .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-option-sample:`@{ value['sample'] | tojson | rst_ify | indent(6) }@`
+      :ansible-option-sample-bold:`Sample:` @{ value['sample'] | tojson | rst_escape | indent(6) }@
 {%   endif %}
 {%   if value['contains'] %}
     @{ loop(value['contains'] | dictsort) }@
