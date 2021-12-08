@@ -6,6 +6,7 @@ Jinja2 filters for use in Ansible documentation.
 
 import re
 from html import escape as html_escape
+from urllib.parse import quote
 
 from jinja2.runtime import Undefined
 
@@ -71,21 +72,61 @@ def do_max(seq):
     return max(seq)
 
 
+# In the following, we make heavy use of escaped whitespace ("\ ") being removed from the output.
+# See
+# https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#character-level-inline-markup-1
+# for further information.
+
+def _rst_ify_italic(m):
+    return f"\\ :emphasis:`{rst_escape(m.group(1))}`\\ "
+
+
+def _rst_ify_bold(m):
+    return f"\\ :strong:`{rst_escape(m.group(1))}`\\ "
+
+
+def _rst_ify_module(m):
+    fqcn = '{0}.{1}.{2}'.format(m.group(1), m.group(2), m.group(3))
+    return f"\\ :ref:`{rst_escape(fqcn)} <ansible_collections.{fqcn}_module>`\\ "
+
+
+def _escape_url(url):
+    # We include '<>[]{}' in safe to allow urls such as 'https://<HOST>:[PORT]/v{version}/' to
+    # remain unmangled by percent encoding
+    return quote(url, safe=':/#?%<>[]{}')
+
+
+def _rst_ify_link(m):
+    return f"\\ `{rst_escape(m.group(1))} <{_escape_url(m.group(2))}>`__\\ "
+
+
+def _rst_ify_url(m):
+    return f"\\ {_escape_url(m.group(1))}\\ "
+
+
+def _rst_ify_ref(m):
+    return f"\\ :ref:`{rst_escape(m.group(1))} <{m.group(2)}>`\\ "
+
+
+def _rst_ify_const(m):
+    # Escaping does not work in double backticks, so we use the :literal: role instead
+    return f"\\ :literal:`{rst_escape(m.group(1))}`\\ "
+
+
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
 
-    flog = mlog.fields(func='html_ify')
+    flog = mlog.fields(func='rst_ify')
     flog.fields(text=text).debug('Enter')
     _counts = {}
 
-    text, _counts['italic'] = _ITALIC.subn(r"*\1*", text)
-    text, _counts['bold'] = _BOLD.subn(r"**\1**", text)
-    text, _counts['module'] = _MODULE.subn(
-        r":ref:`\1.\2.\3 <ansible_collections.\1.\2.\3_module>`", text)
-    text, _counts['url'] = _LINK.subn(r"`\1 <\2>`__", text)
-    text, _counts['ref'] = _URL.subn(r"\1", text)
-    text, _counts['link'] = _REF.subn(r":ref:`\1 <\2>`", text)
-    text, _counts['const'] = _CONST.subn(r"``\1``", text)
+    text, _counts['italic'] = _ITALIC.subn(_rst_ify_italic, text)
+    text, _counts['bold'] = _BOLD.subn(_rst_ify_bold, text)
+    text, _counts['module'] = _MODULE.subn(_rst_ify_module, text)
+    text, _counts['link'] = _LINK.subn(_rst_ify_link, text)
+    text, _counts['url'] = _URL.subn(_rst_ify_url, text)
+    text, _counts['ref'] = _REF.subn(_rst_ify_ref, text)
+    text, _counts['const'] = _CONST.subn(_rst_ify_const, text)
     text, _counts['ruler'] = _RULER.subn('\n\n.. raw:: html\n\n  <hr>\n\n', text)
 
     flog.fields(counts=_counts).info('Number of macros converted to rst equivalents')
