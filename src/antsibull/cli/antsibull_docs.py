@@ -324,10 +324,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     if '--ansible-base-cache' in args:
         flog.warning('The CLI parameter, `--ansible-base-cache` has been renamed to'
-                     ' `--ansible-core-source.  Please use that instead')
+                     ' `--ansible-core-source`.  Please use that instead')
     if '--ansible-base-source' in args:
         flog.warning('The CLI parameter, `--ansible-base-source` has been renamed to'
-                     ' `--ansible-core-source.  Please use that instead')
+                     ' `--ansible-core-source`.  Please use that instead')
 
     if '--skip-indexes' in args:
         flog.warning('The CLI parameter, `--skip-indexes` has been renamed to'

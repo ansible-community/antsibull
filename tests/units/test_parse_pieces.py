@@ -39,7 +39,7 @@ PARSED_DEPS_DEPS = {
 DEPS_2 = """
 _ansible_version: 2.10.5
 # this is a comment
-_ansible_base_version: 2.10.4
+_ansible_core_version: 2.10.4
     # supported by ansible
     ansible.netcommon: 1.4.1
     ansible.posix: 1.1.1
@@ -81,7 +81,7 @@ PARSED_BUILD_DEPS = {
 BUILD_2 = """
 _ansible_version: 2.10
 # this is a comment
-_ansible_base_version: 2.10.1
+_ansible_core_version: 2.10.1
     # supported by ansible
     ansible.netcommon: >=1.2.0,<2.0.0
     ansible.posix: >=1.1.0,<2.0.0
