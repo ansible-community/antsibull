@@ -1,5 +1,5 @@
 # coding: utf-8
-# Author: Felix Fontein <tkuratom@redhat.com>
+# Author: Felix Fontein <felix@fontein.de>
 # License: GPLv3+
 # Copyright: Ansible Project, 2021
 """Code for handling extra collection documentation in docs/docsite/."""

@@ -28,3 +28,8 @@ The errors were:
 {% endfor %}
 
 File a bug with the `@{ collection }@ collection <https://galaxy.ansible.com/@{collection | replace(".", "/", 1)}@>`_ in order to have it corrected.
+
+{% if edit_on_github_url %}
+.. hint::
+    If you want to fix this issue yourself, you can `edit this document <@{ edit_on_github_url }@?description=%23%23%23%23%23%20SUMMARY%0A%3C!---%20Your%20description%20here%20--%3E%0A%0A%0A%23%23%23%23%23%20ISSUE%20TYPE%0A-%20Docs%20Pull%20Request%0A%0A%2Blabel:%20docsite_pr>`_.
+{% endif %}
