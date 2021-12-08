@@ -66,7 +66,7 @@ class AnsibleCorePyPiClient:
     @lru_cache(None)
     async def get_release_info(self) -> t.Dict[str, t.Any]:
         """
-        Retrieve information about releases of the ansible-core/ansible-core package from pypi.
+        Retrieve information about releases of the ansible-core/ansible-base package from pypi.
 
         :returns: The dict which represents the release info keyed by version number.
             To examine the data structure, use::
