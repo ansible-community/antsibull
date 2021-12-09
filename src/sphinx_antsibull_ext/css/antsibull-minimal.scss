@@ -54,6 +54,11 @@ table.documentation-table {
 }
 
 table.ansible-option-table {
+  // This is the default, but for some reason sphinx_ansible_theme sets this to 'display: block',
+  // which totally wrecks the layout. (The height 'hack' below then ensures that the table actually
+  // has height 1px, which basically hides it.)
+  display: table;
+
   border-color: #000000 !important;
   
   // The following is basically ignored, but together with the `height: 100%` for <tr>
