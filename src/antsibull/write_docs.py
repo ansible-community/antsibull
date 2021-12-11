@@ -57,6 +57,13 @@ async def copy_file(source_path: str, dest_path: str) -> None:
     flog.debug('Leave')
 
 
+def _render_template(_template: Template, _name: str, **kwargs) -> str:
+    try:
+        return _template.render(**kwargs)
+    except Exception as exc:
+        raise Exception(f"Error while rendering {_name}") from exc
+
+
 async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
                            plugin_short_name: str, plugin_type: str,
                            plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
@@ -95,7 +102,9 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                     nonfatal_errors=nonfatal_errors
                     ).error('{plugin_name} did not return correct DOCUMENTATION.  An error page'
                             ' will be generated.', plugin_name=plugin_name)
-        plugin_contents = error_tmpl.render(
+        plugin_contents = _render_template(
+            error_tmpl,
+            plugin_name + '_' + plugin_type,
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
             collection_version=collection_meta.version,
@@ -108,7 +117,9 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                         ).error('{plugin_name} did not return correct RETURN or EXAMPLES.',
                                 plugin_name=plugin_name)
         if plugin_type == 'role':
-            plugin_contents = plugin_tmpl.render(
+            plugin_contents = _render_template(
+                plugin_tmpl,
+                plugin_name + '_' + plugin_type,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
@@ -116,7 +127,9 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                 entry_points=plugin_record['entry_points'],
                 nonfatal_errors=nonfatal_errors)
         else:
-            plugin_contents = plugin_tmpl.render(
+            plugin_contents = _render_template(
+                plugin_tmpl,
+                plugin_name + '_' + plugin_type,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
@@ -178,14 +191,18 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
     plugin_name = '.'.join((collection_name, plugin_short_name))
 
     if 'tombstone' in routing_data:
-        plugin_contents = tombstone_tmpl.render(
+        plugin_contents = _render_template(
+            tombstone_tmpl,
+            plugin_name + '_' + plugin_type,
             plugin_type=plugin_type,
             plugin_name=plugin_name,
             collection=collection_name,
             collection_version=collection_meta.version,
             tombstone=routing_data['tombstone'])
     else:  # 'redirect' in routing_data
-        plugin_contents = redirect_tmpl.render(
+        plugin_contents = _render_template(
+            redirect_tmpl,
+            plugin_name + '_' + plugin_type,
             collection=collection_name,
             collection_version=collection_meta.version,
             plugin_type=plugin_type,
@@ -318,8 +335,12 @@ async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iter
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
         disabled.  This will disable breadcrumbs but save on memory usage.
     """
-    index_contents = template.render(
-        collections=collections, namespaces=namespaces, breadcrumbs=breadcrumbs)
+    index_contents = _render_template(
+        template,
+        dest_dir,
+        collections=collections,
+        namespaces=namespaces,
+        breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -341,8 +362,12 @@ async def write_collection_namespace_index(namespace: str, collections: t.Iterab
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should
         be disabled.  This will disable breadcrumbs but save on memory usage.
     """
-    index_contents = template.render(
-        namespace=namespace, collections=collections, breadcrumbs=breadcrumbs)
+    index_contents = _render_template(
+        template,
+        dest_dir,
+        namespace=namespace,
+        collections=collections,
+        breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
     async with aiofiles.open(index_file, 'w') as f:
@@ -362,7 +387,9 @@ async def write_plugin_type_index(plugin_type: str,
     :arg template: A template to render the plugin index.
     :arg dest_filename: The destination filename.
     """
-    index_contents = template.render(
+    index_contents = _render_template(
+        template,
+        dest_filename,
         plugin_type=plugin_type,
         per_collection_plugins=per_collection_plugins)
 
@@ -390,7 +417,9 @@ async def write_plugin_lists(collection_name: str,
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
         disabled.  This will disable breadcrumbs but save on memory usage.
     """
-    index_contents = template.render(
+    index_contents = _render_template(
+        template,
+        dest_dir,
         collection_name=collection_name,
         plugin_maps=plugin_maps,
         collection_version=collection_meta.version,

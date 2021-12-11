@@ -70,17 +70,18 @@
 {%         set choice = 'no' %}
 {%       endif %}
 {%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
-      - :ansible-option-default-bold:`@{ choice | rst_ify }@` :ansible-option-default:`← (default)`
+      - :ansible-option-default-bold:`@{ choice | rst_escape }@` :ansible-option-default:`← (default)`
 {%       else %}
-      - :ansible-option-choices-entry:`@{ choice | rst_ify }@`
+      - :ansible-option-choices-entry:`@{ choice | rst_escape }@`
 {%       endif %}
 {%     endfor %}
 {%   endif %}
 {%   if value['sample'] is not none %}
 
       .. rst-class:: ansible-option-line
+      .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-option-sample:`@{ value['sample'] | tojson | rst_ify | indent(6) }@`
+      :ansible-option-sample-bold:`Sample:` @{ value['sample'] | tojson | rst_escape | indent(6) }@
 {%   endif %}
 {%   if value['contains'] %}
     @{ loop(value['contains'] | dictsort) }@
