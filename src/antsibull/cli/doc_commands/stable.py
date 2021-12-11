@@ -16,7 +16,7 @@ import asyncio_pool
 from pydantic import ValidationError
 
 from ... import app_context
-from ...ansible_base import get_ansible_base
+from ...ansible_core import get_ansible_core
 from ...augment_docs import augment_docs
 from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
@@ -54,27 +54,27 @@ mlog = log.fields(mod=__name__)
 PluginErrorsRT = t.DefaultDict[str, t.DefaultDict[str, t.List[str]]]
 
 
-async def retrieve(ansible_base_version: str,
+async def retrieve(ansible_core_version: str,
                    collections: t.Mapping[str, str],
                    tmp_dir: str,
                    galaxy_server: str,
-                   ansible_base_source: t.Optional[str] = None,
+                   ansible_core_source: t.Optional[str] = None,
                    collection_cache: t.Optional[str] = None) -> t.Dict[str, 'semver.Version']:
     """
     Download ansible-core and the collections.
 
-    :arg ansible_base_version: Version of ansible-base/-core to download.
+    :arg ansible_core_version: Version of ansible-core to download.
     :arg collections: Map of collection names to collection versions to download.
     :arg tmp_dir: The directory to download into.
     :arg galaxy_server: URL to the galaxy server.
-    :kwarg ansible_base_source: If given, a path to an ansible-core checkout or expanded sdist.
+    :kwarg ansible_core_source: If given, a path to an ansible-core checkout or expanded sdist.
         This will be used instead of downloading an ansible-core package if the version matches
-        with ``ansible_base_version``.
+        with ``ansible_core_version``.
     :kwarg collection_cache: If given, a path to a directory containing collection tarballs.
         These tarballs will be used instead of downloading new tarballs provided that the
         versions match the criteria (latest compatible version known to galaxy).
     :returns: Map of collection name to directory it is in.  ansible-core will
-        use the special key, `_ansible_base`.
+        use the special key, `_ansible_core`.
     """
     collection_dir = os.path.join(tmp_dir, 'collections')
     os.mkdir(collection_dir, mode=0o700)
@@ -84,9 +84,9 @@ async def retrieve(ansible_base_version: str,
     lib_ctx = app_context.lib_ctx.get()
     async with aiohttp.ClientSession() as aio_session:
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            requestors['_ansible_base'] = await pool.spawn(
-                get_ansible_base(aio_session, ansible_base_version, tmp_dir,
-                                 ansible_base_source=ansible_base_source))
+            requestors['_ansible_core'] = await pool.spawn(
+                get_ansible_core(aio_session, ansible_core_version, tmp_dir,
+                                 ansible_core_source=ansible_core_source))
 
             downloader = CollectionDownloader(aio_session, collection_dir,
                                               galaxy_server=galaxy_server,
@@ -273,7 +273,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     """
     Create documentation for a set of installed collections.
 
-    :arg venv: The venv in which ansible-base is installed.
+    :arg venv: The venv in which ansible-core is installed.
     :arg collection_dir: The directory in which the collections have been installed.
                          If ``None``, the collections are assumed to be in the current
                          search path for Ansible.
@@ -380,27 +380,27 @@ def generate_docs() -> int:
     # Parse the deps file
     flog.fields(deps_file=app_ctx.extra['deps_file']).info('Parse deps file')
     deps_file = DepsFile(app_ctx.extra['deps_file'])
-    dummy_, ansible_base_version, collections = deps_file.parse()
+    dummy_, ansible_core_version, collections = deps_file.parse()
     flog.debug('Finished parsing deps file')
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Retrieve ansible-base and the collections
+        # Retrieve ansible-core and the collections
         flog.fields(tmp_dir=tmp_dir).info('created tmpdir')
         collection_tarballs = asyncio_run(
-            retrieve(ansible_base_version, collections, tmp_dir,
+            retrieve(ansible_core_version, collections, tmp_dir,
                      galaxy_server=app_ctx.galaxy_url,
-                     ansible_base_source=app_ctx.extra['ansible_base_source'],
+                     ansible_core_source=app_ctx.extra['ansible_base_source'],
                      collection_cache=app_ctx.extra['collection_cache']))
         # flog.fields(tarballs=collection_tarballs).debug('Download complete')
         flog.notice('Finished retrieving tarballs')
 
         # Get the ansible-core location
         try:
-            ansible_base_path = collection_tarballs.pop('_ansible_base')
+            ansible_core_path = collection_tarballs.pop('_ansible_core')
         except KeyError:
             print('ansible-core did not download successfully')
             return 3
-        flog.fields(ansible_base_path=ansible_base_path).info('ansible-core location')
+        flog.fields(ansible_core_path=ansible_core_path).info('ansible-core location')
 
         # Install the collections to a directory
 
@@ -418,7 +418,7 @@ def generate_docs() -> int:
 
         # Create venv for ansible-core
         venv = VenvRunner('ansible-core-venv', tmp_dir)
-        venv.install_package(ansible_base_path)
+        venv.install_package(ansible_core_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
         generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],

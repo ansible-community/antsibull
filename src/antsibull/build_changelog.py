@@ -200,15 +200,15 @@ def append_changelog_changes_base(builder: RstBuilder,
     builder.add_section(base_name, 1)
 
     builder.add_raw_rst(f"Ansible {changelog_entry.version} contains {base_name} "
-                        f"version {changelog_entry.ansible_base_version}.")
-    if changelog_entry.prev_ansible_base_version:
-        if changelog_entry.prev_ansible_base_version == changelog_entry.ansible_base_version:
+                        f"version {changelog_entry.ansible_core_version}.")
+    if changelog_entry.prev_ansible_core_version:
+        if changelog_entry.prev_ansible_core_version == changelog_entry.ansible_core_version:
             builder.add_raw_rst(f"This is the same version of {base_name} as in "
                                 "the previous Ansible release.\n")
             return []
 
         builder.add_raw_rst(f"This is a newer version than version "
-                            f"{changelog_entry.prev_ansible_base_version} contained in the "
+                            f"{changelog_entry.prev_ansible_core_version} contained in the "
                             f"previous Ansible release.\n")
 
     changelog = changelog_entry.base_collector.changelog
@@ -217,8 +217,8 @@ def append_changelog_changes_base(builder: RstBuilder,
 
     release_entries = changelog.generator.collect(
         squash=True,
-        after_version=changelog_entry.prev_ansible_base_version,
-        until_version=changelog_entry.ansible_base_version)
+        after_version=changelog_entry.prev_ansible_core_version,
+        until_version=changelog_entry.ansible_core_version)
 
     if not release_entries:
         builder.add_raw_rst(f"{base_name} did not have a changelog in this version.")
@@ -357,7 +357,7 @@ def append_changelog(builder: RstBuilder,
     append_removed_collections(builder, changelog_entry)
     append_added_collections(builder, changelog_entry)
 
-    # Adds Ansible-base section
+    # Adds Ansible-core section
     data.extend(append_changelog_changes_base(builder, changelog_entry))
     builder.add_raw_rst('')
 
@@ -429,8 +429,8 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
     check_changelog(
         'Ansible-core' if is_core else 'Ansible-base',
         changelog_entry.base_collector.changelog,
-        changelog_entry.ansible_base_version,
-        changelog_entry.prev_ansible_base_version)
+        changelog_entry.ansible_core_version,
+        changelog_entry.prev_ansible_core_version)
     for (
             collector, collection_version, prev_collection_version
     ) in changelog_entry.changed_collections:
@@ -540,7 +540,7 @@ class ReleaseNotes:
                     continue
                 builder.add_raw_rst(line)
             if not found_empty:
-                print('WARNING: cannot find TOC of ansible-base porting guide!')
+                print('WARNING: cannot find TOC of ansible-core porting guide!')
 
     @staticmethod
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
@@ -599,15 +599,15 @@ class ReleaseNotes:
 
         builder.add_raw_rst('.. contents::\n  :local:\n  :depth: 2\n')
 
-        # Determine ansible-base/-core version in previous major release
+        # Determine ansible-core version in previous major release
         prev_base_version = ''
         if any(entry.is_ancestor for entry in changelog.entries):
-            # If there is an ancestor, the earliest ansible-base/-core version will be the
+            # If there is an ancestor, the earliest ansible-core version will be the
             # version used in the previous major release.
             prev_base_version = changelog.base_collector.earliest
             prev_base_version = f"{prev_base_version.major}.{prev_base_version.minor}"
 
-        # Determine whether to include ansible-base/-core porting guide or not
+        # Determine whether to include ansible-core porting guide or not
         if changelog.ansible_version.major == 2 or base_version != prev_base_version:
             builder.add_raw_rst(
                 # noqa: E501

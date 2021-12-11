@@ -28,8 +28,29 @@ dellemc.os10: 1.0.2
 """
 
 PARSED_DEPS_ANSIBLE_VERSION = '2.10.5'
-PARSED_DEPS_ANSIBLE_BASE_VERSION = '2.10.4'
+PARSED_DEPS_ANSIBLE_CORE_VERSION = '2.10.4'
 PARSED_DEPS_DEPS = {
+    'ansible.netcommon': '1.4.1',
+    'ansible.posix': '1.1.1',
+    'ansible.windows': '1.3.0',
+    'dellemc.os10': '1.0.2'
+}
+
+DEPS_2 = """
+_ansible_version: 2.10.5
+# this is a comment
+_ansible_core_version: 2.10.4
+    # supported by ansible
+    ansible.netcommon: 1.4.1
+    ansible.posix: 1.1.1
+    ansible.windows: 1.3.0
+# third parties
+dellemc.os10: 1.0.2
+"""
+
+PARSED_DEPS_2_ANSIBLE_VERSION = '2.10.5'
+PARSED_DEPS_2_ANSIBLE_CORE_VERSION = '2.10.4'
+PARSED_DEPS_2_DEPS = {
     'ansible.netcommon': '1.4.1',
     'ansible.posix': '1.1.1',
     'ansible.windows': '1.3.0',
@@ -49,8 +70,29 @@ dellemc.os10: >=1.0.0,<1.1.0
 """
 
 PARSED_BUILD_ANSIBLE_VERSION = '2.10'
-PARSED_BUILD_ANSIBLE_BASE_VERSION = '2.10.1'
+PARSED_BUILD_ANSIBLE_CORE_VERSION = '2.10.1'
 PARSED_BUILD_DEPS = {
+    'ansible.netcommon': '>=1.2.0,<2.0.0',
+    'ansible.posix': '>=1.1.0,<2.0.0',
+    'ansible.windows': '>=1.0.0,<2.0.0',
+    'dellemc.os10': '>=1.0.0,<1.1.0'
+}
+
+BUILD_2 = """
+_ansible_version: 2.10
+# this is a comment
+_ansible_core_version: 2.10.1
+    # supported by ansible
+    ansible.netcommon: >=1.2.0,<2.0.0
+    ansible.posix: >=1.1.0,<2.0.0
+    ansible.windows: >=1.0.0,<2.0.0
+# third parties
+dellemc.os10: >=1.0.0,<1.1.0
+"""
+
+PARSED_BUILD_2_ANSIBLE_VERSION = '2.10'
+PARSED_BUILD_2_ANSIBLE_CORE_VERSION = '2.10.1'
+PARSED_BUILD_2_DEPS = {
     'ansible.netcommon': '>=1.2.0,<2.0.0',
     'ansible.posix': '>=1.1.0,<2.0.0',
     'ansible.windows': '>=1.0.0,<2.0.0',
@@ -69,8 +111,17 @@ def test_deps_file_parse(tmp_path):
         f.write(DEPS)
     parsed_deps = df.DepsFile(deps_filename).parse()
     assert parsed_deps.ansible_version == PARSED_DEPS_ANSIBLE_VERSION
-    assert parsed_deps.ansible_base_version == PARSED_DEPS_ANSIBLE_BASE_VERSION
+    assert parsed_deps.ansible_core_version == PARSED_DEPS_ANSIBLE_CORE_VERSION
     assert parsed_deps.deps == PARSED_DEPS_DEPS
+
+def test_deps_file_2_parse(tmp_path):
+    deps_filename = tmp_path / 'deps.in'
+    with open(deps_filename, 'w') as f:
+        f.write(DEPS_2)
+    parsed_deps = df.DepsFile(deps_filename).parse()
+    assert parsed_deps.ansible_version == PARSED_DEPS_2_ANSIBLE_VERSION
+    assert parsed_deps.ansible_core_version == PARSED_DEPS_2_ANSIBLE_CORE_VERSION
+    assert parsed_deps.deps == PARSED_DEPS_2_DEPS
 
 def test_build_file_parse(tmp_path):
     build_filename = tmp_path / 'build.in'
@@ -78,5 +129,14 @@ def test_build_file_parse(tmp_path):
         f.write(BUILD)
     parsed_build = df.DepsFile(build_filename).parse()
     assert parsed_build.ansible_version == PARSED_BUILD_ANSIBLE_VERSION
-    assert parsed_build.ansible_base_version == PARSED_BUILD_ANSIBLE_BASE_VERSION
+    assert parsed_build.ansible_core_version == PARSED_BUILD_ANSIBLE_CORE_VERSION
     assert parsed_build.deps == PARSED_BUILD_DEPS
+
+def test_build_file_2_parse(tmp_path):
+    build_filename = tmp_path / 'build.in'
+    with open(build_filename, 'w') as f:
+        f.write(BUILD_2)
+    parsed_build = df.DepsFile(build_filename).parse()
+    assert parsed_build.ansible_version == PARSED_BUILD_2_ANSIBLE_VERSION
+    assert parsed_build.ansible_core_version == PARSED_BUILD_2_ANSIBLE_CORE_VERSION
+    assert parsed_build.deps == PARSED_BUILD_2_DEPS

@@ -11,7 +11,7 @@ You can use the `antsibull-lint changelog-yaml` tool to validate these files:
 
     antsibull-lint changelog-yaml /path/to/changelog.yaml
 
-(This only works for `changelog.yaml` files in collections, not for the corresponding files in ansible-base, since ansible-base currently does not conform to semantic versioning.)
+(This only works for `changelog.yaml` files in collections, not for the corresponding files in ansible-core, since ansible-core currently does not conform to semantic versioning.)
 
 The tool does not output anything and exits with exit code 0 in case the file is OK, and outputs errors and exits with exit code 3 in case an error was found. Other exit codes indicate problems with the command line or during the execution of the linter.
 
@@ -25,7 +25,7 @@ At the top level, there are two entries:
 1. A string `ancestor`, which can also be `null` or omitted if the changelog has no ancestor.
 2. A dictionary `releases`, which maps version numbers to release information.
 
-If `ancestor` is a string, it must be an existing version of the collection which precedes all versions mentioned in this changelog. This is used when the changelog is truncated, for example when using release branches like for ansible-base. There, the `stable-2.10` branch's changelog contains only changelog entries for 2.10.x releases. Since the first 2.10.0b1 release contains all changes made to `devel` after `stable-2.9` was branched, the ancestor for the 2.10 changelog is `2.9.0b1`, the first release made after branching `stable-2.9`.
+If `ancestor` is a string, it must be an existing version of the collection which precedes all versions mentioned in this changelog. This is used when the changelog is truncated, for example when using release branches like for ansible-core. There, the `stable-2.10` branch's changelog contains only changelog entries for 2.10.x releases. Since the first 2.10.0b1 release contains all changes made to `devel` after `stable-2.9` was branched, the ancestor for the 2.10 changelog is `2.9.0b1`, the first release made after branching `stable-2.9`.
 
 The following shows the outline of a `changelog.yaml` file with four versions:
 
@@ -47,7 +47,7 @@ releases:
 For a release `x.y.z`, the `releases` dictionary contains an entry `x.y.z` mapping to another dictionary. That dictionary can have the following entries:
 
 1. `release_date`: a string in ISO format (`YYYY-MM-DD`) specifying on which date the release was made.
-1. `codename`: a string for the version's codename. Optional; mainly required for ansible-base.
+1. `codename`: a string for the version's codename. Optional; mainly required for ansible-core.
 1. `fragments`: a list of strings mentioning changelog fragment files used for this release. This is not used for compiling a changelog.
 1. `changes`: a dictionary containing all changes. See below.
 1. `modules`: a list of plugin dictionaries. See below.

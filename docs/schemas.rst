@@ -1,4 +1,4 @@
-.. automodule:: antsibull.schemas.base
+.. automodule:: antsibull.schemas.docs.base
 
 There is a dictionary named ANSIBLE_DOC_SCHEMAS to allow you easier access to these
 programmatically.  It is a mapping of plugin types to the ansible_doc schema which handle it.

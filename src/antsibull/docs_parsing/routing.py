@@ -218,7 +218,7 @@ async def load_collection_routing(collection_name: str,
         }
 
     if collection_name == 'ansible.builtin':
-        # ansible-base/-core has a special directory structure we currently do not want
+        # ansible-core has a special directory structure we currently do not want
         # (or need) to handle
         return plugin_routing_out
 

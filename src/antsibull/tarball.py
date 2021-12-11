@@ -2,7 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
-"""Functions for working with the ansible-base package."""
+"""Functions for working with tarballs."""
 import re
 
 import sh

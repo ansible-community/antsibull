@@ -39,7 +39,7 @@ example:
 
     def do_something():
         app_ctx = app_context.app_ctx.get()
-        base_filename = download_python_package('ansible-base', server_url=app_ctx.pypi_url)
+        base_filename = download_python_package('ansible-core', server_url=app_ctx.pypi_url)
         return base_filename
 
     def run(args):

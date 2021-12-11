@@ -174,8 +174,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     cache_parser = argparse.ArgumentParser(add_help=False)
     # TODO: Remove --ansible-base-cache once the ansible/ansible docs-build test is updated
-    cache_parser.add_argument('--ansible-base-source', '--ansible-base-cache', default=None,
-                              help='Checkout or expanded tarball of the ansible-base package.  If'
+    # TODO: Eventually remove --ansible-base-source
+    cache_parser.add_argument('--ansible-core-source', '--ansible-base-source',
+                              '--ansible-base-cache', default=None,
+                              help='Checkout or expanded tarball of the ansible-core package.  If'
                               ' this is a git checkout it must be the HEAD of the branch you are'
                               ' building for. If it is an expanded tarball, the __version__ will'
                               ' be checked to make sure it is compatible with and the same or'
@@ -322,7 +324,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     if '--ansible-base-cache' in args:
         flog.warning('The CLI parameter, `--ansible-base-cache` has been renamed to'
-                     ' `--ansible-base-source.  Please use that instead')
+                     ' `--ansible-core-source`.  Please use that instead')
+    if '--ansible-base-source' in args:
+        flog.warning('The CLI parameter, `--ansible-base-source` has been renamed to'
+                     ' `--ansible-core-source`.  Please use that instead')
 
     if '--skip-indexes' in args:
         flog.warning('The CLI parameter, `--skip-indexes` has been renamed to'
@@ -399,7 +404,7 @@ def main() -> int:
         :0: Success
         :1: Unhandled error.  See the Traceback for more information.
         :2: There was a problem with the command line arguments
-        :3: Unexpected problem downloading ansible-base
+        :3: Unexpected problem downloading ansible-core
     """
     return run(sys.argv)
 

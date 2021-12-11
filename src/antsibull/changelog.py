@@ -26,14 +26,14 @@ from antsibull_changelog.changelog_generator import ChangelogGenerator
 from antsibull_changelog.utils import collect_versions
 
 from . import app_context
-from .ansible_base import get_ansible_base
+from .ansible_core import get_ansible_core
 from .dependency_files import DepsFile, DependencyFileData
 from .galaxy import CollectionDownloader
 
 
 class ChangelogData:
     '''
-    Data for a single changelog (for a collection, for ansible-base, for Ansible)
+    Data for a single changelog (for a collection, for ansible-core, for Ansible)
     '''
 
     paths: PathsConfig
@@ -67,7 +67,7 @@ class ChangelogData:
                    flatmap=True)  # TODO!
 
     @classmethod
-    def ansible_base(cls, changelog_data: t.Optional[t.Any] = None) -> 'ChangelogData':
+    def ansible_core(cls, changelog_data: t.Optional[t.Any] = None) -> 'ChangelogData':
         paths = PathsConfig.force_ansible('')
         collection_details = CollectionDetails(paths)
         config = ChangelogConfig.default(paths, collection_details)
@@ -121,9 +121,9 @@ def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> t.Optional
     return None
 
 
-def read_changelog_file(tarball_path: str, is_ansible_base=False) -> t.Optional[bytes]:
+def read_changelog_file(tarball_path: str, is_ansible_core=False) -> t.Optional[bytes]:
     def matcher(filename: str) -> bool:
-        if is_ansible_base:
+        if is_ansible_core:
             return filename.endswith('changelogs/changelog.yaml')
         else:
             return filename in ('changelogs/changelog.yaml', 'changelog.yaml')
@@ -219,7 +219,7 @@ class CollectionChangelogCollector:
             missing_versions -= {missing_version}
 
 
-class AnsibleBaseChangelogCollector:
+class AnsibleCoreChangelogCollector:
     versions: t.List[PypiVer]
     earliest: PypiVer
     latest: PypiVer
@@ -246,14 +246,14 @@ class AnsibleBaseChangelogCollector:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
                         changelog = f.read()
                     changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-                    changelog = ChangelogData.ansible_base(changelog_data)
+                    changelog = ChangelogData.ansible_core(changelog_data)
             return changelog
         if os.path.isfile(path) and path.endswith('.tar.gz'):
-            changelog = read_changelog_file(path, is_ansible_base=True)
+            changelog = read_changelog_file(path, is_ansible_core=True)
             if changelog is None:
                 return None
             changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
-            return ChangelogData.ansible_base(changelog_data)
+            return ChangelogData.ansible_core(changelog_data)
         return None
 
     async def download_changelog(self, base_downloader: t.Callable[[str], t.Awaitable[str]]):
@@ -287,7 +287,7 @@ class AnsibleBaseChangelogCollector:
 
 
 async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
-                             base_collector: AnsibleBaseChangelogCollector,
+                             base_collector: AnsibleCoreChangelogCollector,
                              collection_cache: t.Optional[str]):
     lib_ctx = app_context.lib_ctx.get()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -297,7 +297,7 @@ async def collect_changelogs(collectors: t.List[CollectionChangelogCollector],
                                                   collection_cache=collection_cache)
 
                 async def base_downloader(version):
-                    return await get_ansible_base(aio_session, version, tmp_dir)
+                    return await get_ansible_core(aio_session, version, tmp_dir)
 
                 requestors = [
                     await pool.spawn(collector.download(downloader)) for collector in collectors
@@ -318,12 +318,12 @@ class ChangelogEntry:
     base_versions: t.Dict[PypiVer, str]
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]]
 
-    base_collector: AnsibleBaseChangelogCollector
+    base_collector: AnsibleCoreChangelogCollector
     ansible_changelog: ChangelogData
     collectors: t.List[CollectionChangelogCollector]
 
-    ansible_base_version: str
-    prev_ansible_base_version: t.Optional[str]
+    ansible_core_version: str
+    prev_ansible_core_version: t.Optional[str]
 
     removed_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
     added_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
@@ -335,7 +335,7 @@ class ChangelogEntry:
                  ancestor_version: t.Optional[PypiVer],
                  base_versions: t.Dict[PypiVer, str],
                  versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]],
-                 base_collector: AnsibleBaseChangelogCollector,
+                 base_collector: AnsibleCoreChangelogCollector,
                  ansible_changelog: ChangelogData,
                  collectors: t.List[CollectionChangelogCollector]):
         self.version = version
@@ -348,8 +348,8 @@ class ChangelogEntry:
         self.ansible_changelog = ansible_changelog
         self.collectors = collectors
 
-        self.ansible_base_version = base_versions[version]
-        self.prev_ansible_base_version = base_versions.get(prev_version) if prev_version else None
+        self.ansible_core_version = base_versions[version]
+        self.prev_ansible_core_version = base_versions.get(prev_version) if prev_version else None
 
         self.removed_collections = []
         self.added_collections = []
@@ -424,7 +424,7 @@ class Changelog:
     ansible_version: PypiVer
     ansible_ancestor_version: t.Optional[PypiVer]
     entries: t.List[ChangelogEntry]
-    base_collector: AnsibleBaseChangelogCollector
+    base_collector: AnsibleCoreChangelogCollector
     ansible_changelog: ChangelogData
     collection_collectors: t.List[CollectionChangelogCollector]
     collection_metadata: CollectionsMetadata
@@ -433,7 +433,7 @@ class Changelog:
                  ansible_version: PypiVer,
                  ansible_ancestor_version: t.Optional[PypiVer],
                  entries: t.List[ChangelogEntry],
-                 base_collector: AnsibleBaseChangelogCollector,
+                 base_collector: AnsibleCoreChangelogCollector,
                  ansible_changelog: ChangelogData,
                  collection_collectors: t.List[CollectionChangelogCollector],
                  collection_metadata: CollectionsMetadata):
@@ -483,11 +483,11 @@ def get_changelog(
     for deps in dependencies.values():
         version = PypiVer(deps.ansible_version)
         versions[deps.ansible_version] = (version, deps)
-        base_versions[version] = deps.ansible_base_version
+        base_versions[version] = deps.ansible_core_version
         for collection_name, collection_version in deps.deps.items():
             versions_per_collection[collection_name][version] = collection_version
 
-    base_collector = AnsibleBaseChangelogCollector(base_versions.values())
+    base_collector = AnsibleCoreChangelogCollector(base_versions.values())
     collectors = [
         CollectionChangelogCollector(collection, versions_per_collection[collection].values())
         for collection in sorted(versions_per_collection.keys())
