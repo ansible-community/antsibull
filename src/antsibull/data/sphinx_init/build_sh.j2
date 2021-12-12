@@ -30,7 +30,7 @@ antsibull-docs collection \
 {% endif %}
 
 # Copy collection documentation into source directory
-rsync -avc --delete-after temp-rst/collections/ rst/collections/
+rsync -cprv --delete-after temp-rst/collections/ rst/collections/
 
 # Build Sphinx site
 {% if lenient %}
