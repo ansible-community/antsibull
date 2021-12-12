@@ -148,7 +148,9 @@ def rst_escape(value, escape_ending_whitespace=False):
     value = value.replace('`', '\\`')
 
     if escape_ending_whitespace and value.endswith(' '):
-        value = value[:-1] + ' \\ '
+        value = value + '\\ '
+    if escape_ending_whitespace and value.startswith(' '):
+        value = '\\ ' + value
 
     return value
 
