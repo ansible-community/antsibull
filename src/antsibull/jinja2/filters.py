@@ -78,11 +78,11 @@ def do_max(seq):
 # for further information.
 
 def _rst_ify_italic(m):
-    return f"\\ :emphasis:`{rst_escape(m.group(1))}`\\ "
+    return f"\\ :emphasis:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
 def _rst_ify_bold(m):
-    return f"\\ :strong:`{rst_escape(m.group(1))}`\\ "
+    return f"\\ :strong:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
 def _rst_ify_module(m):
@@ -110,7 +110,7 @@ def _rst_ify_ref(m):
 
 def _rst_ify_const(m):
     # Escaping does not work in double backticks, so we use the :literal: role instead
-    return f"\\ :literal:`{rst_escape(m.group(1))}`\\ "
+    return f"\\ :literal:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
 def rst_ify(text):
@@ -134,7 +134,7 @@ def rst_ify(text):
     return text
 
 
-def rst_escape(value):
+def rst_escape(value, escape_ending_whitespace=False):
     ''' make sure value is converted to a string, and RST special characters are escaped '''
 
     if not isinstance(value, str):
@@ -146,6 +146,9 @@ def rst_escape(value):
     value = value.replace('_', '\\_')
     value = value.replace('*', '\\*')
     value = value.replace('`', '\\`')
+
+    if escape_ending_whitespace and value.endswith(' '):
+        value = value[:-1] + ' \\ '
 
     return value
 
