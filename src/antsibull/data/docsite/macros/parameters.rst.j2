@@ -93,9 +93,9 @@
 {%         set choice = 'no' %}
 {%       endif %}
 {%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
-      - :ansible-option-default-bold:`@{ choice | rst_escape }@` :ansible-option-default:`← (default)`
+      - :ansible-option-default-bold:`@{ choice | rst_escape(escape_ending_whitespace=true) }@` :ansible-option-default:`← (default)`
 {%       else %}
-      - :ansible-option-choices-entry:`@{ choice | rst_escape }@`
+      - :ansible-option-choices-entry:`@{ choice | rst_escape(escape_ending_whitespace=true) }@`
 {%       endif %}
 {%     endfor %}
 {%   endif %}
@@ -104,7 +104,7 @@
 
       .. rst-class:: ansible-option-line
 
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_escape | indent(6) }@`
+      :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_escape(escape_ending_whitespace=true) | indent(6) }@`
 {%   endif %}
 {#   configuration #}
 {%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
