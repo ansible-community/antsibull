@@ -66,7 +66,7 @@ class AppContext(BaseModel):
     logging_cfg: LoggingModel = LoggingModel.parse_obj(DEFAULT_LOGGING_CONFIG)
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
-    use_html_blobs: p.StrictBool = True
+    use_html_blobs: p.StrictBool = False
 
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)

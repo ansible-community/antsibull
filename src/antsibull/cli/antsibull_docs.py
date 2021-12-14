@@ -180,7 +180,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                  help='Determines whether to use HTML blobs for option and return'
                                  ' value tables. Using HTML blobs reduces memory and CPU time'
                                  ' usage significantly so you can disable this if necessary.'
-                                 ' (default: True)')
+                                 ' (default: False)')
 
     cache_parser = argparse.ArgumentParser(add_help=False)
     # TODO: Remove --ansible-base-cache once the ansible/ansible docs-build test is updated
