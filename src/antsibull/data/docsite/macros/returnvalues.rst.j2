@@ -88,3 +88,77 @@
 {%   endif %}
 {% endfor %}
 {% endmacro %}
+
+{##################################################################################################################}
+
+{% macro in_html(elements, plugin_name, plugin_type) %}
+.. raw:: html
+
+  <table class="colwidths-auto ansible-option-table docutils align-default" style="width: 100%">
+  <thead>
+  <tr class="row-odd">
+    <th class="head"><p>Key</p></th>
+    <th class="head"><p>Description</p></th>
+  </tr>
+  </thead>
+  <tbody>
+{% set row_class = cycler('even', 'odd') %}
+{% for key, value in elements | dictsort recursive %}
+{#   return value name #}
+  <tr class="row-@{ row_class.next() }@">
+    <td>{% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
+{%   for full_key in value['full_keys'] %}
+      <div class="ansibleOptionAnchor" id="return-{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{%   endfor %}
+      <p class="ansible-option-title"><strong>@{ key | escape }@</strong></p>
+      <a class="ansibleOptionLink" href="#return-{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this return value"></a>
+      <p class="ansible-option-type-line">
+        <span class="ansible-option-type">@{ value['type'] | documented_type }@</span>
+{%   if value['type'] == 'list' and value['elements'] is not none %}
+        / <span class="ansible-option-elements">elements=@{ value['elements'] | documented_type }@</span>
+{%   endif %}
+      </p>
+{%   if value['version_added'] is still_relevant %}
+      <p><span class="ansible-option-versionadded">added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@</span></p>
+{%   endif %}
+    </div></td>
+{#   description #}
+    <td>{% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
+{%   for desc in value['description'] %}
+      <p>@{ desc | html_ify | indent(6) }@</p>
+{%   endfor %}
+{%   if value['returned'] %}
+      <p class="ansible-option-line"><span class="ansible-option-returned-bold">Returned:</span> @{ value['returned'] | html_ify | indent(6) }@</p>
+{%   endif %}
+{#   Show possible choices and highlight details #}
+{%   if value['choices'] %}
+      <p class="ansible-option-line"><span class="ansible-option-choices">Can only return:</span></p>
+      <ul class="simple">
+{%     for choice in value['choices'] %}
+{#       Turn boolean values in 'yes' and 'no' values #}
+{%       if choice is sameas true %}
+{%         set choice = 'yes' %}
+{%       elif choice is sameas false %}
+{%         set choice = 'no' %}
+{%       endif %}
+{%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+        <li><p><span class="ansible-option-default-bold">@{ choice | escape }@</span> <span class="ansible-option-default">← (default)</span></p></li>
+{%       else %}
+        <li><p><span class="ansible-option-choices-entry">@{ choice | escape }@</span></p></li>
+{%       endif %}
+{%     endfor %}
+      </ul>
+{%   endif %}
+{%   if value['sample'] is not none %}
+      <p class="ansible-option-line ansible-option-sample"><span class="ansible-option-sample-bold">Sample:</span> @{ value['sample'] | tojson | escape | indent(6) }@</p>
+{%   endif %}
+    </div></td>
+  </tr>
+{%   if value['contains'] %}
+@{     loop(value['contains'] | dictsort) }@
+{%   endif %}
+{% endfor %}
+  </tbody>
+  </table>
+
+{% endmacro %}

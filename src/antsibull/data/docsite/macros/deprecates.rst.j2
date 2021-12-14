@@ -20,3 +20,23 @@ Removed in: a future release
 
 {%   endif %}
 {% endmacro %}
+
+
+{% macro in_html(data, collection) %}
+{%   if data %}
+  <p>
+{%-    if data['removed_at_date'] -%}
+Removed in: major release after @{ data['removed_at_date'] | html_ify }@
+{%-    elif data['removed_in'] -%}
+Removed in: version @{ data['removed_in'] | html_ify }@
+{%-    else -%}
+Removed in: a future release
+{%-    endif -%}
+{%-    if data['removed_from_collection'] and data['removed_from_collection'] != collection %}
+ of @{ data['removed_from_collection'] | html_ify }@
+{%-    endif -%}
+  </p>
+  <p>@{ 'Why: ' ~ data['why'] | html_ify | indent(2) }@</p>
+  <p>@{ 'Alternative: ' ~ data['alternative'] | html_ify | indent(2) }@</p>
+{%   endif %}
+{% endmacro %}

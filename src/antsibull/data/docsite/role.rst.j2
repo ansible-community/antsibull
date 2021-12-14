@@ -1,4 +1,5 @@
 {% from 'macros/parameters.rst.j2' import in_rst as parameters_rst %}
+{% from 'macros/parameters.rst.j2' import in_html as parameters_html %}
 .. Document meta
 
 :orphan:
@@ -123,7 +124,11 @@ The below requirements are needed on the remote host and/or the local controller
 Parameters
 ^^^^^^^^^^
 
-@{     parameters_rst(ep_doc['options'], plugin_type, plugin_name, suboption_key='options', parameter_html_prefix=entry_point ~ '--', parameter_rst_prefix=entry_point ~ '__') }@
+{%     if use_html_blobs %}
+@{       parameters_html(ep_doc['options'], plugin_type, plugin_name, suboption_key='options', parameter_html_prefix=entry_point ~ '--', parameter_rst_prefix=entry_point ~ '__') }@
+{%     else %}
+@{       parameters_rst(ep_doc['options'], plugin_type, plugin_name, suboption_key='options', parameter_html_prefix=entry_point ~ '--', parameter_rst_prefix=entry_point ~ '__') }@
+{%     endif %}
 {%   endif %}
 
 .. Notes

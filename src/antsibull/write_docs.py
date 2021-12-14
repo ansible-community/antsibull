@@ -20,6 +20,9 @@ from .extra_docs import CollectionExtraDocsInfoT
 from .docs_parsing import AnsibleCollectionMetadata
 
 
+HTML_BLOBS = True
+
+
 mlog = log.fields(mod=__name__)
 
 #: Mapping of plugins to nonfatal errors.  This is the type to use when accepting the plugin.
@@ -120,6 +123,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
             plugin_contents = _render_template(
                 plugin_tmpl,
                 plugin_name + '_' + plugin_type,
+                use_html_blobs=HTML_BLOBS,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
@@ -130,6 +134,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
             plugin_contents = _render_template(
                 plugin_tmpl,
                 plugin_name + '_' + plugin_type,
+                use_html_blobs=HTML_BLOBS,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
