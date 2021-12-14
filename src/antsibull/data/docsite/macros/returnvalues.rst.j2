@@ -9,7 +9,7 @@
   * - Key
     - Description
 {% for key, value in elements | dictsort recursive %}
-{#   parameter name with required and/or introduced label #}
+{#   return value name #}
 
   * - .. raw:: html
 
@@ -37,7 +37,7 @@
 {%-   if value['version_added'] is still_relevant %}
 
 
-      :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@`
+      :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | rst_escape }@`
 {%   endif %}
 {#   description #}
 

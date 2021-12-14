@@ -106,7 +106,7 @@
 
       :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_escape(escape_ending_whitespace=true) | indent(6) }@`
 {%   endif %}
-{#   configuration #}
+{#   Configuration #}
 {%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
 
       .. rst-class:: ansible-option-line
@@ -158,7 +158,7 @@
 
         </div>
 {%   if value[suboption_key] %}
-    @{ loop(value[suboption_key]|dictsort) }@
+    @{ loop(value[suboption_key] | dictsort) }@
 {%   endif %}
 {% endfor %}
 {% endmacro %}
