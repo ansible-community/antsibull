@@ -161,6 +161,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Overview of parsers:
     # * docs_parser is an abstract parser.  Contains options that all of the antisbull-docs
     #   subcommands use.
+    # * template_parser is a mixin for subcommands which template HTML
     # * cache_parser is a mixin for subcommands which operate on the ansible-core sources and
     #   therefore they can use a preinstalled version of the code instead of downloading it
     #   themselves.
@@ -171,6 +172,15 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     docs_parser = argparse.ArgumentParser(add_help=False)
     docs_parser.add_argument('--dest-dir', default='.',
                              help='Directory to write the output to')
+
+    template_parser = argparse.ArgumentParser(add_help=False)
+    template_parser.add_argument('--use-html-blobs',
+                                 dest='use_html_blobs', action=BooleanOptionalAction,
+                                 default=argparse.SUPPRESS,
+                                 help='Determines whether to use HTML blobs for option and return'
+                                 ' value tables. Using HTML blobs reduces memory and CPU time'
+                                 ' usage significantly so you can disable this if necessary.'
+                                 ' (default: True)')
 
     cache_parser = argparse.ArgumentParser(add_help=False)
     # TODO: Remove --ansible-base-cache once the ansible/ansible docs-build test is updated
@@ -219,7 +229,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Document the next version of ansible
     #
     devel_parser = subparsers.add_parser('devel',
-                                         parents=[docs_parser, cache_parser, whole_site_parser],
+                                         parents=[docs_parser, cache_parser,
+                                                  whole_site_parser, template_parser],
                                          description='Generate documentation for the next major'
                                          ' release of Ansible')
     devel_parser.add_argument('--pieces-file', default=DEFAULT_PIECES_FILE,
@@ -229,7 +240,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Document a released version of ansible
     #
     stable_parser = subparsers.add_parser('stable',
-                                          parents=[docs_parser, cache_parser, whole_site_parser],
+                                          parents=[docs_parser, cache_parser,
+                                                   whole_site_parser, template_parser],
                                           description='Generate documentation for a current'
                                           ' version of ansible')
     stable_parser.add_argument('--deps-file', required=True,
@@ -240,7 +252,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Document the currently installed version of ansible
     #
     current_parser = subparsers.add_parser('current',
-                                           parents=[docs_parser],
+                                           parents=[docs_parser, whole_site_parser,
+                                                    template_parser],
                                            description='Generate documentation for the current'
                                            ' installed version of ansible and the current installed'
                                            ' collections')
@@ -253,7 +266,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Document one or more specified collections
     #
     collection_parser = subparsers.add_parser('collection',
-                                              parents=[docs_parser, whole_site_parser],
+                                              parents=[docs_parser, whole_site_parser,
+                                                       template_parser],
                                               description='Generate documentation for specified'
                                               ' collections')
     collection_parser.add_argument('--collection-version', default='@latest',
@@ -279,7 +293,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     # Document a specifically named plugin
     #
     file_parser = subparsers.add_parser('plugin',
-                                        parents=[docs_parser],
+                                        parents=[docs_parser, template_parser],
                                         description='Generate documentation for a single plugin')
     file_parser.add_argument(nargs=1, dest='plugin', action='store',
                              help='A single file to document. Either a path to a file, or a FQCN.'

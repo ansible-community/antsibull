@@ -106,7 +106,8 @@ def generate_docs() -> int:
     asyncio_run(write_plugin_rst(
         '.'.join([namespace, collection]), AnsibleCollectionMetadata.empty(), plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
-        path_override=output_path))
+        path_override=output_path,
+        use_html_blobs=app_ctx.use_html_blobs))
     flog.debug('Finished writing plugin docs')
 
     return 0

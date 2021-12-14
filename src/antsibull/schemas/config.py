@@ -127,8 +127,9 @@ class ConfigModel(BaseModel):
     process_max: t.Optional[int] = None
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
+    use_html_blobs: p.StrictBool = True
     thread_max: int = 80
 
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)
-    _convert_bools = p.validator('breadcrumbs', 'indexes',
+    _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)

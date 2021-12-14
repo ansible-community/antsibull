@@ -42,7 +42,8 @@ def html_ify(text):
     text, _counts['url'] = _URL.subn(r"<a href='\1'>\1</a>", text)
     text, _counts['ref'] = _REF.subn(r"<span class='module'>\1</span>", text)
     text, _counts['link'] = _LINK.subn(r"<a href='\2'>\1</a>", text)
-    text, _counts['const'] = _CONST.subn(r"<code class='docutils literal notranslate'>\1</code>", text)
+    text, _counts['const'] = _CONST.subn(
+        r"<code class='docutils literal notranslate'>\1</code>", text)
     text, _counts['ruler'] = _RULER.subn(r"<hr/>", text)
 
     text = text.strip()

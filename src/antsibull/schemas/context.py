@@ -48,6 +48,8 @@ class AppContext(BaseModel):
         schema's checking, normalization, and default setting.
     :ivar ansible_base_url: Url to the ansible-core git repo.
     :ivar breadcrumbs: If True, build with breadcrumbs on the plugin pages (this takes more memory).
+    :ivar use_html_blobs: If True, use HTML blobs instead of RST tables for option and return value
+        tables (this takes less memory).
     :ivar galaxy_url: URL of the galaxy server to get collection info from
     :ivar indexes: If True, create index pages for all collections and all plugins in a collection.
     :ivar logging_cfg: Configuration of the application logging
@@ -64,8 +66,9 @@ class AppContext(BaseModel):
     logging_cfg: LoggingModel = LoggingModel.parse_obj(DEFAULT_LOGGING_CONFIG)
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
+    use_html_blobs: p.StrictBool = True
 
-    _convert_bools = p.validator('breadcrumbs', 'indexes',
+    _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)
 
 

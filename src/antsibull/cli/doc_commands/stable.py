@@ -269,7 +269,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       collection_names: t.Optional[t.List[str]] = None,
                                       create_indexes: bool = True,
                                       squash_hierarchy: bool = False,
-                                      breadcrumbs: bool = True) -> None:
+                                      breadcrumbs: bool = True,
+                                      use_html_blobs: bool = False) -> None:
     """
     Create documentation for a set of installed collections.
 
@@ -287,6 +288,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                              created.
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
         disabled.  This will disable breadcrumbs but save on memory usage.
+    :kwarg use_html_blobs: Default False.  Set to True if HTML blobs should be used instead of
+        RST tables for parameter and return value tables.
     """
     flog = mlog.fields(func='generate_docs_for_all_collections')
     flog.notice('Begin')
@@ -353,7 +356,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
                                       collection_metadata=collection_metadata,
-                                      squash_hierarchy=squash_hierarchy))
+                                      squash_hierarchy=squash_hierarchy,
+                                      use_html_blobs=use_html_blobs))
     flog.debug('Finished writing plugin docs')
 
     asyncio_run(output_extra_docs(dest_dir, extra_docs_data,
@@ -422,6 +426,7 @@ def generate_docs() -> int:
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
         generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],
-                                          breadcrumbs=app_ctx.breadcrumbs)
+                                          breadcrumbs=app_ctx.breadcrumbs,
+                                          use_html_blobs=app_ctx.use_html_blobs)
 
     return 0

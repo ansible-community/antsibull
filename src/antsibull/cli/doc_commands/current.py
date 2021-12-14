@@ -31,6 +31,7 @@ def generate_docs() -> int:
 
     generate_docs_for_all_collections(
         venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'],
-        breadcrumbs=app_ctx.breadcrumbs)
+        breadcrumbs=app_ctx.breadcrumbs,
+        use_html_blobs=app_ctx.use_html_blobs)
 
     return 0
