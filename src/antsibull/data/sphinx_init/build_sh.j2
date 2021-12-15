@@ -9,33 +9,33 @@ mkdir -p temp-rst
 {%   if collections | length > 0 %}
 antsibull-docs collection \
     --use-current \
-    --dest-dir temp-rst \
 {%     if squash_hierarchy %}
     --squash-hierarchy \
 {%     endif %}
+    --{% if not use_html_blobs %}no-{% endif %}use-html-blobs \
+    --{% if not breadcrumbs %}no-{% endif %}breadcrumbs \
+    --{% if not indexes %}no-{% endif %}indexes \
+    --dest-dir temp-rst \
     @{ ' '.join(collections) }@
 {%   else %}
-antsibull-docs current --dest-dir temp-rst
+antsibull-docs current \
+    --{% if not use_html_blobs %}no-{% endif %}use-html-blobs \
+    --{% if not breadcrumbs %}no-{% endif %}breadcrumbs \
+    --{% if not indexes %}no-{% endif %}indexes \
+    --dest-dir temp-rst
 {%   endif %}
 {% else %}
 antsibull-docs collection \
 {%     if collection_version != '@latest' %}
     --collection-version @{ collection_version }@ \
 {%     endif %}
-    --dest-dir temp-rst \
 {%     if squash_hierarchy %}
     --squash-hierarchy \
 {%     endif %}
-{%     if use_html_blobs %}
-    --use-html-blobs \
-{%     endif %}
-{%     if not breadcrumbs %}
-    --no-breadcrumbs \
-{%     endif %}
-{%     if not indexes %}
-    --no-indexes \
-{%     endif %}
-
+    --{% if not use_html_blobs %}no-{% endif %}use-html-blobs \
+    --{% if not breadcrumbs %}no-{% endif %}breadcrumbs \
+    --{% if not indexes %}no-{% endif %}indexes \
+    --dest-dir temp-rst \
     @{ ' '.join(collections) }@
 {% endif %}
 
