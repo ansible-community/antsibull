@@ -60,6 +60,9 @@ def site_init() -> int:
     use_current = app_ctx.extra['use_current']
     squash_hierarchy = app_ctx.extra['squash_hierarchy']
     lenient = app_ctx.extra['lenient']
+    use_html_blobs = app_ctx.use_html_blobs
+    breadcrumbs = app_ctx.breadcrumbs
+    indexes = app_ctx.indexes
 
     env = doc_environment(('antsibull.data', 'sphinx_init'))
 
@@ -74,6 +77,9 @@ def site_init() -> int:
             squash_hierarchy=squash_hierarchy,
             collections=collections,
             lenient=lenient,
+            use_html_blobs=use_html_blobs,
+            breadcrumbs=breadcrumbs,
+            indexes=indexes,
         ) + '\n'
 
         destination = os.path.join(dest_dir, filename)

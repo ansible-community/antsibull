@@ -69,7 +69,8 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                            plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                            plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
                            path_override: t.Optional[str] = None,
-                           squash_hierarchy: bool = False) -> None:
+                           squash_hierarchy: bool = False,
+                           use_html_blobs: bool = False) -> None:
     """
     Write the rst page for one plugin.
 
@@ -89,6 +90,8 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
+    :arg use_html_blobs: If set to ``True``, will use HTML blobs for parameter and return value
+                         tables instead of using RST tables.
     """
     flog = mlog.fields(func='write_plugin_rst')
     flog.debug('Enter')
@@ -120,6 +123,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
             plugin_contents = _render_template(
                 plugin_tmpl,
                 plugin_name + '_' + plugin_type,
+                use_html_blobs=use_html_blobs,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
@@ -130,6 +134,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
             plugin_contents = _render_template(
                 plugin_tmpl,
                 plugin_name + '_' + plugin_type,
+                use_html_blobs=use_html_blobs,
                 collection=collection_name,
                 collection_version=collection_meta.version,
                 plugin_type=plugin_type,
@@ -235,7 +240,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
                                 collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
-                                squash_hierarchy: bool = False) -> None:
+                                squash_hierarchy: bool = False,
+                                use_html_blobs: bool = False) -> None:
     """
     Output rst files for each plugin.
 
@@ -249,6 +255,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
+    :arg use_html_blobs: If set to ``True``, will use HTML blobs for parameter and return value
+                         tables instead of using RST tables.
     """
     # Setup the jinja environment
     env = doc_environment(('antsibull.data', 'docsite'))
@@ -274,7 +282,8 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                          plugin_info[plugin_type].get(plugin_name),
                                          nonfatal_errors[plugin_type][plugin_name],
                                          plugin_type_tmpl, error_tmpl,
-                                         dest_dir, squash_hierarchy=squash_hierarchy)))
+                                         dest_dir, squash_hierarchy=squash_hierarchy,
+                                         use_html_blobs=use_html_blobs)))
 
         # Write docs for each plugin
         await asyncio.gather(*writers)

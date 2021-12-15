@@ -68,7 +68,7 @@ if sys.version_info < (3, 7):
 
 #: Field names in the args and config whose value will be added to the app_ctx
 _FIELDS_IN_APP_CTX = frozenset(('ansible_base_url', 'breadcrumbs', 'galaxy_url', 'indexes',
-                                'logging_cfg', 'pypi_url'))
+                                'logging_cfg', 'pypi_url', 'use_html_blobs'))
 
 #: Field names in the args and config whose value will be added to the lib_ctx
 _FIELDS_IN_LIB_CTX = frozenset(

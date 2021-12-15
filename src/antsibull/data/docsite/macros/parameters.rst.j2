@@ -1,4 +1,5 @@
-{% from 'macros/deprecates.rst.j2' import in_rst as deprecates %}
+{% from 'macros/deprecates.rst.j2' import in_rst as deprecates_rst %}
+{% from 'macros/deprecates.rst.j2' import in_html as deprecates_html %}
 
 {% macro in_rst(elements, plugin_name, plugin_type, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
 .. rst-class:: ansible-option-table
@@ -51,7 +52,7 @@
 {%-   if plugin_type != 'module' %}
 
 
-@{     deprecates(value['deprecated'], collection, 6) }@
+@{     deprecates_rst(value['deprecated'], collection, 6) }@
 {%   endif %}
 
 
@@ -106,7 +107,7 @@
 
       :ansible-option-default-bold:`Default:` :ansible-option-default:`@{ value['default'] | tojson | rst_escape(escape_ending_whitespace=true) | indent(6) }@`
 {%   endif %}
-{#   configuration #}
+{#   Configuration #}
 {%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
 
       .. rst-class:: ansible-option-line
@@ -125,7 +126,7 @@
 {%         if ini['version_added'] is still_relevant %}
         :ansible-option-versionadded:`added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | rst_ify }@`
 {%         endif %}
-@{         deprecates(ini['deprecated'], collection, 8) }@
+@{         deprecates_rst(ini['deprecated'], collection, 8) }@
 {%       endfor %}
 {%     endif %}
 {%     for env in value['env'] %}
@@ -134,7 +135,7 @@
 
         :ansible-option-versionadded:`added in @{env['version_added']}@ of @{ env['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates(env['deprecated'], collection, 8) }@
+@{       deprecates_rst(env['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for myvar in value['vars'] %}
       - Variable: @{ myvar['name'] | rst_escape }@
@@ -142,7 +143,7 @@
 
         :ansible-option-versionadded:`added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates(myvar['deprecated'], collection, 8) }@
+@{       deprecates_rst(myvar['deprecated'], collection, 8) }@
 {%     endfor %}
 {%     for mycli in value['cli'] %}
       - CLI argument: @{ mycli['option'] | rst_escape }@
@@ -150,7 +151,7 @@
 
         :ansible-option-versionadded:`added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | rst_ify }@`
 {%       endif %}
-@{       deprecates(mycli['deprecated'], collection, 8) }@
+@{       deprecates_rst(mycli['deprecated'], collection, 8) }@
 {%     endfor %}
 {%   endif %}
 
@@ -158,7 +159,144 @@
 
         </div>
 {%   if value[suboption_key] %}
-    @{ loop(value[suboption_key]|dictsort) }@
+    @{ loop(value[suboption_key] | dictsort) }@
 {%   endif %}
 {% endfor %}
+{% endmacro %}
+
+{##################################################################################################################}
+
+{% macro in_html(elements, plugin_name, plugin_type, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
+.. raw:: html
+
+  <table class="colwidths-auto ansible-option-table docutils align-default" style="width: 100%">
+  <thead>
+  <tr class="row-odd">
+    <th class="head"><p>Parameter</p></th>
+    <th class="head"><p>Comments</p></th>
+  </tr>
+  </thead>
+  <tbody>
+{% set row_class = cycler('even', 'odd') %}
+{% for key, value in elements | dictsort recursive %}
+{#   parameter name with required and/or introduced label #}
+  <tr class="row-@{ row_class.next() }@">
+    <td>{% for i in range(1, loop.depth) %}<div class="ansible-option-indent"></div>{% endfor %}<div class="ansible-option-cell">
+{%   for full_key in value['full_keys'] %}
+      <div class="ansibleOptionAnchor" id="parameter-@{ parameter_html_prefix }@{% for part in full_key %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}"></div>
+{%   endfor %}
+      <p class="ansible-option-title"><strong>@{ key | escape }@</strong></p>
+      <a class="ansibleOptionLink" href="#parameter-@{ parameter_html_prefix }@{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
+{%   if value['aliases'] %}
+      <p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: @{ value['aliases']|join(', ') }@</p>
+{%   endif %}
+      <p class="ansible-option-type-line">
+        <span class="ansible-option-type">@{ value['type'] | documented_type }@</span>
+{%   if value['type'] == 'list' and value['elements'] is not none %}
+        / <span class="ansible-option-elements">elements=@{ value['elements'] | documented_type }@</span>
+{%   endif %}
+{%   if value['required'] %}
+        / <span class="ansible-option-required">required</span>
+{%   endif %}
+      </p>
+{%   if value['version_added'] is still_relevant %}
+      <p><span class="ansible-option-versionadded">added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@</span></p>
+{%   endif %}
+{%   if plugin_type != 'module' %}
+@{     deprecates_html(value['deprecated'], collection) }@
+{%   endif %}
+    </div></td>
+{#   description #}
+    <td>{% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
+{%   for desc in value['description'] %}
+      <p>@{ desc | html_ify | indent(6) }@</p>
+{%   endfor %}
+{#   default / choices #}
+{#   Turn boolean values in 'yes' and 'no' values #}
+{%   if value['default'] is sameas true %}
+{%     set _x = value.update({'default': 'yes'}) %}
+{%   elif value['default'] is not none and value['default'] is sameas false %}
+{%     set _x = value.update({'default': 'no'}) %}
+{%   endif %}
+{%   if value['type'] == 'bool' %}
+{%     set _x = value.update({'choices': ['no', 'yes']}) %}
+{%   endif %}
+{#   Show possible choices and highlight details #}
+{%   if value['choices'] %}
+      <p class="ansible-option-line"><span class="ansible-option-choices">Choices:</span></p>
+      <ul class="simple">
+{%     for choice in value['choices'] %}
+{#       Turn boolean values in 'yes' and 'no' values #}
+{%       if choice is sameas true %}
+{%         set choice = 'yes' %}
+{%       elif choice is sameas false %}
+{%         set choice = 'no' %}
+{%       endif %}
+{%       if (value['default'] is not list and value['default'] == choice) or (value['default'] is list and choice in value['default']) %}
+        <li><p><span class="ansible-option-default-bold">@{ choice | escape }@</span> <span class="ansible-option-default">← (default)</span></p></li>
+{%       else %}
+        <li><p><span class="ansible-option-choices-entry">@{ choice | escape }@</span></p></li>
+{%       endif %}
+{%     endfor %}
+      </ul>
+{%   endif %}
+{#   Show default value, when multiple choice or no choices #}
+{%   if value['default'] is not none and value['default'] not in value['choices'] %}
+      <p class="ansible-option-line"><span class="ansible-option-default-bold">Default:</span> <span class="ansible-option-default">@{ value['default'] | tojson | escape | indent(6) }@</span></p>
+{%   endif %}
+{#   Configuration #}
+{%   if plugin_type != 'module' and plugin_type != 'role' and (value['ini'] or value['env'] or value['vars'] or value['cli']) %}
+      <p class="ansible-option-line"><span class="ansible-option-configuration">Configuration:</span></p>
+      <ul class="simple">
+{%     if value['ini'] %}
+      <li>
+        <p>INI {% if value['ini'] | length == 1 %}entry{% else %}entries{% endif %}</p>
+{%       for ini in value['ini'] %}
+        <div class="highlight-YAML+Jinja notranslate"><div class="highlight"><pre><span class="p p-Indicator">[</span><span class="nv">@{ ini['section'] | escape }@</span><span class="p p-Indicator">]</span>
+  <span class="l l-Scalar l-Scalar-Plain">@{ ini['key'] | escape }@ = @{ value['default'] | default('VALUE') | escape }@</span></pre></div></div>
+{%         if ini['version_added'] is still_relevant %}
+        <p><span class="ansible-option-versionadded">added in @{ini['version_added']}@ of @{ ini['version_added_collection'] | html_ify }@</span></p>
+{%         endif %}
+@{         deprecates_html(ini['deprecated'], collection) }@
+{%       endfor %}
+      </li>
+{%     endif %}
+{%     for env in value['env'] %}
+      <li>
+        <p>Environment variable: @{ env['name'] | escape }@</p>
+{%       if env['version_added'] is still_relevant %}
+        <p><span class="ansible-option-versionadded">added in @{env['version_added']}@ of @{ env['version_added_collection'] | html_ify }@</span></p>
+{%       endif %}
+@{       deprecates_html(env['deprecated'], collection) }@
+      </li>
+{%     endfor %}
+{%     for myvar in value['vars'] %}
+      <li>
+        <p>Variable: @{ myvar['name'] | escape }@</p>
+{%       if myvar['version_added'] is still_relevant %}
+        <p><span class="ansible-option-versionadded">added in @{myvar['version_added']}@ of @{ myvar['version_added_collection'] | html_ify }@</span></p>
+{%       endif %}
+@{       deprecates_html(myvar['deprecated'], collection) }@
+      </li>
+{%     endfor %}
+{%     for mycli in value['cli'] %}
+      <li>
+        <p>CLI argument: @{ mycli['option'] | escape }@</p>
+{%       if mycli['version_added'] is still_relevant %}
+        <p><span class="ansible-option-versionadded">added in @{mycli['version_added']}@ of @{ mycli['version_added_collection'] | html_ify }@</span></p>
+{%       endif %}
+@{       deprecates_html(mycli['deprecated'], collection) }@
+      </li>
+{%     endfor %}
+      </ul>
+{%   endif %}
+    </div></td>
+  </tr>
+{%   if value[suboption_key] %}
+@{     loop(value[suboption_key] | dictsort) }@
+{%   endif %}
+{% endfor %}
+  </tbody>
+  </table>
+
 {% endmacro %}

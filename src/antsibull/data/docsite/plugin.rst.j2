@@ -1,5 +1,7 @@
-{% from 'macros/parameters.rst.j2' import in_rst as parameters %}
-{% from 'macros/returnvalues.rst.j2' import in_rst as return_docs %}
+{% from 'macros/parameters.rst.j2' import in_rst as parameters_rst %}
+{% from 'macros/parameters.rst.j2' import in_html as parameters_html %}
+{% from 'macros/returnvalues.rst.j2' import in_rst as return_docs_rst %}
+{% from 'macros/returnvalues.rst.j2' import in_html as return_docs_html %}
 .. Document meta
 
 :orphan:
@@ -163,7 +165,11 @@ The below requirements are needed on the local controller node that executes thi
 Parameters
 ----------
 
-@{   parameters(doc['options'], plugin_type, plugin_name, suboption_key='suboptions') }@
+{%   if use_html_blobs %}
+@{     parameters_html(doc['options'], plugin_type, plugin_name, suboption_key='suboptions') }@
+{%   else %}
+@{     parameters_rst(doc['options'], plugin_type, plugin_name, suboption_key='suboptions') }@
+{%   endif %}
 {% endif %}
 
 .. Attributes
@@ -308,7 +314,11 @@ Returned Facts
 --------------
 Facts returned by this module are added/updated in the ``hostvars`` host facts and can be referenced by name just like any other host fact. They do not need to be registered in order to use them.
 
-@{   return_docs(returnfacts, plugin_name, plugin_type) }@
+{%   if use_html_blobs %}
+@{     return_docs_html(returnfacts, plugin_name, plugin_type) }@
+{%   else %}
+@{     return_docs_rst(returnfacts, plugin_name, plugin_type) }@
+{%   endif %}
 {% endif %}
 
 .. Return values
@@ -318,7 +328,11 @@ Return Values
 -------------
 Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this @{ plugin_type }@:
 
-@{   return_docs(returndocs, plugin_name, plugin_type) }@
+{%   if use_html_blobs %}
+@{     return_docs_html(returndocs, plugin_name, plugin_type) }@
+{%   else %}
+@{     return_docs_rst(returndocs, plugin_name, plugin_type) }@
+{%   endif %}
 {% endif %}
 
 ..  Status (Presently only deprecated)

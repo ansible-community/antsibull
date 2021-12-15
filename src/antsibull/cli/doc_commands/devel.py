@@ -137,6 +137,7 @@ def generate_docs() -> int:
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
         generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],
-                                          breadcrumbs=app_ctx.breadcrumbs)
+                                          breadcrumbs=app_ctx.breadcrumbs,
+                                          use_html_blobs=app_ctx.use_html_blobs)
 
     return 0
