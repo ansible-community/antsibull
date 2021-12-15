@@ -26,6 +26,16 @@ antsibull-docs collection \
 {%     if squash_hierarchy %}
     --squash-hierarchy \
 {%     endif %}
+{%     if use_html_blobs %}
+    --use-html-blobs \
+{%     endif %}
+{%     if not breadcrumbs %}
+    --no-breadcrumbs \
+{%     endif %}
+{%     if not indexes %}
+    --no-indexes \
+{%     endif %}
+
     @{ ' '.join(collections) }@
 {% endif %}
 
