@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: 'Build simple docsite (extra options: ${{ options }})'
+    name: 'Build simple docsite (extra options: ${{ matrix.options }})'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir . ${{ options }}
+          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir . ${{ matrix.options }}
 
       - name: Patch build.sh to supply code coverage
         run: |
