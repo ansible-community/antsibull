@@ -445,6 +445,10 @@ def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -
     maybe_add_title = create_title_adder(
         builder, 'Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
 
+    if changelog_entry.added_collections:
+        next(maybe_add_title)
+        append_added_collections(builder, changelog_entry)
+
     for section in ['known_issues', 'breaking_changes', 'major_changes']:
         append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
 
