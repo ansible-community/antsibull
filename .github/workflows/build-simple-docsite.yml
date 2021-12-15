@@ -13,7 +13,13 @@ on:
 
 jobs:
   build:
+    name: Build simple docsite (extra options: ${{ options }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        options:
+          - ''
+          - '--use-html-blobs --no-breadcrumbs --no-indexes'
 
     steps:
       - uses: actions/checkout@v2
@@ -29,7 +35,7 @@ jobs:
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir .
+          coverage run -p --source src/antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir . ${{ options }}
 
       - name: Patch build.sh to supply code coverage
         run: |
