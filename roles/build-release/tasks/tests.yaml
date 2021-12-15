@@ -22,11 +22,11 @@
 
 # Note: the version of ansible-core doesn't necessarily match the deps file since the version requirement is >=
 - block:
-    # Note: the value is still called _ansible_base_version in the deps file
+    # Note: the value is either _ansible_base_version or _ansible_core_version depending on the version
     # ex: https://github.com/ansible-community/ansible-build-data/blob/main/4/ansible-4.4.0.deps
     - name: Retrieve the expected minimum version of ansible-core
       shell: >-
-        grep _ansible_base_version {{ antsibull_data_dir }}/{{ _deps_file }} | awk '{print $2}'
+        grep -E "_ansible_(base|core)_version" {{ antsibull_data_dir }}/{{ _deps_file }} | awk '{print $2}'
       changed_when: false
       register: _expected_ansible_core
 
