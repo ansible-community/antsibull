@@ -371,8 +371,7 @@ class ChangelogEntry:
             )
             if prev_version:
                 if not prev_collection_version:
-                    if prev_version != ancestor_version:
-                        self.added_collections.append((collector, collection_version))
+                    self.added_collections.append((collector, collection_version))
                 elif prev_collection_version == collection_version:
                     self.unchanged_collections.append((collector, collection_version))
                     continue
