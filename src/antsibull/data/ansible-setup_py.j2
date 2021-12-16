@@ -176,16 +176,11 @@ setup(
     python_requires='>=3.8',
 {%- endif %}
     packages=['ansible_collections'],
-{% if version.major >= 6 %}
+{% if version.major >= 6 and collection_exclude_paths %}
     exclude_package_data={
         'ansible_collections': [
-{%   for name, namespace in collections %}
-            '{{ name }}/{{ namespace }}/.gitignore',
-            '{{ name }}/{{ namespace }}/.github/*',
-            '{{ name }}/{{ namespace }}/.azure-pipelines/*',
-            '{{ name }}/{{ namespace }}/changelogs/*',
-            '{{ name }}/{{ namespace }}/docs/*',
-            '{{ name }}/{{ namespace }}/tests/*',
+{%   for path in collection_exclude_paths %}
+            '{{ path }}',
 {%   endfor %}
         ],
     },
