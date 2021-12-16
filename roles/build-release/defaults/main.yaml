@@ -1,4 +1,7 @@
 ---
+# The command to run `antsibull-build`
+antsibull_build_command: poetry run antsibull-build
+
 # The directory where antsibull will build the Ansible release tarball
 antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 
