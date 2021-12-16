@@ -94,7 +94,7 @@ class LibContext(BaseModel):
     doc_parsing_backend: str = 'ansible-internal'
     max_retries: int = 10
     process_max: t.Optional[int] = None
-    thread_max: int = 15
+    thread_max: int = 8
     file_check_content: int = 262144
 
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)
