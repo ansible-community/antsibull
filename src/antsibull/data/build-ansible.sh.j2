@@ -27,5 +27,7 @@ DEPSFILE="ansible-${VERSION}.deps"
 
 antsibull-build rebuild-single "${VERSION}" --collection-cache collection-cache --data-dir "${BUILD_DATA_DIR}" --build-file "${BUILDFILE}" --deps-file "${DEPSFILE}" --sdist-dir built --debian
 
+echo "The result can be found in built/ansible-${VERSION}.tar.gz"
+
 # pip3 install --user twine
 # twine upload "built/ansible-${VERSION}.tar.gz"
