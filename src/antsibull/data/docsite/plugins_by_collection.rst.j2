@@ -4,7 +4,7 @@
 
 {% macro list_plugins(plugin_type) %}
 {%   for name, desc in plugin_maps[plugin_type].items() | sort %}
-* :ref:`@{ name }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ plugin_type }@>` -- @{ desc | rst_ify | indent(width=2) }@
+* :ref:`@{ name }@ @{ plugin_type }@ <ansible_collections.@{ collection_name }@.@{ name }@_@{ plugin_type }@>` -- @{ desc | rst_ify | indent(width=2) }@
 {%   endfor %}
 {% endmacro %}
 

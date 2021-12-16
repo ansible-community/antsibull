@@ -8,8 +8,10 @@
 
 .. Title
 
-@{ plugin_name }@
-@{ '+' * plugin_name|length }@
+{% set title = plugin_name ~ ' ' ~ plugin_type -%}
+
+@{ title }@
+@{ '+' * title|length }@
 
 .. Collection note
 

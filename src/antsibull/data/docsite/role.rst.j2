@@ -33,9 +33,9 @@
 .. Title
 
 {% if entry_points.main and entry_points.main.short_description -%}
-{%   set title = plugin_name + ' -- ' + entry_points.main.short_description | rst_ify -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type ~ ' -- ' ~ entry_points.main.short_description | rst_ify -%}
 {% else -%}
-{%   set title = plugin_name -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type -%}
 {% endif -%}
 
 @{ title }@
@@ -153,10 +153,10 @@ See Also
 
 {%     for item in ep_doc['seealso'] %}
 {%       if item.module is defined and item.description %}
-   @{ ('M(' + item['module'] + ')') | rst_ify }@
+   @{ ('M(' + item['module'] + ')') | rst_ify }@ module
        @{ item['description'] | rst_ify }@
 {%       elif item.module is defined %}
-   @{ ('M(' + item['module'] + ')') | rst_ify }@
+   @{ ('M(' + item['module'] + ')') | rst_ify }@ module
       The official documentation on the **@{ item['module'] }@** module.
 {%       elif item.name is defined and item.link is defined and item.description %}
    `@{ item['name'] }@ <@{ item['link'] }@>`_
