@@ -6,8 +6,6 @@
 Antsibull minimal Sphinx extension which adds some features from the Ansible doc site.
 '''
 
-from __future__ import (absolute_import, division, print_function)
-
 __version__ = "0.1.1"
 __license__ = "BSD license"
 __author__ = "Felix Fontein"
