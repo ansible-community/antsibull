@@ -4,10 +4,6 @@
 # https://opensource.org/licenses/BSD-2-Clause)
 """Collection of low-level utility functions."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
-
 from collections.abc import Hashable, Mapping, Sequence
 
 
