@@ -75,7 +75,7 @@
 
 .. version_added
 
-{%   if ep_doc['version_added'] is still_relevant -%}
+{%   if ep_doc['version_added'] is still_relevant(collection=collection) -%}
 .. versionadded:: @{ ep_doc['version_added'] }@ of @{ collection | rst_ify }@
 {%   endif %}
 

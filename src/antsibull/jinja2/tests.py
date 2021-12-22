@@ -2,8 +2,10 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 import warnings
-from distutils.version import LooseVersion
 from functools import partial
+
+from packaging.version import Version as PypiVer
+from semantic_version import Version as SemVer
 
 from ..vendored.collections import is_sequence
 
@@ -11,12 +13,12 @@ from ..vendored.collections import is_sequence
 # if a module is added in a version of Ansible older than this, don't print the version added
 # information in the module documentation because everyone is assumed to be running something newer
 # than this already.
-TOO_OLD_TO_BE_NOTABLE = '0'
+TOO_OLD_TO_BE_NOTABLE = '0.0.0'
 
 test_list = partial(is_sequence, include_strings=False)
 
 
-def still_relevant(version, cutoff=TOO_OLD_TO_BE_NOTABLE):
+def still_relevant(version, cutoff=TOO_OLD_TO_BE_NOTABLE, collection=None):
     """
     Calculates whether the given version is older than a cutoff value
 
@@ -35,13 +37,21 @@ def still_relevant(version, cutoff=TOO_OLD_TO_BE_NOTABLE):
     if version == 'historical':
         return False
 
+    if collection == 'ansible.builtin':
+        Version = PypiVer
+    elif collection is not None:
+        Version = SemVer
+    else:
+        # This used to be distutils.version.LooseVersion
+        Version = PypiVer
+
     try:
-        version = LooseVersion(version)
+        version = Version(version)
     except ValueError as e:
         warnings.warn("Could not parse %s: %s" % (version, str(e)))
         return True
     try:
-        return version >= LooseVersion(cutoff)
+        return version >= Version(cutoff)
     except Exception as e:
         warnings.warn("Could not compare %s: %s" % (version, str(e)))
         return True
