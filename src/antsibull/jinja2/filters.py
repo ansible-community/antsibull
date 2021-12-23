@@ -8,6 +8,8 @@ import re
 from html import escape as html_escape
 from urllib.parse import quote
 
+import typing as t
+
 from jinja2.runtime import Undefined
 
 from ..logging import log
@@ -52,7 +54,7 @@ def html_ify(text):
     return text
 
 
-def documented_type(text):
+def documented_type(text) -> str:
     ''' Convert any python type to a type for documentation '''
 
     if isinstance(text, Undefined):
@@ -78,38 +80,38 @@ def do_max(seq):
 # https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#character-level-inline-markup-1
 # for further information.
 
-def _rst_ify_italic(m):
+def _rst_ify_italic(m: re.Match) -> str:
     return f"\\ :emphasis:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
-def _rst_ify_bold(m):
+def _rst_ify_bold(m: re.Match) -> str:
     return f"\\ :strong:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
-def _rst_ify_module(m):
+def _rst_ify_module(m: re.Match) -> str:
     fqcn = '{0}.{1}.{2}'.format(m.group(1), m.group(2), m.group(3))
     return f"\\ :ref:`{rst_escape(fqcn)} <ansible_collections.{fqcn}_module>`\\ "
 
 
-def _escape_url(url):
+def _escape_url(url: str) -> str:
     # We include '<>[]{}' in safe to allow urls such as 'https://<HOST>:[PORT]/v{version}/' to
     # remain unmangled by percent encoding
     return quote(url, safe=':/#?%<>[]{}')
 
 
-def _rst_ify_link(m):
+def _rst_ify_link(m: re.Match) -> str:
     return f"\\ `{rst_escape(m.group(1))} <{_escape_url(m.group(2))}>`__\\ "
 
 
-def _rst_ify_url(m):
+def _rst_ify_url(m: re.Match) -> str:
     return f"\\ {_escape_url(m.group(1))}\\ "
 
 
-def _rst_ify_ref(m):
+def _rst_ify_ref(m: re.Match) -> str:
     return f"\\ :ref:`{rst_escape(m.group(1))} <{m.group(2)}>`\\ "
 
 
-def _rst_ify_const(m):
+def _rst_ify_const(m: re.Match) -> str:
     # Escaping does not work in double backticks, so we use the :literal: role instead
     return f"\\ :literal:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
@@ -135,7 +137,7 @@ def rst_ify(text):
     return text
 
 
-def rst_escape(value, escape_ending_whitespace=False):
+def rst_escape(value: t.Any, escape_ending_whitespace=False) -> str:
     ''' make sure value is converted to a string, and RST special characters are escaped '''
 
     if not isinstance(value, str):

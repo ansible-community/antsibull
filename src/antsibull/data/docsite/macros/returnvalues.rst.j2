@@ -1,4 +1,4 @@
-{% macro in_rst(elements, plugin_name, plugin_type) %}
+{% macro in_rst(elements) %}
 .. rst-class:: ansible-option-table
 
 .. list-table::
@@ -91,7 +91,7 @@
 
 {##################################################################################################################}
 
-{% macro in_html(elements, plugin_name, plugin_type) %}
+{% macro in_html(elements) %}
 .. raw:: html
 
   <table class="colwidths-auto ansible-option-table docutils align-default" style="width: 100%">
