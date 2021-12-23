@@ -34,7 +34,7 @@
 
       :ansible-option-type:`@{ value['type'] | documented_type }@`
       {%- if value['type'] == 'list' and value['elements'] is not none %} / :ansible-option-elements:`elements=@{ value['elements'] | documented_type }@`{% endif %}
-{%-   if value['version_added'] is still_relevant %}
+{%-   if value['version_added'] is still_relevant(collection=value['version_added_collection']) %}
 
 
       :ansible-option-versionadded:`added in @{value['version_added']}@ of @{ value['version_added_collection'] | rst_escape }@`
@@ -118,7 +118,7 @@
         / <span class="ansible-option-elements">elements=@{ value['elements'] | documented_type }@</span>
 {%   endif %}
       </p>
-{%   if value['version_added'] is still_relevant %}
+{%   if value['version_added'] is still_relevant(collection=value['version_added_collection']) %}
       <p><span class="ansible-option-versionadded">added in @{value['version_added']}@ of @{ value['version_added_collection'] | escape }@</span></p>
 {%   endif %}
     </div></td>

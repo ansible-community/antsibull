@@ -94,7 +94,7 @@
 
 .. version_added
 
-{% if doc['version_added'] is still_relevant -%}
+{% if doc['version_added'] is still_relevant(collection=doc['version_added_collection']) -%}
 .. versionadded:: @{ doc['version_added'] }@ of @{ doc['version_added_collection'] | rst_ify }@
 {% endif %}
 
@@ -226,7 +226,7 @@ Attributes
 {%       endif %}
 {%     endif %}
 
-{%     if data['version_added'] is still_relevant %}
+{%     if data['version_added'] is still_relevant(collection=data['version_added_collection']) %}
     .. versionadded:: @{ data['version_added'] }@ of @{ data['version_added_collection'] | rst_ify }@
 {%     endif %}
 {%     if data.details %}
