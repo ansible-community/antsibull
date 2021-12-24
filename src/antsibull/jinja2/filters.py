@@ -80,15 +80,15 @@ def do_max(seq):
 # https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#character-level-inline-markup-1
 # for further information.
 
-def _rst_ify_italic(m: re.Match) -> str:
+def _rst_ify_italic(m: 're.Match') -> str:
     return f"\\ :emphasis:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
-def _rst_ify_bold(m: re.Match) -> str:
+def _rst_ify_bold(m: 're.Match') -> str:
     return f"\\ :strong:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
 
-def _rst_ify_module(m: re.Match) -> str:
+def _rst_ify_module(m: 're.Match') -> str:
     fqcn = '{0}.{1}.{2}'.format(m.group(1), m.group(2), m.group(3))
     return f"\\ :ref:`{rst_escape(fqcn)} <ansible_collections.{fqcn}_module>`\\ "
 
@@ -99,19 +99,19 @@ def _escape_url(url: str) -> str:
     return quote(url, safe=':/#?%<>[]{}')
 
 
-def _rst_ify_link(m: re.Match) -> str:
+def _rst_ify_link(m: 're.Match') -> str:
     return f"\\ `{rst_escape(m.group(1))} <{_escape_url(m.group(2))}>`__\\ "
 
 
-def _rst_ify_url(m: re.Match) -> str:
+def _rst_ify_url(m: 're.Match') -> str:
     return f"\\ {_escape_url(m.group(1))}\\ "
 
 
-def _rst_ify_ref(m: re.Match) -> str:
+def _rst_ify_ref(m: 're.Match') -> str:
     return f"\\ :ref:`{rst_escape(m.group(1))} <{m.group(2)}>`\\ "
 
 
-def _rst_ify_const(m: re.Match) -> str:
+def _rst_ify_const(m: 're.Match') -> str:
     # Escaping does not work in double backticks, so we use the :literal: role instead
     return f"\\ :literal:`{rst_escape(m.group(1), escape_ending_whitespace=True)}`\\ "
 
