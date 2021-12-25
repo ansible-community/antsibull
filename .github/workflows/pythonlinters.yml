@@ -42,10 +42,9 @@ jobs:
           ./lint-pyre.sh
         if: always()
 
-      # note: pylint is run informationally, never to fail the build
       - name: Lint with pylint
         run: |
-          ./lint-pylint.sh || :
+          ./lint-pylint.sh
         if: always()
 
       # note: mypy is run informationally, never to fail the build
