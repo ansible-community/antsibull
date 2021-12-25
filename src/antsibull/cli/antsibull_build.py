@@ -242,6 +242,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                             ' of collections with version ranges.  This is considered to be'
                             ' relative to --dest-data-dir.  The default is'
                             ' $BASENAME_OF_PIECES_FILE-X.Y.build')
+    new_parser.add_argument('--allow-prereleases', action='store_true',
+                            help='Allow prereleases of collections to be included in the build'
+                            ' file')
 
     subparsers.add_parser('prepare',
                           parents=[
