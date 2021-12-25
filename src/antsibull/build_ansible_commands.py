@@ -310,7 +310,7 @@ def rebuild_single_command() -> int:
 
         # Download included collections
         asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
-                                         download_dir, app_ctx.extra['collection_cache']))
+                                         download_dir, app_ctx.collection_cache))
 
         # Get Ansible changelog, add new release
         ansible_changelog = ChangelogData.ansible(
@@ -321,7 +321,7 @@ def rebuild_single_command() -> int:
             app_ctx.extra['ansible_version'],
             deps_dir=app_ctx.extra['data_dir'],
             deps_data=[dependency_data],
-            collection_cache=app_ctx.extra['collection_cache'],
+            collection_cache=app_ctx.collection_cache,
             ansible_changelog=ansible_changelog)
 
         # Create package and collections directories
@@ -457,7 +457,7 @@ def build_multiple_command() -> int:
         included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
         asyncio.run(
             download_collections(included_versions, app_ctx.galaxy_url, download_dir,
-                                 app_ctx.extra['collection_cache']))
+                                 app_ctx.collection_cache))
         # TODO: PY3.8:
         # collections_to_install = [p for f in os.listdir(download_dir)
         #                           if os.path.isfile(p := os.path.join(download_dir, f))]

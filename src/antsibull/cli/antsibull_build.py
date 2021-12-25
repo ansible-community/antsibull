@@ -198,7 +198,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                          '  Defaults to --data-dir')
 
     cache_parser = argparse.ArgumentParser(add_help=False)
-    cache_parser.add_argument('--collection-cache', default=None,
+    cache_parser.add_argument('--collection-cache', default=argparse.SUPPRESS,
                               help='Directory of cached collection tarballs.  Will be'
                               ' used if a collection tarball to be downloaded exists'
                               ' in here, and will be populated when downloading new'

@@ -105,7 +105,7 @@ def generate_docs() -> int:
             retrieve(collections, tmp_dir,
                      galaxy_server=app_ctx.galaxy_url,
                      ansible_core_source=app_ctx.extra['ansible_core_source'],
-                     collection_cache=app_ctx.extra['collection_cache']))
+                     collection_cache=app_ctx.collection_cache))
         # flog.fields(tarballs=collection_tarballs).debug('Download complete')
         flog.notice('Finished retrieving tarballs')
 

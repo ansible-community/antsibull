@@ -692,7 +692,7 @@ def build_changelog() -> int:
     ansible_version: PypiVer = app_ctx.extra['ansible_version']
     data_dir: str = app_ctx.extra['data_dir']
     dest_data_dir: str = app_ctx.extra['dest_data_dir']
-    collection_cache: t.Optional[str] = app_ctx.extra['collection_cache']
+    collection_cache: t.Optional[str] = app_ctx.collection_cache
 
     changelog = get_changelog(ansible_version, deps_dir=data_dir, collection_cache=collection_cache)
 

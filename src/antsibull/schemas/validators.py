@@ -3,6 +3,8 @@
 # License: GPLv3+
 # Copyright: Toshio Kuratomi, 2021
 
+import os.path
+
 
 def convert_none(value):
     """
@@ -46,5 +48,18 @@ def convert_bool(value):
 
     elif isinstance(value, int):
         value = _is_truthy_int(value)
+
+    return value
+
+
+def convert_path(value):
+    """
+    Expand `~` and environment variables in strings. Also convert strings like `None` and `Null`
+    to None.
+    """
+    value = convert_none(value)
+
+    if isinstance(value, str):
+        value = os.path.expandvars(os.path.expanduser(value))
 
     return value

@@ -8,7 +8,7 @@ import typing as t
 import pydantic as p
 
 from .config import DEFAULT_LOGGING_CONFIG, LoggingModel
-from .validators import convert_bool, convert_none
+from .validators import convert_bool, convert_none, convert_path
 from ..utils.collections import ContextDict
 
 
@@ -54,6 +54,8 @@ class AppContext(BaseModel):
     :ivar indexes: If True, create index pages for all collections and all plugins in a collection.
     :ivar logging_cfg: Configuration of the application logging
     :ivar pypi_url: URL of the pypi server to query for information
+    :ivar collection_cache: If set, must be a path pointing to a directory where collection
+        tarballs are cached so they do not need to be downloaded from Galaxy twice.
     """
 
     extra: ContextDict = ContextDict()
@@ -67,9 +69,12 @@ class AppContext(BaseModel):
     # pyre-ignore[8]: https://github.com/samuelcolvin/pydantic/issues/1684
     pypi_url: p.HttpUrl = 'https://pypi.org/'
     use_html_blobs: p.StrictBool = False
+    collection_cache: t.Optional[str] = None
 
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)
+    _convert_paths = p.validator('collection_cache',
+                                 pre=True, allow_reuse=True)(convert_path)
 
 
 class LibContext(BaseModel):
