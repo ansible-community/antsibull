@@ -57,6 +57,11 @@ async def copy_file(source_path: str, dest_path: str) -> None:
     flog.debug('Leave')
 
 
+async def write_file(filename: str, content: str) -> None:
+    async with aiofiles.open(filename, 'w') as f:
+        await f.write(content)
+
+
 def _render_template(_template: Template, _name: str, **kwargs) -> str:
     try:
         return _template.render(**kwargs)
@@ -157,8 +162,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
 
         plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
-    async with aiofiles.open(plugin_file, 'w') as f:
-        await f.write(plugin_contents)
+    await write_file(plugin_file, plugin_contents)
 
     flog.debug('Leave')
 
@@ -229,8 +233,7 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
 
         plugin_file = os.path.join(collection_dir, f'{plugin_short_name}_{plugin_type}.rst')
 
-    async with aiofiles.open(plugin_file, 'w') as f:
-        await f.write(plugin_contents)
+    await write_file(plugin_file, plugin_contents)
 
     flog.debug('Leave')
 
@@ -352,8 +355,7 @@ async def write_collection_list(collections: t.Iterable[str], namespaces: t.Iter
         breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
-    async with aiofiles.open(index_file, 'w') as f:
-        await f.write(index_contents)
+    await write_file(index_file, index_contents)
 
 
 async def write_collection_namespace_index(namespace: str, collections: t.Iterable[str],
@@ -379,8 +381,7 @@ async def write_collection_namespace_index(namespace: str, collections: t.Iterab
         breadcrumbs=breadcrumbs)
     index_file = os.path.join(dest_dir, 'index.rst')
 
-    async with aiofiles.open(index_file, 'w') as f:
-        await f.write(index_contents)
+    await write_file(index_file, index_contents)
 
 
 async def write_plugin_type_index(plugin_type: str,
@@ -402,8 +403,7 @@ async def write_plugin_type_index(plugin_type: str,
         plugin_type=plugin_type,
         per_collection_plugins=per_collection_plugins)
 
-    async with aiofiles.open(dest_filename, 'w') as f:
-        await f.write(index_contents)
+    await write_file(dest_filename, index_contents)
 
 
 async def write_plugin_lists(collection_name: str,
@@ -440,8 +440,7 @@ async def write_plugin_lists(collection_name: str,
     os.makedirs(dest_dir, mode=0o755, exist_ok=True)
     index_file = os.path.join(dest_dir, 'index.rst')
 
-    async with aiofiles.open(index_file, 'w') as f:
-        await f.write(index_contents)
+    await write_file(index_file, index_contents)
 
 
 async def output_collection_index(collection_to_plugin_info: CollectionInfoT,
