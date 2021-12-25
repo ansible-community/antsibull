@@ -27,6 +27,7 @@ from .changelog import ChangelogData, get_changelog
 from .collections import install_separately, install_together
 from .dependency_files import BuildFile, DependencyFileData, DepsFile
 from .galaxy import CollectionDownloader, GalaxyClient
+from .utils.io import write_file
 from .utils.get_pkg_data import get_antsibull_data
 
 
@@ -377,8 +378,7 @@ async def write_collection_readme(collection_name: str, package_dir: str) -> Non
     readme_contents = readme_tmpl.render(collection_name=collection_name)
 
     readme_filename = os.path.join(package_dir, 'README.rst')
-    async with aiofiles.open(readme_filename, 'w') as f:
-        await f.write(readme_contents)
+    await write_file(readme_filename, readme_contents)
 
 
 async def write_collection_setup(name: str, version: str, package_dir: str) -> None:
@@ -387,8 +387,7 @@ async def write_collection_setup(name: str, version: str, package_dir: str) -> N
     setup_tmpl = Template(get_antsibull_data('collection-setup_py.j2').decode('utf-8'))
     setup_contents = setup_tmpl.render(version=version, name=name)
 
-    async with aiofiles.open(setup_filename, 'w') as f:
-        await f.write(setup_contents)
+    await write_file(setup_filename, setup_contents)
 
 
 async def write_collection_manifest(package_dir: str) -> None:
