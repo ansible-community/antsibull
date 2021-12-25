@@ -13,7 +13,7 @@ def test_default():
     lib_ctx = ap.lib_ctx.get()
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
-    assert lib_ctx.thread_max == 15
+    assert lib_ctx.thread_max == 8
     assert lib_ctx.max_retries == 10
 
     app_ctx = ap.app_ctx.get()
@@ -33,7 +33,7 @@ def test_create_contexts_with_cfg():
 
     assert lib_ctx.chunksize == 1
     assert lib_ctx.process_max is None
-    assert lib_ctx.thread_max == 15
+    assert lib_ctx.thread_max == 8
     assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ContextDict({'unknown': True})
@@ -53,7 +53,7 @@ def test_create_contexts_with_args():
 
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max == 2
-    assert lib_ctx.thread_max == 15
+    assert lib_ctx.thread_max == 8
     assert lib_ctx.max_retries == 10
 
     assert app_ctx.extra == ContextDict({'unknown': True})
@@ -139,7 +139,7 @@ def test_context_overrides():
     lib_ctx = ap.lib_ctx.get()
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
-    assert lib_ctx.thread_max == 15
+    assert lib_ctx.thread_max == 8
     assert lib_ctx.max_retries == 10
 
 
@@ -202,5 +202,5 @@ def test_app_and_lib_context():
     lib_ctx = ap.lib_ctx.get()
     assert lib_ctx.chunksize == 4096
     assert lib_ctx.process_max is None
-    assert lib_ctx.thread_max == 15
+    assert lib_ctx.thread_max == 8
     assert lib_ctx.max_retries == 10
