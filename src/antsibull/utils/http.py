@@ -19,11 +19,8 @@ mlog = log.fields(mod=__name__)
 
 
 def _format_call(command: str, args: t.Tuple[t.Any, ...], kwargs: t.Mapping[str, t.Any]) -> str:
-    arguments = [repr(a) for a in args] + ['{0}={1}'.format(k, repr(v)) for k, v in kwargs.items()]
-    return 'aio_session.{command}({args})'.format(
-        command=command,
-        args=', '.join(arguments),
-    )
+    arguments = [repr(a) for a in args] + [f'{k}={repr(v)}' for k, v in kwargs.items()]
+    return f'aio_session.{command}({", ".join(arguments)})'
 
 
 class RetryGetManager:
@@ -55,7 +52,7 @@ class RetryGetManager:
             try:
                 response = await self.aio_session.get(*self.args, **self.kwargs, timeout=20)
                 status_code = response.status
-                flog.debug('Status code {0}'.format(status_code))
+                flog.debug(f'Status code {status_code}')
                 if status_code < 400 or status_code in self.acceptable_error_codes:
                     self.response = response
                     flog.debug('Leave')
@@ -67,25 +64,24 @@ class RetryGetManager:
                 status_code = 'timeout'
                 error_codes.append(status_code)
                 wait_factor = 0.5
-            except Exception as error:
+            except Exception as error:  # pylint:disable=broad-except
                 flog.trace()
                 status_code = str(error)
                 error_codes.append(status_code)
 
             failed = retry + 1 == self.max_retries
-            warnings.warn('{0} failed with status code {1}{2}'.format(
-                self.call_string,
-                status_code,
-                ', finally failed.' if failed else ', retrying...'
-            ))
+            warnings.warn(
+                f'{self.call_string} failed with status code {status_code}'
+                f'{", finally failed." if failed else ", retrying..."}')
             if failed:
                 break
 
             await asyncio.sleep(math.pow(1.5, retry) * wait_factor + (0.5 + random.uniform(0, 1)))
 
         flog.debug('Raise error')
-        raise Exception('Repeated error when calling {0}: received status codes {1}'.format(
-            self.call_string, ', '.join([str(error) for error in error_codes])))
+        raise Exception(
+            f'Repeated error when calling {self.call_string}: received status codes '
+            f'{", ".join([str(error) for error in error_codes])}')
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
         flog = mlog.fields(func='RetryGetManager.__aexit__')

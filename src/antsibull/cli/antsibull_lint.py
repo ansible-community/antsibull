@@ -99,9 +99,7 @@ def command_lint_changelog(args: Any) -> int:
     """
     errors = lint_changelog_yaml(args.changelog_yaml_path)
 
-    messages = sorted(set(
-        '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])
-        for error in errors))
+    messages = sorted(set(f'{error[0]}:{error[1]}:{error[2]}: {error[3]}' for error in errors))
 
     for message in messages:
         print(message)
@@ -117,9 +115,7 @@ def command_lint_collection_docs(args: Any) -> int:
     """
     errors = lint_collection_extra_docs_files(args.collection_root_path)
 
-    messages = sorted(set(
-        '%s:%d:%d: %s' % (error[0], error[1], error[2], error[3])
-        for error in errors))
+    messages = sorted(set(f'{error[0]}:{error[1]}:{error[2]}: {error[3]}' for error in errors))
 
     for message in messages:
         print(message)

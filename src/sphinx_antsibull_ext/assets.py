@@ -25,8 +25,7 @@ def _copy_asset_files(app, exc):  # pylint: disable=unused-argument
     for file in CSS_FILES:
         data = pkgutil.get_data('sphinx_antsibull_ext', file)
         if data is None:
-            raise Exception(
-                'Internal error: cannot find {0} in sphinx_antsibull_ext package'.format(file))
+            raise Exception(f'Internal error: cannot find {file} in sphinx_antsibull_ext package')
         ensuredir(os.path.join(app.outdir, '_static'))
         destination = os.path.join(app.outdir, '_static', file)
         with open(destination, 'wb') as f:

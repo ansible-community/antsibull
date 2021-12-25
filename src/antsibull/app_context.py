@@ -63,7 +63,7 @@ from .vendored.collections import ImmutableDict
 if sys.version_info < (3, 7):
     # contextvars for Python3.6.  It uses a backport of contextvars which takes over the contextvars
     # import slot there and aiocontextvars which adds the needed asyncio support.
-    import aiocontextvars  # noqa: F401
+    import aiocontextvars  # noqa: F401, pylint:disable=unused-import
 
 
 #: Field names in the args and config whose value will be added to the app_ctx
@@ -210,10 +210,11 @@ def create_contexts(args: t.Optional[argparse.Namespace] = None,
     unused_args = argparse.Namespace(**unused_args)
 
     # create new app and lib ctxt from the application's arguments and config.
-    app_ctx = AppContext(**app_values)
-    lib_ctx = LibContext(**lib_values)
+    local_app_ctx = AppContext(**app_values)
+    local_lib_ctx = LibContext(**lib_values)
 
-    return ContextReturn(app_ctx=app_ctx, lib_ctx=lib_ctx, args=unused_args, cfg=unused_cfg)
+    return ContextReturn(
+        app_ctx=local_app_ctx, lib_ctx=local_lib_ctx, args=unused_args, cfg=unused_cfg)
 
 
 def _copy_lib_context():

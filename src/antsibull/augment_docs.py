@@ -69,8 +69,8 @@ def augment_docs(plugin_info: t.MutableMapping[str, t.MutableMapping[str, t.Any]
     .. warning:: This function operates by side-effect.  The plugin_info dictionay is modified
         directly.
     """
-    for plugin_type, plugin_map in plugin_info.items():
-        for plugin_name, plugin_record in plugin_map.items():
+    for _, plugin_map in plugin_info.items():
+        for _, plugin_record in plugin_map.items():
             if 'return' in plugin_record:
                 add_full_key(plugin_record['return'], 'contains')
             if 'doc' in plugin_record:

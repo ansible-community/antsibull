@@ -73,7 +73,7 @@ class AnsibleCollectionMetadata:
         self.version = version
 
     def __repr__(self):
-        return 'AnsibleCollectionMetadata({0}, {1})'.format(repr(self.path), repr(self.version))
+        return f'AnsibleCollectionMetadata({repr(self.path)}, {repr(self.version)})'
 
     @classmethod
     def empty(cls, path='.'):

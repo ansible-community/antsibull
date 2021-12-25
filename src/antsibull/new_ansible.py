@@ -2,6 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build command for creating a new major Ansible version."""
 
 import asyncio
 import os
@@ -17,7 +18,7 @@ from .dependency_files import BuildFile, parse_pieces_file
 from .galaxy import GalaxyClient
 
 
-def display_exception(loop, context):
+def display_exception(loop, context):  # pylint:disable=unused-argument
     print(context.get('exception'))
 
 
@@ -49,6 +50,7 @@ async def get_version_info(collections, pypi_server_url):
     return collection_versions
 
 
+# pylint:disable-next=unused-argument
 def version_is_compatible(ansible_core_version, collection, version):
     # Metadata for this is not currently implemented.  So everything is rated as compatible
     return True

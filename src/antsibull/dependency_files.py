@@ -127,7 +127,7 @@ class DepsFile:
             records.append(f'{dep}: {version}')
         records.sort()
 
-        with open(self.filename, 'w') as f:
+        with open(self.filename, 'w', encoding='utf-8') as f:
             f.write(f'_ansible_version: {ansible_version}\n')
             if PypiVer(ansible_version).major > 5:
                 f.write(f'_ansible_core_version: {ansible_core_version}\n')
@@ -171,7 +171,7 @@ class BuildFile:
                                f'<{version.next_major()}')
         records.sort()
 
-        with open(self.filename, 'w') as f:
+        with open(self.filename, 'w', encoding='utf-8') as f:
             if ansible_version.major > 2:
                 # Ansible 3.0.0 and newer use semver, so we only need the major version
                 f.write(f'_ansible_version: {ansible_version.major}\n')

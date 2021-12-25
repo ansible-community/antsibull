@@ -1,5 +1,6 @@
 # Copyright: (c) 2019, Ansible Project
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+"""Jinja2 tests for use in Ansible documentation."""
 
 import warnings
 from functools import partial
@@ -48,10 +49,10 @@ def still_relevant(version, cutoff=TOO_OLD_TO_BE_NOTABLE, collection=None):
     try:
         version = Version(version)
     except ValueError as e:
-        warnings.warn("Could not parse %s: %s" % (version, str(e)))
+        warnings.warn(f"Could not parse {version}: {e}")
         return True
     try:
         return version >= Version(cutoff)
-    except Exception as e:
-        warnings.warn("Could not compare %s: %s" % (version, str(e)))
+    except Exception as e:  # pylint:disable=broad-except
+        warnings.warn(f"Could not compare {version}: {e}")
         return True

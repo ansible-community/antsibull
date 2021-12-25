@@ -24,6 +24,7 @@ class InnerRoleOptionsSchema(OptionsSchema):
     options: t.Dict[str, 'InnerRoleOptionsSchema'] = {}
 
     @p.root_validator(pre=True)
+    # pylint:disable=no-self-argument,no-self-use
     def allow_description_to_be_optional(cls, values):
         # Doing this in a validator so that the json-schema will still flag it as an error
         if 'description' not in values:

@@ -3,6 +3,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build Ansible changelog and porting guide."""
 
 import os
 import os.path
@@ -266,7 +267,7 @@ def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
 
 def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
     plugins: PluginDumpT = []
-    for name, prefix, dummy, release_entry in data:
+    for _, prefix, dummy, release_entry in data:
         if release_entry:
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
@@ -280,12 +281,12 @@ def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
 
 def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
     objects: PluginDumpT = []
-    for name, prefix, dummy, release_entry in data:
+    for _, prefix, dummy, release_entry in data:
         if release_entry:
             for object_type, object_datas in release_entry.objects.items():
                 for object_data in object_datas:
                     objects.append((
-                        ['New {type}s'.format(type=object_type.title())],
+                        [f'New {object_type.title()}s'],
                         prefix + object_data['name'],
                         object_data['description']))
     dump_items(builder, objects)
@@ -345,7 +346,7 @@ def append_changelog(builder: RstBuilder,
                      collection_metadata: CollectionsMetadata,
                      changelog_entry: ChangelogEntry,
                      is_last: bool) -> None:
-    builder.add_section('v{0}'.format(changelog_entry.version_str), 0)
+    builder.add_section(f'v{changelog_entry.version_str}', 0)
 
     builder.add_raw_rst('.. contents::')
     builder.add_raw_rst('  :local:')
@@ -443,7 +444,7 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
 def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
     maybe_add_title = create_title_adder(
-        builder, 'Porting Guide for v{0}'.format(changelog_entry.version_str), 0)
+        builder, f'Porting Guide for v{changelog_entry.version_str}', 0)
 
     if changelog_entry.added_collections:
         next(maybe_add_title)

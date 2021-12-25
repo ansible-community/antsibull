@@ -24,6 +24,10 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# pylint:disable=missing-module-docstring,no-else-break,redundant-u-string-prefix
+# pylint:disable=undefined-loop-variable
+
+
 # NB: a copy of this function exists in ../../modules/core/async_wrapper.py. Ensure any
 # changes are propagated there.
 def _filter_non_json_lines(data):

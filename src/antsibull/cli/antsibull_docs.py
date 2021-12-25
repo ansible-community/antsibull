@@ -62,6 +62,7 @@ def _normalize_docs_options(args: argparse.Namespace) -> None:
         if not stat.S_ISDIR(stat_results.st_mode):
             raise FileNotFoundError()
     except FileNotFoundError:
+        # pylint:disable-next=raise-missing-from
         raise InvalidArgumentError(f'{args.dest_dir} must be an existing directory owned by you,'
                                    f' and only be writable by the owner')
 

@@ -515,8 +515,7 @@ async def output_plugin_indexes(plugin_info: PluginCollectionInfoT,
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         for plugin_type, per_collection_data in plugin_info.items():
-            filename = os.path.join(
-                collection_toplevel, 'index_{type}.rst'.format(type=plugin_type))
+            filename = os.path.join(collection_toplevel, f'index_{plugin_type}.rst')
             writers.append(await pool.spawn(
                 write_plugin_type_index(
                     plugin_type, per_collection_data, plugin_list_tmpl, filename)))

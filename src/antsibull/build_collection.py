@@ -2,6 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build collection that collects all collections included in Ansible."""
 
 import json
 import os.path
@@ -20,6 +21,7 @@ def build_collection_command():
     with tempfile.TemporaryDirectory() as working_dir:
         collection_dir = os.path.join(working_dir, 'community', 'ansible')
 
+        # pylint:disable-next=no-member
         sh.ansible_galaxy('collection', 'init', 'community.ansible', '--init-path', working_dir)
         # Copy the README.md file
         readme = get_antsibull_data('README_md.txt')
@@ -38,9 +40,10 @@ def build_collection_command():
         galaxy_yml_contents = galaxy_yml_tmpl.render(version=app_ctx.extra['ansible_version'],
                                                      dependencies=dep_string)
 
-        with open(os.path.join(collection_dir, 'galaxy.yml'), 'w') as f:
+        with open(os.path.join(collection_dir, 'galaxy.yml'), 'w', encoding='utf-8') as f:
             f.write(galaxy_yml_contents)
 
+        # pylint:disable-next=no-member
         sh.ansible_galaxy('collection', 'build',
                           '--output-path', app_ctx.extra['collection_dir'],
                           collection_dir)

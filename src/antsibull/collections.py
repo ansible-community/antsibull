@@ -35,7 +35,7 @@ async def install_together(collection_tarballs: List[str],
         # If the choice of install tools for galaxy is ever settled upon, we can switch from tar to
         # using that
         # sh dynamically creates functions which map to executables
-        # pyre-ignore[16]
+        # pyre-ignore[16] pylint:disable-next=no-member
         installers.append(loop.run_in_executor(executor, sh.tar, '-xf', pathname, '-C',
                                                collection_dir))
 
@@ -80,7 +80,7 @@ async def install_separately(collection_tarballs: List[str], collection_dir: str
         # If the choice of install tools for galaxy is ever settled upon, we can switch from tar to
         # using that
         # sh dynamically creates functions which map to executables
-        # pyre-ignore[16]
+        # pyre-ignore[16] pylint:disable-next=no-member
         installers.append(loop.run_in_executor(executor, sh.tar, '-xf', pathname, '-C',
                                                collection_dir))
 

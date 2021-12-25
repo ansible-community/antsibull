@@ -1,6 +1,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build devel docs."""
 
 import asyncio
 import os
@@ -22,7 +23,7 @@ from ...logging import log
 from ...venv import VenvRunner
 
 if t.TYPE_CHECKING:
-    import semantic_version as semver
+    import semantic_version as semver  # pylint:disable=unused-import
 
 
 mlog = log.fields(mod=__name__)

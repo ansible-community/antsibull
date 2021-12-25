@@ -28,14 +28,14 @@ def write_file(filename: str, content: str) -> None:
     Write content into a file.
     """
     if os.path.exists(filename):
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             existing_content = f.read()
         if existing_content == content:
             print(f'Skipping {filename}')
             return
 
     print(f'Writing {filename}...')
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(content)
 
 

@@ -89,7 +89,7 @@ def _rst_ify_bold(m: 're.Match') -> str:
 
 
 def _rst_ify_module(m: 're.Match') -> str:
-    fqcn = '{0}.{1}.{2}'.format(m.group(1), m.group(2), m.group(3))
+    fqcn = f'{m.group(1)}.{m.group(2)}.{m.group(3)}'
     return f"\\ :ref:`{rst_escape(fqcn)} <ansible_collections.{fqcn}_module>`\\ "
 
 
