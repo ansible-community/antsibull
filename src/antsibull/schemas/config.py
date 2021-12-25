@@ -130,6 +130,7 @@ class ConfigModel(BaseModel):
     use_html_blobs: p.StrictBool = False
     thread_max: int = 15
     file_check_content: int = 262144
+    collection_cache: t.Optional[str] = None
 
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',

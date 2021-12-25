@@ -192,7 +192,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                               ' building for. If it is an expanded tarball, the __version__ will'
                               ' be checked to make sure it is compatible with and the same or'
                               ' later version than requested by the deps file.')
-    cache_parser.add_argument('--collection-cache', default=None,
+    cache_parser.add_argument('--collection-cache', default=argparse.SUPPRESS,
                               help='Directory of collection tarballs.  These will be used instead'
                               ' of downloading fresh versions provided that they meet the criteria'
                               ' (Latest version of the collections known to galaxy).')
