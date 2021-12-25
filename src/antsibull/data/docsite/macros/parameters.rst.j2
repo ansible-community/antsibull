@@ -1,7 +1,7 @@
-{% from 'macros/deprecates.rst.j2' import in_rst as deprecates_rst %}
-{% from 'macros/deprecates.rst.j2' import in_html as deprecates_html %}
+{% from 'macros/deprecates.rst.j2' import in_rst as deprecates_rst with context %}
+{% from 'macros/deprecates.rst.j2' import in_html as deprecates_html with context %}
 
-{% macro in_rst(elements, plugin_name, plugin_type, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
+{% macro in_rst(elements, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
 .. rst-class:: ansible-option-table
 
 .. list-table::
@@ -166,7 +166,7 @@
 
 {##################################################################################################################}
 
-{% macro in_html(elements, plugin_name, plugin_type, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
+{% macro in_html(elements, suboption_key='suboptions', parameter_html_prefix='', parameter_rst_prefix='') %}
 .. raw:: html
 
   <table class="colwidths-auto ansible-option-table docutils align-default" style="width: 100%">
