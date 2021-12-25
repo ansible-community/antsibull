@@ -129,6 +129,7 @@ class ConfigModel(BaseModel):
     pypi_url: p.HttpUrl = 'https://pypi.org/'
     use_html_blobs: p.StrictBool = False
     thread_max: int = 15
+    file_check_content: int = 262144
 
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',

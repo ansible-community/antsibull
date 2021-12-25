@@ -8,7 +8,7 @@ import hashlib
 
 import aiofiles
 
-from . import app_context
+from .. import app_context
 
 
 async def verify_hash(filename: str, hash_digest: str, algorithm: str = 'sha256') -> bool:

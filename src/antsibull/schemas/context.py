@@ -80,6 +80,9 @@ class LibContext(BaseModel):
     :ivar process_max: Maximum number of worker processes for parallel operations.  It may be None
         to mean, use all available CPU cores.
     :ivar thread_max: Maximum number of helper threads for parallel operations
+    :ivar file_check_content: Maximum number of bytes of a file to read before writing it to
+        compare contents. If contents are as expected, file is not overwritten. Set to 0 to
+        disable.
     :ivar max_retries: Maximum number of times to retry an http request (in case of timeouts and
         other transient problems.
     :ivar doc_parsing_backend: The backend to use for parsing the documentation strings from
@@ -92,5 +95,6 @@ class LibContext(BaseModel):
     max_retries: int = 10
     process_max: t.Optional[int] = None
     thread_max: int = 15
+    file_check_content: int = 262144
 
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)

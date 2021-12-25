@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import semantic_version as semver
 
 from . import app_context
-from .hashing import verify_hash
+from .utils.hashing import verify_hash
 from .utils.http import retry_get
 
 # The type checker can handle finding aiohttp.client but flake8 cannot :-(

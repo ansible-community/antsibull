@@ -9,12 +9,12 @@ import os.path
 import re
 import typing as t
 
-import aiofiles
 import asyncio_pool
 
 from . import app_context
 from .logging import log
 from .yaml import load_yaml_file
+from .utils.io import read_file
 
 
 mlog = log.fields(mod=__name__)
@@ -193,8 +193,7 @@ async def load_collection_extra_docs(collection_name: str,
     for abs_path, rel_path in find_extra_docs(collection_path):
         try:
             # Load content
-            async with aiofiles.open(abs_path, 'r', encoding='utf-8') as f:
-                content = await f.read()
+            content = await read_file(abs_path, encoding='utf-8')
 
             # Lint content
             dummy, errors = lint_required_conditions(content, collection_name)
