@@ -11,7 +11,7 @@ import pydantic as p
 import twiggy.formats
 import twiggy.outputs
 
-from .validators import convert_bool, convert_none
+from .validators import convert_bool, convert_none, convert_path
 
 
 #: Valid choices for a logging level field
@@ -135,3 +135,5 @@ class ConfigModel(BaseModel):
     _convert_nones = p.validator('process_max', pre=True, allow_reuse=True)(convert_none)
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)
+    _convert_paths = p.validator('collection_cache',
+                                 pre=True, allow_reuse=True)(convert_path)

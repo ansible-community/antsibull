@@ -8,7 +8,7 @@ import typing as t
 import pydantic as p
 
 from .config import DEFAULT_LOGGING_CONFIG, LoggingModel
-from .validators import convert_bool, convert_none
+from .validators import convert_bool, convert_none, convert_path
 from ..utils.collections import ContextDict
 
 
@@ -73,6 +73,8 @@ class AppContext(BaseModel):
 
     _convert_bools = p.validator('breadcrumbs', 'indexes', 'use_html_blobs',
                                  pre=True, allow_reuse=True)(convert_bool)
+    _convert_paths = p.validator('collection_cache',
+                                 pre=True, allow_reuse=True)(convert_path)
 
 
 class LibContext(BaseModel):
