@@ -22,18 +22,18 @@ except ImportError:
     from yaml import SafeDumper as _SafeDumper
 
 
-def load_yaml_bytes(input: bytes) -> t.Any:
+def load_yaml_bytes(data: bytes) -> t.Any:
     """
     Load and parse YAML from given bytes.
     """
-    return yaml.load(input, Loader=_SafeLoader)
+    return yaml.load(data, Loader=_SafeLoader)
 
 
 def load_yaml_file(path: str) -> t.Any:
     """
     Load and parse YAML file ``path``.
     """
-    with open(path, 'r') as stream:
+    with open(path, 'rb') as stream:
         return yaml.load(stream, Loader=_SafeLoader)
 
 
@@ -41,7 +41,7 @@ def store_yaml_file(path: str, content: t.Any) -> None:
     """
     Store ``content`` as YAML file under ``path``.
     """
-    with open(path, 'w') as stream:
+    with open(path, 'wb') as stream:
         dumper = _SafeDumper
         dumper.ignore_aliases = lambda *args: True
         yaml.dump(content, stream, default_flow_style=False, encoding='utf-8', Dumper=dumper)

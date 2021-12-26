@@ -35,6 +35,7 @@ def _get_acls(path: str) -> str:
         except sh.CommandNotFound:
             pass
         except Exception as e:
+            # pylint:disable-next=raise-missing-from
             raise CheckFailure(f'Error while trying to get acls for {path}: {e}')
 
     if not acls:

@@ -2,6 +2,7 @@
 # Author: Felix Fontein <felix@fontein.de>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Render documentation for a single plugin."""
 
 import json
 import os

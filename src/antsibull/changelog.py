@@ -3,6 +3,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Changelog handling and processing code."""
 
 import asyncio
 from collections import defaultdict
@@ -43,8 +44,7 @@ class ChangelogData:
     generator_flatmap: bool
 
     def __init__(self, paths: PathsConfig, config: ChangelogConfig,
-                 changes: ChangesData, generator: t.Optional[ChangelogGenerator] = None,
-                 flatmap: bool = False):
+                 changes: ChangesData, flatmap: bool = False):
         self.paths = paths
         self.config = config
         self.changes = changes
@@ -125,8 +125,7 @@ def read_changelog_file(tarball_path: str, is_ansible_core=False) -> t.Optional[
     def matcher(filename: str) -> bool:
         if is_ansible_core:
             return filename.endswith('changelogs/changelog.yaml')
-        else:
-            return filename in ('changelogs/changelog.yaml', 'changelog.yaml')
+        return filename in ('changelogs/changelog.yaml', 'changelog.yaml')
 
     return read_file(tarball_path, matcher)
 
@@ -235,7 +234,8 @@ class AnsibleCoreChangelogCollector:
         self.changelog = None
         self.porting_guide = None
 
-    async def _get_changelog_file(self, version: PypiVer,
+    @staticmethod
+    async def _get_changelog_file(version: PypiVer,
                                   base_downloader: t.Callable[[str], t.Awaitable[str]]
                                   ) -> t.Optional[ChangelogData]:
         path = await base_downloader(str(version))
@@ -476,8 +476,8 @@ def get_changelog(
         for deps in deps_data:
             dependencies[deps.ansible_version] = deps
 
-    base_versions: t.Dict[PypiVer, str] = dict()
-    versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = dict()
+    base_versions: t.Dict[PypiVer, str] = {}
+    versions: t.Dict[str, t.Tuple[PypiVer, DependencyFileData]] = {}
     versions_per_collection: t.Dict[str, t.Dict[PypiVer, str]] = defaultdict(dict)
     for deps in dependencies.values():
         version = PypiVer(deps.ansible_version)

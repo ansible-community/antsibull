@@ -2,6 +2,9 @@
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2020, Felix Fontein
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+"""Enumerate collections and all their plugin's docs."""
+
+# pylint:disable=protected-access
 
 # Parts taken from Ansible's ansible-doc sources
 
@@ -12,18 +15,18 @@ import sys
 
 import yaml
 
-import ansible.plugins.loader as plugin_loader
+import ansible.plugins.loader as plugin_loader  # pylint:disable=import-error
 
-from ansible import constants as C
-from ansible import release as ansible_release
-from ansible.cli import doc
-from ansible.cli.arguments import option_helpers as opt_help
-from ansible.collections.list import list_collection_dirs
-from ansible.module_utils._text import to_native
-from ansible.module_utils.common.json import AnsibleJSONEncoder
-from ansible.plugins.loader import action_loader, fragment_loader
-from ansible.utils.collection_loader import AnsibleCollectionConfig
-from ansible.utils.plugin_docs import get_docstring
+from ansible import constants as C  # pylint:disable=import-error
+from ansible import release as ansible_release  # pylint:disable=import-error
+from ansible.cli import doc  # pylint:disable=import-error
+from ansible.cli.arguments import option_helpers as opt_help  # pylint:disable=import-error
+from ansible.collections.list import list_collection_dirs  # pylint:disable=import-error
+from ansible.module_utils._text import to_native  # pylint:disable=import-error
+from ansible.module_utils.common.json import AnsibleJSONEncoder  # pylint:disable=import-error
+from ansible.plugins.loader import action_loader, fragment_loader  # pylint:disable=import-error
+from ansible.utils.collection_loader import AnsibleCollectionConfig  # pylint:disable=import-error
+from ansible.utils.plugin_docs import get_docstring  # pylint:disable=import-error
 
 
 def load_plugin(loader, plugin_type, plugin):
@@ -74,13 +77,13 @@ def load_plugin(loader, plugin_type, plugin):
             json.dumps(ansible_doc, cls=AnsibleJSONEncoder)
             # Store result. This is guaranteed to be serializable
             result['ansible-doc'] = ansible_doc
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             result['error'] = (
-                'Cannot serialize documentation as JSON: %s' % to_native(e)
+                f'Cannot serialize documentation as JSON: {to_native(e)}'
             )
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         result['error'] = (
-            'Missing documentation or could not parse documentation: %s' % to_native(e)
+            f'Missing documentation or could not parse documentation: {to_native(e)}'
         )
 
     return result
@@ -95,14 +98,14 @@ def match_filter(name, coll_filter):
         return True
     if '.' not in name and 'ansible.builtin' in coll_filter:
         return True
-    for filter in coll_filter:
-        if name.startswith(filter + '.'):
+    for a_filter in coll_filter:
+        if name.startswith(f'{a_filter}.'):
             return True
     return False
 
 
 def load_all_plugins(plugin_type, basedir, coll_filter):
-    loader = getattr(plugin_loader, '%s_loader' % plugin_type)
+    loader = getattr(plugin_loader, f'{plugin_type}_loader')
 
     if basedir:
         loader.add_directory(basedir, with_subdir=True)
@@ -135,7 +138,7 @@ def load_role(role_mixin, role_name, collection_name, collection_path):
     }
 
     argspec = role_mixin._load_argspec(role_name, collection_path=collection_path)
-    fqcn, ansible_doc = role_mixin._build_doc(
+    _, ansible_doc = role_mixin._build_doc(
         role_name, collection_path, collection_name, argspec, None)
 
     try:
@@ -143,20 +146,20 @@ def load_role(role_mixin, role_name, collection_name, collection_path):
         json.dumps(ansible_doc, cls=AnsibleJSONEncoder)
         # Store result. This is guaranteed to be serializable
         result['ansible-doc'] = ansible_doc
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         result['error'] = (
-            'Cannot serialize documentation as JSON: %s' % to_native(e)
+            f'Cannot serialize documentation as JSON: {to_native(e)}'
         )
 
     return result
 
 
-def load_all_roles(RoleMixin, basedir, coll_filter):
+def load_all_roles(RoleMixin, basedir, coll_filter):  # pylint:disable=unused-argument
     role_mixin = RoleMixin()
     roles = role_mixin._find_all_collection_roles()
     result = {}
     for role_name, collection_name, collection_path in roles:
-        fqcn = '{1}.{0}'.format(role_name, collection_name)
+        fqcn = f'{role_name}.{collection_name}'
         if match_filter(fqcn, coll_filter):
             role_data = load_role(role_mixin, role_name, collection_name, collection_path)
             if role_data['ansible-doc'] is None:
@@ -239,7 +242,7 @@ def main(args):
     b_colldirs = list_collection_dirs(coll_filter=ansible_doc_coll_filter(coll_filter))
     for b_path in b_colldirs:
         meta = load_collection_meta(b_path)
-        collection_name = '{0}.{1}'.format(meta['namespace'], meta['name'])
+        collection_name = f'{meta["namespace"]}.{meta["name"]}'
         if match_filter(collection_name, coll_filter):
             result['collections'][collection_name] = meta
     if match_filter('ansible.builtin', coll_filter):

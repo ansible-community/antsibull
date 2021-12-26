@@ -2,6 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build Ansible packages."""
 
 import asyncio
 import datetime
@@ -104,13 +105,13 @@ def write_manifest(package_dir: str,
                    release_notes: t.Optional[ReleaseNotes] = None,
                    debian: bool = False) -> None:
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
-    with open(manifest_file, 'w') as f:
+    with open(manifest_file, 'w', encoding='utf-8') as f:
         f.write('include COPYING\n')
         f.write('include README\n')
         f.write('include build-ansible.sh\n')
         if release_notes:
-            f.write('include {0}\n'.format(release_notes.changelog_filename))
-            f.write('include {0}\n'.format(release_notes.porting_guide_filename))
+            f.write(f'include {release_notes.changelog_filename}\n')
+            f.write(f'include {release_notes.porting_guide_filename}\n')
         if debian:
             f.write('include debian/*\n')
         f.write('recursive-include ansible_collections/ **\n')
@@ -122,7 +123,7 @@ def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> 
     release_tmpl = Template(get_antsibull_data('ansible-release_py.j2').decode('utf-8'))
     release_contents = release_tmpl.render(version=ansible_version)
 
-    with open(release_filename, 'w') as f:
+    with open(release_filename, 'w', encoding='utf-8') as f:
         f.write(release_contents)
 
 
@@ -139,7 +140,7 @@ def write_setup(ansible_version: PypiVer,
         ansible_core_version=ansible_core_version,
         collection_deps=collection_deps)
 
-    with open(setup_filename, 'w') as f:
+    with open(setup_filename, 'w', encoding='utf-8') as f:
         f.write(setup_contents)
 
 
@@ -178,7 +179,7 @@ def write_debian_directory(ansible_version: PypiVer,
                 ansible_core_package_name=ansible_core_package_name,
             )
 
-        with open(os.path.join(debian_dir, filename), 'w') as f:
+        with open(os.path.join(debian_dir, filename), 'w', encoding='utf-8') as f:
             f.write(data)
 
 
@@ -203,7 +204,7 @@ def write_build_script(ansible_version: PypiVer,
     build_ansible_contents = build_ansible_tmpl.render(version=ansible_version,
                                                        ansible_core_version=ansible_core_version)
 
-    with open(build_ansible_filename, 'w') as f:
+    with open(build_ansible_filename, 'w', encoding='utf-8') as f:
         f.write(build_ansible_contents)
     os.chmod(build_ansible_filename, mode=0o755)
 

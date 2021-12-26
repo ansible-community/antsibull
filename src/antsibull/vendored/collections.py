@@ -4,6 +4,8 @@
 # https://opensource.org/licenses/BSD-2-Clause)
 """Collection of low-level utility functions."""
 
+# pylint:disable=consider-using-f-string,consider-iterating-dictionary,use-dict-literal
+
 from collections.abc import Hashable, Mapping, Sequence
 
 

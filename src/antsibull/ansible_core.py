@@ -22,7 +22,7 @@ from .logging import log
 from .utils.http import retry_get
 
 if t.TYPE_CHECKING:
-    import aiohttp.client
+    import aiohttp.client  # pylint:disable=unused-import
 
 
 mlog = log.fields(mod=__name__)
@@ -168,7 +168,8 @@ def get_ansible_core_package_name(ansible_core_version: t.Union[str, PypiVer]) -
 
 
 def _get_source_version(ansible_core_source: str) -> PypiVer:
-    with open(os.path.join(ansible_core_source, 'lib', 'ansible', 'release.py')) as f:
+    with open(os.path.join(ansible_core_source, 'lib', 'ansible', 'release.py'),
+              'r', encoding='utf-8') as f:
         root = ast.parse(f.read())
 
     # Find the version of the source
@@ -203,7 +204,7 @@ def source_is_devel(ansible_core_source: t.Optional[str]) -> bool:
 
     try:
         source_version = _get_source_version(ansible_core_source)
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return False
 
     dev_version = re.compile('[.]dev[0-9]+$')
@@ -227,7 +228,7 @@ def source_is_correct_version(ansible_core_source: t.Optional[str],
 
     try:
         source_version = _get_source_version(ansible_core_source)
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return False
 
     # If the source is a compatible version of ansible-core and it is the same or more recent than
@@ -287,7 +288,7 @@ async def create_sdist(source_dir: str, dest_dir: str) -> str:
     try:
         await loop.run_in_executor(None, python_cmd, setup_script, 'sdist', '--dist-dir', dist_dir)
     except Exception as e:
-        raise CannotBuild(f'Building {source_dir} failed: {e}')
+        raise CannotBuild(f'Building {source_dir} failed: {e}')  # pylint:disable=raise-missing-from
 
     dist_files = [f for f in os.listdir(dist_dir) if f.endswith('tar.gz')]
     if len(dist_files) != 1:

@@ -58,6 +58,7 @@ class LogOutputModel(BaseModel):
     kwargs: t.Mapping[str, t.Any] = {}
 
     @p.validator('args')
+    # pylint:disable=no-self-argument,no-self-use
     def expand_home_dir_args(cls, args_field: t.MutableSequence,
                              values: t.Mapping) -> t.MutableSequence:
         """Expand tilde in the arguments of specific outputs."""
@@ -67,6 +68,7 @@ class LogOutputModel(BaseModel):
         return args_field
 
     @p.validator('kwargs')
+    # pylint:disable=no-self-argument,no-self-use
     def expand_home_dir_kwargs(cls, kwargs_field: t.MutableMapping,
                                values: t.Mapping) -> t.MutableMapping:
         """Expand tilde in the keyword arguments of specific outputs."""

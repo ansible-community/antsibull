@@ -81,7 +81,8 @@ class FakeVenvRunner:
         * :python:mod:`venv`
     """
 
-    def get_command(self, executable_name) -> sh.Command:
+    @staticmethod
+    def get_command(executable_name) -> sh.Command:
         """
         Return an :sh:obj:`sh.Command` for the given program installed within the venv.
 
@@ -90,7 +91,8 @@ class FakeVenvRunner:
         """
         return sh.Command(executable_name)
 
-    def install_package(self, package_name: str) -> sh.RunningCommand:
+    @staticmethod
+    def install_package(package_name: str) -> sh.RunningCommand:
         """
         Install a python package into the venv.
 

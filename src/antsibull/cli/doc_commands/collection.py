@@ -2,6 +2,7 @@
 # Author: Felix Fontein <felix@fontein.de>
 # License: GPLv3+
 # Copyright: Ansible Project, 2020
+"""Build documentation for one or more collections."""
 
 from ... import app_context
 from ...logging import log

@@ -14,7 +14,7 @@ from ..vendored.json_utils import _filter_non_json_lines
 from . import _get_environment, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
-    from ..venv import VenvRunner, FakeVenvRunner
+    from ..venv import VenvRunner, FakeVenvRunner  # pylint:disable=unused-import
 
 
 mlog = log.fields(mod=__name__)
@@ -68,7 +68,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         plugin_map[plugin_type] = {}
         for plugin_name, plugin_data in plugins.items():
             if '.' not in plugin_name:
-                plugin_name = 'ansible.builtin.{0}'.format(plugin_name)
+                plugin_name = f'ansible.builtin.{plugin_name}'
             if 'ansible-doc' in plugin_data:
                 plugin_map[plugin_type][plugin_name] = plugin_data['ansible-doc']
             else:

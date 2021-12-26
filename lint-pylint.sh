@@ -1,3 +1,3 @@
 #!/bin/bash
 set -e
-poetry run pylint --rcfile .pylintrc.automated src/antsibull sphinx_antsibull_ext "$@"
+poetry run pylint --rcfile .pylintrc.automated src/antsibull src/sphinx_antsibull_ext "$@"

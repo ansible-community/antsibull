@@ -2,6 +2,7 @@
 # Author: Felix Fontein <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2021
+"""Code for handling extra collection documentation in docs/docsite/."""
 
 import asyncio
 import os
@@ -51,7 +52,7 @@ def find_extra_docs(path_to_collection: str) -> t.List[t.Tuple[str, str]]:
     if not os.path.isdir(docs_dir):
         return []
     result = []
-    for dirname, dirs, files in os.walk(docs_dir):
+    for dirname, _, files in os.walk(docs_dir):
         for file in files:
             if file.endswith('.rst'):
                 path = os.path.join(dirname, file)
@@ -159,7 +160,7 @@ def load_extra_docs_index(index_path: str) -> t.Tuple[t.List[Section], t.List[st
                 if section is not None:
                     sections.append(section)
                 errors.extend(section_errors)
-    except Exception as exc:
+    except Exception as exc:  # pylint:disable=broad-except
         errors.append(str(exc))
 
     return sections, errors
@@ -201,7 +202,7 @@ async def load_collection_extra_docs(collection_name: str,
             # When no errors were found, add to output
             if not errors:
                 documents.append((abs_path, os.path.join(path_prefix, rel_path)))
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             pass
 
     flog.debug('Leave')

@@ -81,7 +81,7 @@ def find_symlink_redirects(collection_name: str,
     :directory_path: Full path to the directory we're scanning.
     :returns: Dict mapping fqcn of the alias names to fqcn of the canonical plugin names.
     """
-    plugin_type_routing = dict()
+    plugin_type_routing = {}
     if os.path.isdir(directory_path):
         for path, dummy, files in os.walk(directory_path):
             rel_path = os.path.relpath(path, directory_path)
@@ -163,7 +163,7 @@ def remove_flatmapping_artifacts(plugin_routing: t.Dict[str, t.Dict[str, t.Dict[
     community.general.cloud.rackspace.rax_info. Such redirects are condensed by this function
     into one redirect from community.general.rax_facts to community.general.rax_info.
     """
-    for plugin_type, plugin_routing_type in plugin_routing.items():
+    for _, plugin_routing_type in plugin_routing.items():
         # First collect all short and long names.
         shortname_to_longname, longname_to_shortname = find_flatmapping_short_long_maps(
             plugin_routing_type)

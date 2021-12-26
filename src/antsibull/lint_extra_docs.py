@@ -2,6 +2,7 @@
 # Author: Felix Fontein <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Ansible Project, 2021
+"""Lint extra collection documentation in docs/docsite/."""
 
 import os
 import os.path
@@ -30,10 +31,12 @@ def load_collection_name(path_to_collection: str) -> str:
         raise Exception(f'Cannot find file {galaxy_yml_path}')
 
     galaxy_yml = load_yaml_file(galaxy_yml_path)
+    # pylint:disable-next=consider-using-f-string
     collection_name = '{namespace}.{name}'.format(**galaxy_yml)
     return collection_name
 
 
+# pylint:disable-next=unused-argument
 def lint_optional_conditions(content: str, path: str, collection_name: str
                              ) -> t.List[t.Tuple[int, int, str]]:
     '''Check a extra docs RST file's content for whether it satisfied the required conditions.
@@ -50,7 +53,7 @@ def lint_collection_extra_docs_files(path_to_collection: str
                                      ) -> t.List[t.Tuple[str, int, int, str]]:
     try:
         collection_name = load_collection_name(path_to_collection)
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return [(
             path_to_collection, 0, 0, 'Cannot identify collection with galaxy.yml at this path')]
     result = []
@@ -68,11 +71,11 @@ def lint_collection_extra_docs_files(path_to_collection: str
             labels, errors = lint_required_conditions(content, collection_name)
             all_labels.update(labels)
             result.extend((doc[0], line, col, msg) for (line, col, msg) in errors)
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             result.append((doc[0], 0, 0, str(e)))
     index_path = os.path.join(path_to_collection, 'docs', 'docsite', 'extra-docs.yml')
     try:
-        sections, errors = load_extra_docs_index(index_path)
+        _, errors = load_extra_docs_index(index_path)
         result.extend((index_path, 0, 0, error) for error in errors)
     except ExtraDocsIndexError as exc:
         if len(docs) > 0:

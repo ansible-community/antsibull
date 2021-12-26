@@ -23,7 +23,7 @@ from .fqcn import get_fqcn_parts
 from . import _get_environment, ParsingError, AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
-    from ..venv import VenvRunner, FakeVenvRunner
+    from ..venv import VenvRunner, FakeVenvRunner  # pylint:disable=unused-import
 
 
 mlog = log.fields(mod=__name__)
@@ -84,7 +84,7 @@ def _process_plugin_results(plugin_type: str,
 
         try:
             ansible_doc_output = json.loads(_filter_non_json_lines(stdout)[0])
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             formatted_exception = traceback.format_exception(None, e, e.__traceback__)
 
             plugin_log.fields(ansible_doc_stdout=stdout, exception=formatted_exception,
@@ -138,7 +138,7 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
 
     # Filter plugin map
     if collection_names is not None:
-        prefixes = ['{name}.'.format(name=collection) for collection in collection_names]
+        prefixes = [f'{collection}.' for collection in collection_names]
         plugin_map = {
             key: value for key, value in plugin_map.items()
             if any(key.startswith(prefix) for prefix in prefixes)
@@ -263,8 +263,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     lib_ctx = app_context.lib_ctx.get()
     module_workers = max(int(.7 * lib_ctx.thread_max), 1)
     other_workers = int((lib_ctx.thread_max - module_workers) / (len(DOCUMENTABLE_PLUGINS) - 1))
-    if other_workers < 1:
-        other_workers = 1
+    other_workers = max(other_workers, 1)
 
     plugin_map = {}
     extractors = {}

@@ -45,7 +45,7 @@ from ...write_docs import (
 from ...utils.transformations import get_collection_namespaces
 
 if t.TYPE_CHECKING:
-    import semantic_version as semver
+    import semantic_version as semver  # pylint:disable=unused-import
 
 
 mlog = log.fields(mod=__name__)
@@ -122,7 +122,7 @@ def normalize_plugin_info(plugin_type: str,
         try:
             return DOCS_SCHEMAS[plugin_type].parse_obj(plugin_info).dict(by_alias=True), errors
         except ValidationError as e:
-            raise ValueError(str(e))
+            raise ValueError(str(e))  # pylint:disable=raise-missing-from
 
     new_info = {}
     # Note: loop through "doc" before any other keys.
@@ -134,7 +134,7 @@ def normalize_plugin_info(plugin_type: str,
                 # We can't recover if there's not a doc field
                 # pydantic exceptions are not picklable (probably due to bugs in the pickle module)
                 # so convert it to an exception type which is picklable
-                raise ValueError(str(e))
+                raise ValueError(str(e))  # pylint:disable=raise-missing-from
 
             # But we can use the default value (some variant of "empty") for everything else
             # Note: We looped through doc first and returned an exception if doc did not normalize
@@ -325,7 +325,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     collection_to_plugin_info = get_collection_contents(plugin_contents)
     # Make sure collections without documentable plugins are mentioned
     for collection in collection_metadata:
-        collection_to_plugin_info[collection]
+        collection_to_plugin_info[collection]  # pylint:disable=pointless-statement
     flog.debug('Finished getting collection data')
 
     collection_namespaces = get_collection_namespaces(collection_to_plugin_info.keys())

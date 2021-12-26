@@ -2,6 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Toshio Kuratomi, 2021
+"""Schemas for app and lib contexts."""
 
 import typing as t
 

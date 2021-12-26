@@ -1,6 +1,6 @@
 # Copyright: (c) 2019-2020 Ansible Project
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+"""Create Jinja2 environment for rendering Ansible documentation."""
 
 import json
 import os.path

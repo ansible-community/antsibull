@@ -2,6 +2,7 @@
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
 # Copyright: Toshio Kuratomi, 2021
+"""Pydantic validators."""
 
 import os.path
 

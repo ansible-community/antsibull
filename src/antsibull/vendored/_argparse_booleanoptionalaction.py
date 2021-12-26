@@ -12,6 +12,8 @@
 # this file. That way we use the version in the python stdlib if it is available and use this
 # code if it is not.
 
+# pylint:disable=missing-module-docstring,redefined-builtin
+
 from argparse import Action, SUPPRESS, OPTIONAL, ZERO_OR_MORE
 
 
