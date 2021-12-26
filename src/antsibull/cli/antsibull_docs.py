@@ -347,7 +347,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     if '--skip-indexes' in args:
         flog.warning('The CLI parameter, `--skip-indexes` has been renamed to'
                      ' `--no-indexes`.  Please use that instead')
-        if '--indexes' or '--no-indexes' in args:
+        if '--indexes' in args or '--no-indexes' in args:
             raise InvalidArgumentError('You cannot use `--indexes`/`--no-indexes` with'
                                        ' `--skip-indexes`. Please remove `--skip-indexes`'
                                        ' and try again.')
