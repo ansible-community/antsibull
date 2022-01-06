@@ -51,15 +51,20 @@ async def get_version_info(collections, pypi_server_url):
 
 
 # pylint:disable-next=unused-argument
-def version_is_compatible(ansible_core_version, collection, version):
+def version_is_compatible(ansible_core_version, collection: str, version: semver.Version,
+                          allow_prereleases: bool = False):
     # Metadata for this is not currently implemented.  So everything is rated as compatible
+    # as long as it is no prerelease
+    if version.prerelease and not allow_prereleases:
+        return False
     return True
 
 
-def find_latest_compatible(ansible_core_version, raw_dependency_versions):
+def find_latest_compatible(ansible_core_version, raw_dependency_versions,
+                           allow_prereleases: bool = False):
     # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
-    # collection metadata that is present in the collection but may not be present in galaxy.  We'll
-    # have to figure that out once the pieces are finalized
+    # collection metadata that is present in the collection but may not be present in galaxy.
+    # We'll have to figure that out once the pieces are finalized
 
     # Order versions
     reduced_versions = {}
@@ -70,7 +75,8 @@ def find_latest_compatible(ansible_core_version, raw_dependency_versions):
 
         # Step through the versions to select the latest one which is compatible
         for version in versions:
-            if version_is_compatible(ansible_core_version, dep, version):
+            if version_is_compatible(ansible_core_version, dep, version,
+                                     allow_prereleases=allow_prereleases):
                 reduced_versions[dep] = version
                 break
 
@@ -84,7 +90,8 @@ def new_ansible_command():
     dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
 
     ansible_core_version = dependencies.pop('_ansible_core')[0]
-    dependencies = find_latest_compatible(ansible_core_version, dependencies)
+    dependencies = find_latest_compatible(
+        ansible_core_version, dependencies, allow_prereleases=app_ctx.extra['allow_prereleases'])
 
     build_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
