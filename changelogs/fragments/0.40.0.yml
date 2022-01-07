@@ -16,6 +16,7 @@ minor_changes:
   - Allow to specify ``collection_cache`` in config file (https://github.com/ansible-community/antsibull/pull/375).
   - Improve ``build-ansible.sh`` script integrated in the release tarball (https://github.com/ansible-community/antsibull/pull/369).
   - Avoid prereleases when creating the ``.build`` file in ``antsibull-build new-acd``. The old behavior of including them can be obtained by passing the ``--allow-prereleases`` option (https://github.com/ansible-community/antsibull/pull/298).
+  - Add a changelog (https://github.com/ansible-community/antsibull/pull/378).
 bugfixes:
   - Require Python 3.8 for Ansible 5 (https://github.com/ansible-community/antsibull/pull/345).
   - Fix feature freeze handling after Beta 1 in build role (https://github.com/ansible-community/antsibull/pull/337).
