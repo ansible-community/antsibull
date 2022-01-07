@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . coverage codecov
+          python -m pip install . coverage codecov rstcheck
 
       - name: Get hold of deps file
         run: |
@@ -86,6 +86,46 @@ jobs:
         run: |
           mkdir stable-docs
           coverage run -p --source antsibull -m antsibull.cli.antsibull_docs stable --deps-file ansible.deps --dest-dir stable-docs
+
+      - name: Check RST files
+        run: |
+          rstcheck -r stable-docs
+
+      - name: Combine and upload coverage stats
+        run: |
+          coverage combine .coverage.*
+          coverage report
+          coverage xml -i
+          codecov
+
+  build-devel:
+    name: 'Build devel docsite'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install . coverage codecov rstcheck
+
+      - name: Get hold of deps file
+        run: |
+          curl https://raw.githubusercontent.com/ansible-community/ansible-build-data/main/6/ansible.in --output ansible.in
+
+      - name: Build stable docs RST files
+        run: |
+          mkdir devel-docs
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs devel --pieces-file ansible.in --dest-dir devel-docs
+
+      - name: Check RST files
+        run: |
+          rstcheck -r devel-docs
 
       - name: Combine and upload coverage stats
         run: |
