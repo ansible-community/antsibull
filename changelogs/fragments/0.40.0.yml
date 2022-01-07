@@ -1,10 +1,11 @@
 release_summary: Feature and bugfix release.
+major_changes:
+  - Responsive parameter and return value tables. Also use RST tables instead of HTML blobs (https://github.com/ansible-community/antsibull/pull/335).
 minor_changes:
   - Move modules to beginning of plugin index (https://github.com/ansible-community/antsibull/pull/336).
   - Simplify ansible-core dependency in ``setup.py`` with compatibility operator (https://github.com/ansible-community/antsibull/pull/346).
   - Improve ``galaxy-requirements.yaml`` generation (https://github.com/ansible-community/antsibull/pull/350).
   - Various improvements to the build role (https://github.com/ansible-community/antsibull/pull/338).
-  - Responsive parameter and return value tables. Also use RST tables instead of HTML blobs (https://github.com/ansible-community/antsibull/pull/335).
   - Split ``antsibull-build single`` subcommand into ``prepare`` and ``rebuild-single`` subcommand (https://github.com/ansible-community/antsibull/pull/341).
   - Change ansible-base references in documentation and code to ansible-core where it makes sense (https://github.com/ansible-community/antsibull/pull/353).
   - Allow to still use HTML blobs for parameter and return value tables. This can be controlled by a CLI option ``--use-html-blobs`` and by a global config option ``use_html_blobs`` (https://github.com/ansible-community/antsibull/pull/360).
