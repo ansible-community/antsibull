@@ -1,2 +1,0 @@
-bugfixes:
-  - "Fix bug in collection enum for docs generation, which caused role FQCNs to be mangled (https://github.com/ansible-community/antsibull/pull/379)."
