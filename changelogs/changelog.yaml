@@ -1,0 +1,125 @@
+ancestor: null
+releases:
+  0.1.0:
+    changes:
+      release_summary: Initial release.
+    release_date: '2020-05-26'
+  0.10.0:
+    release_date: '2020-06-26'
+  0.11.0:
+    release_date: '2020-06-27'
+  0.12.0:
+    release_date: '2020-07-05'
+  0.13.0:
+    release_date: '2020-07-08'
+  0.14.0:
+    release_date: '2020-07-08'
+  0.15.0:
+    release_date: '2020-07-09'
+  0.16.0:
+    release_date: '2020-07-10'
+  0.17.0:
+    release_date: '2020-07-23'
+  0.18.0:
+    release_date: '2020-07-27'
+  0.19.0:
+    release_date: '2020-08-03'
+  0.2.0:
+    release_date: '2020-05-26'
+  0.20.0:
+    release_date: '2020-08-14'
+  0.21.0:
+    release_date: '2020-08-14'
+  0.22.0:
+    release_date: '2020-09-29'
+  0.23.0:
+    release_date: '2020-11-03'
+  0.24.0:
+    release_date: '2020-11-23'
+  0.25.0:
+    release_date: '2020-11-30'
+  0.26.0:
+    release_date: '2021-02-09'
+  0.27.0:
+    release_date: '2021-02-17'
+  0.28.0:
+    release_date: '2021-03-16'
+  0.29.0:
+    release_date: '2021-03-23'
+  0.3.0:
+    release_date: '2020-05-29'
+  0.30.0:
+    release_date: '2021-03-30'
+  0.31.0:
+    release_date: '2021-05-11'
+  0.32.0:
+    release_date: '2021-05-25'
+  0.33.0:
+    release_date: '2021-06-01'
+  0.34.0:
+    release_date: '2021-06-22'
+  0.35.0:
+    release_date: '2021-06-06'
+  0.36.0:
+    release_date: '2021-07-12'
+  0.37.0:
+    release_date: '2021-08-11'
+  0.38.0:
+    changes:
+      release_summary: Support CLI options for the ansible.builtin.ssh connection
+        plugin, and support ansible-core 2.12 module/plugin attributes.
+    release_date: '2021-09-25'
+  0.38.1:
+    changes:
+      release_summary: 'Fix for attributes support: also allow new support value ``N/A``.'
+    release_date: '2021-09-26'
+  0.38.2:
+    changes:
+      release_summary: Avoid creating role documentation for roles without argument
+        spec. Avoid naming collision with Ansible Sphinx config's ``rst_epilog`` contents.
+    release_date: '2021-09-27'
+  0.39.0:
+    changes:
+      release_summary: 'Docs generation:
+
+
+        * Improve boilerplate for ansible.builtin documentation
+
+        * Render ``choices`` in return value documentation
+
+        * Add alternating background colors to option and return value tables
+
+
+        Also improves the Ansible release playbook/role.
+
+        '
+    release_date: '2021-11-01'
+  0.39.1:
+    changes:
+      release_summary: '* Fixes ``M(...)`` when used in HTML blobs.
+
+        * Improve wait on HTTP retries.
+
+        '
+    release_date: '2021-11-09'
+  0.39.2:
+    changes:
+      release_summary: '* Fixes an incompatibility with antsibull-lint with Python
+        3.9.8.
+
+        * Improves and extends the Ansible build role and its tests.
+
+        '
+    release_date: '2021-11-10'
+  0.4.0:
+    release_date: '2020-06-01'
+  0.5.0:
+    release_date: '2020-06-02'
+  0.6.0:
+    release_date: '2020-06-03'
+  0.7.0:
+    release_date: '2020-06-04'
+  0.8.0:
+    release_date: '2020-06-08'
+  0.9.0:
+    release_date: '2020-06-18'

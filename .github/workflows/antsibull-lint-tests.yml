@@ -36,9 +36,17 @@ jobs:
         run: |
           coverage run -p --source antsibull -m antsibull.cli.antsibull_lint collection-docs community.general
 
-      - name: antsibull-lint changelog-yaml
+      - name: antsibull-lint changelog-yaml (community.general changelog)
         run: |
           coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml community.general/changelogs/changelog.yaml
+
+      - name: antsibull-lint changelog-yaml (own changelog)
+        run: |
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml changelogs/changelog.yaml
+
+      - name: Lint changelog fragments
+        run: |
+          antsibull-changelog lint
 
       - name: Combine and upload coverage stats
         run: |
