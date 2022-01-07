@@ -107,10 +107,15 @@ jobs:
         ~/.local/bin/antsibull-build
         new-ansible 2.10.0
         --data-dir ansible-build-data/2.10
+    - name: Prepare an Ansible dist
+      run: >-
+        ~/.local/bin/antsibull-build
+        prepare 2.10.0
+        --data-dir ansible-build-data/2.10
     - name: Create a single-tarball Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        single 2.10.0
+        rebuild-single 2.10.0
         --data-dir ansible-build-data/2.10
         --sdist-dir dist
     - name: >-
