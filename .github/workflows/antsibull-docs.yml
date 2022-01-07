@@ -1,6 +1,6 @@
-# This workflow will build a simple Sphinx-based docsite
+# This workflow will run antsibull-docs tests
 
-name: Build simple docsite
+name: antsibull-docs tests
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
     - cron: '0 6 * * 1'
 
 jobs:
-  build:
+  build-simple-docsite:
     name: 'Build simple docsite (extra options: ${{ matrix.options }})'
     runs-on: ubuntu-latest
     strategy:
