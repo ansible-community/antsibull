@@ -159,7 +159,7 @@ def load_all_roles(RoleMixin, basedir, coll_filter):  # pylint:disable=unused-ar
     roles = role_mixin._find_all_collection_roles()
     result = {}
     for role_name, collection_name, collection_path in roles:
-        fqcn = f'{role_name}.{collection_name}'
+        fqcn = f'{collection_name}.{role_name}'
         if match_filter(fqcn, coll_filter):
             role_data = load_role(role_mixin, role_name, collection_name, collection_path)
             if role_data['ansible-doc'] is None:
