@@ -158,6 +158,16 @@ releases:
     fragments:
     - 0.40.0.yml
     release_date: '2022-01-07'
+  0.40.1:
+    changes:
+      bugfixes:
+      - Fix bug in collection enum for docs generation, which caused role FQCNs to
+        be mangled (https://github.com/ansible-community/antsibull/pull/379).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.40.1.yml
+    - 379-collection-enum-fix.yml
+    release_date: '2022-01-07'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.40.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- Fix bug in collection enum for docs generation, which caused role FQCNs to be mangled (https://github.com/ansible-community/antsibull/pull/379).
+
 v0.40.0
 =======
 
