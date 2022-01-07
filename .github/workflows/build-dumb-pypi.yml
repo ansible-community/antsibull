@@ -102,21 +102,21 @@ jobs:
         -U --user
         .
     - name: Generate the list of compatible versions
-      # FIXME: should 2.10 / 2.10.0 be parametrized?
+      # FIXME: should 5 / 5.0.0 be parametrized?
       run: >-
         ~/.local/bin/antsibull-build
-        new-ansible 2.10.0
-        --data-dir ansible-build-data/2.10
+        new-ansible 5.0.0
+        --data-dir ansible-build-data/5
     - name: Prepare an Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        prepare 2.10.0
-        --data-dir ansible-build-data/2.10
+        prepare 5.0.0
+        --data-dir ansible-build-data/5
     - name: Create a single-tarball Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        rebuild-single 2.10.0
-        --data-dir ansible-build-data/2.10
+        rebuild-single 5.0.0
+        --data-dir ansible-build-data/5
         --sdist-dir dist
     - name: >-
         Check out ${{
