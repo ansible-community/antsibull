@@ -46,7 +46,7 @@ jobs:
 
       - name: Lint changelog fragments
         run: |
-          coverage run antsibull-changelog lint
+          antsibull-changelog lint
 
       - name: Combine and upload coverage stats
         run: |
