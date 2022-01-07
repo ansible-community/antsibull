@@ -29,6 +29,8 @@ a checkout, you'll have to run them under poetry::
     use pkg_resources which can slow down startup time (in some environments by
     quite a large amount).
 
+You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
+
 Unless otherwise noted in the code, it is licensed under the terms of the GNU
 General Public License v3 or, at your option, later.
 
@@ -68,6 +70,10 @@ npm install -g autoprefixer cssnano postcss postcss-cli
 
 If you want to create a new release::
 
+    vim changelogs/fragment/$VERSION_NUMBER.yml  # create 'release_summary:' fragment
+    antsibull-changelog release --version $VERSION_NUMBER
+    git add CHANGELOG.rst changelogs
+    git commit -m "Release $VERSION_NUMBER."
     poetry build
     poetry publish  # Uploads to pypi.  Be sure you really want to do this
 
