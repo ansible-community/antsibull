@@ -1,0 +1,2 @@
+minor_changes:
+  - "Mention the plugin type more prominently in the documentation (https://github.com/ansible-community/antsibull/pull/364)."
