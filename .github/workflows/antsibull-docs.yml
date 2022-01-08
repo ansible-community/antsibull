@@ -63,6 +63,11 @@ jobs:
         run:
           python .github/workflows/validate-html.py build/html/
 
+      - name: Test plugin rendering
+        run:
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_info
+        if: contains(matrix.options, '--use-current')
+
       - name: Combine and upload coverage stats
         run: |
           coverage combine .coverage.*
