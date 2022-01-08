@@ -50,6 +50,11 @@ if sys.version_info < (3, 9):
     #: code that we've copied from the upstream code.
     from .vendored._argparse_booleanoptionalaction import BooleanOptionalAction
 else:
-    from argparse import BooleanOptionalAction
+    # As long as https://bugs.python.org/issue46080 is not fixed, still use vendored version so
+    # that users can actually use `--help` for affected subcommands. Once that is fixed and
+    # included in released Python versions, we can adjust the sys.version_info check above.
+    #
+    #     from argparse import BooleanOptionalAction
+    from .vendored._argparse_booleanoptionalaction import BooleanOptionalAction
 
 __all__ = ('BooleanOptionalAction', 'asyncio_run', 'best_get_loop', 'create_task', 'metadata')
