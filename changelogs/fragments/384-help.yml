@@ -1,0 +1,2 @@
+bugfixes:
+  - "Work around Python argparse bug by using vendored class for all Python versions until the bug is fixed in argparse. This makes ``--help`` work for all antsibull-docs subcommands (https://github.com/ansible-community/antsibull/pull/384)."
