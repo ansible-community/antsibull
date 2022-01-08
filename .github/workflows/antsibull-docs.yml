@@ -20,7 +20,9 @@ jobs:
         options:
           - '--use-current'
           - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker'
-          - '--no-indexes --squash-hierarchy community.crypto --collection-version 2.0.0'
+          # The following should be run without `--use-current` and with `--collection-version 2.0.0`,
+          # but that isn't implemented yet:
+          - '--use-current --no-indexes --squash-hierarchy community.crypto'
 
     steps:
       - uses: actions/checkout@v2
