@@ -20,9 +20,7 @@ jobs:
         options:
           - '--use-current --sphinx-theme sphinx_rtd_theme'
           - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker'
-          # The following should be run without `--use-current` and with `--collection-version 2.0.0`,
-          # but that isn't implemented yet:
-          - '--use-current --no-indexes --squash-hierarchy community.crypto'
+          - '--no-indexes --squash-hierarchy community.crypto --collection-version 2.0.0'
 
     steps:
       - uses: actions/checkout@v2
