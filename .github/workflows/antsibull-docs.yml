@@ -18,8 +18,9 @@ jobs:
     strategy:
       matrix:
         options:
-          - ''
-          - '--use-html-blobs --no-breadcrumbs --no-indexes'
+          - '--use-current'
+          - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker'
+          - '--no-indexes --squash-hierarchy community.crypto --collection-version 2.0.0'
 
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +36,7 @@ jobs:
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs sphinx-init --use-current --lenient --dest-dir . ${{ matrix.options }}
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs sphinx-init --lenient --dest-dir . ${{ matrix.options }}
 
       - name: Patch build.sh to supply code coverage
         run: |
@@ -50,6 +51,7 @@ jobs:
       - name: Install collections
         run:
           ansible-galaxy collection install community.docker community.crypto
+        if: contains(matrix.options, '--use-current')
 
       - name: Build docsite
         run: |
@@ -85,7 +87,7 @@ jobs:
       - name: Build stable docs RST files
         run: |
           mkdir stable-docs
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs stable --deps-file ansible.deps --dest-dir stable-docs
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs stable --deps-file ansible.deps --dest-dir stable-docs --no-breadcrumbs --no-indexes
 
       - name: Combine and upload coverage stats
         run: |
