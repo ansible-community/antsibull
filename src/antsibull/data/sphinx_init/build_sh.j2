@@ -40,7 +40,11 @@ antsibull-docs collection \
 {% endif %}
 
 # Copy collection documentation into source directory
+{% if squash_hierarchy %}
+rsync -cprv --delete-after temp-rst/ rst/
+{% else %}
 rsync -cprv --delete-after temp-rst/collections/ rst/collections/
+{% endif %}
 
 # Build Sphinx site
 {% if lenient %}
