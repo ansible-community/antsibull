@@ -52,7 +52,7 @@ jobs:
 
       - name: Install collections
         run:
-          ansible-galaxy collection install community.docker community.crypto
+          ansible-galaxy collection install community.docker community.crypto felixfontein.acme
         if: contains(matrix.options, '--use-current')
 
       - name: Build docsite
