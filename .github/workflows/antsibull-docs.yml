@@ -63,7 +63,7 @@ jobs:
 
       - name: Test plugin rendering
         run:
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_info
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_account_info
         if: contains(matrix.options, '--use-current')
 
       - name: Combine and upload coverage stats

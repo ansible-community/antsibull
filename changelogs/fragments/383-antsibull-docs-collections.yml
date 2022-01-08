@@ -1,2 +1,4 @@
 minor_changes:
   - "Fully implement ``antsibull-docs collection``. So far ``--current`` was required (https://github.com/ansible-community/antsibull/pull/383)."
+bugfixes:
+  - "Improve error message when plugin specified for ``antsibull-docs plugin`` cannot be found (https://github.com/ansible-community/antsibull/pull/383)."

@@ -81,7 +81,12 @@ def generate_docs() -> int:
 
     stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
 
-    plugin_info = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
+    plugin_data = json.loads(_filter_non_json_lines(stdout)[0])
+    try:
+        plugin_info = plugin_data[plugin_name]
+    except KeyError:
+        print(f'Cannot find documentation for plugin {plugin_name}!')
+        return 1
     flog.debug('Finished parsing info from plugin')
 
     try:
