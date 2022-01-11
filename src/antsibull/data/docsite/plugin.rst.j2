@@ -275,10 +275,10 @@ See Also
 
 {% for item in doc['seealso'] %}
 {%   if item.module is defined and item.description %}
-   @{ ('M(' + item['module'] + ')') | rst_ify }@ module
+   @{ ('M(' + item['module'] + ')') | rst_ify }@
        @{ item['description'] | rst_ify }@
 {%   elif item.module is defined %}
-   @{ ('M(' + item['module'] + ')') | rst_ify }@ module
+   @{ ('M(' + item['module'] + ')') | rst_ify }@
       The official documentation on the **@{ item['module'] }@** module.
 {%   elif item.name is defined and item.link is defined and item.description %}
    `@{ item['name'] }@ <@{ item['link'] }@>`_
