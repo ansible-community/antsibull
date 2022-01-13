@@ -41,6 +41,11 @@
 {%   endif %}
 {#   description #}
 
+
+      .. raw:: html
+
+        </div>
+
     - .. raw:: html
 
         {% for i in range(1, loop.depth) %}<div class="ansible-option-indent-desc"></div>{% endfor %}<div class="ansible-option-cell">
@@ -83,6 +88,12 @@
 
       :ansible-option-sample-bold:`Sample:` @{ value['sample'] | tojson | rst_escape | indent(6) }@
 {%   endif %}
+
+
+      .. raw:: html
+
+        </div>
+
 {%   if value['contains'] %}
     @{ loop(value['contains'] | dictsort) }@
 {%   endif %}

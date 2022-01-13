@@ -1,0 +1,2 @@
+bugfixes:
+  - "Fix invalid HTML in return value RST tables. Closing ``</div>`` were missing for a wrapping ``<div>`` of every content cell, causing problems with some text-based browsers (https://github.com/ansible-community/antsibull/issues/386, https://github.com/ansible-community/antsibull/pull/387)."
