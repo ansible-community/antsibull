@@ -1,2 +1,0 @@
-bugfixes:
-  - "Fix ``rsync`` call when ``antsibull-docs sphinx-init`` is used with ``--squash-hieararchy`` (https://github.com/ansible-community/antsibull/pull/382)."

@@ -5,6 +5,21 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.40.2
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- Fix ``rsync`` call when ``antsibull-docs sphinx-init`` is used with ``--squash-hieararchy`` (https://github.com/ansible-community/antsibull/pull/382).
+- Fix invalid HTML in return value RST tables. Closing ``</div>`` were missing for a wrapping ``<div>`` of every content cell, causing problems with some text-based browsers (https://github.com/ansible-community/antsibull/issues/386, https://github.com/ansible-community/antsibull/pull/387).
+- Work around Python argparse bug by using vendored class for all Python versions until the bug is fixed in argparse. This makes ``--help`` work for all antsibull-docs subcommands (https://github.com/ansible-community/antsibull/pull/384).
+
 v0.40.1
 =======
 

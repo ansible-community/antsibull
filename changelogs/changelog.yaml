@@ -168,6 +168,25 @@ releases:
     - 0.40.1.yml
     - 379-collection-enum-fix.yml
     release_date: '2022-01-07'
+  0.40.2:
+    changes:
+      bugfixes:
+      - Fix ``rsync`` call when ``antsibull-docs sphinx-init`` is used with ``--squash-hieararchy``
+        (https://github.com/ansible-community/antsibull/pull/382).
+      - Fix invalid HTML in return value RST tables. Closing ``</div>`` were missing
+        for a wrapping ``<div>`` of every content cell, causing problems with some
+        text-based browsers (https://github.com/ansible-community/antsibull/issues/386,
+        https://github.com/ansible-community/antsibull/pull/387).
+      - Work around Python argparse bug by using vendored class for all Python versions
+        until the bug is fixed in argparse. This makes ``--help`` work for all antsibull-docs
+        subcommands (https://github.com/ansible-community/antsibull/pull/384).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.40.2.yml
+    - 382-sphinx-init-squash-hierarchy.yml
+    - 384-help.yml
+    - 386-fix-html.yml
+    release_date: '2022-01-14'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:
