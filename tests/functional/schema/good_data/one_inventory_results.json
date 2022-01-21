@@ -53,6 +53,7 @@
                             }
                         ],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -87,6 +88,7 @@
                             }
                         ],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -127,6 +129,7 @@
                             }
                         ],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -165,6 +168,7 @@
                             }
                         ],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -199,6 +203,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -246,6 +251,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -293,6 +299,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -340,6 +347,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -387,6 +395,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
@@ -406,6 +415,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "dict",
@@ -426,6 +436,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "dict",
@@ -445,6 +456,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "dict",
@@ -466,6 +478,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
@@ -485,6 +498,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -505,6 +519,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -524,6 +539,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
@@ -545,6 +561,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": true,
                         "suboptions": {},
                         "type": "str",
@@ -565,6 +582,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
@@ -585,6 +603,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -605,6 +624,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -626,6 +646,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",

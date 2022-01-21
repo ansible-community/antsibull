@@ -50,6 +50,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -92,6 +93,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -118,6 +120,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -196,6 +199,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -228,6 +232,7 @@
                         "elements": "str",
                         "env": [],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -296,6 +301,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -339,6 +345,14 @@
                                 "deprecated": {},
                                 "key": "remote_port",
                                 "section": "defaults",
+                                "version_added": "historical",
+                                "version_added_collection": ""
+                            }
+                        ],
+                        "keyword": [
+                            {
+                                "deprecated": {},
+                                "name": "port",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -398,6 +412,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -450,6 +465,14 @@
                                 "deprecated": {},
                                 "key": "remote_user",
                                 "section": "defaults",
+                                "version_added": "historical",
+                                "version_added_collection": ""
+                            }
+                        ],
+                        "keyword": [
+                            {
+                                "deprecated": {},
+                                "name": "remote_user",
                                 "version_added": "historical",
                                 "version_added_collection": ""
                             }
@@ -508,6 +531,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
@@ -549,6 +573,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -598,6 +623,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -641,6 +667,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -682,6 +709,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",
@@ -723,6 +751,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -772,6 +801,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -821,6 +851,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -870,6 +901,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -912,6 +944,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -961,6 +994,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -1009,6 +1043,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -1043,6 +1078,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -1106,6 +1142,7 @@
                                 "version_added_collection": "ansible.builtin"
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
@@ -1147,6 +1184,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",

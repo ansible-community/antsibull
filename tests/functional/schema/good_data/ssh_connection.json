@@ -192,6 +192,11 @@
                         {
                             "name": "ansible_ssh_port"
                         }
+                    ],
+                    "keyword": [
+                        {
+                            "name": "port"
+                        }
                     ]
                 },
                 "private_key_file": {
@@ -251,6 +256,11 @@
                         },
                         {
                             "name": "ansible_ssh_user"
+                        }
+                    ],
+                    "keyword": [
+                        {
+                            "name": "remote_user"
                         }
                     ]
                 },

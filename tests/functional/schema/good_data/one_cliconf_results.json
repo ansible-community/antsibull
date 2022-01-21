@@ -36,6 +36,7 @@
                             }
                         ],
                         "ini": [],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "bool",

@@ -51,6 +51,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "list",
@@ -93,6 +94,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",

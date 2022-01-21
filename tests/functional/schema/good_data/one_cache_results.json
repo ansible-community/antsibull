@@ -44,6 +44,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "str",
@@ -78,6 +79,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": false,
                         "suboptions": {},
                         "type": "int",
@@ -112,6 +114,7 @@
                                 "version_added_collection": ""
                             }
                         ],
+                        "keyword": [],
                         "required": true,
                         "suboptions": {},
                         "type": "str",
