@@ -374,7 +374,7 @@ Authors
 ~~~~~~~
 
 {%   for author_name in doc['author'] %}
-- @{ author_name }@
+- @{ author_name | massage_author_name }@
 {%   endfor %}
 
 {% endif %}

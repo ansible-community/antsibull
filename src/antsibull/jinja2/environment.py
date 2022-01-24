@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader, PackageLoader
 
 from .filters import (
     do_max, documented_type, html_ify, rst_ify, rst_escape, rst_fmt, rst_xline, move_first,
+    massage_author_name,
 )
 from .tests import still_relevant, test_list
 
@@ -68,6 +69,7 @@ def doc_environment(template_location):
     env.filters['xline'] = rst_xline
     env.filters['documented_type'] = documented_type
     env.filters['move_first'] = move_first
+    env.filters['massage_author_name'] = massage_author_name
     env.tests['list'] = test_list
     env.tests['still_relevant'] = still_relevant
 
