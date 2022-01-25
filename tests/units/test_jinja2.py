@@ -1,6 +1,6 @@
 import pytest
 
-from antsibull.jinja2.filters import rst_ify, rst_escape, move_first
+from antsibull.jinja2.filters import rst_ify, rst_escape, move_first, massage_author_name
 
 
 RST_IFY_DATA = {
@@ -68,3 +68,17 @@ MOVE_FIRST_DATA = [
 @pytest.mark.parametrize('input, move_to_beginning, expected', MOVE_FIRST_DATA)
 def test_move_first(input, move_to_beginning, expected):
     assert move_first(input, *move_to_beginning) == expected
+
+
+MASSAGE_AUTHOR_NAME = [
+    ('', ''),
+    ('John Doe (@johndoe) <john.doe@gmail.com>', 'John Doe (@johndoe) '),
+    ('John Doe (@johndoe) john+doe@gmail.com', 'John Doe (@johndoe) '),
+    ('John Doe (@johndoe) (john-doe@gmail.com)', 'John Doe (@johndoe) '),
+    ('John Doe (@johndoe, john.doe@gmail.com)', 'John Doe (@johndoe, )'),
+]
+
+
+@pytest.mark.parametrize('input, expected', MASSAGE_AUTHOR_NAME)
+def test_massage_author_name(input, expected):
+    assert massage_author_name(input) == expected

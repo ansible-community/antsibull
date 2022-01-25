@@ -27,7 +27,8 @@ _LINK = re.compile(r"\bL\(([^)]+), *([^)]+)\)")
 _REF = re.compile(r"\bR\(([^)]+), *([^)]+)\)")
 _CONST = re.compile(r"\bC\(([^)]+)\)")
 _RULER = re.compile(r"\bHORIZONTALLINE\b")
-_EMAIL_ADDRESS = re.compile(r"[(<]?[\w.]+@[\w.]+\.\w+[)>]?")
+
+_EMAIL_ADDRESS = re.compile(r"(?:<{mail}>|\({mail}\)|{mail})".format(mail=r"[\w.+-]+@[\w.-]+\.\w+"))
 
 
 def html_ify(text):
