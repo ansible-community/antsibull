@@ -28,6 +28,8 @@ _REF = re.compile(r"\bR\(([^)]+), *([^)]+)\)")
 _CONST = re.compile(r"\bC\(([^)]+)\)")
 _RULER = re.compile(r"\bHORIZONTALLINE\b")
 
+_EMAIL_ADDRESS = re.compile(r"(?:<{mail}>|\({mail}\)|{mail})".format(mail=r"[\w.+-]+@[\w.-]+\.\w+"))
+
 
 def html_ify(text):
     ''' convert symbols like I(this is in italics) to valid HTML '''
@@ -185,3 +187,10 @@ def move_first(sequence, *move_to_beginning):
             pass
 
     return beginning + remaining
+
+
+def massage_author_name(value):
+    ''' remove email addresses from the given string, and remove `(!UNKNOWN)` '''
+    value = _EMAIL_ADDRESS.sub('', value)
+    value = value.replace('(!UNKNOWN)', '')
+    return value
