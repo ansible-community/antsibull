@@ -28,35 +28,16 @@ from ...write_docs import write_plugin_rst
 mlog = log.fields(mod=__name__)
 
 
-def generate_docs() -> int:
+def generate_plugin_docs(plugin_type: str, plugin_name: str,
+                         collection_name: str, plugin: str,
+                         output_path: str) -> int:
     """
-    Create documentation for the current-plugin subcommand.
-
-    Current plugin documentation creates documentation for one currently installed plugin.
-
-    :returns: A return code for the program.  See :func:`antsibull.cli.antsibull_docs.main` for
-        details on what each code means.
+    Render documentation for a locally installed plugin.
     """
-    flog = mlog.fields(func='generate_docs')
-    flog.debug('Begin processing docs')
+    flog = mlog.fields(func='generate_plugin_docs')
+    flog.debug('Begin generating plugin docs')
 
     app_ctx = app_context.app_ctx.get()
-    plugin_type: str = app_ctx.extra['plugin_type']
-    plugin_name: str = app_ctx.extra['plugin'][0]
-
-    if not is_fqcn(plugin_name):
-        raise NotImplementedError('Priority to implement subcommands is stable, devel, plugin, and'
-                                  ' then collection commands. Only the FQCN form is implemented'
-                                  ' for the plugin subcommand right now.')
-
-    output_path = os.path.join(app_ctx.extra['dest_dir'], f'{plugin_name}_{plugin_type}.rst')
-
-    try:
-        namespace, collection, plugin = get_fqcn_parts(plugin_name)
-    except ValueError:
-        namespace, collection = 'ansible', 'builtin'
-        plugin = plugin_name
-    plugin_name = '.'.join([namespace, collection, plugin])
 
     venv = FakeVenvRunner()
     venv_ansible_doc = venv.get_command('ansible-doc')
@@ -81,7 +62,12 @@ def generate_docs() -> int:
 
     stdout = ansible_doc_results.stdout.decode("utf-8", errors="surrogateescape")
 
-    plugin_info = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
+    plugin_data = json.loads(_filter_non_json_lines(stdout)[0])
+    try:
+        plugin_info = plugin_data[plugin_name]
+    except KeyError:
+        print(f'Cannot find documentation for plugin {plugin_name}!')
+        return 1
     flog.debug('Finished parsing info from plugin')
 
     try:
@@ -116,10 +102,45 @@ def generate_docs() -> int:
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     asyncio_run(write_plugin_rst(
-        '.'.join([namespace, collection]), AnsibleCollectionMetadata.empty(), plugin, plugin_type,
+        collection_name, AnsibleCollectionMetadata.empty(), plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path,
         use_html_blobs=app_ctx.use_html_blobs))
     flog.debug('Finished writing plugin docs')
 
     return 0
+
+
+def generate_docs() -> int:
+    """
+    Create documentation for the current-plugin subcommand.
+
+    Current plugin documentation creates documentation for one currently installed plugin.
+
+    :returns: A return code for the program.  See :func:`antsibull.cli.antsibull_docs.main` for
+        details on what each code means.
+    """
+    flog = mlog.fields(func='generate_docs')
+    flog.debug('Begin processing docs')
+
+    app_ctx = app_context.app_ctx.get()
+    plugin_type: str = app_ctx.extra['plugin_type']
+    plugin_name: str = app_ctx.extra['plugin'][0]
+
+    if not is_fqcn(plugin_name):
+        raise NotImplementedError('Priority to implement subcommands is stable, devel, plugin, and'
+                                  ' then collection commands. Only the FQCN form is implemented'
+                                  ' for the plugin subcommand right now.')
+
+    output_path = os.path.join(app_ctx.extra['dest_dir'], f'{plugin_name}_{plugin_type}.rst')
+
+    try:
+        namespace, collection, plugin = get_fqcn_parts(plugin_name)
+    except ValueError:
+        namespace, collection = 'ansible', 'builtin'
+        plugin = plugin_name
+    collection_name = '.'.join([namespace, collection])
+    plugin_name = '.'.join([namespace, collection, plugin])
+
+    return generate_plugin_docs(
+        plugin_type, plugin_name, collection_name, plugin, output_path)

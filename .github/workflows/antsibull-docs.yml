@@ -20,9 +20,7 @@ jobs:
         options:
           - '--use-current --sphinx-theme sphinx_rtd_theme'
           - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker'
-          # The following should be run without `--use-current` and with `--collection-version 2.0.0`,
-          # but that isn't implemented yet:
-          - '--use-current --no-indexes --squash-hierarchy community.crypto'
+          - '--no-indexes --squash-hierarchy community.crypto --collection-version 2.0.0'
 
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +50,7 @@ jobs:
 
       - name: Install collections
         run:
-          ansible-galaxy collection install community.docker community.crypto
+          ansible-galaxy collection install community.docker community.crypto sensu.sensu_go
         if: contains(matrix.options, '--use-current')
 
       - name: Build docsite
@@ -62,6 +60,11 @@ jobs:
       - name: Validate HTML
         run:
           python .github/workflows/validate-html.py build/html/
+
+      - name: Test plugin rendering
+        run:
+          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_account_info
+        if: contains(matrix.options, '--use-current')
 
       - name: Combine and upload coverage stats
         run: |

@@ -118,6 +118,9 @@ def normalize_plugin_info(plugin_type: str,
         in :mod:`antsibull.schemas.docs`.  The nonfatal errors are strings representing the problems
         encountered.
     """
+    # If you wonder why this code isn't showing up in code coverage: that's because it's executed
+    # in a subprocess. See normalize_all_plugin_info below.
+
     errors = []
     if plugin_type == 'role':
         try:
