@@ -29,9 +29,8 @@ def generate_docs() -> int:
 
     venv = FakeVenvRunner()
 
-    generate_docs_for_all_collections(
+    return generate_docs_for_all_collections(
         venv, app_ctx.extra['collection_dir'], app_ctx.extra['dest_dir'],
         breadcrumbs=app_ctx.breadcrumbs,
-        use_html_blobs=app_ctx.use_html_blobs)
-
-    return 0
+        use_html_blobs=app_ctx.use_html_blobs,
+        fail_on_error=app_ctx.extra['fail_on_error'])

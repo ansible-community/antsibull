@@ -84,8 +84,19 @@ def generate_docs() -> int:
     plugin_info = json.loads(_filter_non_json_lines(stdout)[0])[plugin_name]
     flog.debug('Finished parsing info from plugin')
 
-    plugin_info, errors = normalize_plugin_info(plugin_type, plugin_info)
+    try:
+        plugin_info, errors = normalize_plugin_info(plugin_type, plugin_info)
+    except ValueError as exc:
+        print('Cannot parse documentation:')
+        print(str(exc))
+        return 1
     flog.debug('Finished normalizing data')
+
+    if errors and app_ctx.extra['fail_on_error']:
+        print('Found errors:')
+        for error in errors:
+            print(error)
+        return 1
 
     # The cast is needed to make pyre happy. It seems to not being able to
     # understand that

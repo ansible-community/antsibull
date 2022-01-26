@@ -21,14 +21,13 @@ def generate_current_docs(indexes: bool, squash_hierarchy: bool) -> int:
 
     venv = FakeVenvRunner()
 
-    generate_docs_for_all_collections(
+    return generate_docs_for_all_collections(
         venv, None, app_ctx.extra['dest_dir'], app_ctx.extra['collections'],
         create_indexes=indexes and not squash_hierarchy,
         squash_hierarchy=squash_hierarchy,
         breadcrumbs=app_ctx.breadcrumbs,
-        use_html_blobs=app_ctx.use_html_blobs)
-
-    return 0
+        use_html_blobs=app_ctx.use_html_blobs,
+        fail_on_error=app_ctx.extra['fail_on_error'])
 
 
 def generate_docs() -> int:
