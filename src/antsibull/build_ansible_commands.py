@@ -199,17 +199,17 @@ def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
     sh.python('setup.py', 'sdist', 'bdist_wheel', _cwd=ansible_dir)  # pylint:disable=no-member
     dist_dir = os.path.join(ansible_dir, 'dist')
     files = os.listdir(dist_dir)
-    tar_count = 0
+    tarball_count = 0
     wheel_count = 0
     for file in files:
-        if file.endswith('.tar'):
-            tar_count += 1
+        if file.endswith('.tar') or file.endswith('.tar.gz'):
+            tarball_count += 1
         elif file.endswith('.whl'):
             wheel_count += 1
         else:
-            tar_count = 2
+            tarball_count = 2  # the number is wrong, but this triggers an error
             break
-    if tar_count != 1 or wheel_count == 0:
+    if tarball_count != 1 or wheel_count == 0:
         raise Exception(
             "python setup.py sdist bdist_wheel should have created exactly one tarball and at"
             f" least one wheel (got {files})")
