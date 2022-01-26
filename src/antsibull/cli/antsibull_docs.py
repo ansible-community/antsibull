@@ -328,6 +328,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                     ' one collection specified.')
     sphinx_init_parser.add_argument('--lenient', action='store_true',
                                     help='Configure Sphinx to not be too strict.')
+    sphinx_init_parser.add_argument('--sphinx-theme', default='sphinx-ansible-theme',
+                                    help='Configure the Sphinx theme to use.')
     sphinx_init_parser.add_argument(nargs='*', dest='collections',
                                     help='One or more collections to document.  If the names are'
                                     ' directories on disk, they will be parsed as expanded'
