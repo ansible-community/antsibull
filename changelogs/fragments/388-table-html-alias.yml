@@ -1,0 +1,2 @@
+bugfixes:
+  - "When using ``--use-html-blobs``, malformed HTML was generated for parameter aliases (https://github.com/ansible-community/antsibull/pull/388)."
