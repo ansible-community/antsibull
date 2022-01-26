@@ -64,6 +64,9 @@ def site_init() -> int:
     breadcrumbs = app_ctx.breadcrumbs
     indexes = app_ctx.indexes
 
+    sphinx_theme = 'sphinx_ansible_theme'
+    sphinx_theme_package = 'sphinx-ansible-theme >= 0.9.0'
+
     env = doc_environment(('antsibull.data', 'sphinx_init'))
 
     for filename in TEMPLATES:
@@ -80,6 +83,8 @@ def site_init() -> int:
             use_html_blobs=use_html_blobs,
             breadcrumbs=breadcrumbs,
             indexes=indexes,
+            sphinx_theme=sphinx_theme,
+            sphinx_theme_package=sphinx_theme_package,
         ) + '\n'
 
         destination = os.path.join(dest_dir, filename)
