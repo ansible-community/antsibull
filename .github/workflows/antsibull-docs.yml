@@ -19,10 +19,10 @@ jobs:
       matrix:
         options:
           - '--use-current --sphinx-theme sphinx_rtd_theme'
-          - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker'
+          - '--use-current --use-html-blobs --no-breadcrumbs community.crypto community.docker --sphinx-theme sphinx_rtd_theme'
           # The following should be run without `--use-current` and with `--collection-version 2.0.0`,
           # but that isn't implemented yet:
-          - '--use-current --no-indexes --squash-hierarchy community.crypto'
+          - '--use-current --no-indexes --squash-hierarchy community.crypto --sphinx-theme sphinx_rtd_theme'
 
     steps:
       - uses: actions/checkout@v2
