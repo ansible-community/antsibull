@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . coverage codecov
+          python -m pip install . coverage codecov html5lib
 
       - name: Use antsibull-docs sphinx-init
         run: |
@@ -58,6 +58,10 @@ jobs:
       - name: Build docsite
         run: |
           ./build.sh
+
+      - name: Validate HTML
+        run:
+          python .github/workflows/validate-html.py build/html/
 
       - name: Combine and upload coverage stats
         run: |

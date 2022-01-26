@@ -196,7 +196,7 @@
       <p class="ansible-option-title"><strong>@{ key | escape }@</strong></p>
       <a class="ansibleOptionLink" href="#parameter-@{ parameter_html_prefix }@{% for part in value['full_key'] %}@{ part }@{% if not loop.last %}/{% endif %}{% endfor %}" title="Permalink to this option"></a>
 {%   if value['aliases'] %}
-      <p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: @{ value['aliases']|join(', ') }@</p>
+      <p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: @{ value['aliases']|join(', ') }@</span></p>
 {%   endif %}
       <p class="ansible-option-type-line">
         <span class="ansible-option-type">@{ value['type'] | documented_type }@</span>
