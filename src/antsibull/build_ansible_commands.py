@@ -194,6 +194,30 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
     shutil.move(os.path.join(dist_dir, files[0]), dest_dir)
 
 
+def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
+    # pyre-ignore[16]
+    sh.python('setup.py', 'sdist', 'bdist_wheel', _cwd=ansible_dir)  # pylint:disable=no-member
+    dist_dir = os.path.join(ansible_dir, 'dist')
+    files = os.listdir(dist_dir)
+    tar_count = 0
+    wheel_count = 0
+    for file in files:
+        if file.endswith('.tar'):
+            tar_count += 1
+        elif file.endswith('.whl'):
+            wheel_count += 1
+        else:
+            tar_count = 2
+            break
+    if tar_count != 1 or wheel_count == 0:
+        raise Exception(
+            "python setup.py sdist bdist_wheel should have created exactly one tarball and at"
+            f" least one wheel (got {files})")
+
+    for file in files:
+        shutil.move(os.path.join(dist_dir, file), dest_dir)
+
+
 def write_build_script(ansible_version: PypiVer,
                        ansible_core_version: PypiVer,
                        package_dir: str) -> None:
@@ -364,7 +388,10 @@ def rebuild_single_command() -> int:
                                    package_dir)
 
         # Create source distribution
-        make_dist(package_dir, app_ctx.extra['sdist_dir'])
+        if app_ctx.extra["ansible_version"].major < 6:
+            make_dist(package_dir, app_ctx.extra['sdist_dir'])
+        else:
+            make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
 
     return 0
 
