@@ -66,6 +66,9 @@ def site_init() -> int:
 
     sphinx_theme = 'sphinx_ansible_theme'
     sphinx_theme_package = 'sphinx-ansible-theme >= 0.9.0'
+    if app_ctx.extra['sphinx_theme'] != 'sphinx-ansible-theme':
+        sphinx_theme = app_ctx.extra['sphinx_theme']
+        sphinx_theme_package = app_ctx.extra['sphinx_theme']
 
     env = doc_environment(('antsibull.data', 'sphinx_init'))
 
