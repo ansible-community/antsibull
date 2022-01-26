@@ -7,6 +7,7 @@ import asyncio
 import os
 import os.path
 import tempfile
+import textwrap
 import typing as t
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -270,7 +271,8 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                       create_indexes: bool = True,
                                       squash_hierarchy: bool = False,
                                       breadcrumbs: bool = True,
-                                      use_html_blobs: bool = False) -> None:
+                                      use_html_blobs: bool = False,
+                                      fail_on_error: bool = False) -> int:
     """
     Create documentation for a set of installed collections.
 
@@ -290,6 +292,10 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         disabled.  This will disable breadcrumbs but save on memory usage.
     :kwarg use_html_blobs: Default False.  Set to True if HTML blobs should be used instead of
         RST tables for parameter and return value tables.
+    :kwarg fail_on_error: Default False.  Set to True to fail on loading or schema validation
+        errors, instead of generating error pages.
+    :returns: A return code for the program.  See :func:`antsibull.cli.antsibull_docs.main` for
+        details on what each code means.
     """
     flog = mlog.fields(func='generate_docs_for_all_collections')
     flog.notice('Begin')
@@ -328,6 +334,15 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         collection_to_plugin_info[collection]  # pylint:disable=pointless-statement
     flog.debug('Finished getting collection data')
 
+    # Fail on errors
+    if fail_on_error and nonfatal_errors:
+        print("Found errors in some modules or plugins:")
+        for plugin_type, plugins in sorted(nonfatal_errors.items()):
+            for plugin_name, errors in sorted(plugins.items()):
+                for error in errors:
+                    print(f"{plugin_name} {plugin_type}: {textwrap.indent(error, '    ').lstrip()}")
+        return 1
+
     collection_namespaces = get_collection_namespaces(collection_to_plugin_info.keys())
 
     # Only build top-level index if requested
@@ -363,6 +378,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
     asyncio_run(output_extra_docs(dest_dir, extra_docs_data,
                                   squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing extra extra docs docs')
+    return 0
 
 
 def generate_docs() -> int:
@@ -425,8 +441,8 @@ def generate_docs() -> int:
         venv.install_package(ansible_core_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],
-                                          breadcrumbs=app_ctx.breadcrumbs,
-                                          use_html_blobs=app_ctx.use_html_blobs)
-
-    return 0
+        return generate_docs_for_all_collections(
+            venv, collection_dir, app_ctx.extra['dest_dir'],
+            breadcrumbs=app_ctx.breadcrumbs,
+            use_html_blobs=app_ctx.use_html_blobs,
+            fail_on_error=app_ctx.extra['fail_on_error'])

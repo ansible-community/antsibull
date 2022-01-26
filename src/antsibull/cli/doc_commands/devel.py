@@ -137,8 +137,8 @@ def generate_docs() -> int:
         venv.install_package(ansible_core_path)
         flog.fields(venv=venv).notice('Finished installing ansible-core')
 
-        generate_docs_for_all_collections(venv, collection_dir, app_ctx.extra['dest_dir'],
-                                          breadcrumbs=app_ctx.breadcrumbs,
-                                          use_html_blobs=app_ctx.use_html_blobs)
-
-    return 0
+        return generate_docs_for_all_collections(
+            venv, collection_dir, app_ctx.extra['dest_dir'],
+            breadcrumbs=app_ctx.breadcrumbs,
+            use_html_blobs=app_ctx.use_html_blobs,
+            fail_on_error=app_ctx.extra['fail_on_error'])

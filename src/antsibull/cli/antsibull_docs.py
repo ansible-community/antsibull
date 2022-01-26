@@ -173,6 +173,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     docs_parser = argparse.ArgumentParser(add_help=False)
     docs_parser.add_argument('--dest-dir', default='.',
                              help='Directory to write the output to')
+    docs_parser.add_argument('--fail-on-error', action='store_true',
+                             help='If any parsing or schema valiation errors happen, fail instead'
+                             ' of creating error pages. For use in CI.')
 
     template_parser = argparse.ArgumentParser(add_help=False)
     template_parser.add_argument('--use-html-blobs',
