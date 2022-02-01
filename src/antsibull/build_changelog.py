@@ -614,6 +614,12 @@ class ReleaseNotes:
 
         # Determine whether to include ansible-core porting guide or not
         if changelog.ansible_version.major == 2 or base_version != prev_base_version:
+            if changelog.ansible_version.major > 2:
+                builder.add_raw_rst(
+                    # noqa: E501
+                    "\n"
+                    f"Ansible {version} is based on Ansible-core {base_version}."
+                    "\n")
             builder.add_raw_rst(
                 # noqa: E501
                 "\n"
