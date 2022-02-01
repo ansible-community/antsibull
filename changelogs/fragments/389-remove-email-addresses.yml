@@ -1,2 +1,0 @@
-minor_changes:
-  - "Remove email addresses and ``(!UNKNOWN)`` from plugin and role author names (https://github.com/ansible-community/antsibull/pull/389)."

@@ -1,4 +1,0 @@
-minor_changes:
-  - "Add ``--fail-on-error`` to all antsibull-docs subcommands for usage in CI (https://github.com/ansible-community/antsibull/pull/393)."
-bugfixes:
-  - "If plugin parsing fails for ``antsibull-docs plugin``, handle this more gracefully (https://github.com/ansible-community/antsibull/pull/393)."

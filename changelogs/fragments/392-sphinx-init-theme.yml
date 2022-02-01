@@ -1,2 +1,0 @@
-minor_changes:
-  - "Allow to select a different Sphinx theme for ``antsibull-docs sphinx-init`` with the new ``--sphinx-theme`` option (https://github.com/ansible-community/antsibull/pull/392)."
