@@ -33,9 +33,9 @@
 .. Title
 
 {% if entry_points.main and entry_points.main.short_description -%}
-{%   set title = plugin_name + ' -- ' + entry_points.main.short_description | rst_ify -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type ~ ' -- ' ~ entry_points.main.short_description | rst_ify -%}
 {% else -%}
-{%   set title = plugin_name -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type -%}
 {% endif -%}
 
 @{ title }@

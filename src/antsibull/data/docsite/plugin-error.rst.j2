@@ -10,7 +10,7 @@
 
 .. Title
 
-{% set title = plugin_name -%}
+{% set title = plugin_name ~ ' ' ~ plugin_type -%}
 
 @{ title }@
 @{ '+' * title|length }@

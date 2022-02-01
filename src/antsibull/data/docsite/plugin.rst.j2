@@ -58,9 +58,9 @@
 .. Title
 
 {% if doc['short_description'] -%}
-{%   set title = plugin_name + ' -- ' + doc['short_description'] | rst_ify -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type ~ ' -- ' ~ doc['short_description'] | rst_ify -%}
 {% else -%}
-{%   set title = plugin_name -%}
+{%   set title = plugin_name ~ ' ' ~ plugin_type -%}
 {% endif -%}
 
 @{ title }@
@@ -81,7 +81,7 @@
     the same {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %} name.
 {% else %}
 .. note::
-    This plugin is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
+    This {% if plugin_type == 'module' %}module{% else %}@{ plugin_type }@ plugin{% endif %} is part of the `@{collection}@ collection <https://galaxy.ansible.com/@{collection | replace('.', '/', 1)}@>`_{% if collection_version %} (version @{ collection_version }@){% endif %}.
 
     You might already have this collection installed if you are using the ``ansible`` package.
     It is not included in ``ansible-core``.
