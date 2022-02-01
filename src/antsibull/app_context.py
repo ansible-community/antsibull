@@ -39,8 +39,8 @@ example:
 
     def do_something():
         app_ctx = app_context.app_ctx.get()
-        base_filename = download_python_package('ansible-core', server_url=app_ctx.pypi_url)
-        return base_filename
+        core_filename = download_python_package('ansible-core', server_url=app_ctx.pypi_url)
+        return core_filename
 
     def run(args):
         args = parsre_args(args)
