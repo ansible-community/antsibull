@@ -8,7 +8,15 @@ on:
 
 jobs:
   build:
+    name: 'Build Ansible community distribution (${{ matrix.name }})'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: default settings
+            options: ''
+          - name: Ansible 6 with ansible-core devel
+            options: '-e antsibull_ansible_version=6.0.0 -e antsibull_build_file=ansible-6.build -e antsibull_data_dir="{{ antsibull_data_git_dir }}/6" -e antsibull_ansible_git_version=devel'
 
     steps:
       - name: Check out antsibull
@@ -24,9 +32,9 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install poetry ansible-core
 
-      - name: Test building a release with the defaults
+      - name: "Test building a release: ${{ matrix.name }}"
         run: |
-          ansible-playbook -vv playbooks/build-single-release.yaml -e 'antsibull_build_command="poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build"'
+          ansible-playbook -vv playbooks/build-single-release.yaml -e 'antsibull_build_command="poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build"' ${{ matrix.options }}
 
       - name: Combine and upload coverage stats
         run: |

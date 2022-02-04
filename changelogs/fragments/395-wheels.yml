@@ -1,0 +1,2 @@
+major_changes:
+  - Building Ansible 6+ now builds wheels next to the source tarball (https://github.com/ansible-community/antsibull/pull/394).
