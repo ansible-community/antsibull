@@ -1,0 +1,2 @@
+major_changes:
+  - Remove Ansible 2.9 / ansible-base 2.10 checks from ``setup.py`` for Ansible 6 so that we can finally ship wheels. This change is only active for Ansible 6 (https://github.com/ansible-community/antsibull/pull/394).

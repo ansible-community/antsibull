@@ -4,6 +4,7 @@ import os
 import sys
 from setuptools import setup
 
+{% if version.major < 6 %}
 
 def detect_bad_upgrade():
     # prevent direct upgrade from 2.9.x or earlier to 2.10 due to pip limitations
@@ -144,6 +145,7 @@ if not os.environ.get('ANSIBLE_SKIP_CONFLICT_CHECK'):
     if detect_bad_upgrade():
         sys.exit(1)
 
+{% endif %}
 
 __version__ = '{{ version }}'
 __author__ = 'Ansible, Inc.'
