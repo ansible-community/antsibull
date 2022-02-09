@@ -97,7 +97,7 @@ class DepsFile:
 
     These are, respectively, the ansible version that was built and the ansible-core version which
     it was built against.  Note that the ansible release will depend on a compatible version of that
-    ansible base version, not an exact dependency on that precise version.
+    ansible-core version, not an exact dependency on that precise version.
     """
 
     def __init__(self, deps_file: str) -> None:
@@ -118,7 +118,7 @@ class DepsFile:
         Write a list of all the dependent collections included in this Ansible release.
 
         :arg ansible_version: The version of Ansible that is being recorded.
-        :arg ansible_core_version: The version of Ansible base that will be depended on.
+        :arg ansible_core_version: The version of Ansible-core that will be depended on.
         :arg included_versions: Dictionary mapping collection names to the version range in this
             version of Ansible.
         """
@@ -156,7 +156,7 @@ class BuildFile:
         collection as of the first beta release, when we feature freeze the collections.
 
         :arg ansible_version: The version of Ansible that is being recorded.
-        :arg ansible_core_version: The version of Ansible base that will be depended on.
+        :arg ansible_core_version: The version of Ansible-core that will be depended on.
         :arg dependencies: Dictionary with keys of collection names and values of the latest
             versions of those collections.
         """
