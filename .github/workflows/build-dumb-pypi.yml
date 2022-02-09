@@ -23,9 +23,9 @@ on:
         default: main
         description: The GitHub repo ref for pulling ansible build data from
         required: true
+  # Run once per week (Monday at 04:00 UTC)
   schedule:
-  # https://crontab.guru/#36_*/3_*_*_*
-  - cron: 36 */3 * * *  # At minute 36 past every 3rd hour.
+    - cron: '0 4 * * 1'
 
 jobs:
   build-dumb-pypi:
