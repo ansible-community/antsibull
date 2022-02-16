@@ -1,0 +1,96 @@
+{% macro in_rst(attributes) %}
+.. rst-class:: ansible-option-table
+
+.. list-table::
+  :width: 100%
+  :widths: auto
+  :header-rows: 1
+
+  * - Attribute
+    - Support
+    - Description
+{% for attribute, data in attributes | dictsort %}
+{#   attribute name #}
+
+  * - .. raw:: html
+
+        <div class="ansible-option-cell">
+        <div class="ansibleOptionAnchor" id="attribute-@{ attribute | e }@"></div>
+
+      .. _ansible_collections.@{plugin_name}@_@{plugin_type}@__attribute-@{ attribute }@:
+
+      .. rst-class:: ansible-option-title
+
+      **@{ attribute }@**
+
+      .. raw:: html
+
+        <a class="ansibleOptionLink" href="#attribute-@{ attribute | e }@" title="Permalink to this attribute"></a>
+
+      .. raw:: html
+
+        </div>
+
+{#   support #}
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+{%   if attribute == 'action_group' %}
+      :ansible-attribute-support-property:`Action group@{ 's' if data.memberships | length != 1 else '' }@: |antsibull-internal-nbsp|`
+{%-    for member in data.memberships -%}
+           :ansible-attribute-support-full:`@{- member | rst_ify -}@`
+{%-        if not loop.last %}, {% endif -%}
+{%-    endfor %}
+{%   elif attribute == 'forced_action_plugin' %}
+      :ansible-attribute-support-property:`Action plugin:` :ansible-attribute-support-full:`@{- data.action_plugin | rst_ify -}@`
+{%     elif attribute == 'platform' %}
+      :ansible-attribute-support-property:`Platform@{ 's' if data.platforms | length != 1 or data.platforms == ['all'] else '' }@:` |antsibull-internal-nbsp|
+{%-    for platform in data.platforms -%}
+           :ansible-attribute-support-full:`@{- platform | rst_ify -}@`
+{%-      if not loop.last %}, {% endif -%}
+{%-    endfor %}
+{%   else %}
+      :ansible-attribute-support-label:`Support: \ `
+{%-    if data.support == 'full' -%}
+      \ :ansible-attribute-support-full:`@{ data.support }@`
+{%-    elif data.support == 'partial' -%}
+      \ :ansible-attribute-support-partial:`@{ data.support }@`
+{%-    elif data.support == 'none' -%}
+      \ :ansible-attribute-support-none:`@{ data.support }@`
+{%-    else -%}
+{#       For 'N/A' #}
+      \ :ansible-attribute-support-na:`@{ data.support }@`
+{%-    endif %}
+{%   endif %}
+
+{%   if data['version_added'] is still_relevant(collection=data['version_added_collection']) %}
+
+      :ansible-option-versionadded:`added in @{data['version_added']}@ of @{ data['version_added_collection'] | rst_escape }@`
+{%   endif %}
+
+{%   for desc in data['details'] %}
+      @{ desc | rst_ify | indent(6) }@
+
+{%   endfor %}
+
+      .. raw:: html
+
+        </div>
+
+{#   description #}
+    - .. raw:: html
+
+        <div class="ansible-option-cell">
+
+{% for desc in data['description'] %}
+      @{ desc | rst_ify | indent(6) }@
+
+{%   endfor %}
+
+      .. raw:: html
+
+        </div>
+
+{% endfor %}
+{% endmacro %}
