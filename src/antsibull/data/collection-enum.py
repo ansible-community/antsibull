@@ -55,6 +55,8 @@ def load_plugin(loader, plugin_type, plugin):
             result['error'] = 'No valid documentation found'
             return result
 
+        documentation = dict(documentation)
+
         documentation['filename'] = filename
         documentation['collection'] = collection_name
 
