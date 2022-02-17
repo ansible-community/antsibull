@@ -7,16 +7,18 @@
 from typing import Dict, FrozenSet
 
 
+# TODO: pull these from the ansbile version as not all versions supprot same list
 #: All the types of ansible plugins
 PLUGIN_TYPES: FrozenSet[str] = frozenset(('become', 'cache', 'callback', 'cliconf', 'connection',
                                           'httpapi', 'inventory', 'lookup', 'shell', 'strategy',
-                                          'vars', 'module', 'module_utils', 'role',))
+                                          'vars', 'module', 'module_utils', 'role', 'test', 'filter'))
 
+# TODO: pull these from the ansbile version as not all versions supprot same list
 #: The subset of PLUGINS which we build documentation for
 DOCUMENTABLE_PLUGINS: FrozenSet[str] = frozenset(('become', 'cache', 'callback', 'cliconf',
                                                   'connection', 'httpapi', 'inventory', 'lookup',
                                                   'netconf', 'shell', 'vars', 'module',
-                                                  'strategy', 'role',))
+                                                  'strategy', 'role', 'test', 'filter'))
 
 
 DOCUMENTABLE_PLUGINS_MIN_VERSION: Dict[str, str] = {
