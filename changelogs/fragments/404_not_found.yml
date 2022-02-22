@@ -1,0 +1,2 @@
+bugfixes:
+  - anstibull will not traceback anymore when it tries to process plugins not found in it's own constant but are available in ansible.
