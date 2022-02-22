@@ -1,2 +1,2 @@
 bugfixes:
-  - anstibull will not traceback anymore when it tries to process plugins not found in it's own constant but are available in ansible.
+  - anstibull-docs will no longer traceback when it tries to process plugins not found in its own constant but are available in ansible-core (https://github.com/ansible-community/antsibull/pull/404).
