@@ -68,7 +68,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     for plugin_type, plugins in result['plugins'].items():
         if plugin_type not in DOCUMENTABLE_PLUGINS:
             # avoid keyerrors down the line when we cannot match types
-            flog.debug('Skipping unknown plugin type: {0}'.format(plugin_type))
+            flog.debug(f'Skipping unknown plugin type: {plugin_type}')
             continue
         plugin_map[plugin_type] = {}
         for plugin_name, plugin_data in plugins.items():
