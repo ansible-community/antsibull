@@ -26,5 +26,5 @@ sections:
   - Bugfixes
 - - known_issues
   - Known Issues
-use_semantic_versioning: true
+use_semantic_versioning: false
 title: antsibull -- Ansible Build Scripts
