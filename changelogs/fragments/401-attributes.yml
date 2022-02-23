@@ -1,2 +1,0 @@
-minor_changes:
-  - "Redo attributes table using the same structure as the options and return value table. This improves its look and adds a linking mechanism (https://github.com/ansible-community/antsibull/pull/401)."

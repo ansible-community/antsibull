@@ -1,2 +1,0 @@
-minor_changes:
-  - "Mention the ``ansible-core`` major version in the Ansible porting guide (https://github.com/ansible-community/antsibull/pull/397)."

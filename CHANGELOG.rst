@@ -5,6 +5,33 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.42.0b1
+=========
+
+Release Summary
+---------------
+
+Beta release to allow merging of https://github.com/ansible/ansible/pull/74963.
+
+Major Changes
+-------------
+
+- Building Ansible 6+ now builds wheels next to the source tarball (https://github.com/ansible-community/antsibull/pull/394).
+- Remove Ansible 2.9 / ansible-base 2.10 checks from ``setup.py`` for Ansible 6 so that we can finally ship wheels. This change is only active for Ansible 6 (https://github.com/ansible-community/antsibull/pull/394).
+
+Minor Changes
+-------------
+
+- Change more references to ansible-base to ansible-core in the code (https://github.com/ansible-community/antsibull/pull/398).
+- Mention the ``ansible-core`` major version in the Ansible porting guide (https://github.com/ansible-community/antsibull/pull/397).
+- Redo attributes table using the same structure as the options and return value table. This improves its look and adds a linking mechanism (https://github.com/ansible-community/antsibull/pull/401).
+
+Bugfixes
+--------
+
+- Fix filename of mentioned ansible-core porting guide in Ansible's porting guide introductionary comment (https://github.com/ansible-community/antsibull/pull/398).
+- anstibull-docs will no longer traceback when it tries to process plugins not found in its own constant but are available in ansible-core (https://github.com/ansible-community/antsibull/pull/404).
+
 v0.41.0
 =======
 
