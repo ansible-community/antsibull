@@ -40,9 +40,10 @@ jobs:
         run: |
           coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml community.general/changelogs/changelog.yaml
 
-      - name: antsibull-lint changelog-yaml (own changelog)
-        run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml changelogs/changelog.yaml
+      # Temporarily disabled - will be uncommented in https://github.com/ansible-community/antsibull/pull/405
+      # - name: antsibull-lint changelog-yaml (own changelog)
+      #   run: |
+      #     coverage run -p --source antsibull -m antsibull.cli.antsibull_lint changelog-yaml changelogs/changelog.yaml
 
       - name: Lint changelog fragments
         run: |
