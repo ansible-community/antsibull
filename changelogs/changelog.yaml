@@ -227,7 +227,7 @@ releases:
       bugfixes:
       - Fix filename of mentioned ansible-core porting guide in Ansible's porting
         guide introductionary comment (https://github.com/ansible-community/antsibull/pull/398).
-      - anstibull-docs will no longer traceback when it tries to process plugins not
+      - antsibull-docs will no longer traceback when it tries to process plugins not
         found in its own constant but are available in ansible-core (https://github.com/ansible-community/antsibull/pull/404).
       major_changes:
       - Building Ansible 6+ now builds wheels next to the source tarball (https://github.com/ansible-community/antsibull/pull/394).
