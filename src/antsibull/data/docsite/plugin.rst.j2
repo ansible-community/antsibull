@@ -6,6 +6,9 @@
 .. Document meta
 
 :orphan:
+{% if edit_on_github_url %}
+:github_url: @{ edit_on_github_url }@?description=%23%23%23%23%23%20SUMMARY%0A%3C!---%20Your%20description%20here%20--%3E%0A%0A%0A%23%23%23%23%23%20ISSUE%20TYPE%0A-%20Docs%20Pull%20Request%0A%0A%2Blabel:%20docsite_pr
+{% endif %}
 
 .. |antsibull-internal-nbsp| unicode:: 0xA0
     :trim:
@@ -307,11 +310,6 @@ Authors
 - @{ author_name | massage_author_name }@
 {%   endfor %}
 
-{% endif %}
-
-{% if edit_on_github_url %}
-.. hint::
-    If you notice any issues in this documentation, you can `edit this document <@{ edit_on_github_url }@?description=%23%23%23%23%23%20SUMMARY%0A%3C!---%20Your%20description%20here%20--%3E%0A%0A%0A%23%23%23%23%23%20ISSUE%20TYPE%0A-%20Docs%20Pull%20Request%0A%0A%2Blabel:%20docsite_pr>`_ to improve it.
 {% endif %}
 
 {% if plugin_type != 'module' %}

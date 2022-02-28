@@ -44,6 +44,51 @@ def _render_template(_template: Template, _name: str, **kwargs) -> str:
         raise Exception(f"Error while rendering {_name}") from exc
 
 
+def follow_relative_links(path: str) -> str:
+    """
+    Resolve relative links for path.
+
+    :arg path: Path to a file.
+    """
+    flog = mlog.fields(func='write_plugin_rst')
+    flog.fields(path=path).debug('Enter')
+
+    original_path = path
+    loop_detection = set()
+    while True:
+        if path in loop_detection:
+            flog.fields(
+                path=original_path,
+                loop=loop_detection
+            ).error(
+                '{path} resulted in a loop when looking up relative symbolic links.',
+                path=path,
+            )
+            flog.debug('Leave')
+            return original_path
+        loop_detection.add(path)
+        if not os.path.islink(path):
+            flog.fields(result=path).debug('Leave')
+            return path
+        flog.debug('Reading link {path}', path=path)
+        link = os.readlink(path)
+        if link.startswith('/'):
+            flog.fields(
+                original_path=original_path,
+                path=path,
+                link=link,
+            ).error(
+                'When looking up relative links for {original_path}, an absolute link'
+                ' "{link}" was found for {path}.',
+                original_path=original_path,
+                path=path,
+                link=link,
+            )
+            flog.debug('Leave')
+            return original_path
+        path = os.path.join(os.path.dirname(path), link)
+
+
 async def write_plugin_rst(collection_name: str,
                            collection_meta: AnsibleCollectionMetadata,
                            collection_links: CollectionLinks,
@@ -93,10 +138,20 @@ async def write_plugin_rst(collection_name: str,
             # Plugins in ansible-core or collections:
             'plugins/' + plugin_type
         )
-        gh_path = ''  # FIXME! figure out subdirectory where the actual module resides in
+        # Guess path inside collection tree
+        gh_path = f"{gh_plugin_dir}/{plugin_short_name}.py"
+        # If we have more precise information, use that!
+        if 'doc' in plugin_record and 'filename' in plugin_record['doc']:
+            filename = follow_relative_links(plugin_record['doc']['filename'])
+            gh_path = os.path.relpath(filename, collection_meta.path)
+        # Compose path
+        edit_on_github_url = (
+            f"https://github.com/{eog.repository}/edit/{eog.branch}/{eog.path_prefix}{gh_path}"
+        )
+    if eog and plugin_type == 'role':
         edit_on_github_url = (
             f"https://github.com/{eog.repository}/edit/{eog.branch}/{eog.path_prefix}"
-            f"{gh_plugin_dir}/{gh_path}{plugin_short_name}.py"
+            f"roles/{plugin_short_name}/meta/argument_specs.yml"
         )
 
     if not plugin_record:
