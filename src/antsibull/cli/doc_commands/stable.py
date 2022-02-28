@@ -375,6 +375,7 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
 
     asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
                                            collection_metadata=collection_metadata,
+                                           link_data=link_data,
                                            squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing plugin stubs')
 

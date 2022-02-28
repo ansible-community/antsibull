@@ -167,7 +167,10 @@ async def write_plugin_rst(collection_name: str,
             collection=collection_name,
             collection_version=collection_meta.version,
             nonfatal_errors=nonfatal_errors,
-            edit_on_github_url=edit_on_github_url)
+            edit_on_github_url=edit_on_github_url,
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
+        )
     else:
         if nonfatal_errors:
             flog.fields(plugin_type=plugin_type,
@@ -186,7 +189,10 @@ async def write_plugin_rst(collection_name: str,
                 plugin_name=plugin_name,
                 entry_points=plugin_record['entry_points'],
                 nonfatal_errors=nonfatal_errors,
-                edit_on_github_url=edit_on_github_url)
+                edit_on_github_url=edit_on_github_url,
+                collection_links=collection_links.links,
+                collection_communication=collection_links.communication,
+            )
         else:
             plugin_contents = _render_template(
                 plugin_tmpl,
@@ -200,7 +206,10 @@ async def write_plugin_rst(collection_name: str,
                 examples=plugin_record['examples'],
                 returndocs=plugin_record['return'],
                 nonfatal_errors=nonfatal_errors,
-                edit_on_github_url=edit_on_github_url)
+                edit_on_github_url=edit_on_github_url,
+                collection_links=collection_links.links,
+                collection_communication=collection_links.communication,
+            )
 
     if path_override is not None:
         plugin_file = path_override
@@ -221,6 +230,7 @@ async def write_plugin_rst(collection_name: str,
 
 
 async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
+                         collection_links: CollectionLinks,
                          plugin_short_name: str, plugin_type: str,
                          routing_data: t.Mapping[str, t.Any],
                          redirect_tmpl: Template,
@@ -233,6 +243,7 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
 
     :arg collection_name: Dotted colection name.
     :arg collection_meta: Collection metadata object.
+    :arg collection_links: Collection links object.
     :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg routing_data: The routing data record for the plugin stub.  tombstone, deprecation,
@@ -260,18 +271,24 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
             plugin_name=plugin_name,
             collection=collection_name,
             collection_version=collection_meta.version,
-            tombstone=routing_data['tombstone'])
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
+            tombstone=routing_data['tombstone'],
+        )
     else:  # 'redirect' in routing_data
         plugin_contents = _render_template(
             redirect_tmpl,
             plugin_name + '_' + plugin_type,
             collection=collection_name,
             collection_version=collection_meta.version,
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
             plugin_type=plugin_type,
             plugin_name=plugin_name,
             redirect=routing_data['redirect'],
             redirect_is_symlink=routing_data.get('redirect_is_symlink') or False,
-            deprecation=routing_data.get('deprecation'))
+            deprecation=routing_data.get('deprecation'),
+        )
 
     if path_override is not None:
         plugin_file = path_override
@@ -353,6 +370,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
                                      dest_dir: str,
                                      collection_metadata: t.Mapping[
                                          str, AnsibleCollectionMetadata],
+                                     link_data: t.Mapping[str, CollectionLinks],
                                      squash_hierarchy: bool = False) -> None:
     """
     Output rst files for each plugin stub.
@@ -361,6 +379,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
         of plugin_name to routing information.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
+    :arg link_data: Dictionary mapping collection names to CollectionLinks.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
@@ -380,6 +399,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
                     writers.append(await pool.spawn(
                         write_stub_rst(collection_name,
                                        collection_metadata[collection_name],
+                                       link_data[collection_name],
                                        plugin_short_name, plugin_type,
                                        routing_data, redirect_tmpl, tombstone_tmpl,
                                        dest_dir, squash_hierarchy=squash_hierarchy)))

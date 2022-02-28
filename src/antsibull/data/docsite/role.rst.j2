@@ -183,6 +183,25 @@ Authors
 
 {% endfor %}
 
+.. Extra links
+
+{% if collection_links or not collection_communication.empty %}
+Collection links
+~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+  <p class="ansible-links">
+{%   for link in collection_links %}
+    <a href="@{ link.url | escape }@" aria-role="button" target="_blank" rel="noopener external">@{ link.description | escape }@</a>
+{%   endfor %}
+{%   if not collection_communication.empty %}
+{#     WARNING: the anchor is created from Sphinx from the label and might change #}
+    <a href="./#communication-for-@{ collection | replace('.', '-') | escape }@" aria-role="button" target="_blank">Communication</a>
+{%   endif %}
+  </p>
+{% endif %}
+
 .. Parsing errors
 
 {% if nonfatal_errors %}
