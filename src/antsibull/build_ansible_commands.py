@@ -337,10 +337,16 @@ def compile_collection_exclude_paths(collection_names: t.Collection[str],
             for file in files:
                 all_files.append(os.path.normpath(os.path.join(directory, file)))
 
-        def ignore_file(prefix: str, filename: str):
+        def ignore_file(prefix: str, filename: str):  # pylint: disable=unused-variable
             if filename in all_files:
                 result.add(prefix + filename)
                 ignored_files.add(prefix + filename)
+
+        def ignore_start(prefix: str, start: str):
+            matching_files = [file for file in all_files if file.startswith(start)]
+            if matching_files:
+                result.add(prefix + start + '*')
+                ignored_files.update([prefix + file for file in matching_files])
 
         def ignore_directory(prefix: str, directory: str):
             directory = directory.rstrip('/') + '/'
@@ -349,10 +355,7 @@ def compile_collection_exclude_paths(collection_names: t.Collection[str],
                 result.add(prefix + directory + '*')
                 ignored_files.update([prefix + file for file in matching_files])
 
-        ignore_file(prefix, '.gitignore')
-        ignore_directory(prefix, '.github')
-        ignore_directory(prefix, '.azure-pipelines')
-        ignore_directory(prefix, 'changelogs')
+        ignore_start(prefix, '.')
         ignore_directory(prefix, 'docs')
         ignore_directory(prefix, 'tests')
     return sorted(result), sorted(ignored_files)
