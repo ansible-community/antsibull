@@ -59,9 +59,9 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
     if collection_names and len(collection_names) == 1:
         # ansible-doc only allows *one* filter
         dump_metadata_cmd = venv_ansible_doc(
-            '--metadata-dump', '--dont-fail-on-errors', collection_names[0])
+            '--metadata-dump', '--no-fail-on-errors', collection_names[0])
     else:
-        dump_metadata_cmd = venv_ansible_doc('--metadata-dump', '--dont-fail-on-errors')
+        dump_metadata_cmd = venv_ansible_doc('--metadata-dump', '--no-fail-on-errors')
 
     flog.debug('Loading plugin documentation')
     stdout = dump_metadata_cmd.stdout.decode('utf-8', errors='surrogateescape')
