@@ -52,13 +52,14 @@ For a release `x.y.z`, the `releases` dictionary contains an entry `x.y.z` mappi
 1. `changes`: a dictionary containing all changes. See below.
 1. `modules`: a list of plugin dictionaries. See below.
 1. `plugins`: a dictionary mapping plugin types to lists of plugin dictionaries. See below.
+1. `objects`: a dictionary mapping object types to lists of object dictionaries. See below.
 
 The following is an example of release information for version `1.0.0`:
 
 ```.yaml
 releases:
   1.0.0:
-    release_date: 2020-04-01
+    release_date: '2020-04-01'
     codename: White Rabbit
     changes:
       release_summary: This is the initial White Rabbit release. Enjoy!
@@ -96,6 +97,15 @@ releases:
       inventory:
         - name: docker
           description: Inventory plugin for docker containers
+          namespace: null
+    objects:
+      role:
+        - name: install_reqs
+          description: Install all requirements of this collection
+          namespace: null
+      playbook:
+        - name: wipe_personal_data
+          description: Wipes all personal data from the database
           namespace: null
 ```
 
@@ -146,9 +156,9 @@ releases:
         - get - The module will no longer crash if it received invalid JSON data.
 ```
 
-#### Plugins and modules
+#### Plugins, modules and other objects
 
-The `modules` list should a be list of module plugin descriptions. The `plugins` dictionary should map plugin types to lists of plugin descriptions.
+The `modules` list should a be list of module plugin descriptions. The `plugins` dictionary should map plugin types to lists of plugin descriptions. The `objects` dictionary is very similar to the `plugins` dictionary, except that it has different types.
 
 Currently valid plugin types are:
 1. `become`
@@ -163,16 +173,22 @@ Currently valid plugin types are:
 10. `shell`
 11. `strategy`
 12. `vars`
+13. `filter` (not yet documentable by `ansible-doc`)
+14. `test` (not yet documentable by `ansible-doc`)
 
 See `DOCUMENTABLE_PLUGINS` in https://github.com/ansible/ansible/blob/devel/lib/ansible/constants.py for a complete list of plugin types (minus `modules`).
 
-For every module or plugin, the description is a dictionary with the following keys:
+Currently valid object types are:
+1. `role`
+2. `playbook`
+
+For every module, plugin or object, the description is a dictionary with the following keys:
 
 1. `name`: the name of the module resp. plugin. It must not be the FQCN, but the name inside the collection.
 2. `description`: the value of `short_description` in the module's resp. plugin's `DOCUMENTATION`.
-3. `namespace`: must be `null` for plugins. For modules, must be `''` for modules directly in `plugins/modules/`, or the dot-separated list of directories the module is in inside the `plugins/modules/` directory. This is mostly relevant for large collections such as community.general and community.network. For example, the `community.general.docker_container` module is in the directory `plugins/modules/cloud/docker/`, hence its namespace must be `cloud.docker`. The namespace is used to group new modules by their namespace inside the collection.
+3. `namespace`: must be `null` for plugins and objects. For modules, must be `''` for modules directly in `plugins/modules/`, or the dot-separated list of directories the module is in inside the `plugins/modules/` directory. This is mostly relevant for large collections such as community.general and community.network. For example, the `community.general.docker_container` module is in the directory `plugins/modules/cloud/docker/`, hence its namespace must be `cloud.docker`. The namespace is used to group new modules by their namespace inside the collection.
 
-The `modules` list and `plugins` dictionary could look as follows:
+The `modules` list, and the `plugins` and `objects` dictionary could look as follows:
 
 ```.yaml
 releases:
@@ -192,5 +208,14 @@ releases:
       inventory:
         - name: docker
           description: Inventory plugin for docker containers
+          namespace: null
+    objects:
+      role:
+        - name: install_reqs
+          description: Install all requirements of this collection
+          namespace: null
+      playbook:
+        - name: wipe_personal_data
+          description: Wipes all personal data from the database
           namespace: null
 ```
