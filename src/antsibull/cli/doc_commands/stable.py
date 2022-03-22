@@ -23,6 +23,7 @@ from ...collections import install_together
 from ...compat import asyncio_run, best_get_loop
 from ...dependency_files import DepsFile
 from ...extra_docs import load_collections_extra_docs
+from ...collection_links import load_collections_links
 from ...docs_parsing.parsing import get_ansible_plugin_info
 from ...docs_parsing.fqcn import get_fqcn_parts
 from ...docs_parsing.routing import (
@@ -330,6 +331,11 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
         {name: data.path for name, data in collection_metadata.items()}))
     flog.debug('Finished getting collection extra docs data')
 
+    # Load collection extra docs data
+    link_data = asyncio_run(load_collections_links(
+        {name: data.path for name, data in collection_metadata.items()}))
+    flog.debug('Finished getting collection link data')
+
     plugin_contents = get_plugin_contents(plugin_info, nonfatal_errors)
     collection_to_plugin_info = get_collection_contents(plugin_contents)
     # Make sure collections without documentable plugins are mentioned
@@ -363,17 +369,20 @@ def generate_docs_for_all_collections(venv: t.Union[VenvRunner, FakeVenvRunner],
                                collection_metadata=collection_metadata,
                                squash_hierarchy=squash_hierarchy,
                                extra_docs_data=extra_docs_data,
+                               link_data=link_data,
                                breadcrumbs=breadcrumbs))
     flog.notice('Finished writing indexes')
 
     asyncio_run(output_all_plugin_stub_rst(stubs_info, dest_dir,
                                            collection_metadata=collection_metadata,
+                                           link_data=link_data,
                                            squash_hierarchy=squash_hierarchy))
     flog.debug('Finished writing plugin stubs')
 
     asyncio_run(output_all_plugin_rst(collection_to_plugin_info, plugin_info,
                                       nonfatal_errors, dest_dir,
                                       collection_metadata=collection_metadata,
+                                      link_data=link_data,
                                       squash_hierarchy=squash_hierarchy,
                                       use_html_blobs=use_html_blobs))
     flog.debug('Finished writing plugin docs')

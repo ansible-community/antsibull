@@ -25,6 +25,7 @@ from antsibull_changelog.logger import setup_logger
 
 from ..args import get_toplevel_parser, normalize_toplevel_options
 from ..lint_extra_docs import lint_collection_extra_docs_files
+from ..collection_links import lint_collection_links
 
 
 def run(args: List[str]) -> int:
@@ -114,6 +115,7 @@ def command_lint_collection_docs(args: Any) -> int:
     :arg args: Parsed arguments
     """
     errors = lint_collection_extra_docs_files(args.collection_root_path)
+    errors.extend(lint_collection_links(args.collection_root_path))
 
     messages = sorted(set(f'{error[0]}:{error[1]}:{error[2]}: {error[3]}' for error in errors))
 

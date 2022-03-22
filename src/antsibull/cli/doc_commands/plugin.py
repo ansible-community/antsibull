@@ -16,6 +16,7 @@ from .stable import normalize_plugin_info
 from ... import app_context
 from ...augment_docs import augment_docs
 from ...compat import asyncio_run
+from ...collection_links import CollectionLinks
 from ...docs_parsing import AnsibleCollectionMetadata
 from ...docs_parsing.fqcn import get_fqcn_parts, is_fqcn
 from ...jinja2.environment import doc_environment
@@ -102,7 +103,9 @@ def generate_plugin_docs(plugin_type: str, plugin_name: str,
     error_tmpl = env.get_template('plugin-error.rst.j2')
 
     asyncio_run(write_plugin_rst(
-        collection_name, AnsibleCollectionMetadata.empty(), plugin, plugin_type,
+        collection_name,
+        AnsibleCollectionMetadata.empty(),
+        CollectionLinks(), plugin, plugin_type,
         plugin_info, errors, plugin_tmpl, error_tmpl, '',
         path_override=output_path,
         use_html_blobs=app_ctx.use_html_blobs))

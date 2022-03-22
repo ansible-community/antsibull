@@ -16,6 +16,7 @@ from jinja2 import Template
 from . import app_context
 from .jinja2.environment import doc_environment
 from .logging import log
+from .collection_links import CollectionLinks
 from .extra_docs import CollectionExtraDocsInfoT
 from .docs_parsing import AnsibleCollectionMetadata
 from .utils.io import copy_file, write_file
@@ -43,7 +44,54 @@ def _render_template(_template: Template, _name: str, **kwargs) -> str:
         raise Exception(f"Error while rendering {_name}") from exc
 
 
-async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
+def follow_relative_links(path: str) -> str:
+    """
+    Resolve relative links for path.
+
+    :arg path: Path to a file.
+    """
+    flog = mlog.fields(func='write_plugin_rst')
+    flog.fields(path=path).debug('Enter')
+
+    original_path = path
+    loop_detection = set()
+    while True:
+        if path in loop_detection:
+            flog.fields(
+                path=original_path,
+                loop=loop_detection
+            ).error(
+                '{path} resulted in a loop when looking up relative symbolic links.',
+                path=path,
+            )
+            flog.debug('Leave')
+            return original_path
+        loop_detection.add(path)
+        if not os.path.islink(path):
+            flog.fields(result=path).debug('Leave')
+            return path
+        flog.debug('Reading link {path}', path=path)
+        link = os.readlink(path)
+        if link.startswith('/'):
+            flog.fields(
+                original_path=original_path,
+                path=path,
+                link=link,
+            ).error(
+                'When looking up relative links for {original_path}, an absolute link'
+                ' "{link}" was found for {path}.',
+                original_path=original_path,
+                path=path,
+                link=link,
+            )
+            flog.debug('Leave')
+            return original_path
+        path = os.path.join(os.path.dirname(path), link)
+
+
+async def write_plugin_rst(collection_name: str,
+                           collection_meta: AnsibleCollectionMetadata,
+                           collection_links: CollectionLinks,
                            plugin_short_name: str, plugin_type: str,
                            plugin_record: t.Dict[str, t.Any], nonfatal_errors: t.Sequence[str],
                            plugin_tmpl: Template, error_tmpl: Template, dest_dir: str,
@@ -55,6 +103,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
 
     :arg collection_name: Dotted colection name.
     :arg collection_meta: Collection metadata object.
+    :arg collection_links: Collection links object.
     :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg plugin_record: The record for the plugin.  doc, examples, and return are the
@@ -78,6 +127,33 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
     namespace, collection = collection_name.split('.')
     plugin_name = '.'.join((collection_name, plugin_short_name))
 
+    edit_on_github_url = None
+    eog = collection_links.edit_on_github
+    if eog and plugin_type != 'role':
+        gh_plugin_dir = (
+            # Modules in ansible-core:
+            'modules' if plugin_type == 'module' and collection_name == 'ansible.builtin' else
+            # Modules in collections:
+            'plugins/modules' if plugin_type == 'module' else
+            # Plugins in ansible-core or collections:
+            'plugins/' + plugin_type
+        )
+        # Guess path inside collection tree
+        gh_path = f"{gh_plugin_dir}/{plugin_short_name}.py"
+        # If we have more precise information, use that!
+        if 'doc' in plugin_record and 'filename' in plugin_record['doc']:
+            filename = follow_relative_links(plugin_record['doc']['filename'])
+            gh_path = os.path.relpath(filename, collection_meta.path)
+        # Compose path
+        edit_on_github_url = (
+            f"https://github.com/{eog.repository}/edit/{eog.branch}/{eog.path_prefix}{gh_path}"
+        )
+    if eog and plugin_type == 'role':
+        edit_on_github_url = (
+            f"https://github.com/{eog.repository}/edit/{eog.branch}/{eog.path_prefix}"
+            f"roles/{plugin_short_name}/meta/argument_specs.yml"
+        )
+
     if not plugin_record:
         flog.fields(plugin_type=plugin_type,
                     plugin_name=plugin_name,
@@ -90,7 +166,11 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
             plugin_type=plugin_type, plugin_name=plugin_name,
             collection=collection_name,
             collection_version=collection_meta.version,
-            nonfatal_errors=nonfatal_errors)
+            nonfatal_errors=nonfatal_errors,
+            edit_on_github_url=edit_on_github_url,
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
+        )
     else:
         if nonfatal_errors:
             flog.fields(plugin_type=plugin_type,
@@ -108,7 +188,11 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                 plugin_type=plugin_type,
                 plugin_name=plugin_name,
                 entry_points=plugin_record['entry_points'],
-                nonfatal_errors=nonfatal_errors)
+                nonfatal_errors=nonfatal_errors,
+                edit_on_github_url=edit_on_github_url,
+                collection_links=collection_links.links,
+                collection_communication=collection_links.communication,
+            )
         else:
             plugin_contents = _render_template(
                 plugin_tmpl,
@@ -121,7 +205,11 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
                 doc=plugin_record['doc'],
                 examples=plugin_record['examples'],
                 returndocs=plugin_record['return'],
-                nonfatal_errors=nonfatal_errors)
+                nonfatal_errors=nonfatal_errors,
+                edit_on_github_url=edit_on_github_url,
+                collection_links=collection_links.links,
+                collection_communication=collection_links.communication,
+            )
 
     if path_override is not None:
         plugin_file = path_override
@@ -142,6 +230,7 @@ async def write_plugin_rst(collection_name: str, collection_meta: AnsibleCollect
 
 
 async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectionMetadata,
+                         collection_links: CollectionLinks,
                          plugin_short_name: str, plugin_type: str,
                          routing_data: t.Mapping[str, t.Any],
                          redirect_tmpl: Template,
@@ -154,6 +243,7 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
 
     :arg collection_name: Dotted colection name.
     :arg collection_meta: Collection metadata object.
+    :arg collection_links: Collection links object.
     :arg plugin_short_name: short name for the plugin.
     :arg plugin_type: The type of the plugin.  (module, inventory, etc)
     :arg routing_data: The routing data record for the plugin stub.  tombstone, deprecation,
@@ -181,18 +271,24 @@ async def write_stub_rst(collection_name: str, collection_meta: AnsibleCollectio
             plugin_name=plugin_name,
             collection=collection_name,
             collection_version=collection_meta.version,
-            tombstone=routing_data['tombstone'])
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
+            tombstone=routing_data['tombstone'],
+        )
     else:  # 'redirect' in routing_data
         plugin_contents = _render_template(
             redirect_tmpl,
             plugin_name + '_' + plugin_type,
             collection=collection_name,
             collection_version=collection_meta.version,
+            collection_links=collection_links.links,
+            collection_communication=collection_links.communication,
             plugin_type=plugin_type,
             plugin_name=plugin_name,
             redirect=routing_data['redirect'],
             redirect_is_symlink=routing_data.get('redirect_is_symlink') or False,
-            deprecation=routing_data.get('deprecation'))
+            deprecation=routing_data.get('deprecation'),
+        )
 
     if path_override is not None:
         plugin_file = path_override
@@ -217,6 +313,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                                 nonfatal_errors: PluginErrorsT,
                                 dest_dir: str,
                                 collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
+                                link_data: t.Mapping[str, CollectionLinks],
                                 squash_hierarchy: bool = False,
                                 use_html_blobs: bool = False) -> None:
     """
@@ -229,6 +326,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
         pages when documentation wasn't formatted such that we could use it.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
+    :arg link_data: Dictionary mapping collection names to CollectionLinks.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
@@ -255,6 +353,7 @@ async def output_all_plugin_rst(collection_to_plugin_info: CollectionInfoT,
                     writers.append(await pool.spawn(
                         write_plugin_rst(collection_name,
                                          collection_metadata[collection_name],
+                                         link_data[collection_name],
                                          plugin_short_name, plugin_type,
                                          plugin_info[plugin_type].get(plugin_name),
                                          nonfatal_errors[plugin_type][plugin_name],
@@ -271,6 +370,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
                                      dest_dir: str,
                                      collection_metadata: t.Mapping[
                                          str, AnsibleCollectionMetadata],
+                                     link_data: t.Mapping[str, CollectionLinks],
                                      squash_hierarchy: bool = False) -> None:
     """
     Output rst files for each plugin stub.
@@ -279,6 +379,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
         of plugin_name to routing information.
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
+    :arg link_data: Dictionary mapping collection names to CollectionLinks.
     :arg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
                            Undefined behavior if documentation for multiple collections are
                            created.
@@ -298,6 +399,7 @@ async def output_all_plugin_stub_rst(stubs_info: t.Mapping[
                     writers.append(await pool.spawn(
                         write_stub_rst(collection_name,
                                        collection_metadata[collection_name],
+                                       link_data[collection_name],
                                        plugin_short_name, plugin_type,
                                        routing_data, redirect_tmpl, tombstone_tmpl,
                                        dest_dir, squash_hierarchy=squash_hierarchy)))
@@ -386,6 +488,7 @@ async def write_plugin_lists(collection_name: str,
                              dest_dir: str,
                              collection_meta: AnsibleCollectionMetadata,
                              extra_docs_data: CollectionExtraDocsInfoT,
+                             link_data: CollectionLinks,
                              breadcrumbs: bool = True) -> None:
     """
     Write an index page for each collection.
@@ -397,6 +500,7 @@ async def write_plugin_lists(collection_name: str,
     :arg dest_dir: The destination directory to output the index into.
     :arg collection_meta: Metadata for the collection.
     :arg extra_docs_data: Extra docs data for the collection.
+    :arg link_data: Links for the collection.
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
         disabled.  This will disable breadcrumbs but save on memory usage.
     """
@@ -406,8 +510,14 @@ async def write_plugin_lists(collection_name: str,
         collection_name=collection_name,
         plugin_maps=plugin_maps,
         collection_version=collection_meta.version,
+        link_data=link_data,
         breadcrumbs=breadcrumbs,
-        extra_docs_sections=extra_docs_data[0])
+        extra_docs_sections=extra_docs_data[0],
+        collection_authors=link_data.authors,
+        collection_description=link_data.description,
+        collection_links=link_data.links,
+        collection_communication=link_data.communication,
+    )
 
     # This is only safe because we made sure that the top of the directory tree we're writing to
     # (docs/docsite/rst) is only writable by us.
@@ -529,6 +639,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                          dest_dir: str,
                          collection_metadata: t.Mapping[str, AnsibleCollectionMetadata],
                          extra_docs_data: t.Mapping[str, CollectionExtraDocsInfoT],
+                         link_data: t.Mapping[str, CollectionLinks],
                          squash_hierarchy: bool = False,
                          breadcrumbs: bool = True
                          ) -> None:
@@ -540,6 +651,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
     :arg dest_dir: The directory to place the documentation in.
     :arg collection_metadata: Dictionary mapping collection names to collection metadata objects.
     :arg extra_docs_data: Dictionary mapping collection names to CollectionExtraDocsInfoT.
+    :arg link_data: Dictionary mapping collection names to CollectionLinks.
     :kwarg squash_hierarchy: If set to ``True``, no directory hierarchy will be used.
         Undefined behavior if documentation for multiple collections are created.
     :kwarg breadcrumbs: Default True.  Set to False if breadcrumbs for collections should be
@@ -578,6 +690,7 @@ async def output_indexes(collection_to_plugin_info: CollectionInfoT,
                 write_plugin_lists(collection_name, plugin_maps, collection_plugins_tmpl,
                                    collection_dir, collection_metadata[collection_name],
                                    extra_docs_data[collection_name],
+                                   link_data[collection_name],
                                    breadcrumbs=breadcrumbs)))
 
         await asyncio.gather(*writers)

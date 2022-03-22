@@ -1,5 +1,31 @@
 /* Copyright (c) Ansible and contributors */
 
+.ansible-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+
+  > a {
+    padding: 4px 12px;
+    margin: 2px 4px;
+
+    cursor: pointer;
+    border-radius: 3px;
+
+    background-color: #5bbdbf;
+    color: white;
+
+    &:hover, &:active, &:focus {
+      background-color: #91d9db;
+    }
+
+    &:focus {
+      outline: 3px solid #204748;
+    }
+  }
+}
+
 // Documentation table (for module options and return values)
 table.documentation-table {
   border-bottom: 1px solid #000;
