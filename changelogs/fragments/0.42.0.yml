@@ -1,0 +1,1 @@
+release_summary: Major feature release preparing for Ansible 6. Also adds support for the new collection links file, and improves the attributes tables.
