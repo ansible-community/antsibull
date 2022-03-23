@@ -57,6 +57,11 @@ def run(args: List[str]) -> int:
                                     metavar='/path/to/changelog.yaml',
                                     help='path to changelogs/changelog.yaml')
 
+        changelog_yaml.add_argument('--no-semantic-versioning', action='store_true',
+                                    help='Assume that use_semantic_versioning=false in the'
+                                         ' changelog config. Do not use this for Ansible'
+                                         ' collections!')
+
         collection_docs = subparsers.add_parser('collection-docs',
                                                 parents=[common],
                                                 help='Collection extra docs linter for inclusion'
@@ -98,7 +103,8 @@ def command_lint_changelog(args: Any) -> int:
 
     :arg args: Parsed arguments
     """
-    errors = lint_changelog_yaml(args.changelog_yaml_path)
+    errors = lint_changelog_yaml(
+        args.changelog_yaml_path, no_semantic_versioning=args.no_semantic_versioning)
 
     messages = sorted(set(f'{error[0]}:{error[1]}:{error[2]}: {error[3]}' for error in errors))
 
