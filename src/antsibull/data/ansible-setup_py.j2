@@ -176,6 +176,15 @@ setup(
     python_requires='>=3.8',
 {%- endif %}
     packages=['ansible_collections'],
+{% if version.major >= 6 and collection_exclude_paths %}
+    exclude_package_data={
+        'ansible_collections': [
+{%   for path in collection_exclude_paths %}
+            '{{ path }}',
+{%   endfor %}
+        ],
+    },
+{% endif %}
     include_package_data=True,
     install_requires=[
         '{{ ansible_core_package_name }} ~= {{ ansible_core_version }}',{{ collection_deps }}
