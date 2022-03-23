@@ -1,17 +1,23 @@
 ---
-- name: Set expected path to deps file and release archive
+- name: Set expected path to deps file, build file, and release archive
   ansible.builtin.set_fact:
     _deps_file: "ansible-{{ antsibull_ansible_version }}.deps"
+    _build_file: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.build"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
 
 # Documentation for the following commands:
 # https://github.com/ansible-community/antsibull/blob/main/docs/build-ansible.rst
 
+- name: Check whether the ansible build file exists
+  ansible.builtin.stat:
+    path: '{{ _build_file }}'
+  register: _antsibull_build_file_stat
+
 - name: Update version ranges in the build file for alpha and beta releases
   command: >-
     {{ antsibull_build_command }} new-ansible {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
-  when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$")
+  when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$") or not _antsibull_build_file_stat.stat.exists
 
 - name: Set up feature freeze for b2 through rc1
   set_fact:
