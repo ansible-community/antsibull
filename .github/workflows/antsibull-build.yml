@@ -16,10 +16,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: default settings
-            options: ''
+          - name: Ansible 5 with default settings
+            options: '-e antsibull_ansible_version=5.99.0'
           - name: Ansible 6 with ansible-core devel
-            options: '-e antsibull_ansible_version=6.0.0 -e antsibull_build_file=ansible-6.build -e antsibull_data_dir="{{ antsibull_data_git_dir }}/6" -e antsibull_ansible_git_version=devel'
+            options: '-e antsibull_ansible_version=6.99.0 -e antsibull_build_file=ansible-6.build -e antsibull_data_dir="{{ antsibull_data_git_dir }}/6" -e antsibull_ansible_git_version=devel'
 
     steps:
       - name: Check out antsibull
