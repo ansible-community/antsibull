@@ -1,2 +1,0 @@
-major_changes:
-  - From Ansible 6 on, improve ``setup.py`` to exclude unnecessary files in the Python distribution (https://github.com/ansible-community/antsibull/pull/342).

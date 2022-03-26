@@ -1,2 +1,0 @@
-minor_changes:
-- "If the role is used to build a non-alpha or first beta version and the bulid file does not exist, it is created instead of later failing because it does not exist (https://github.com/ansible-community/antsibull/pull/408)."

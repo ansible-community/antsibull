@@ -1,5 +1,0 @@
-minor_changes:
-  - "Add a new docs parsing backend ``ansible-core-2.13``, which supports ansible-core 2.13+ (https://github.com/ansible-community/antsibull/pull/401)."
-  - "Add an autodetection ``auto`` for the docs parsing backend to select the fastest supported backend. This is the new default (https://github.com/ansible-community/antsibull/pull/401)."
-bugfixes:
-  - "Fix ansible-core version parsing for ``ansible-doc`` docs parsing backend (https://github.com/ansible-community/antsibull/pull/401)."

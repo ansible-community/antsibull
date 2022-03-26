@@ -1,2 +1,0 @@
-minor_changes:
-  - "Add option ``--no-semantic-versioning`` to ``antsibull-lint changelog-yaml`` command (https://github.com/ansible-community/antsibull/pull/405)."

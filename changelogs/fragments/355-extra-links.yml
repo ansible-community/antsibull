@@ -1,2 +1,0 @@
-major_changes:
-  - Allow collections to specify extra links (https://github.com/ansible-community/antsibull/pull/355).

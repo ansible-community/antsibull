@@ -222,6 +222,35 @@ releases:
     - 392-sphinx-init-theme.yml
     - 393-fail-on-error.yml
     release_date: '2022-02-01'
+  0.42.0:
+    changes:
+      bugfixes:
+      - Fix ansible-core version parsing for ``ansible-doc`` docs parsing backend
+        (https://github.com/ansible-community/antsibull/pull/401).
+      major_changes:
+      - Allow collections to specify extra links (https://github.com/ansible-community/antsibull/pull/355).
+      - From Ansible 6 on, improve ``setup.py`` to exclude unnecessary files in the
+        Python distribution (https://github.com/ansible-community/antsibull/pull/342).
+      minor_changes:
+      - Add a new docs parsing backend ``ansible-core-2.13``, which supports ansible-core
+        2.13+ (https://github.com/ansible-community/antsibull/pull/401).
+      - Add an autodetection ``auto`` for the docs parsing backend to select the fastest
+        supported backend. This is the new default (https://github.com/ansible-community/antsibull/pull/401).
+      - Add option ``--no-semantic-versioning`` to ``antsibull-lint changelog-yaml``
+        command (https://github.com/ansible-community/antsibull/pull/405).
+      - If the role is used to build a non-alpha or first beta version and the bulid
+        file does not exist, it is created instead of later failing because it does
+        not exist (https://github.com/ansible-community/antsibull/pull/408).
+      release_summary: Major feature release preparing for Ansible 6. Also adds support
+        for the new collection links file, and improves the attributes tables.
+    fragments:
+    - 0.42.0.yml
+    - 342-setup.py-ignore.yml
+    - 355-extra-links.yml
+    - 402-ansible-core-2.13.yml
+    - 405-changelog-yaml-lint.yml
+    - 408-build-file-role.yml
+    release_date: '2022-03-26'
   0.42.0b1:
     changes:
       bugfixes:

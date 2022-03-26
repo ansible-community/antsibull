@@ -5,32 +5,39 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
-v0.42.0b1
-=========
+v0.42.0
+=======
 
 Release Summary
 ---------------
 
-Beta release to allow merging of https://github.com/ansible/ansible/pull/74963.
+Major feature release preparing for Ansible 6. Also adds support for the new collection links file, and improves the attributes tables.
 
 Major Changes
 -------------
 
+- Allow collections to specify extra links (https://github.com/ansible-community/antsibull/pull/355).
 - Building Ansible 6+ now builds wheels next to the source tarball (https://github.com/ansible-community/antsibull/pull/394).
+- From Ansible 6 on, improve ``setup.py`` to exclude unnecessary files in the Python distribution (https://github.com/ansible-community/antsibull/pull/342).
 - Remove Ansible 2.9 / ansible-base 2.10 checks from ``setup.py`` for Ansible 6 so that we can finally ship wheels. This change is only active for Ansible 6 (https://github.com/ansible-community/antsibull/pull/394).
 
 Minor Changes
 -------------
 
+- Add a new docs parsing backend ``ansible-core-2.13``, which supports ansible-core 2.13+ (https://github.com/ansible-community/antsibull/pull/401).
+- Add an autodetection ``auto`` for the docs parsing backend to select the fastest supported backend. This is the new default (https://github.com/ansible-community/antsibull/pull/401).
+- Add option ``--no-semantic-versioning`` to ``antsibull-lint changelog-yaml`` command (https://github.com/ansible-community/antsibull/pull/405).
 - Change more references to ansible-base to ansible-core in the code (https://github.com/ansible-community/antsibull/pull/398).
+- If the role is used to build a non-alpha or first beta version and the bulid file does not exist, it is created instead of later failing because it does not exist (https://github.com/ansible-community/antsibull/pull/408).
 - Mention the ``ansible-core`` major version in the Ansible porting guide (https://github.com/ansible-community/antsibull/pull/397).
 - Redo attributes table using the same structure as the options and return value table. This improves its look and adds a linking mechanism (https://github.com/ansible-community/antsibull/pull/401).
 
 Bugfixes
 --------
 
+- Fix ansible-core version parsing for ``ansible-doc`` docs parsing backend (https://github.com/ansible-community/antsibull/pull/401).
 - Fix filename of mentioned ansible-core porting guide in Ansible's porting guide introductionary comment (https://github.com/ansible-community/antsibull/pull/398).
-- anstibull-docs will no longer traceback when it tries to process plugins not found in its own constant but are available in ansible-core (https://github.com/ansible-community/antsibull/pull/404).
+- antsibull-docs will no longer traceback when it tries to process plugins not found in its own constant but are available in ansible-core (https://github.com/ansible-community/antsibull/pull/404).
 
 v0.41.0
 =======
