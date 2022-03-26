@@ -29,6 +29,7 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                                       t.Mapping[str, AnsibleCollectionMetadata]]:
     """
     Retrieve information about all of the Ansible Plugins.
+    Must not be used with ansbile-core 2.13+.
 
     :arg venv: A VenvRunner into which Ansible has been installed.
     :arg collection_dir: Directory in which the collections have been installed.
@@ -64,13 +65,10 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         del raw_result
         del collection_enum_cmd
 
-    plugin_map = {}
+    plugin_map = {plugin_type: {} for plugin_type in DOCUMENTABLE_PLUGINS}
     for plugin_type, plugins in result['plugins'].items():
-        if plugin_type not in DOCUMENTABLE_PLUGINS:
-            # avoid keyerrors down the line when we cannot match types
-            flog.debug(f'Skipping unknown plugin type: {plugin_type}')
+        if plugin_type not in plugin_map:
             continue
-        plugin_map[plugin_type] = {}
         for plugin_name, plugin_data in plugins.items():
             if '.' not in plugin_name:
                 plugin_name = f'ansible.builtin.{plugin_name}'

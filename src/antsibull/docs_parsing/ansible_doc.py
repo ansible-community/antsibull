@@ -7,6 +7,7 @@ import asyncio
 import json
 import sys
 import os
+import re
 import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
@@ -160,6 +161,28 @@ async def _get_plugin_info(plugin_type: str, ansible_doc: 'sh.Command',
     return results
 
 
+def _extract_ansible_builtin_metadata(stdout: str) -> AnsibleCollectionMetadata:
+    path: t.Optional[str] = None
+    version: t.Optional[str] = None
+    ansible_version_new = re.compile(r'^ansible \[(?:core|base) ([^\]]+)\]')
+    ansible_version_old = re.compile(r'^ansible ([^\s]+)')
+    for line in stdout.splitlines():
+        if line.strip().startswith('ansible python module location'):
+            path = line.split('=', 2)[1].strip()
+        for regex in (ansible_version_new, ansible_version_old):
+            match = regex.match(line)
+            if match:
+                version = match.group(1)
+                break
+    if path is None:
+        raise Exception(
+            f'Cannot extract module location path from ansible --version output: {stdout}')
+    if version is None:
+        raise Exception(
+            f'Cannot extract ansible-core version from ansible --version output: {stdout}')
+    return AnsibleCollectionMetadata(path=path, version=version)
+
+
 def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
                             env: t.Dict[str, str],
                             collection_names: t.Optional[t.List[str]] = None,
@@ -171,15 +194,7 @@ def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         venv_ansible = venv.get_command('ansible')
         ansible_version_cmd = venv_ansible('--version', _env=env)
         raw_result = ansible_version_cmd.stdout.decode('utf-8', errors='surrogateescape')
-        path: t.Optional[str] = None
-        version: t.Optional[str] = None
-        for line in raw_result.splitlines():
-            if line.strip().startswith('ansible python module location'):
-                path = line.split('=', 2)[1].strip()
-            if line.startswith('ansible '):
-                version = line[len('ansible '):]
-        collection_metadata['ansible.builtin'] = AnsibleCollectionMetadata(
-            path=path, version=version)
+        collection_metadata['ansible.builtin'] = _extract_ansible_builtin_metadata(raw_result)
 
     # Obtain collection versions
     venv_ansible_galaxy = venv.get_command('ansible-galaxy')
@@ -205,7 +220,7 @@ def get_collection_metadata(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
 
 
 def get_ansible_core_version(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
-                             env: t.Dict[str, str],
+                             env: t.Optional[t.Dict[str, str]] = None,
                              ) -> PypiVer:
     venv_python = venv.get_command('python')
     ansible_version_cmd = venv_python(

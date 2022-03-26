@@ -5,10 +5,20 @@
 
 import typing as t
 
+from packaging.version import Version as PypiVer
+
 from .. import app_context
 from ..logging import log
-from .ansible_doc import get_ansible_plugin_info as ansible_doc_get_ansible_plugin_info
-from .ansible_internal import get_ansible_plugin_info as ansible_internal_get_ansible_plugin_info
+from .ansible_doc import (
+    get_ansible_plugin_info as ansible_doc_get_ansible_plugin_info,
+    get_ansible_core_version,
+)
+from .ansible_internal import (
+    get_ansible_plugin_info as ansible_internal_get_ansible_plugin_info,
+)
+from .ansible_doc_core_213 import (
+    get_ansible_plugin_info as ansible_doc_core_213_get_ansible_plugin_info,
+)
 from . import AnsibleCollectionMetadata
 
 if t.TYPE_CHECKING:
@@ -43,14 +53,27 @@ async def get_ansible_plugin_info(venv: t.Union['VenvRunner', 'FakeVenvRunner'],
         The second component is a Mapping of collection names to metadata.
 
     """
+    flog = mlog.fields(func='get_ansible_plugin_info')
+
     lib_ctx = app_context.lib_ctx.get()
 
     doc_parsing_backend = lib_ctx.doc_parsing_backend
+    if doc_parsing_backend == 'auto':
+        version = get_ansible_core_version(venv)
+        flog.debug(f'Ansible-core version: {version}')
+        if version < PypiVer('2.13.0.dev0'):
+            doc_parsing_backend = 'ansible-internal'
+        else:
+            doc_parsing_backend = 'ansible-core-2.13'
+        flog.debug(f'Auto-detected docs parsing backend: {doc_parsing_backend}')
     if doc_parsing_backend == 'ansible-internal':
         return await ansible_internal_get_ansible_plugin_info(
             venv, collection_dir, collection_names=collection_names)
     if doc_parsing_backend == 'ansible-doc':
         return await ansible_doc_get_ansible_plugin_info(
+            venv, collection_dir, collection_names=collection_names)
+    if doc_parsing_backend == 'ansible-core-2.13':
+        return await ansible_doc_core_213_get_ansible_plugin_info(
             venv, collection_dir, collection_names=collection_names)
 
     raise Exception(f'Invalid value for doc_parsing_backend: {doc_parsing_backend}')
