@@ -9,7 +9,7 @@ mkdir -p temp-rst
 {%   if collections | length > 0 %}
 antsibull-docs collection \
 {%     if fail_on_error %}
-    --fail-on-error
+    --fail-on-error \
 {%     endif %}
     --use-current \
 {%     if squash_hierarchy %}
@@ -23,7 +23,7 @@ antsibull-docs collection \
 {%   else %}
 antsibull-docs current \
 {%     if fail_on_error %}
-    --fail-on-error
+    --fail-on-error \
 {%     endif %}
     --{% if not use_html_blobs %}no-{% endif %}use-html-blobs \
     --{% if not breadcrumbs %}no-{% endif %}breadcrumbs \
@@ -33,7 +33,7 @@ antsibull-docs current \
 {% else %}
 antsibull-docs collection \
 {%     if fail_on_error %}
-    --fail-on-error
+    --fail-on-error \
 {%     endif %}
 {%     if collection_version != '@latest' %}
     --collection-version @{ collection_version }@ \
