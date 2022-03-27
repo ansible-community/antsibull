@@ -49,8 +49,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install collections
-        run:
-          ansible-galaxy collection install community.docker community.crypto sensu.sensu_go
+        # We install some collections using ansible-galaxy and at least one by cloning its repository,
+        # so we have galaxy.yml instead of MANIFEST.json present.
+        run: |
+          ansible-galaxy collection install community.docker sensu.sensu_go
+          git clone https://github.com/ansible-collections/community.crypto.git ~/.ansible/collections/ansible_collections/community/crypto
         if: contains(matrix.options, '--use-current')
 
       - name: Lint collection docs
