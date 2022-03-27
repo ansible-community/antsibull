@@ -54,7 +54,7 @@ jobs:
         if: contains(matrix.options, '--use-current')
 
       - name: Lint collection docs
-        run:
+        run: |
           coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/docker
           coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/crypto
           coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/sensu/sensu_go
