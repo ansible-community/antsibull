@@ -28,7 +28,9 @@ from ..config import load_config  # noqa: E402
 from ..constants import DOCUMENTABLE_PLUGINS  # noqa: E402
 from ..filesystem import UnableToCheck, writable_via_acls  # noqa: E402
 from ..docs_parsing.fqcn import is_fqcn  # noqa: E402
-from .doc_commands import collection, current, devel, plugin, stable, sphinx_init  # noqa: E402
+from .doc_commands import (  # noqa: E402
+    collection, current, devel, plugin, stable, sphinx_init, lint_collection_docs
+)
 # pylint: enable=wrong-import-position
 
 
@@ -42,6 +44,7 @@ ARGS_MAP: Dict[str, Callable] = {'devel': devel.generate_docs,
                                  'collection': collection.generate_docs,
                                  'plugin': plugin.generate_docs,
                                  'sphinx-init': sphinx_init.site_init,
+                                 'lint-collection-docs': lint_collection_docs.lint_collection_docs,
                                  }
 
 #: The filename for the file which lists raw collection names
@@ -49,6 +52,9 @@ DEFAULT_PIECES_FILE: str = 'ansible.in'
 
 
 def _normalize_docs_options(args: argparse.Namespace) -> None:
+    if args.command == 'lint-collection-docs':
+        return
+
     args.dest_dir = os.path.abspath(os.path.realpath(args.dest_dir))
 
     # We're going to be writing a deep hierarchy of files into this directory so we need to make
@@ -340,6 +346,18 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                     ' names, they will be downloaded from galaxy.  If no names are'
                                     ' provided, --use-current must be supplied and docs are built'
                                     ' for all collections found.')
+
+    #
+    # Lint collection docs
+    #
+    lint_collection_docs_parser = subparsers.add_parser('lint-collection-docs',
+                                                        description='Collection extra docs linter'
+                                                        ' for inclusion in docsite')
+
+    lint_collection_docs_parser.add_argument('collection_root_path',
+                                             metavar='/path/to/collection',
+                                             help='path to collection (directory that includes'
+                                             ' galaxy.yml)')
 
     flog.debug('Argument parser setup')
 

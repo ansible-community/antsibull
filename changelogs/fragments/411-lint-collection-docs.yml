@@ -1,0 +1,2 @@
+minor_changes:
+  - "Add ``lint-collection-docs`` subcommand to ``antsibull-docs``. It behaves identical to ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411)."
