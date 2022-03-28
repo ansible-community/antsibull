@@ -278,6 +278,16 @@ releases:
     - 401-attributes.yml
     - 404_not_found.yml
     release_date: '2022-02-23'
+  0.42.1:
+    changes:
+      bugfixes:
+      - antsibull-docs sphinx-init - the ``--fail-on-error`` option resulted in an
+        invalid ``build.sh`` (https://github.com/ansible-community/antsibull/pull/409).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.42.1.yml
+    - 409-sphinx-init-fail-on-error.yml
+    release_date: '2022-03-28'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.42.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- antsibull-docs sphinx-init - the ``--fail-on-error`` option resulted in an invalid ``build.sh`` (https://github.com/ansible-community/antsibull/pull/409).
+
 v0.42.0
 =======
 

@@ -1,3 +1,0 @@
----
-bugfixes:
-  - antsibull-docs sphinx-init - the ``--fail-on-error`` option resulted in an invalid ``build.sh`` (https://github.com/ansible-community/antsibull/pull/409).
