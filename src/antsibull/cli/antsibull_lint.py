@@ -32,6 +32,10 @@ def run(args: List[str]) -> int:
     """
     Main program entry point.
     """
+    print(
+        'WARNING: `antsibull-lint` is deprecated. Use `antsibull-changelog lint-changelog-yaml`'
+        ' or `antsibull-docs lint-collection-docs` depending on your use-case.',
+        file=sys.stderr)
     verbosity = 0
     try:
         program_name = os.path.basename(args[0])
