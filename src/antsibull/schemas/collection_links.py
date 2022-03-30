@@ -33,9 +33,10 @@ class CollectionEditOnGitHub(p.BaseModel):
     @p.validator('path_prefix', pre=True)
     # pylint:disable=no-self-argument,no-self-use
     def ensure_trailing_slash(cls, obj):
-        obj = obj.rstrip('/')
-        if obj:
-            obj += '/'
+        if isinstance(obj, str):
+            obj = obj.rstrip('/')
+            if obj:
+                obj += '/'
         return obj
 
 

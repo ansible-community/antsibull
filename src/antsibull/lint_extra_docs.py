@@ -4,6 +4,7 @@
 # Copyright: Ansible Project, 2021
 """Lint extra collection documentation in docs/docsite/."""
 
+import json
 import os
 import os.path
 import re
@@ -26,14 +27,22 @@ _RST_LABEL_DEFINITION = re.compile(r'''^\.\. _([^:]+):''')
 
 def load_collection_name(path_to_collection: str) -> str:
     '''Load collection name (namespace.name) from collection's galaxy.yml.'''
-    galaxy_yml_path = os.path.join(path_to_collection, 'galaxy.yml')
-    if not os.path.isfile(galaxy_yml_path):
-        raise Exception(f'Cannot find file {galaxy_yml_path}')
+    manifest_json_path = os.path.join(path_to_collection, 'MANIFEST.json')
+    if os.path.isfile(manifest_json_path):
+        with open(manifest_json_path, 'rb') as f:
+            manifest_json = json.load(f)
+        # pylint:disable-next=consider-using-f-string
+        collection_name = '{namespace}.{name}'.format(**manifest_json['collection_info'])
+        return collection_name
 
-    galaxy_yml = load_yaml_file(galaxy_yml_path)
-    # pylint:disable-next=consider-using-f-string
-    collection_name = '{namespace}.{name}'.format(**galaxy_yml)
-    return collection_name
+    galaxy_yml_path = os.path.join(path_to_collection, 'galaxy.yml')
+    if os.path.isfile(galaxy_yml_path):
+        galaxy_yml = load_yaml_file(galaxy_yml_path)
+        # pylint:disable-next=consider-using-f-string
+        collection_name = '{namespace}.{name}'.format(**galaxy_yml)
+        return collection_name
+
+    raise Exception(f'Cannot find files {manifest_json_path} and {galaxy_yml_path}')
 
 
 # pylint:disable-next=unused-argument
@@ -55,7 +64,8 @@ def lint_collection_extra_docs_files(path_to_collection: str
         collection_name = load_collection_name(path_to_collection)
     except Exception:  # pylint:disable=broad-except
         return [(
-            path_to_collection, 0, 0, 'Cannot identify collection with galaxy.yml at this path')]
+            path_to_collection, 0, 0,
+            'Cannot identify collection with galaxy.yml or MANIFEST.json at this path')]
     result = []
     all_labels = set()
     docs = find_extra_docs(path_to_collection)
