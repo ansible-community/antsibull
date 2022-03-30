@@ -288,6 +288,22 @@ releases:
     - 0.42.1.yml
     - 409-sphinx-init-fail-on-error.yml
     release_date: '2022-03-28'
+  0.43.0:
+    changes:
+      bugfixes:
+      - Prevent crashing when non-strings are found for certain pathnames for ``antsibull-docs
+        lint-collection-docs`` and ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411).
+      minor_changes:
+      - Add ``lint-collection-docs`` subcommand to ``antsibull-docs``. It behaves
+        identical to ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411,
+        https://github.com/ansible-community/antsibull/issues/410).
+      - Support ``MANIFEST.json`` and not only ``galaxy.yml`` for ``antsibull-docs
+        lint-collection-docs`` and ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411).
+      release_summary: Feature release.
+    fragments:
+    - 0.43.0.yml
+    - 411-lint-collection-docs.yml
+    release_date: '2022-03-30'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

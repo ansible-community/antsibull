@@ -5,6 +5,25 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.43.0
+=======
+
+Release Summary
+---------------
+
+Feature release.
+
+Minor Changes
+-------------
+
+- Add ``lint-collection-docs`` subcommand to ``antsibull-docs``. It behaves identical to ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411, https://github.com/ansible-community/antsibull/issues/410).
+- Support ``MANIFEST.json`` and not only ``galaxy.yml`` for ``antsibull-docs lint-collection-docs`` and ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411).
+
+Bugfixes
+--------
+
+- Prevent crashing when non-strings are found for certain pathnames for ``antsibull-docs lint-collection-docs`` and ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/411).
+
 v0.42.1
 =======
 
