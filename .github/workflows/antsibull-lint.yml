@@ -25,6 +25,18 @@ jobs:
           repository: ansible-community/antsibull-changelog
           path: antsibull-changelog
 
+      - name: Check out dependent project antsibull-core
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-core
+          path: antsibull-core
+
+      - name: Check out dependent project antsibull-docs
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-docs
+          path: antsibull-docs
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:

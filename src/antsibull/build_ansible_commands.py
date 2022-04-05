@@ -21,14 +21,15 @@ from jinja2 import Template
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
-from . import app_context
-from .ansible_core import get_ansible_core_package_name
+from antsibull_core import app_context
+from antsibull_core.ansible_core import get_ansible_core_package_name
+from antsibull_core.collections import install_separately, install_together
+from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
+from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
+from antsibull_core.utils.io import write_file
+
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
-from .collections import install_separately, install_together
-from .dependency_files import BuildFile, DependencyFileData, DepsFile
-from .galaxy import CollectionDownloader, GalaxyClient
-from .utils.io import write_file
 from .utils.get_pkg_data import get_antsibull_data
 
 

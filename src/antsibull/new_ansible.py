@@ -11,11 +11,12 @@ import aiohttp
 import asyncio_pool
 import semantic_version as semver
 
-from . import app_context
-from .ansible_core import AnsibleCorePyPiClient
+from antsibull_core import app_context
+from antsibull_core.ansible_core import AnsibleCorePyPiClient
+from antsibull_core.dependency_files import BuildFile, parse_pieces_file
+from antsibull_core.galaxy import GalaxyClient
+
 from .changelog import ChangelogData
-from .dependency_files import BuildFile, parse_pieces_file
-from .galaxy import GalaxyClient
 
 
 def display_exception(loop, context):  # pylint:disable=unused-argument

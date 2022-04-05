@@ -11,8 +11,9 @@ import tempfile
 import sh
 from jinja2 import Template
 
-from . import app_context
-from .dependency_files import DepsFile
+from antsibull_core import app_context
+from antsibull_core.dependency_files import DepsFile
+
 from .utils.get_pkg_data import get_antsibull_data
 
 

@@ -12,7 +12,6 @@ readme = "README.md"
 repository = "https://github.com/ansible-community/antsibull"
 packages = [
     { include = "antsibull", from="src" },
-    { include = "sphinx_antsibull_ext", from="src" },
     { include = "tests", format = "sdist" }
 ]
 classifiers = [
@@ -28,30 +27,14 @@ classifiers = [
 [tool.poetry.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
 antsibull-lint = "antsibull.cli.antsibull_lint:main"
-antsibull-docs = "antsibull.cli.antsibull_docs:main"
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
-aiocontextvars = {version = "*", python = "~3.6"}
-aiofiles = "*"
-aiohttp = ">= 3.0.0"
-ansible-pygments = "*"
 antsibull-changelog = ">= 0.14.0"
+antsibull-core = ">= 0.1.0"
+antsibull-docs = ">= 0.1.0"
 asyncio-pool = "*"
-docutils = "*"
-importlib-metadata = {version = "*", python =  "<3.8"}
 jinja2 = "*"
-# major/minor was introduced here
-packaging = ">= 20.0"
-perky = "*"
-pydantic = "*"
-PyYAML = "*"
-rstcheck = "^3"
-semantic_version = "*"
-sh = "*"
-sphinx = "*"
-# 0.5.0 introduces dict_config
-twiggy = ">= 0.5.0"
 
 [tool.poetry.dev-dependencies]
 asynctest = "*"
@@ -67,6 +50,8 @@ pytest-asyncio = ">= 0.12"
 pytest-cov = "*"
 # For development, we install dependent projects under our control in dev mode:
 antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
+antsibull-core = { path = "../antsibull-core/", develop = true }
+antsibull-docs = { path = "../antsibull-docs/", develop = true }
 
 [tool.isort]
 line_length = 100

@@ -23,9 +23,10 @@ except ImportError:
 from antsibull_changelog.lint import lint_changelog_yaml
 from antsibull_changelog.logger import setup_logger
 
-from ..args import get_toplevel_parser, normalize_toplevel_options
-from ..lint_extra_docs import lint_collection_extra_docs_files
-from ..collection_links import lint_collection_links
+from antsibull_core.args import get_toplevel_parser, normalize_toplevel_options
+
+from antsibull_docs.lint_extra_docs import lint_collection_extra_docs_files
+from antsibull_docs.collection_links import lint_collection_links
 
 
 def run(args: List[str]) -> int:
