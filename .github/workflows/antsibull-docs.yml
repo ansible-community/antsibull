@@ -25,6 +25,14 @@ jobs:
     steps:
       - name: Check out antsibull
         uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -34,21 +42,27 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . coverage codecov html5lib
+          python -m pip install poetry
+          poetry install
+          poetry update
+        working-directory: antsibull
 
       - name: Use antsibull-docs sphinx-init
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs sphinx-init --lenient --dest-dir . ${{ matrix.options }}
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs sphinx-init --lenient --dest-dir . ${{ matrix.options }}
+        working-directory: antsibull
 
       - name: Patch build.sh to supply code coverage
         run: |
-          sed -i build.sh -e 's!antsibull-docs !coverage run -p --source antsibull -m antsibull.cli.antsibull_docs !g'
-          sed -i build.sh -e 's!sphinx-build !coverage run -p --source antsibull --source sphinx_antsibull_ext -m sphinx.cmd.build !g'
+          sed -i build.sh -e 's!antsibull-docs !poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs !g'
+          sed -i build.sh -e 's!sphinx-build !poetry run coverage run -p --source antsibull --source sphinx_antsibull_ext -m sphinx.cmd.build !g'
+        working-directory: antsibull
 
       - name: Install dependencies
         run: |
-          pip install ansible-core
-          pip install -r requirements.txt
+          poetry run pip install ansible-core
+          poetry run pip install -r requirements.txt
+        working-directory: antsibull
 
       - name: Install collections
         # We install some collections using ansible-galaxy and at least one by cloning its repository,
@@ -60,30 +74,35 @@ jobs:
 
       - name: Lint collection docs
         run: |
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/docker
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/crypto
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/sensu/sensu_go
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/docker
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/community/crypto
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs lint-collection-docs ~/.ansible/collections/ansible_collections/sensu/sensu_go
+        working-directory: antsibull
         if: contains(matrix.options, '--use-current')
 
       - name: Build docsite
         run: |
           ./build.sh
+        working-directory: antsibull
 
       - name: Validate HTML
         run:
           python .github/workflows/validate-html.py build/html/
+        working-directory: antsibull
 
       - name: Test plugin rendering
         run:
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_account_info
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs plugin --plugin-type module --dest-dir . community.crypto.acme_account_info
+        working-directory: antsibull
         if: contains(matrix.options, '--use-current')
 
       - name: Combine and upload coverage stats
         run: |
-          coverage combine .coverage.*
-          coverage report
-          coverage xml -i
-          codecov
+          poetry run coverage combine .coverage.*
+          poetry run coverage report
+          poetry run coverage xml -i
+          poetry run codecov
+        working-directory: antsibull
 
   build-stable:
     name: 'Build stable docsite'
@@ -91,7 +110,15 @@ jobs:
 
     steps:
       - name: Check out antsibull
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -101,23 +128,29 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . coverage codecov
+          python -m pip install poetry
+          poetry install
+          poetry update
+        working-directory: antsibull
 
       - name: Get hold of deps file
         run: |
           curl https://raw.githubusercontent.com/ansible-community/ansible-build-data/main/5/ansible-5.0.0.deps --output ansible.deps
+        working-directory: antsibull
 
       - name: Build stable docs RST files
         run: |
           mkdir stable-docs
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs stable --deps-file ansible.deps --dest-dir stable-docs --no-breadcrumbs --no-indexes
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs stable --deps-file ansible.deps --dest-dir stable-docs --no-breadcrumbs --no-indexes
+        working-directory: antsibull
 
       - name: Combine and upload coverage stats
         run: |
-          coverage combine .coverage.*
-          coverage report
-          coverage xml -i
-          codecov
+          poetry run coverage combine .coverage.*
+          poetry run coverage report
+          poetry run coverage xml -i
+          poetry run codecov
+        working-directory: antsibull
 
   build-devel:
     name: 'Build devel docsite'
@@ -125,7 +158,15 @@ jobs:
 
     steps:
       - name: Check out antsibull
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -135,20 +176,26 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . coverage codecov
+          python -m pip install poetry
+          poetry install
+          poetry update
+        working-directory: antsibull
 
-      - name: Get hold of deps file
+      - name: Get hold of ansible.in file
         run: |
           curl https://raw.githubusercontent.com/ansible-community/ansible-build-data/main/6/ansible.in --output ansible.in
+        working-directory: antsibull
 
-      - name: Build stable docs RST files
+      - name: Build devel docs RST files
         run: |
           mkdir devel-docs
-          coverage run -p --source antsibull -m antsibull.cli.antsibull_docs devel --pieces-file ansible.in --dest-dir devel-docs
+          poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_docs devel --pieces-file ansible.in --dest-dir devel-docs
+        working-directory: antsibull
 
       - name: Combine and upload coverage stats
         run: |
-          coverage combine .coverage.*
-          coverage report
-          coverage xml -i
-          codecov
+          poetry run coverage combine .coverage.*
+          poetry run coverage report
+          poetry run coverage xml -i
+          poetry run codecov
+        working-directory: antsibull
