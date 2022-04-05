@@ -65,6 +65,8 @@ pylint = "^2.12.0"
 pytest = "*"
 pytest-asyncio = ">= 0.12"
 pytest-cov = "*"
+# For development, we install dependent projects under our control in dev mode:
+antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
 
 [tool.isort]
 line_length = 100

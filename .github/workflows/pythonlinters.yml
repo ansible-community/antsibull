@@ -21,34 +21,50 @@ jobs:
         python-version: [3.9]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out antsibull
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry
           poetry install
           poetry update
+        working-directory: antsibull
 
       - name: Lint with flake8
         run: |
           ./lint-flake8.sh
+        working-directory: antsibull
 
       - name: Lint with pyre
         run: |
           ./lint-pyre.sh
+        working-directory: antsibull
         if: always()
 
       - name: Lint with pylint
         run: |
           ./lint-pylint.sh
+        working-directory: antsibull
         if: always()
 
       # note: mypy is run informationally, never to fail the build
       - name: Lint with mypy
         run: |
           ./lint-mypy.sh || :
+        working-directory: antsibull
         if: always()

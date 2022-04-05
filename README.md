@@ -17,24 +17,32 @@ This also includes a [Sphinx extension](https://www.sphinx-doc.org/en/master/) `
 
 A related project is [antsibull-changelog](https://pypi.org/project/antsibull-changelog/), which is in its [own repository](https://github.com/ansible-community/antsibull-changelog/).
 
-Scripts are created by poetry at build time.  So if you want to run from
-a checkout, you'll have to run them under poetry::
-
-    python3 -m pip install poetry
-    poetry install  # Installs dependencies into a virtualenv
-    poetry run antsibull-build --help
-
-.. note:: When installing a package published by poetry, it is best to use
-    pip >= 19.0.  Installing with pip-18.1 and below could create scripts which
-    use pkg_resources which can slow down startup time (in some environments by
-    quite a large amount).
-
 You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
 
 Unless otherwise noted in the code, it is licensed under the terms of the GNU
 General Public License v3 or, at your option, later.
 
 antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
+
+## Running from source
+
+Please note that to run antsibull from source, you need to install some related projects adjacent to the antsibull checkout.  More precisely, assuming you checked out the antsibull repository in a directory `./antsibull/`, you need to check out the following projects in the following locations:
+
+- [antsibull-changelog](https://github.com/ansible-community/antsibull-changelog/) needs to be checked out in `./antsibull-changelog/`.
+
+This can be done as follows:
+
+    git clone https://github.com/ansible-community/antsibull-changelog.git
+    git clone https://github.com/ansible-community/antsibull.git
+    cd antsibull
+
+Scripts are created by poetry at build time.  So if you want to run from a checkout, you'll have to run them under poetry::
+
+    python3 -m pip install poetry
+    poetry install  # Installs dependencies into a virtualenv
+    poetry run antsibull-build --help
+
+Note: When installing a package published by poetry, it is best to use pip >= 19.0.  Installing with pip-18.1 and below could create scripts which use pkg_resources which can slow down startup time (in some environments by quite a large amount).
 
 ## Using the Sphinx extension
 
