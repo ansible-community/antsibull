@@ -1,0 +1,4 @@
+major_changes:
+  - "The ``antsibull`` package now depends on ``antsibull-core`` and ``antsibull-docs``, and most code was moved to these two packages.
+     The ``antsibull-docs`` CLI tool is now part of the ``antsibull-docs`` package as well.
+     The behavior of the new version should be identical to the previous version (https://github.com/ansible-community/antsibull/pull/414)."
