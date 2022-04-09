@@ -224,6 +224,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        ' version implies there are new features.')
 
     parser = get_toplevel_parser(prog=program_name,
+                                 package='antsibull',
                                  description='Script to manage building Ansible')
 
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',

@@ -42,6 +42,7 @@ def run(args: List[str]) -> int:
         program_name = os.path.basename(args[0])
         parser = get_toplevel_parser(
             prog=program_name,
+            package='antsibull',
             description='Linting tool')
 
         common = argparse.ArgumentParser(add_help=False)
