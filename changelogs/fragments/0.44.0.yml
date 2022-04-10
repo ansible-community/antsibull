@@ -1,0 +1,1 @@
+release_summary: Split up antsibull into multiple PyPi packages (``antsibull-core``, ``antsibull-docs``, and ``antsibull``). **Note** that upgrading is a bit more complicated due to the way ``pip`` works! See below for details.

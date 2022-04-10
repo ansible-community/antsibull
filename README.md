@@ -56,6 +56,7 @@ Note: When installing a package published by poetry, it is best to use pip >= 19
 
 If you want to create a new release::
 
+    vim pyproject.toml  # Make sure the correct version number is used
     vim changelogs/fragment/$VERSION_NUMBER.yml  # create 'release_summary:' fragment
     antsibull-changelog release --version $VERSION_NUMBER
     git add CHANGELOG.rst changelogs
@@ -65,6 +66,6 @@ If you want to create a new release::
 
     git tag $VERSION_NUMBER
     git push --tags
-    vim pyproject.toml    # Bump the version number
+    vim pyproject.toml  # Bump the version number to X.Y.Z.post0
     git commit -m 'Update the version number for the next release' pyproject.toml
     git push
