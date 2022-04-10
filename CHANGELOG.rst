@@ -5,6 +5,29 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.44.0
+=======
+
+Release Summary
+---------------
+
+Split up antsibull into multiple PyPi packages (``antsibull-core``, ``antsibull-docs``, and ``antsibull``). **Note** that upgrading is a bit more complicated due to the way ``pip`` works! See below for details.
+
+Major Changes
+-------------
+
+- The ``antsibull`` package now depends on ``antsibull-core`` and ``antsibull-docs``, and most code was moved to these two packages. The ``antsibull-docs`` CLI tool is now part of the ``antsibull-docs`` package as well. The behavior of the new version should be identical to the previous version (https://github.com/ansible-community/antsibull/pull/414).
+
+Deprecated Features
+-------------------
+
+- The antsibull-lint command is deprecated. Use ``antsibull-changelog lint-changelog-yaml`` instead of ``antsibull-lint changelog-yaml``, and use ``antsibull-docs lint-collection-docs`` instead of ``antsibull-lint collection-docs`` (https://github.com/ansible-community/antsibull/pull/412, https://github.com/ansible-community/antsibull/issues/410).
+
+Known Issues
+------------
+
+- When upgrading from antsibull < 0.44.0 to antsibull 0.44.0+, it could happen that the ``antsibull-docs`` binary is removed due to how pip works. To make sure the ``antsibull-docs`` binary is present, either first uninstall (``pip uninstall antsibull``) before installing the latest antsibull version, or re-install ``antsibull-docs`` once the installation finished (``pip install --force-reinstall antsibull-docs``) (https://github.com/ansible-community/antsibull/pull/414).
+
 v0.43.0
 =======
 
