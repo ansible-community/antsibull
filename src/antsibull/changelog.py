@@ -26,10 +26,10 @@ from antsibull_changelog.changes import add_release, ChangesData
 from antsibull_changelog.changelog_generator import ChangelogGenerator
 from antsibull_changelog.utils import collect_versions
 
-from . import app_context
-from .ansible_core import get_ansible_core
-from .dependency_files import DepsFile, DependencyFileData
-from .galaxy import CollectionDownloader
+from antsibull_core import app_context
+from antsibull_core.ansible_core import get_ansible_core
+from antsibull_core.dependency_files import DepsFile, DependencyFileData
+from antsibull_core.galaxy import CollectionDownloader
 
 
 class ChangelogData:

@@ -1,7 +1,6 @@
 # antsibull -- Ansible Build Scripts
 [![Python linting badge](https://github.com/ansible-community/antsibull/workflows/Python%20linting/badge.svg?event=push&branch=main)](https://github.com/ansible-community/antsibull/actions?query=workflow%3A%22Python+linting%22+branch%3Amain)
 [![Python testing badge](https://github.com/ansible-community/antsibull/workflows/Python%20testing/badge.svg?event=push&branch=main)](https://github.com/ansible-community/antsibull/actions?query=workflow%3A%22Python+testing%22+branch%3Amain)
-[![Build CSS testing badge](https://github.com/ansible-community/antsibull/workflows/Build%20CSS/badge.svg?event=push&branch=main)](https://github.com/ansible-community/antsibull/actions?query=workflow%3A%22Build+CSS%22+branch%3Amain)
 [![dumb PyPI on GH pages badge](https://github.com/ansible-community/antsibull/workflows/👷%20dumb%20PyPI%20on%20GH%20pages/badge.svg?event=push&branch=main)](https://github.com/ansible-community/antsibull/actions?query=workflow%3A%22👷+dumb+PyPI+on+GH+pages%22+branch%3Amain)
 [![Codecov badge](https://img.shields.io/codecov/c/github/ansible-community/antsibull)](https://codecov.io/gh/ansible-community/antsibull)
 
@@ -10,24 +9,11 @@ Tooling for building various things related to Ansible
 Scripts that are here:
 
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
-* antsibull-docs - Extracts documentation from ansible plugins
 * antsibull-lint - Soon to be deprecated; collection docs linting functionality is now part of antsibull-docs, and ``changelogs/changelog.yaml`` validation functionality is now part of antsibull-changelog.
 
 This also includes a [Sphinx extension](https://www.sphinx-doc.org/en/master/) `sphinx_antsibull_ext` which provides a minimal CSS file to render the output of `antsibull-docs` correctly.
 
-A related project is [antsibull-changelog](https://pypi.org/project/antsibull-changelog/), which is in its [own repository](https://github.com/ansible-community/antsibull-changelog/).
-
-Scripts are created by poetry at build time.  So if you want to run from
-a checkout, you'll have to run them under poetry::
-
-    python3 -m pip install poetry
-    poetry install  # Installs dependencies into a virtualenv
-    poetry run antsibull-build --help
-
-.. note:: When installing a package published by poetry, it is best to use
-    pip >= 19.0.  Installing with pip-18.1 and below could create scripts which
-    use pkg_resources which can slow down startup time (in some environments by
-    quite a large amount).
+Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-changelog/) and [antsibull-docs](https://pypi.org/project/antsibull-docs/), which are in their own repositories ([antsibull-changelog repository](https://github.com/ansible-community/antsibull-changelog/), [antsibull-docs repository](https://github.com/ansible-community/antsibull-docs/)). Currently both are dependencies of antsibull. Therefore, the scripts contained in them will be available as well when installing antsibull.
 
 You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
 
@@ -36,35 +22,35 @@ General Public License v3 or, at your option, later.
 
 antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
 
-## Using the Sphinx extension
+## Versioning and compatibility
 
-Include it in your Sphinx configuration ``conf.py``::
+From version 0.1.0 on, antsibull sticks to semantic versioning and aims at providing no backwards compatibility breaking changes **to the command line API (antsibull and antsibull-lint)** during a major release cycle. We might make exceptions from this in case of security fixes for vulnerabilities that are severe enough.
 
-```
-# Add it to 'extensions':
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'notfound.extension', 'sphinx_antsibull_ext']
-```
+We explicitly exclude code compatibility. **antsibull is not supposed to be used as a library.** The only exception are potential dependencies with other antsibull projects (currently, none). If you want to use a certain part of antsibull-docs as a library, please create an issue so we can discuss whether we add a stable interface for **parts** of the Python code. We do not promise that this will actually happen though.
 
-## Updating the CSS file for the Sphinx extension
+## Running from source
 
-The CSS file [sphinx_antsibull_ext/antsibull-minimal.css](https://github.com/ansible-community/antsibull/blob/main/sphinx_antsibull_ext/antsibull-minimal.css) is built from [sphinx_antsibull_ext/css/antsibull-minimal.scss](https://github.com/ansible-community/antsibull/blob/main/sphinx_antsibull_ext/src/antsibull-minimal.scss) using [SASS](https://sass-lang.com/) and [postcss](https://postcss.org/) using [autoprefixer](https://github.com/postcss/autoprefixer) and [cssnano](https://cssnano.co/).
+Please note that to run antsibull from source, you need to install some related projects adjacent to the antsibull checkout.  More precisely, assuming you checked out the antsibull repository in a directory `./antsibull/`, you need to check out the following projects in the following locations:
 
-Use the script `build.sh` in `sphinx_antsibull_ext/css/` to build the `.css` file from the `.scss` file:
+- [antsibull-changelog](https://github.com/ansible-community/antsibull-changelog/) needs to be checked out in `./antsibull-changelog/`.
+- [antsibull-core](https://github.com/ansible-community/antsibull-core/) needs to be checked out in `./antsibull-core/`.
+- [antsibull-docs](https://github.com/ansible-community/antsibull-docs/) needs to be checked out in `./antsibull-docs/`.
 
-```
-cd sphinx_antsibull_ext/css/
-./build-css.sh
-```
+This can be done as follows:
 
-For this to work, you need to make sure that `sassc` and `postcss` are on your path and that the autoprefixer and nanocss modules are installed:
+    git clone https://github.com/ansible-community/antsibull-changelog.git
+    git clone https://github.com/ansible-community/antsibull-core.git
+    git clone https://github.com/ansible-community/antsibull-docs.git
+    git clone https://github.com/ansible-community/antsibull.git
+    cd antsibull
 
-```
-# Debian:
-apt-get install sassc
+Scripts are created by poetry at build time.  So if you want to run from a checkout, you'll have to run them under poetry::
 
-# PostCSS, autoprefixer and cssnano require nodejs/npm:
-npm install -g autoprefixer cssnano postcss postcss-cli
-```
+    python3 -m pip install poetry
+    poetry install  # Installs dependencies into a virtualenv
+    poetry run antsibull-build --help
+
+Note: When installing a package published by poetry, it is best to use pip >= 19.0.  Installing with pip-18.1 and below could create scripts which use pkg_resources which can slow down startup time (in some environments by quite a large amount).
 
 ## Creating a new release:
 

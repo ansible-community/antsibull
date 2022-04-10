@@ -12,22 +12,23 @@ from typing import List
 import twiggy
 from packaging.version import Version as PypiVer
 
-from ..logging import log, initialize_app_logging
+from antsibull_core.logging import log, initialize_app_logging
 initialize_app_logging()
 
 # We have to call initialize_app_logging() before these imports so that the log object is configured
 # correctly before other antisbull modules make copies of it.
 # pylint: disable=wrong-import-position
-from .. import app_context  # noqa: E402
-from ..args import (  # noqa: E402
+from antsibull_core import app_context  # noqa: E402
+from antsibull_core.args import (  # noqa: E402
     InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
 )
+from antsibull_core.config import load_config  # noqa: E402
+
 from ..build_collection import build_collection_command  # noqa: E402
 from ..build_ansible_commands import (  # noqa: E402
     prepare_command, build_single_command, build_multiple_command, rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
-from ..config import load_config  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 # pylint: enable=wrong-import-position
 
@@ -223,6 +224,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        ' version implies there are new features.')
 
     parser = get_toplevel_parser(prog=program_name,
+                                 package='antsibull',
                                  description='Script to manage building Ansible')
 
     subparsers = parser.add_subparsers(title='Subcommands', dest='command',

@@ -37,6 +37,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
+
     - name: Figure out the source repos
       id: build-settings
       run: |
@@ -69,72 +70,84 @@ jobs:
             }}'
         )
       shell: python
-    - name: Check out antsibull src from Git
-      uses: actions/checkout@v2
+
+    - name: Check out antsibull
+      uses: actions/checkout@v3
+
     - name: >-
         Check out ${{
           steps.build-settings.outputs.ansible-build-data-slug
         }}@${{
           steps.build-settings.outputs.ansible-build-data-ref
         }} src from Git
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ansible-build-data
         ref: ${{ steps.build-settings.outputs.ansible-build-data-ref }}
         repository: ${{ steps.build-settings.outputs.ansible-build-data-slug }}
+
     - name: Make 'dist/' dir
       run: |
         from pathlib import Path
         Path('dist').mkdir()
       shell: python
+
     - name: Install packaging-related dists from PyPI
       run: >-
         python -m
         pip install
         -U --user
         pip setuptools wheel
+
     - name: Install antsibull dist from PyPI
       run: python -m pip install -U --user antsibull
+
     - name: Install antsibull dist from GitHub
       run: >-
         python -m
         pip install
         -U --user
         .
+
     - name: Generate the list of compatible versions
-      # FIXME: should 5 / 5.0.0 be parametrized?
+      # FIXME: should 6 / 6.99.0 be parametrized?
       run: >-
         ~/.local/bin/antsibull-build
-        new-ansible 5.0.0
-        --data-dir ansible-build-data/5
+        new-ansible 6.99.0
+        --data-dir ansible-build-data/6
+
     - name: Prepare an Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        prepare 5.0.0
-        --data-dir ansible-build-data/5
+        prepare 6.99.0
+        --data-dir ansible-build-data/6
+
     - name: Create a single-tarball Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        rebuild-single 5.0.0
-        --data-dir ansible-build-data/5
+        rebuild-single 6.99.0
+        --data-dir ansible-build-data/6
         --sdist-dir dist
+
     - name: >-
         Check out ${{
           steps.build-settings.outputs.ansible-base-slug
         }}@${{
           steps.build-settings.outputs.ansible-base-ref
         }} src from Git
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ansible--ansible--devel
         ref: ${{ steps.build-settings.outputs.ansible-base-ref }}
         repository: ${{ steps.build-settings.outputs.ansible-base-slug }}
+
     - name: Install packaging-related dists from PyPI
       run: >-
         python -m
         pip install
         -U --user
         packaging straight.plugin
+
     - name: >-
         Build ${{
           steps.build-settings.outputs.ansible-base-slug
@@ -147,6 +160,7 @@ jobs:
         make sdist_check
         python -m setup sdist --dist-dir=../dist
       working-directory: ansible--ansible--devel
+
     - name: Make ansible version stable
       # FIXME: use setuptools-scm to generate the actual version?
       run: >-
@@ -154,6 +168,7 @@ jobs:
         "s/^\(__version__ = '\)\([0-9]\+.[0-9]\+.[0-9]\+\)\.\(dev\|a\|b\|rc\)[0-9]\+\('\)$/\1\2\4/g"
         lib/ansible/release.py
       working-directory: ansible--ansible--devel
+
     - name: >-
         Build ${{
           steps.build-settings.outputs.ansible-base-slug
@@ -166,8 +181,10 @@ jobs:
         make sdist_check
         python -m setup sdist --dist-dir=../dist
       working-directory: ansible--ansible--devel
+
     - name: Install dumb-pypi dist from PyPI
       run: python -m pip install dumb-pypi --user
+
     - name: Generate a dumb PyPI website
       run: |
         python -m dumb_pypi.main \
@@ -175,8 +192,10 @@ jobs:
           --packages-url https://raw.githubusercontent.com/ansible-community/nightly-builds/gh-pages/dist \
           --output-dir www
       shell: bash
+
     - name: Copy dists over to the generated dumb PyPI website dir
       run: cp -av dist www/
+
     - name: >-
         Publish the dumb PyPI website to GH Pages
         @

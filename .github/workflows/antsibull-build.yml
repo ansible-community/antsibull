@@ -23,7 +23,27 @@ jobs:
 
     steps:
       - name: Check out antsibull
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
+
+      - name: Check out dependent project antsibull-core
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-core
+          path: antsibull-core
+
+      - name: Check out dependent project antsibull-docs
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-docs
+          path: antsibull-docs
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -34,10 +54,12 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install poetry ansible-core
+        working-directory: antsibull
 
       - name: "Test building a release: ${{ matrix.name }}"
         run: |
           ansible-playbook -vv playbooks/build-single-release.yaml -e 'antsibull_build_command="poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build"' ${{ matrix.options }}
+        working-directory: antsibull
 
       - name: Combine and upload coverage stats
         run: |
@@ -45,3 +67,4 @@ jobs:
           poetry run coverage report
           poetry run coverage xml -i
           poetry run codecov
+        working-directory: antsibull

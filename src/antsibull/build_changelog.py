@@ -18,7 +18,8 @@ from antsibull_changelog.changelog_generator import (
 from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
 
-from . import app_context
+from antsibull_core import app_context
+
 from .changelog import Changelog, ChangelogData, ChangelogEntry, CollectionsMetadata, get_changelog
 
 

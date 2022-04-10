@@ -1,0 +1,8 @@
+major_changes:
+  - "The ``antsibull`` package now depends on ``antsibull-core`` and ``antsibull-docs``, and most code was moved to these two packages.
+     The ``antsibull-docs`` CLI tool is now part of the ``antsibull-docs`` package as well.
+     The behavior of the new version should be identical to the previous version (https://github.com/ansible-community/antsibull/pull/414)."
+known_issues:
+  - "When upgrading from antsibull < 0.44.0 to antsibull 0.44.0+, it could happen that the ``antsibull-docs`` binary is removed due to how pip works.
+     To make sure the ``antsibull-docs`` binary is present, either first uninstall (``pip uninstall antsibull``) before installing the latest
+     antsibull version, or re-install ``antsibull-docs`` once the installation finished (``pip install --force-reinstall antsibull-docs``) (https://github.com/ansible-community/antsibull/pull/414)."

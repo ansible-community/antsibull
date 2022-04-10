@@ -21,19 +21,45 @@ jobs:
         python-version: [3.6, 3.7, 3.8, 3.9, '3.10']
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out antsibull
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
+
+      - name: Check out dependent project antsibull-core
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-core
+          path: antsibull-core
+
+      - name: Check out dependent project antsibull-docs
+        uses: actions/checkout@v3
+        with:
+          repository: ansible-community/antsibull-docs
+          path: antsibull-docs
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry
           poetry install
           poetry update
+        working-directory: antsibull
+
       - name: Test with pytest and upload coverage stats
         run: |
           ./test-pytest.sh
           poetry run coverage xml -i
           poetry run codecov
+        working-directory: antsibull
