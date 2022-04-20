@@ -41,7 +41,6 @@ Get Involved
    to submit bug reports and code to Ansible or Ansible collections.
 *  Join a `Working Group <https://github.com/ansible/community/wiki>`_, an organized community
    devoted to a specific technology domain or platform.
-*  Submit a proposed code update through a pull request to the ``devel`` branch for `ansible-core` or the main branch 
    for a collection update.
 *  Talk to us before making larger changes
    to avoid duplicate efforts. This not only helps everyone
