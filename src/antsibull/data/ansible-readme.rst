@@ -59,7 +59,7 @@ We document our Coding Guidelines in the `Developer Guide <https://docs.ansible.
 Branch Info
 ===========
 
-*  The Ansible package is a 'batteries included' package that brings in ``ansible-core`` and a curated set of collections. Ansible uses semver versioning (for example, Ansible 5.6.0). 
+*  The Ansible package is a 'batteries included' package that brings in ``ansible-core`` and a curated set of collections. Ansible uses `semantic versioning <https://semver.org/>`_ (for example, Ansible 5.6.0). 
 *  The Ansible package has only one stable branch, called 'latest' in the documentation.
 *  See `Ansible release and maintenance <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html>`_  for information about active branches and their corresponding ``ansible-core`` versions.
 
@@ -67,7 +67,7 @@ Roadmap
 =======
 
 Based on team and community feedback, an initial roadmap will be published for a major 
-version (ex: 5, 6).  The `Ansible Roadmap 
+version (example: 5, 6).  The `Ansible Roadmap 
 <https://docs.ansible.com/ansible/devel/roadmap/ansible_roadmap_index.html>`_ details what is planned and how to influence the
 roadmap.
 
