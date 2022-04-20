@@ -45,7 +45,7 @@ Get Involved
    to avoid duplicate efforts. This not only helps everyone
    know what is going on, but it also helps save time and effort if we decide
    some changes are needed.
-*  For a list of email lists, IRC channels and Working Groups, see the
+*  For a list of email lists,  Matrix and IRC channels, and Working Groups, see the
    `Communication page <https://docs.ansible.com/ansible/latest/community/communication.html>`_
 
 Coding Guidelines
