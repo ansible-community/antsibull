@@ -233,11 +233,11 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
 
     galaxy_file_parser = argparse.ArgumentParser(add_help=False)
     galaxy_file_parser.add_argument('--galaxy-file', default=None,
-                                    help='Galaxy requirements.yaml file which will be written'
-                                    ' containing the list of collections at versions which were'
-                                    ' included in this version of Ansible.  This is considered to'
-                                    ' be relative to --build-data-dir.  The default is'
-                                    ' $BASENAME_OF_BUILD_FILE-X.Y.Z.yaml')
+                                    help='Galaxy galaxy-requirements.yaml style file which will be'
+                                    ' written containing the list of collections at versions which'
+                                    ' were included in this version of Ansible.  This is'
+                                    ' considered to be relative to --build-data-dir.  The default'
+                                    ' is $BASENAME_OF_BUILD_FILE-X.Y.Z.yaml')
 
     parser = get_toplevel_parser(prog=program_name,
                                  package='antsibull',
