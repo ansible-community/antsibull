@@ -27,6 +27,7 @@ from antsibull_core.collections import install_separately, install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.utils.io import write_file
+from antsibull_core.yaml import store_yaml_file
 
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
@@ -189,6 +190,21 @@ def write_debian_directory(ansible_version: PypiVer,
             f.write(data)
 
 
+def write_galaxy_requirements(filename: str, ansible_core_version: str,
+                              included_versions: t.Mapping[str, str]) -> None:
+    galaxy_reqs = []
+    for collection, version in sorted(included_versions.items()):
+        galaxy_reqs.append({
+            'name': collection,
+            'version': version,
+            'source': 'https://galaxy.ansible.com'
+        })
+
+    store_yaml_file(filename, {
+        'collections': galaxy_reqs,
+    })
+
+
 def make_dist(ansible_dir: str, dest_dir: str) -> None:
     # pyre-ignore[16]
     sh.python('setup.py', 'sdist', _cwd=ansible_dir)  # pylint:disable=no-member
@@ -316,6 +332,13 @@ def prepare_command() -> int:
     deps_file.write(
         dependency_data.ansible_version,
         dependency_data.ansible_core_version,
+        dependency_data.deps)
+
+    # Write Galaxy requirements.yml file
+    galaxy_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['galaxy_file'])
+    write_galaxy_requirements(
+        galaxy_filename,
+        dependency_data.ansible_version,
         dependency_data.deps)
 
     return 0
