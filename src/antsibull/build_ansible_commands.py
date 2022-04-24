@@ -30,6 +30,7 @@ from antsibull_core.utils.io import write_file
 
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
+from .dep_closure import check_collection_dependencies
 from .utils.get_pkg_data import get_antsibull_data
 
 
@@ -446,6 +447,14 @@ def rebuild_single_command() -> int:
             make_dist(package_dir, app_ctx.extra['sdist_dir'])
         else:
             make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
+
+        # Check dependencies
+        dep_errors = check_collection_dependencies(os.path.join(package_dir, 'ansible_collections'))
+
+        if dep_errors:
+            print('WARNING: found collection dependency errors!')
+            for error in dep_errors:
+                print(error)
 
     return 0
 
