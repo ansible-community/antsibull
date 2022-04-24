@@ -1,33 +1,37 @@
-#!/usr/bin/python3 -tt
+# coding: utf-8
+# Author: Toshio Kuratomi <tkuratom@redhat.com>
+# License: GPLv3+
+# Copyright: Ansible Project, 2021
+"""Check collection dependencies."""
 
 import json
 import pathlib
-import sys
 
 from collections import namedtuple
+from typing import Dict, List, Mapping
 
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 
-ansible_collection_dir = pathlib.Path(sys.argv[1])
-
 CollectionRecord = namedtuple('CollectionRecord', ('version', 'dependencies'))
 
 
-def parse_manifest(collection_dir):
+def parse_manifest(collection_dir: pathlib.Path) -> Mapping[str, CollectionRecord]:
+    '''Parse MANIFEST.json for a collection.'''
     manifest = collection_dir.joinpath('MANIFEST.json')
     with manifest.open() as f:
         manifest_data = json.load(f)['collection_info']
 
-    collection_record = {f'{manifest_data["namespace"]}.{manifest_data["name"]}':
-                         CollectionRecord(manifest_data['version'],
-                                          manifest_data['dependencies'])
-                         }
+    collection_record = {
+        f'{manifest_data["namespace"]}.{manifest_data["name"]}':
+            CollectionRecord(manifest_data['version'], manifest_data['dependencies'])
+    }
 
     return collection_record
 
 
-def analyze_deps(collections):
+def analyze_deps(collections: Mapping[str, CollectionRecord]) -> List[str]:
+    '''Analyze dependencies of a set of collections. Return list of errors found.'''
     errors = []
 
     # Look at dependencies
@@ -48,25 +52,18 @@ def analyze_deps(collections):
     return errors
 
 
-def main():
-    collections = {}
+def check_collection_dependencies(collection_root: str) -> List[str]:
+    '''Analyze dependencies between collections in a collection root.'''
+    ansible_collection_dir = pathlib.Path(collection_root)
+    errors = []
+
+    collections: Dict[str, CollectionRecord] = {}
     for namespace_dir in (n for n in ansible_collection_dir.iterdir() if n.is_dir()):
         for collection_dir in (c for c in namespace_dir.iterdir() if c.is_dir()):
             try:
                 collections.update(parse_manifest(collection_dir))
             except FileNotFoundError:
-                print(f'{collection_dir} is not a valid collection')
+                errors.append(f'{collection_dir} is not a valid collection')
 
-    errors = analyze_deps(collections)
-    if errors:
-        print('== Dependency errors detected ==')
-        print('\n* ', end='')
-        print('\n* '.join(errors))
-        sys.exit(1)
-    else:
-        print('== All dependencies were satisfied ==')
-
-    sys.exit(0)
-
-if __name__ == '__main__':
-    main()
+    errors.extend(analyze_deps(collections))
+    return errors
