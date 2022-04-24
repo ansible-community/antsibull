@@ -190,8 +190,7 @@ def write_debian_directory(ansible_version: PypiVer,
             f.write(data)
 
 
-def write_galaxy_requirements(filename: str, ansible_core_version: str,
-                              included_versions: t.Mapping[str, str]) -> None:
+def write_galaxy_requirements(filename: str, included_versions: t.Mapping[str, str]) -> None:
     galaxy_reqs = []
     for collection, version in sorted(included_versions.items()):
         galaxy_reqs.append({
@@ -336,10 +335,7 @@ def prepare_command() -> int:
 
     # Write Galaxy requirements.yml file
     galaxy_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['galaxy_file'])
-    write_galaxy_requirements(
-        galaxy_filename,
-        dependency_data.ansible_version,
-        dependency_data.deps)
+    write_galaxy_requirements(galaxy_filename, dependency_data.deps)
 
     return 0
 
