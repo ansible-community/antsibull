@@ -71,7 +71,7 @@
 
 - name: Read galaxy-requirements.yml file for the release
   ansible.builtin.slurp:
-    src: '{{ _galaxy_file }}'
+    src: '{{ antsibull_data_dir }}/{{ _galaxy_file }}'
   register: _galaxy_reqs
 
 - name: Template a galaxy-requirements.yaml file
