@@ -1,0 +1,2 @@
+minor_changes:
+  - "Add ``antsibull-build`` subcommand ``validate-deps`` which validates dependencies for an ``ansible_collections`` tree (https://github.com/ansible-community/antsibull/pull/416)."

@@ -12,6 +12,8 @@ from typing import Dict, List, Mapping
 
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
+from antsibull_core import app_context
+
 
 CollectionRecord = namedtuple('CollectionRecord', ('version', 'dependencies'))
 
@@ -67,3 +69,17 @@ def check_collection_dependencies(collection_root: str) -> List[str]:
 
     errors.extend(analyze_deps(collections))
     return errors
+
+
+def validate_dependencies_command() -> int:
+    '''CLI functionality for analyzing dependencies.'''
+    app_ctx = app_context.app_ctx.get()
+
+    collection_root: str = app_ctx.extra['collection_root']
+
+    errors = check_collection_dependencies(collection_root)
+
+    for error in errors:
+        print(error)
+
+    return 3 if errors else 0
