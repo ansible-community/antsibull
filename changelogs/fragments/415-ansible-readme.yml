@@ -1,0 +1,2 @@
+minor_changes:
+  - "Update Ansible's ``README.rst`` to focus on Ansible package details (https://github.com/ansible-community/antsibull/pull/415)."
