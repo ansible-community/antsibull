@@ -29,6 +29,7 @@ from ..build_ansible_commands import (  # noqa: E402
     prepare_command, build_single_command, build_multiple_command, rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
+from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 # pylint: enable=wrong-import-position
 
@@ -45,6 +46,7 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             'collection': build_collection_command,
             'changelog': build_changelog,
             'rebuild-single': rebuild_single_command,
+            'validate-deps': validate_dependencies_command,
             # Old names, deprecated
             'new-acd': new_ansible_command,
             'build-single': build_single_command,
@@ -84,6 +86,9 @@ def _normalize_commands(args: argparse.Namespace) -> None:
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
+    if args.command in ('validate-deps', ):
+        return
+
     if not os.path.isdir(args.data_dir):
         raise InvalidArgumentError(f'{args.data_dir} must be an existing directory')
 
@@ -299,6 +304,13 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     subparsers.add_parser('changelog',
                           parents=[build_write_data_parser, cache_parser],
                           description='Build the Ansible changelog')
+
+    validate_deps = subparsers.add_parser('validate-deps',
+                                          description='Validate collection dependencies')
+
+    validate_deps.add_argument('collection_root',
+                               help='Path to a ansible_collections directory containing a'
+                               ' collection tree to check.')
 
     # Backwards compat
     subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
