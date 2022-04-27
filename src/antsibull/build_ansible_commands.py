@@ -454,7 +454,7 @@ def rebuild_single_command() -> int:
         if dep_errors:
             print('WARNING: found collection dependency errors!')
             for error in dep_errors:
-                print(error)
+                print(f'WARNING: {error}')
 
     return 0
 
