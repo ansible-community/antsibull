@@ -46,6 +46,10 @@ antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
 # Whether or not to start from scratch with a new venv if one exists
 antsibull_venv_cleanup: true
 
+# Whether to run "ansible-test sanity --docker" with podman on packaged collections
+# This is disabled by default since it is time consuming to run.
+antsibull_run_sanity: false
+
 # TODO:
 # --dest-data-dir (Directory to write .build and .deps files to, as well as changelog and porting guide if applicable. Defaults to --data-dir)
 # --collection-cache (Directory of cached collection tarballs. Will be used if a collection tarball to be downloaded exists in here, and will be populated when downloading new tarballs.)

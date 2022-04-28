@@ -4,7 +4,7 @@
   hosts: localhost
   gather_facts: no
   vars:
-    # These can be supplied as extra-vars but are expected to come from roles/build-release/tasks/tests.yaml
+    # These can be supplied as extra-vars but are expected to come from roles/build-release/tasks/tests/nested.yaml
     antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
     antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
     antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"

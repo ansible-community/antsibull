@@ -1,0 +1,55 @@
+- name: Get list of installed packages to verify if podman is installed
+  package_facts:
+    manager: "auto"
+  # This is noisy (and potentially sensitive) to print on stdout
+  no_log: true
+
+# This is so we can otherwise run unprivileged if podman is already installed
+- when: "'podman' not in ansible_facts['packages'].keys()"
+  become: true
+  block:
+    - name: Install podman
+      package:
+        name: podman
+        state: present
+  rescue:
+    - name: Could not install podman
+      fail:
+        msg: |
+          Failed to elevate privileges and install podman.
+          Install podman manually or run ansible-playbook with elevated privileges.
+
+# The tests are no longer installed on ansible>=6.0, use the ones from the release tarball
+- name: Unzip the release tarball
+  ansible.builtin.unarchive:
+    src: "{{ _release_archive }}"
+    dest: "{{ antsibull_sdist_dir }}"
+    remote_src: yes
+
+# ansible.builtin.find doesn't have mindepth
+# https://github.com/ansible/ansible/issues/36369
+- name: Find collection directories
+  vars:
+    _extracted_release: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}"
+  command: find {{ _extracted_release }}/ansible_collections -mindepth 2 -maxdepth 2 -type d
+  register: _collection_directories
+
+# Note: unless we run a git init first, ansible-test won't be able to pick up tests because it's under
+# a .gitignore directory (antsibull/build)
+- name: Run sanity tests and collect results at the end
+  shell: "git init . -b main; {{ antsibull_ansible_venv }}/bin/ansible-test sanity --skip-test pylint --docker"
+  ignore_errors: yes
+  args:
+    chdir: "{{ item }}"
+  loop: "{{ _collection_directories.stdout_lines }}"
+  register: _sanity_tests
+
+- name: Print sanity test failures
+  debug:
+    msg: |
+      {{ _result.item }}
+      {{ _result.stderr }}
+  when: _result.rc == 1
+  loop: "{{ _sanity_tests.results }}"
+  loop_control:
+    loop_var: _result

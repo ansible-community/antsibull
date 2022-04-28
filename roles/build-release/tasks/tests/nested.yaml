@@ -1,0 +1,23 @@
+- block:
+    - name: Create a temporary COLLECTIONS_PATH
+      file:
+        path: "{{ antsibull_sdist_dir }}/ansible_collections"
+        state: directory
+
+    - name: Install community.general for tests using 'a_module' and 'collection_version'
+      environment:
+        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_sdist_dir }}/ansible_collections"
+      command: >-
+        {{ antsibull_ansible_venv }}/bin/ansible-galaxy collection install community.general
+
+    - name: Run nested Ansible tests with the Ansible we just built
+      environment:
+        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_sdist_dir }}/ansible_collections"
+      command: >-
+        {{ antsibull_ansible_venv }}/bin/ansible-playbook -i 'localhost,' --connection=local
+          -e antsibull_sdist_dir="{{ antsibull_sdist_dir }}"
+          -e antsibull_ansible_venv="{{ antsibull_ansible_venv }}"
+          -e antsibull_ansible_git_dir="{{ antsibull_ansible_git_dir }}"
+          -e antsibull_ansible_git_version="{{ antsibull_ansible_git_version }}"
+          -e _python_version="{{ _python_version }}"
+          {{ playbook_dir }}/nested-ansible-tests.yaml
