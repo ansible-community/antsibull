@@ -157,6 +157,14 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
+    if args.command in ('prepare', 'single') and args.galaxy_file is None:
+        version_suffix = f'-{compat_version_part}'
+        basename = os.path.basename(os.path.splitext(args.build_file)[0])
+        if basename.endswith(version_suffix):
+            basename = basename[:-len(version_suffix)]
+
+        args.galaxy_file = f'{basename}-{args.ansible_version}.yaml'
+
     if args.command in ('single', 'multiple', 'rebuild-single'):
         if not os.path.isdir(args.sdist_dir):
             raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
@@ -228,6 +236,14 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                        help='If this is given, then do not allow collections whose'
                                        ' version implies there are new features.')
 
+    galaxy_file_parser = argparse.ArgumentParser(add_help=False)
+    galaxy_file_parser.add_argument('--galaxy-file', default=None,
+                                    help='Galaxy galaxy-requirements.yaml style file which will be'
+                                    ' written containing the list of collections at versions which'
+                                    ' were included in this version of Ansible.  This is'
+                                    ' considered to be relative to --build-data-dir.  The default'
+                                    ' is $BASENAME_OF_BUILD_FILE-X.Y.Z.yaml')
+
     parser = get_toplevel_parser(prog=program_name,
                                  package='antsibull',
                                  description='Script to manage building Ansible')
@@ -256,12 +272,16 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     subparsers.add_parser('prepare',
                           parents=[
                               build_write_data_parser, build_step_parser, feature_freeze_parser,
+                              galaxy_file_parser,
                           ],
                           description='Collect dependencies for an Ansible release')
 
     build_single_parser = subparsers.add_parser('single',
-                                                parents=[build_write_data_parser, cache_parser,
-                                                         build_step_parser, feature_freeze_parser],
+                                                parents=[
+                                                    build_write_data_parser, cache_parser,
+                                                    build_step_parser, feature_freeze_parser,
+                                                    galaxy_file_parser,
+                                                ],
                                                 description='Build a single-file Ansible'
                                                 ' [deprecated]')
     build_single_parser.add_argument('--sdist-dir', default='.',
