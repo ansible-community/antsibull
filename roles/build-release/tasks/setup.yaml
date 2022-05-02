@@ -1,15 +1,4 @@
 ---
-- name: Install antsibull from current source in a virtualenv with poetry
-  command: poetry install
-  args:
-    chdir: "{{ playbook_dir | dirname }}"
-
-# Existing poetry installs are not updated and it could lead to stale deps
-- name: Ensure poetry virtualenv is up to date
-  command: poetry update
-  args:
-    chdir: "{{ playbook_dir | dirname }}"
-
 - name: Ensure the sdist directory exists
   ansible.builtin.file:
     name: "{{ antsibull_sdist_dir }}"

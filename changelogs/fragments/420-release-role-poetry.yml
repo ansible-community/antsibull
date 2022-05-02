@@ -1,0 +1,4 @@
+breaking_changes:
+  - "The ``build-release`` role no longer uses poetry to run antsibull, but assumes that antsibull is installed.
+     To revert to the old behavior, set ``antsibull_build_command`` to ``poetry run antsibull``
+     (https://github.com/ansible-community/antsibull/pull/420)."
