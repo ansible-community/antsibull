@@ -5,7 +5,7 @@ An Ansible role that builds an Ansible release package with Antsibull and tests 
 ### Requirements
 
 - ansible-core to run this role
-- antsibull needs build Ansible
+- antsibull to build Ansible
 - git to checkout ansible-build-data and ansible repositories
 
 ### Variables
