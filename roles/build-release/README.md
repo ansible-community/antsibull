@@ -4,12 +4,8 @@ An Ansible role that builds an Ansible release package with Antsibull and tests 
 
 ### Requirements
 
-This role is expected to run directly from an antsibull git repository checkout.
-
-Otherwise:
-
 - ansible-core to run this role
-- poetry to install and run antsibull
+- antsibull to build Ansible
 - git to checkout ansible-build-data and ansible repositories
 
 ### Variables
