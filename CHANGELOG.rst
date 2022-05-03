@@ -5,6 +5,28 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.45.0
+=======
+
+Release Summary
+---------------
+
+New feature release with one breaking change to the ``build-release`` role.
+
+Minor Changes
+-------------
+
+- Add ``antsibull-build`` subcommand ``validate-deps`` which validates dependencies for an ``ansible_collections`` tree (https://github.com/ansible-community/antsibull/pull/416).
+- Check collection dependencies during ``antsibull-build rebuild-single`` and warn about errors (https://github.com/ansible-community/antsibull/pull/416).
+- In the ``build-release`` role, stop shipping a separate ``roles/build-release/files/deps-to-galaxy.py`` script and use the new galaxy-requirements.yaml style file created during release preparation (https://github.com/ansible-community/antsibull/pull/417).
+- Update Ansible's ``README.rst`` to focus on Ansible package details (https://github.com/ansible-community/antsibull/pull/415).
+- When preparing a new Ansible release with ``antsibull-build prepare`` or ``antsibull-build single``, create a galaxy-requirements.yaml style file next to the dependencies file (https://github.com/ansible-community/antsibull/pull/417).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- The ``build-release`` role no longer uses poetry to run antsibull, but assumes that antsibull is installed. To revert to the old behavior, set the Ansible variable ``antsibull_build_command`` to ``poetry run antsibull`` (https://github.com/ansible-community/antsibull/pull/420).
+
 v0.44.0
 =======
 

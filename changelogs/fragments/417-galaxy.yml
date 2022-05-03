@@ -1,3 +1,0 @@
-minor_changes:
-  - "When preparing a new Ansible release with ``antsibull-build prepare`` or ``antsibull-build single``, create a galaxy-requirements.yaml style file next to the dependencies file (https://github.com/ansible-community/antsibull/pull/417)."
-  - "In the ``build-release`` role, stop shipping a separate ``roles/build-release/files/deps-to-galaxy.py`` script and use the new galaxy-requirements.yaml style file created during release preparation (https://github.com/ansible-community/antsibull/pull/417)."

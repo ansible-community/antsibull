@@ -331,6 +331,33 @@ releases:
     - 412-deprecate-antsibull-lint.yml
     - 414-antsibull-splitup.yml
     release_date: '2022-04-10'
+  0.45.0:
+    changes:
+      breaking_changes:
+      - The ``build-release`` role no longer uses poetry to run antsibull, but assumes
+        that antsibull is installed. To revert to the old behavior, set the Ansible
+        variable ``antsibull_build_command`` to ``poetry run antsibull`` (https://github.com/ansible-community/antsibull/pull/420).
+      minor_changes:
+      - Add ``antsibull-build`` subcommand ``validate-deps`` which validates dependencies
+        for an ``ansible_collections`` tree (https://github.com/ansible-community/antsibull/pull/416).
+      - Check collection dependencies during ``antsibull-build rebuild-single`` and
+        warn about errors (https://github.com/ansible-community/antsibull/pull/416).
+      - In the ``build-release`` role, stop shipping a separate ``roles/build-release/files/deps-to-galaxy.py``
+        script and use the new galaxy-requirements.yaml style file created during
+        release preparation (https://github.com/ansible-community/antsibull/pull/417).
+      - Update Ansible's ``README.rst`` to focus on Ansible package details (https://github.com/ansible-community/antsibull/pull/415).
+      - When preparing a new Ansible release with ``antsibull-build prepare`` or ``antsibull-build
+        single``, create a galaxy-requirements.yaml style file next to the dependencies
+        file (https://github.com/ansible-community/antsibull/pull/417).
+      release_summary: New feature release with one breaking change to the ``build-release``
+        role.
+    fragments:
+    - 0.45.0.yml
+    - 415-ansible-readme.yml
+    - 416-deps.yml
+    - 417-galaxy.yml
+    - 420-release-role-poetry.yml
+    release_date: '2022-05-03'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:
