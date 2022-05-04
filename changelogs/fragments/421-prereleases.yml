@@ -1,2 +1,0 @@
-bugfixes:
-- "The ``build-release`` role now no longer ignores collection prereleases of collections for the alpha releases (https://github.com/ansible-community/antsibull/pull/420)."

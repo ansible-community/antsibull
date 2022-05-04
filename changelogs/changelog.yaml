@@ -358,6 +358,16 @@ releases:
     - 417-galaxy.yml
     - 420-release-role-poetry.yml
     release_date: '2022-05-03'
+  0.45.1:
+    changes:
+      bugfixes:
+      - The ``build-release`` role now no longer ignores collection prereleases of
+        collections for the alpha releases (https://github.com/ansible-community/antsibull/pull/420).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.45.1.yml
+    - 421-prereleases.yml
+    release_date: '2022-05-04'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

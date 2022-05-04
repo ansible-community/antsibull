@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.45.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- The ``build-release`` role now no longer ignores collection prereleases of collections for the alpha releases (https://github.com/ansible-community/antsibull/pull/420).
+
 v0.45.0
 =======
 
