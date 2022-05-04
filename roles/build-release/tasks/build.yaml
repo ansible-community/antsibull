@@ -14,10 +14,16 @@
     path: '{{ _build_file }}'
   register: _antsibull_build_file_stat
 
+- name: Allow prereleases for alpha versions
+  set_fact:
+    _allow_prereleases: "--allow-prereleases"
+  when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+)$")
+
 - name: Update version ranges in the build file for alpha and beta releases
   command: >-
     {{ antsibull_build_command }} new-ansible {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
+      {{ _allow_prereleases | default('') }}
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$") or not _antsibull_build_file_stat.stat.exists
 
 - name: Set up feature freeze for b2 through rc1

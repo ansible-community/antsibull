@@ -64,8 +64,11 @@ All alpha releases and the first beta
     # Create a directory to output tarballs
     mkdir built
 
-    # Generate the list of compatible versions.
-    antsibull-build new-ansible 3.0.0a1 --data-dir ansible-build-data/3
+    # Generate the list of compatible versions. For the alpha versions, allow prereleases of collections:
+    antsibull-build new-ansible 3.0.0a1 --data-dir ansible-build-data/3 --allow-prereleases
+
+    # Generate the list of compatible versions. For the first beta, no collection prereleases are allowed:
+    antsibull-build new-ansible 3.0.0b1 --data-dir ansible-build-data/3
 
     # Prepare the ansible release
     # (This generates the dependency file and updates changelog.yaml)
