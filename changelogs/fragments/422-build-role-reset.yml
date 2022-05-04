@@ -1,0 +1,2 @@
+minor_changes:
+  - "The ``build-release`` role now also uses ``antsibull_data_reset`` to prevent regeneration of ``build-X.ansible`` for alpha and beta-1 releases (https://github.com/ansible-community/antsibull/pull/422)."
