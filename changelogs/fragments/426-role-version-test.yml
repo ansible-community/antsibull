@@ -1,0 +1,2 @@
+bugfixes:
+  - "Use ``packaging.version`` instead of (indirectly) ``distutils.version`` to check whether the correct ansible-core version is installed (https://github.com/ansible-community/antsibull/pull/426)."
