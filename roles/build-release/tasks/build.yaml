@@ -5,6 +5,7 @@
     _galaxy_file: "ansible-{{ antsibull_ansible_version }}.yaml"
     _build_file: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.build"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
+    _release_wheel: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}-py3-none-any.whl"
 
 # Documentation for the following commands:
 # https://github.com/ansible-community/antsibull/blob/main/docs/build-ansible.rst
@@ -47,11 +48,14 @@
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
 
-- name: Remove existing release archive if it exists
+- name: Remove existing release tarball and wheel if they exist
   file:
-    path: "{{ _release_archive }}"
+    path: "{{ item }}"
     state: absent
   when: antsibull_force_rebuild | bool
+  loop:
+    - "{{ _release_archive }}"
+    - "{{ _release_wheel }}"
 
 # If the release archive is already there it won't be re-built if we run again
 - name: Build a release with existing deps
