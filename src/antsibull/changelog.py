@@ -327,7 +327,7 @@ class ChangelogEntry:
 
     removed_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
     added_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
-    unchanged_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
+    unchanged_collections: t.List[t.Tuple[CollectionChangelogCollector, str, bool]]
     changed_collections: t.List[t.Tuple[CollectionChangelogCollector, str, t.Optional[str]]]
 
     def __init__(self, version: PypiVer, version_str: str,
@@ -369,15 +369,17 @@ class ChangelogEntry:
                 versions_per_collection[collector.collection].get(prev_version)
                 if prev_version else None
             )
+            added = False
             if prev_version:
                 if not prev_collection_version:
                     self.added_collections.append((collector, collection_version))
+                    added = True
                 elif prev_collection_version == collection_version:
                     self.unchanged_collections.append((collector, collection_version))
                     continue
 
             self.changed_collections.append((
-                collector, collection_version, prev_collection_version))
+                collector, collection_version, prev_collection_version, added))
 
 
 class CollectionMetadata:
