@@ -1,2 +1,0 @@
-bugfixes:
-  - "In the build-release role, when ``antsibull_force_rebuild`` is true, delete the existing python wheel in addition to the release tarball (https://github.com/ansible-community/antsibull/pull/427)."

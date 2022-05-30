@@ -1,2 +1,0 @@
-bugfixes:
-  - Remove various empty lines from generated ``setup.py`` (https://github.com/ansible-community/antsibull/issues/424, https://github.com/ansible-community/antsibull/pull/425).

@@ -5,6 +5,27 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.46.0
+=======
+
+Release Summary
+---------------
+
+Feature and bugfix release with improvements for the release role, release building, and changelog generation.
+
+Minor Changes
+-------------
+
+- Avoid including the complete condensed changelog of collections added to Ansible to that Ansible release's changelog and porting guide entries (https://github.com/ansible-community/antsibull/pull/428).
+- The ``build-release`` role now also uses ``antsibull_data_reset`` to prevent regeneration of ``build-X.ansible`` for alpha and beta-1 releases (https://github.com/ansible-community/antsibull/pull/422).
+
+Bugfixes
+--------
+
+- In the build-release role, when ``antsibull_force_rebuild`` is true, delete the existing python wheel in addition to the release tarball (https://github.com/ansible-community/antsibull/pull/427).
+- Remove various empty lines from generated ``setup.py`` (https://github.com/ansible-community/antsibull/issues/424, https://github.com/ansible-community/antsibull/pull/425).
+- Use ``packaging.version`` instead of (indirectly) ``distutils.version`` to check whether the correct ansible-core version is installed (https://github.com/ansible-community/antsibull/pull/426).
+
 v0.45.1
 =======
 

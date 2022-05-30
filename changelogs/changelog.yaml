@@ -368,6 +368,30 @@ releases:
     - 0.45.1.yml
     - 421-prereleases.yml
     release_date: '2022-05-04'
+  0.46.0:
+    changes:
+      bugfixes:
+      - In the build-release role, when ``antsibull_force_rebuild`` is true, delete
+        the existing python wheel in addition to the release tarball (https://github.com/ansible-community/antsibull/pull/427).
+      - Remove various empty lines from generated ``setup.py`` (https://github.com/ansible-community/antsibull/issues/424,
+        https://github.com/ansible-community/antsibull/pull/425).
+      - Use ``packaging.version`` instead of (indirectly) ``distutils.version`` to
+        check whether the correct ansible-core version is installed (https://github.com/ansible-community/antsibull/pull/426).
+      minor_changes:
+      - Avoid including the complete condensed changelog of collections added to Ansible
+        to that Ansible release's changelog and porting guide entries (https://github.com/ansible-community/antsibull/pull/428).
+      - The ``build-release`` role now also uses ``antsibull_data_reset`` to prevent
+        regeneration of ``build-X.ansible`` for alpha and beta-1 releases (https://github.com/ansible-community/antsibull/pull/422).
+      release_summary: Feature and bugfix release with improvements for the release
+        role, release building, and changelog generation.
+    fragments:
+    - 0.46.0.yml
+    - 422-build-role-reset.yml
+    - 425-setup.py-empty-lines.yml
+    - 426-role-version-test.yml
+    - 427-also-delete-the-python-wheel.yaml
+    - 428-changelog.yml
+    release_date: '2022-05-30'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:
