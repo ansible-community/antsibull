@@ -8,7 +8,7 @@ antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 # The build file
 antsibull_build_file: "ansible-5.build"
 
-# Force a rebuild by deleting an existing release tarball, if it exists
+# Force a rebuild by deleting an existing release tarball and python wheel, if they exist
 antsibull_force_rebuild: false
 
 # Where to get the ansible-build-data repository from
