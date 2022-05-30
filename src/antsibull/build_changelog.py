@@ -125,13 +125,15 @@ def append_changelog_changes_collections(builder: RstBuilder,
         ]
         cells = []
         for (
-                collector, collection_version, prev_collection_version
+                collector, collection_version, prev_collection_version, newly_added
         ) in changelog_entry.changed_collections:
             row = [collector.collection, '', str(collection_version), '']
             if prev_collection_version is not None:
                 row[1] = str(prev_collection_version)
             changelog = collector.changelog
-            if changelog:
+            if newly_added:
+                row[-1] = "The collection was added to Ansible"
+            elif changelog:
                 release_entries = changelog.generator.collect(
                     squash=True,
                     after_version=prev_collection_version,
@@ -434,8 +436,10 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
         changelog_entry.ansible_core_version,
         changelog_entry.prev_ansible_core_version)
     for (
-            collector, collection_version, prev_collection_version
+            collector, collection_version, prev_collection_version, newly_added
     ) in changelog_entry.changed_collections:
+        if newly_added:
+            continue
         check_changelog(
             collector.collection,
             collector.changelog,

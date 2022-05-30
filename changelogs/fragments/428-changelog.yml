@@ -1,0 +1,2 @@
+minor_changes:
+  - "Avoid including the complete condensed changelog of collections added to Ansible to that Ansible release's changelog and porting guide entries (https://github.com/ansible-community/antsibull/pull/428)."
