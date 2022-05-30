@@ -327,8 +327,8 @@ class ChangelogEntry:
 
     removed_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
     added_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
-    unchanged_collections: t.List[t.Tuple[CollectionChangelogCollector, str, bool]]
-    changed_collections: t.List[t.Tuple[CollectionChangelogCollector, str, t.Optional[str]]]
+    unchanged_collections: t.List[t.Tuple[CollectionChangelogCollector, str]]
+    changed_collections: t.List[t.Tuple[CollectionChangelogCollector, str, t.Optional[str], bool]]
 
     def __init__(self, version: PypiVer, version_str: str,
                  prev_version: t.Optional[PypiVer],
