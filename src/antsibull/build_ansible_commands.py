@@ -137,7 +137,7 @@ def write_ansible_community_py(ansible_version: PypiVer, ansible_collections_dir
     release_contents = release_tmpl.render(version=ansible_version)
 
     with open(release_filename, 'w', encoding='utf-8') as f:
-        f.write(release_contents)
+        f.write(release_contents + '\n')
 
 
 def write_setup(ansible_version: PypiVer,
