@@ -74,7 +74,7 @@
         success_msg: "ansible {{ _ansible_version_pypi.stdout }} matches {{ _deps_file }} as well as 'ansible_collections.ansible_release'"
         fail_msg: "ansible {{ _ansible_version_pypi.stdout }} does not match {{ _deps_file }} or 'ansible_collections.ansible_release'"
 
-    - when: antsibull_ansible_version is _antsibull_packaging_version('6.0.0b3', '>=')
+    - when: antsibull_ansible_version is _antsibull_packaging_version('6.0.0rc1', '>=')
       block:
         - name: Retrieve the builtin reported version of ansible from the ansible-community CLI tool
           command: >-

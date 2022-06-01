@@ -437,8 +437,8 @@ def rebuild_single_command() -> int:
         # Write the ansible release info to the collections dir
         write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
-        # Write the ansible-community CLI program (starting with Ansible 6.0.0b3)
-        if app_ctx.extra['ansible_version'] >= PypiVer('6.0.0b3'):
+        # Write the ansible-community CLI program (starting with Ansible 6.0.0rc1)
+        if app_ctx.extra['ansible_version'] >= PypiVer('6.0.0rc1'):
             write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
