@@ -153,7 +153,9 @@ def write_setup(ansible_version: PypiVer,
         ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
         ansible_core_version=ansible_core_version,
         collection_exclude_paths=collection_exclude_paths,
-        collection_deps=collection_deps)
+        collection_deps=collection_deps,
+        PypiVer=PypiVer,
+    )
 
     with open(setup_filename, 'w', encoding='utf-8') as f:
         f.write(setup_contents)
@@ -436,7 +438,7 @@ def rebuild_single_command() -> int:
         write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Write the ansible-community CLI program (starting with Ansible 6.0.0b3)
-        if app_ctx.extra['ansible_version'] >= '6.0.0b3':
+        if app_ctx.extra['ansible_version'] >= PypiVer('6.0.0b3'):
             write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
