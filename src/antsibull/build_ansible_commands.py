@@ -130,6 +130,16 @@ def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> 
         f.write(release_contents)
 
 
+def write_ansible_community_py(ansible_version: PypiVer, ansible_collections_dir: str) -> None:
+    release_filename = os.path.join(ansible_collections_dir, 'ansible_community.py')
+
+    release_tmpl = Template(get_antsibull_data('ansible-community.py.j2').decode('utf-8'))
+    release_contents = release_tmpl.render(version=ansible_version)
+
+    with open(release_filename, 'w', encoding='utf-8') as f:
+        f.write(release_contents)
+
+
 def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
                 collection_exclude_paths: t.List[str],
@@ -424,6 +434,10 @@ def rebuild_single_command() -> int:
 
         # Write the ansible release info to the collections dir
         write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
+
+        # Write the ansible-community CLI program (starting with Ansible 6.0.0b3)
+        if app_ctx.extra['ansible_version'] >= '6.0.0b3':
+            write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
         # TODO: PY3.8:

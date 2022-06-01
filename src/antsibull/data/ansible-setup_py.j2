@@ -215,6 +215,13 @@ setup(
         'Topic :: Utilities',
     ],
     data_files=[],
+{%- if version >= '6.0.0b3' %}
+    entry_points={
+        'console_scripts': [
+            'ansible-community=ansible_collections.ansible_community:main'
+        ]
+    },
+{%- endif %}
     # Installing as zip files would break due to references to __file__
     zip_safe=False
 )
