@@ -17,7 +17,7 @@ def main():
         version='Ansible community version {{ version }}',
         help="show the version of the Ansible community package",
     )
-    args = parser.parse_args()  # noqa: F841, pylint: disable=unused-variable
+    parser.parse_args()
     parser.print_help()
 
 
