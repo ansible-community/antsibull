@@ -1,2 +1,0 @@
-minor_changes:
-  - "Include ``ansible-community`` CLI program with ``--version`` parameter from Ansible 6.0.0rc1 on (https://github.com/ansible-community/antsibull/pull/429)."

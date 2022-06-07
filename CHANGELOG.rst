@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.47.0
+=======
+
+Release Summary
+---------------
+
+Feature release for Ansible 6.0.0rc1.
+
+Minor Changes
+-------------
+
+- Include ``ansible-community`` CLI program with ``--version`` parameter from Ansible 6.0.0rc1 on (https://github.com/ansible-community/antsibull/pull/429).
+
 v0.46.0
 =======
 

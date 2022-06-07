@@ -392,6 +392,16 @@ releases:
     - 427-also-delete-the-python-wheel.yaml
     - 428-changelog.yml
     release_date: '2022-05-30'
+  0.47.0:
+    changes:
+      minor_changes:
+      - Include ``ansible-community`` CLI program with ``--version`` parameter from
+        Ansible 6.0.0rc1 on (https://github.com/ansible-community/antsibull/pull/429).
+      release_summary: Feature release for Ansible 6.0.0rc1.
+    fragments:
+    - 0.47.0.yml
+    - 429-ansible-community-version.yml
+    release_date: '2022-06-07'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:
