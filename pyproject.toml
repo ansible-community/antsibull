@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "antsibull"
-version = "0.46.0.post0"
+version = "0.47.0"
 description = "Tools for building the Ansible Distribution"
 authors = ["Toshio Kuratomi <a.badger@gmail.com>"]
 license = "GPL-3.0-or-later"
