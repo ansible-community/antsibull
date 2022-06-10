@@ -22,7 +22,7 @@ from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 from antsibull_core import app_context
-from antsibull_core.ansible_core import get_ansible_core_package_name
+from antsibull_core.ansible_core import get_ansible_core_package_name, AnsibleCorePyPiClient
 from antsibull_core.collections import install_separately, install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
@@ -40,6 +40,64 @@ from .utils.get_pkg_data import get_antsibull_data
 #
 
 
+async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
+                                          client: AnsibleCorePyPiClient) -> t.Optional[PypiVer]:
+    """
+    Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
+
+    :arg ansible_core_version: The ansible-core version.
+    :arg client: A AnsibleCorePyPiClient instance.
+    """
+    all_versions = await client.get_versions()
+    next_version = PypiVer(f'{ansible_core_version.major}.{ansible_core_version.minor + 1}a')
+    newer_versions = [
+        version for version in all_versions
+        if ansible_core_version <= version < next_version
+    ]
+    return max(newer_versions) if newer_versions else None
+
+
+async def get_collection_and_core_versions(deps: t.Mapping[str, str],
+                                           ansible_core_version: t.Optional[PypiVer],
+                                           galaxy_url: str,
+                                           ) -> t.Tuple[t.Dict[str, SemVer], t.Optional[PypiVer]]:
+    """
+    Retrieve the latest version of each collection.
+
+    :arg deps: Mapping of collection name to a version specification.
+    :arg ansible_core_version: Optional ansible-core version. Will search for the latest bugfix
+        release.
+    :arg galaxy_url: The url for the galaxy server to use.
+    :returns: Tuple consisting of a dict mapping collection name to latest version, and of the
+        ansible-core version if it was provided.
+    """
+    requestors = {}
+    async with aiohttp.ClientSession() as aio_session:
+        lib_ctx = app_context.lib_ctx.get()
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+            client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
+            for collection_name, version_spec in deps.items():
+                requestors[collection_name] = await pool.spawn(
+                    client.get_latest_matching_version(collection_name, version_spec, pre=True))
+            if ansible_core_version:
+                requestors['_ansible_core'] = await pool.spawn(get_latest_ansible_core_version(
+                    ansible_core_version, AnsibleCorePyPiClient(aio_session)))
+
+            responses = await asyncio.gather(*requestors.values())
+
+    # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
+    # used requestors.values() to generate responses, requestors and responses therefore have
+    # a matching order.
+    included_versions: t.Dict[str, SemVer] = {}
+    for collection_name, version in zip(requestors, responses):
+        if collection_name == '_ansible_core':
+            ansible_core_version = version
+        else:
+            included_versions[collection_name] = version
+
+    return included_versions, ansible_core_version
+
+
 async def get_collection_versions(deps: t.Mapping[str, str],
                                   galaxy_url: str,
                                   ) -> t.Dict[str, SemVer]:
@@ -50,25 +108,7 @@ async def get_collection_versions(deps: t.Mapping[str, str],
     :arg galaxy_url: The url for the galaxy server to use.
     :returns: Dict mapping collection name to latest version.
     """
-    requestors = {}
-    async with aiohttp.ClientSession() as aio_session:
-        lib_ctx = app_context.lib_ctx.get()
-        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
-            for collection_name, version_spec in deps.items():
-                requestors[collection_name] = await pool.spawn(
-                    client.get_latest_matching_version(collection_name, version_spec, pre=True))
-
-            responses = await asyncio.gather(*requestors.values())
-
-    # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
-    # used requestors.values() to generate responses, requestors and responses therefore have
-    # a matching order.
-    included_versions: t.Dict[str, SemVer] = {}
-    for collection_name, version in zip(requestors, responses):
-        included_versions[collection_name] = version
-
-    return included_versions
+    return (await get_collection_and_core_versions(deps, None, galaxy_url))[0]
 
 
 async def download_collections(versions: t.Mapping[str, SemVer],
@@ -313,7 +353,10 @@ def prepare_command() -> int:
             new_clauses.append(f'<{min_version.major}.{min_version.minor + 1}.0')
             deps[collection_name] = ','.join(new_clauses)
 
-    included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
+    included_versions, new_ansible_core_version = asyncio.run(
+        get_collection_and_core_versions(deps, ansible_core_version, app_ctx.galaxy_url))
+    if new_ansible_core_version:
+        ansible_core_version = new_ansible_core_version
 
     if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
         print(f'{build_filename} is for version {build_ansible_version} but we need'
