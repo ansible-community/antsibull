@@ -1,0 +1,2 @@
+bugfixes:
+  - "When preparing a new Ansible release, bump the ansible-core version to the latest bugfix version (https://github.com/ansible-community/antsibull/pull/430)."
