@@ -31,17 +31,11 @@ antsibull_data_dir: "{{ antsibull_data_git_dir }}/{{ antsibull_ansible_major_ver
 # Where to clone the Ansible git repo from so we can run integration tests
 antsibull_ansible_git_repo: "https://github.com/ansible/ansible"
 
-# (REQUIRED) The git tag (or branch) of the ansible repo to check out
-# antsibull_ansible_git_version: "stable-2.13"
-
 # Where to clone the Ansible git repo
 antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
 
-# (REQUIRED) The version of ansible to build
-# antsibull_ansible_version: 6.0.0
-
 # The major version of ansible to build
-antsibull_ansible_major_version: "{{ antsibull_ansible_version.split('.', 1)[0] }}"
+antsibull_ansible_major_version: "{{ (antsibull_ansible_version | default('')).split('.', 1)[0] }}"
 
 # Where the Ansible release tarball will be installed for test purposes
 antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"

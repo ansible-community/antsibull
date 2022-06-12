@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: build-release
+  author: David Moreau Simard
+  description: >
+    An Ansible role that builds an Ansible release package with Antsibull and tests it.
+
+  license: GPL-v3.0
+
+  min_ansible_version: 2.11.0
+
+  galaxy_tags:
+  - ansible
+  - release
+
+  platforms: []
+
+dependencies: []

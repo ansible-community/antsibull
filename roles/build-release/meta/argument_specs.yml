@@ -1,0 +1,102 @@
+---
+argument_specs:
+  main:
+    short_description: Build Ansible release package and test it
+    version_added: 0.1.0
+    description:
+      - An Ansible role that builds an Ansible release package with Antsibull and tests it.
+    author:
+      - David Moreau Simard (@dmsimard)
+    options:
+      antsibull_build_command:
+        description: The command to run C(antsibull-build).
+        type: str
+        default: antsibull-build
+
+      antsibull_sdist_dir:
+        description:
+          - The directory where antsibull will build the Ansible release tarball.
+        type: path
+        default: "{{ playbook_dir | dirname }}/build"
+
+      antsibull_build_file:
+        description:
+          - The build file.
+        type: path
+        default: ansible-<major_version>.build
+
+      antsibull_force_rebuild:
+        description:
+          - Force a rebuild by deleting an existing release tarball and python wheel, if they exist.
+        type: bool
+        default: false
+
+      antsibull_data_git_repo:
+        description:
+          - Where to get the L(ansible-build-data,https://github.com/ansible-community/ansible-build-data) repository from.
+        type: str
+        default: "https://github.com/ansible-community/ansible-build-data"
+
+      antsibull_data_version:
+        description:
+          - The tag (or branch) of the L(ansible-build-data,https://github.com/ansible-community/ansible-build-data)) git repository to checkout.
+          - Could be C(main), C(devel), etc.
+        type: str
+        default: main
+
+      antsibull_data_reset:
+        description:
+          - Whether to forcefully reset the ansible-build-data repository.
+          - Set to C(false) if there are manual changes that should not be overwritten.
+        type: bool
+        default: true
+
+      antsibull_data_git_dir:
+        description:
+          - Where the ansible-build-data git repository will be cloned to.
+        type: path
+        default: "{{ antsibull_sdist_dir }}/ansible-build-data"
+
+      antsibull_data_dir:
+        description:
+          - Directory to read C(.build) and C(.deps) files from and write them to.
+        type: path
+        default: "{{ antsibull_data_git_dir }}/<major_version>"
+
+      antsibull_ansible_git_repo:
+        description:
+          - Where to clone the Ansible git repository from so we can run integration tests.
+        type: str
+        default: "https://github.com/ansible/ansible"
+
+      antsibull_ansible_git_version:
+        description:
+          - The git tag (or branch) of the ansible repository to check out.
+          - Could be C(devel), C(stable-2.12), C(stable-2.13), etc.
+        type: str
+        required: true
+
+      antsibull_ansible_git_dir:
+        description:
+          - Where to clone the Ansible git repository.
+        type: path
+        default: "{{ antsibull_sdist_dir }}/ansible"
+
+      antsibull_ansible_version:
+        description:
+          - The version of ansible to build.
+          - For example C(6.3.0), C(7.0.0a1), C(8.0.0rc2).
+        type: str
+        required: true
+
+      antsibull_ansible_venv:
+        description:
+          - Where the Ansible release tarball will be installed for test purposes.
+        type: path
+        default: "{{ antsibull_sdist_dir }}/venv"
+
+      antsibull_venv_cleanup:
+        description:
+          - Whether or not to start from scratch with a new venv if one exists.
+        type: bool
+        default: true
