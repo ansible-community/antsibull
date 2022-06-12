@@ -1,0 +1,2 @@
+minor_changes:
+  - "In the release role, automatically set ``antsibull_build_file`` and ``antsibull_data_dir`` based on ``antsibull_ansible_version`` (https://github.com/ansible-community/antsibull/pull/430)."
