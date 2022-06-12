@@ -1,4 +1,9 @@
 ---
+- name: Check required parameters
+  assert:
+    that:
+      - antsibull_ansible_version is string
+      - antsibull_ansible_git_version is string
 
 - include_tasks: setup.yaml
 - include_tasks: build.yaml

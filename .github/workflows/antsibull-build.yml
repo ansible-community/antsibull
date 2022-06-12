@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - name: Ansible 5 with default settings
-            options: '-e antsibull_ansible_version=5.99.0'
+            options: '-e antsibull_ansible_version=5.99.0 -e antsibull_ansible_git_version=stable-2.12'
           - name: Ansible 6 with ansible-core devel
             options: '-e antsibull_ansible_version=6.99.0 -e antsibull_ansible_git_version=devel'
 
