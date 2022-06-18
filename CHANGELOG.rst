@@ -5,6 +5,30 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.48.0
+=======
+
+Release Summary
+---------------
+
+Bugfix and feature release containing some breaking changes in the release role.
+
+Minor Changes
+-------------
+
+- In the release role, automatically set ``antsibull_build_file`` and ``antsibull_data_dir`` based on ``antsibull_ansible_version`` (https://github.com/ansible-community/antsibull/pull/430).
+- The release role has now an argument spec (https://github.com/ansible-community/antsibull/pull/430).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- In the release role, ``antsibull_ansible_version`` and ``antsibull_ansible_git_version`` must now always be specified (https://github.com/ansible-community/antsibull/pull/430).
+
+Bugfixes
+--------
+
+- When preparing a new Ansible release, bump the ansible-core version to the latest bugfix version (https://github.com/ansible-community/antsibull/pull/430).
+
 v0.47.0
 =======
 

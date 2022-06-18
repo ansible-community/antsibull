@@ -402,6 +402,25 @@ releases:
     - 0.47.0.yml
     - 429-ansible-community-version.yml
     release_date: '2022-06-07'
+  0.48.0:
+    changes:
+      breaking_changes:
+      - In the release role, ``antsibull_ansible_version`` and ``antsibull_ansible_git_version``
+        must now always be specified (https://github.com/ansible-community/antsibull/pull/430).
+      bugfixes:
+      - When preparing a new Ansible release, bump the ansible-core version to the
+        latest bugfix version (https://github.com/ansible-community/antsibull/pull/430).
+      minor_changes:
+      - In the release role, automatically set ``antsibull_build_file`` and ``antsibull_data_dir``
+        based on ``antsibull_ansible_version`` (https://github.com/ansible-community/antsibull/pull/430).
+      - The release role has now an argument spec (https://github.com/ansible-community/antsibull/pull/430).
+      release_summary: Bugfix and feature release containing some breaking changes
+        in the release role.
+    fragments:
+    - 0.48.0.yml
+    - 430-prepare-ansible-core-version.yml
+    - 431-role.yml
+    release_date: '2022-06-18'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

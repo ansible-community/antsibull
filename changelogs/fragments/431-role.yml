@@ -1,5 +1,0 @@
-minor_changes:
-  - "In the release role, automatically set ``antsibull_build_file`` and ``antsibull_data_dir`` based on ``antsibull_ansible_version`` (https://github.com/ansible-community/antsibull/pull/430)."
-  - "The release role has now an argument spec (https://github.com/ansible-community/antsibull/pull/430)."
-breaking_changes:
-  - "In the release role, ``antsibull_ansible_version`` and ``antsibull_ansible_git_version`` must now always be specified (https://github.com/ansible-community/antsibull/pull/430)."
