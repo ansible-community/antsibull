@@ -1,5 +1,4 @@
 ---
-
 - include_tasks: setup.yaml
 - include_tasks: build.yaml
 - include_tasks: tests.yaml

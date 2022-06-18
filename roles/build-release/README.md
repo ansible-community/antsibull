@@ -10,7 +10,7 @@ An Ansible role that builds an Ansible release package with Antsibull and tests 
 
 ### Variables
 
-See [defaults/main.yaml](https://github.com/ansible-community/antsibull/blob/master/roles/build-release/defaults/main.yaml)
+See [meta/argument_spec.yml](https://github.com/ansible-community/antsibull/blob/main/roles/build-release/meta/argument_spec.yml)
 
 ### Example playbook
 
