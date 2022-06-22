@@ -46,7 +46,7 @@
       register: _included_collections
 
     - name: Retrieve the builtin reported version of ansible
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/python3 -c 'from ansible_collections.ansible_release import ansible_version; print(ansible_version)'
       changed_when: false
       register: _ansible_version_builtin
@@ -62,7 +62,7 @@
     - when: antsibull_ansible_version is _antsibull_packaging_version('6.0.0rc1', '>=')
       block:
         - name: Retrieve the builtin reported version of ansible from the ansible-community CLI tool
-          command: >-
+          ansible.builtin.command: >-
             {{ antsibull_ansible_venv }}/bin/ansible-community --version
           changed_when: false
           register: _ansible_version_builtin_2
@@ -112,11 +112,11 @@
         state: directory
 
     - name: Install community.general for tests using 'a_module' and 'collection_version'
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/ansible-galaxy collection install community.general
 
     - name: Run nested Ansible tests with the Ansible we just built
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/ansible-playbook -i 'localhost,' --connection=local
           -e antsibull_sdist_dir="{{ antsibull_sdist_dir }}"
           -e antsibull_ansible_venv="{{ antsibull_ansible_venv }}"

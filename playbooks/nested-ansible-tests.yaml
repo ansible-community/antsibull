@@ -60,6 +60,6 @@
       environment:
         ANSIBLE_ROLES_PATH: "{{ antsibull_ansible_git_dir }}/test/integration/targets"
       # Note: this didn't work prior to ansible-base 2.10.4: https://github.com/ansible/ansible/pull/71824
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/ansible -vv localhost -m include_role -a "name=include_vars"
       changed_when: false

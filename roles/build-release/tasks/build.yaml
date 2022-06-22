@@ -21,7 +21,7 @@
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+)$")
 
 - name: Update version ranges in the build file for alpha and beta releases
-  command: >-
+  ansible.builtin.command: >-
     {{ antsibull_build_command }} new-ansible {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       {{ _allow_prereleases | default('') }}
@@ -35,7 +35,7 @@
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b2|b3|rc1)$")
 
 - name: Prepare a release with new dependencies
-  command: >-
+  ansible.builtin.command: >-
     {{ antsibull_build_command }} prepare {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       {{ _feature_freeze | default('') }}
@@ -59,7 +59,7 @@
 
 # If the release archive is already there it won't be re-built if we run again
 - name: Build a release with existing deps
-  command: >-
+  ansible.builtin.command: >-
     {{ antsibull_build_command }} rebuild-single {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       --sdist-dir {{ antsibull_sdist_dir }}
@@ -77,7 +77,7 @@
 
 # We can use this to test that the release on PyPi matches later (for example)
 - name: Record the sha256sum for the built tarball
-  command: sha256sum {{ _release_archive }}
+  ansible.builtin.command: sha256sum {{ _release_archive }}
   changed_when: false
   register: _tarball_checksum
 
@@ -98,7 +98,7 @@
       register: _galaxy_reqs
 
     - name: Template a galaxy-requirements.yaml file
-      copy:
+      ansible.builtin.copy:
         dest: "{{ antsibull_data_dir }}/galaxy-requirements.yaml"
         content: |
           # Collections included in Ansible {{ antsibull_ansible_version }}
