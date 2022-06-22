@@ -6,11 +6,11 @@
   when: antsibull_venv_cleanup | bool
 
 - name: Get Ansible python fact
-  setup:
+  ansible.builtin.setup:
     filter: ansible_python
 
 - name: Set a python version fact appropriate for the venv site-packages
-  set_fact:
+  ansible.builtin.set_fact:
     _python_version: "python{{ ansible_python.version.major }}.{{ ansible_python.version.minor }}"
 
 - name: Install the release tarball in a virtualenv so we can test it
@@ -68,7 +68,7 @@
           register: _ansible_version_builtin_2
 
         - name: Verify that the version output matches the one we expect
-          assert:
+          ansible.builtin.assert:
             that:
               - _ansible_version_builtin_2.stdout == ("Ansible community version " ~ antsibull_ansible_version)
 
@@ -107,7 +107,7 @@
     ANSIBLE_COLLECTIONS_PATH: "{{ ansible_collections_path }}"
   block:
     - name: Create a temporary COLLECTIONS_PATH
-      file:
+      ansible.builtin.file:
         path: "{{ ansible_collections_path }}"
         state: directory
 

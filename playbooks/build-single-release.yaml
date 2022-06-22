@@ -4,5 +4,5 @@
   gather_facts: no
   tasks:
     - name: Include build-release role
-      include_role:
+      ansible.builtin.include_role:
         name: build-release

@@ -17,7 +17,7 @@
       register: _parsed_runtime
 
     - name: Validate collection availability
-      assert:
+      ansible.builtin.assert:
         that:
           - query("community.general.collection_version", item) != [none]
         success_msg: "{{ item }}: available"
@@ -27,7 +27,7 @@
       register: _collection_availability
 
     - name: Validate module availability
-      assert:
+      ansible.builtin.assert:
         that:
           - item is community.general.a_module
         success_msg: "{{ item }}: found"
@@ -37,16 +37,16 @@
       register: _module_availability
 
     - name: Retrieve unavailable collections and modules
-      set_fact:
+      ansible.builtin.set_fact:
         _unavailable_collections: "{{ _collection_availability.results | selectattr('failed', '==', true) | selectattr('item', '!=', 'testns.testcoll') }}"
         _unavailable_modules: "{{ _module_availability.results | selectattr('failed', '==', true) | selectattr('item', '!=', 'testns.testcoll.ping') }}"
 
     - name: Print unavailable collections
-      debug:
+      ansible.builtin.debug:
         msg: "The following collections are not available: {{ _unavailable_collections | map(attribute='item') | join(', ') }}"
 
     - name: Print unavailable modules
-      debug:
+      ansible.builtin.debug:
         msg: "The following modules are not available: {{ _unavailable_modules | map(attribute='item') | join(', ') }}"
 
     - name: Clone the ansible git repository

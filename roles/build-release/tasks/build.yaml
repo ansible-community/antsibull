@@ -16,7 +16,7 @@
   register: _antsibull_build_file_stat
 
 - name: Allow prereleases for alpha versions
-  set_fact:
+  ansible.builtin.set_fact:
     _allow_prereleases: "--allow-prereleases"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+)$")
 
@@ -30,7 +30,7 @@
     or not _antsibull_build_file_stat.stat.exists
 
 - name: Set up feature freeze for b2 through rc1
-  set_fact:
+  ansible.builtin.set_fact:
     _feature_freeze: "--feature-frozen"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b2|b3|rc1)$")
 
@@ -49,7 +49,7 @@
     creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
 
 - name: Remove existing release tarball and wheel if they exist
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   when: antsibull_force_rebuild | bool
