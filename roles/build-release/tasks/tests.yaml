@@ -95,7 +95,7 @@
     - name: Validate that included collections are packaged
       ansible.builtin.assert:
         that:
-          - item in antsibull_installed_collections.keys()
+          - item in antsibull_installed_collections
         success_msg: "{{ item }} is in ansible.in and inside the package"
         fail_msg: "{{ item }} is in ansible.in but not inside the package. Maybe run 'antsibull-build new-ansible --data-dir={{ antsibull_data_dir }}' to update ansible.in and then rebuild ?"
       loop: "{{ _included_collections.stdout_lines }}"
