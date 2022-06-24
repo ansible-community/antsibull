@@ -29,15 +29,15 @@
 
     - name: Query installed pip packages
       community.general.pip_package_info:
-        clients: "{{ antsibull_pip_bin }}"
+        clients: "{{ antsibull_venv_pip_bin }}"
       register: _pip_pkgs
 
     - name: Validate the version of ansible-core
       ansible.builtin.assert:
         that:
-          - _installed_ansible_core is _antsibull_packaging_version(antsibull_expected_ansible_core, '>=')
-        success_msg: "ansible-core {{ _installed_ansible_core }} matches (or exceeds) {{ _deps_file }}"
-        fail_msg: "ansible-core {{ _installed_ansible_core }} does not match {{ _deps_file }}"
+          - antsibull_venv_pip_ansible_core_version is _antsibull_packaging_version(antsibull_expected_ansible_core, '>=')
+        success_msg: "ansible-core {{ antsibull_venv_pip_ansible_core_version }} matches (or exceeds) {{ _deps_file }}"
+        fail_msg: "ansible-core {{ antsibull_venv_pip_ansible_core_version }} does not match {{ _deps_file }}"
 
 - block:
     - name: Retrieve collections that should be included in the package
@@ -54,10 +54,10 @@
     - name: Validate the version of ansible
       ansible.builtin.assert:
         that:
-          - ansible_version_pypi == _deps['_ansible_version']
-          - ansible_version_pypi == _ansible_version_builtin.stdout
-        success_msg: "ansible {{ ansible_version_pypi }} matches {{ _deps_file }} as well as 'ansible_collections.ansible_release'"
-        fail_msg: "ansible {{ ansible_version_pypi }} does not match {{ _deps_file }} or 'ansible_collections.ansible_release'"
+          - antsibull_venv_pip_ansible_version == _deps['_ansible_version']
+          - antsibull_venv_pip_ansible_version == _ansible_version_builtin.stdout
+        success_msg: "ansible {{ antsibull_venv_pip_ansible_version }} matches {{ _deps_file }} as well as 'ansible_collections.ansible_release'"
+        fail_msg: "ansible {{ antsibull_venv_pip_ansible_version }} does not match {{ _deps_file }} or 'ansible_collections.ansible_release'"
 
     - when: antsibull_ansible_version is _antsibull_packaging_version('6.0.0rc1', '>=')
       block:
