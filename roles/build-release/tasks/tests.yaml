@@ -6,11 +6,11 @@
   when: antsibull_venv_cleanup | bool
 
 - name: Get Ansible python fact
-  setup:
+  ansible.builtin.setup:
     filter: ansible_python
 
 - name: Set a python version fact appropriate for the venv site-packages
-  set_fact:
+  ansible.builtin.set_fact:
     _python_version: "python{{ ansible_python.version.major }}.{{ ansible_python.version.minor }}"
 
 - name: Install the release tarball in a virtualenv so we can test it
@@ -22,46 +22,31 @@
 
 # Note: the version of ansible-core doesn't necessarily match the deps file since the version requirement is >=
 - block:
-    # Note: the value is either _ansible_base_version or _ansible_core_version depending on the version
-    # ex: https://github.com/ansible-community/ansible-build-data/blob/main/4/ansible-4.4.0.deps
-    - name: Retrieve the expected minimum version of ansible-core
-      shell: >-
-        grep -E "_ansible_(base|core)_version" {{ antsibull_data_dir }}/{{ _deps_file }} | awk '{print $2}'
-      changed_when: false
-      register: _expected_ansible_core
+    - name: Include deps_file
+      ansible.builtin.include_vars:
+        file: "{{ antsibull_data_dir }}/{{ _deps_file }}"
+        name: _deps
 
-    - name: Retrieve the installed version of ansible-core
-      shell: >-
-        {{ antsibull_ansible_venv }}/bin/pip show ansible-core | awk '/Version/ {print $2}'
-      changed_when: false
-      register: _installed_ansible_core
+    - name: Query installed pip packages
+      community.general.pip_package_info:
+        clients: "{{ antsibull_venv_pip_bin }}"
+      register: _pip_pkgs
 
     - name: Validate the version of ansible-core
       ansible.builtin.assert:
         that:
-          - _installed_ansible_core.stdout is _antsibull_packaging_version(_expected_ansible_core.stdout, '>=')
-        success_msg: "ansible-core {{ _installed_ansible_core.stdout }} matches (or exceeds) {{ _deps_file }}"
-        fail_msg: "ansible-core {{ _installed_ansible_core.stdout }} does not match {{ _deps_file }}"
+          - antsibull_venv_pip_ansible_core_version is _antsibull_packaging_version(antsibull_expected_ansible_core, '>=')
+        success_msg: "ansible-core {{ antsibull_venv_pip_ansible_core_version }} matches (or exceeds) {{ _deps_file }}"
+        fail_msg: "ansible-core {{ antsibull_venv_pip_ansible_core_version }} does not match {{ _deps_file }}"
 
 - block:
-    - name: Retrieve expected versions of Ansible and collections
-      command: cat {{ antsibull_data_dir }}/{{ _deps_file }}
-      changed_when: false
-      register: _expected_versions
-
     - name: Retrieve collections that should be included in the package
-      shell: cat {{ antsibull_data_dir }}/ansible.in | egrep -v "^#"
+      shell: cat {{ antsibull_data_dir }}/ansible.in | grep -vE "^#"
       changed_when: false
       register: _included_collections
 
-    - name: Retrieve the installed version of ansible with pip
-      shell: >-
-        {{ antsibull_ansible_venv }}/bin/pip show ansible | awk '/Version/ {print $2}'
-      changed_when: false
-      register: _ansible_version_pypi
-
     - name: Retrieve the builtin reported version of ansible
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/python3 -c 'from ansible_collections.ansible_release import ansible_version; print(ansible_version)'
       changed_when: false
       register: _ansible_version_builtin
@@ -69,21 +54,21 @@
     - name: Validate the version of ansible
       ansible.builtin.assert:
         that:
-          - "'_ansible_version: {{ _ansible_version_pypi.stdout }}' in _expected_versions.stdout"
-          - _ansible_version_pypi.stdout == _ansible_version_builtin.stdout
-        success_msg: "ansible {{ _ansible_version_pypi.stdout }} matches {{ _deps_file }} as well as 'ansible_collections.ansible_release'"
-        fail_msg: "ansible {{ _ansible_version_pypi.stdout }} does not match {{ _deps_file }} or 'ansible_collections.ansible_release'"
+          - antsibull_venv_pip_ansible_version == _deps['_ansible_version']
+          - antsibull_venv_pip_ansible_version == _ansible_version_builtin.stdout
+        success_msg: "ansible {{ antsibull_venv_pip_ansible_version }} matches {{ _deps_file }} as well as 'ansible_collections.ansible_release'"
+        fail_msg: "ansible {{ antsibull_venv_pip_ansible_version }} does not match {{ _deps_file }} or 'ansible_collections.ansible_release'"
 
     - when: antsibull_ansible_version is _antsibull_packaging_version('6.0.0rc1', '>=')
       block:
         - name: Retrieve the builtin reported version of ansible from the ansible-community CLI tool
-          command: >-
+          ansible.builtin.command: >-
             {{ antsibull_ansible_venv }}/bin/ansible-community --version
           changed_when: false
           register: _ansible_version_builtin_2
 
         - name: Verify that the version output matches the one we expect
-          assert:
+          ansible.builtin.assert:
             that:
               - _ansible_version_builtin_2.stdout == ("Ansible community version " ~ antsibull_ansible_version)
 
@@ -92,45 +77,46 @@
         # In case we happen to be testing with devel, don't print a warning about it
         ANSIBLE_DEVEL_WARNING: false
         # Until https://github.com/ansible/ansible/pull/70173 is backported and released
-        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_ansible_venv }}/lib/{{ _python_version }}/site-packages/ansible_collections"
+        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_collections_path }}"
       # List collections, remove empty lines, headers, file paths and format the results in the same way as the deps file
-      shell: >-
-        {{ antsibull_ansible_venv }}/bin/ansible-galaxy collection list | egrep -v '^$|^#|---|Collection.*Version' | awk '{ print $1 ": " $2 }'
+      ansible.builtin.command:
+        cmd: "{{ antsibull_ansible_venv }}/bin/ansible-galaxy collection list --format json"
       changed_when: false
-      register: _installed_collections
+      register: _installed_collections_json
 
     - name: Validate that the installed collections are the expected ones
       ansible.builtin.assert:
         that:
-          - item in _expected_versions.stdout
+          - item['value']['version'] == _deps[item['key']]
         success_msg: "{{ item }} matches {{ _deps_file }}"
         fail_msg: "{{ item }} does not match {{ _deps_file }}"
-      loop: "{{ _installed_collections.stdout_lines }}"
+      loop: "{{ antsibull_installed_collections | dict2items }}"
 
     - name: Validate that included collections are packaged
       ansible.builtin.assert:
         that:
-          - item in _installed_collections.stdout
+          - item in antsibull_installed_collections
         success_msg: "{{ item }} is in ansible.in and inside the package"
         fail_msg: "{{ item }} is in ansible.in but not inside the package. Maybe run 'antsibull-build new-ansible --data-dir={{ antsibull_data_dir }}' to update ansible.in and then rebuild ?"
       loop: "{{ _included_collections.stdout_lines }}"
 
-- block:
+- name: Run nested tests
+  vars:
+    ansible_collections_path: "{{ antsibull_sdist_dir }}/ansible_collections"
+  environment:
+    ANSIBLE_COLLECTIONS_PATH: "{{ ansible_collections_path }}"
+  block:
     - name: Create a temporary COLLECTIONS_PATH
-      file:
-        path: "{{ antsibull_sdist_dir }}/ansible_collections"
+      ansible.builtin.file:
+        path: "{{ ansible_collections_path }}"
         state: directory
 
     - name: Install community.general for tests using 'a_module' and 'collection_version'
-      environment:
-        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_sdist_dir }}/ansible_collections"
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/ansible-galaxy collection install community.general
 
     - name: Run nested Ansible tests with the Ansible we just built
-      environment:
-        ANSIBLE_COLLECTIONS_PATH: "{{ antsibull_sdist_dir }}/ansible_collections"
-      command: >-
+      ansible.builtin.command: >-
         {{ antsibull_ansible_venv }}/bin/ansible-playbook -i 'localhost,' --connection=local
           -e antsibull_sdist_dir="{{ antsibull_sdist_dir }}"
           -e antsibull_ansible_venv="{{ antsibull_ansible_venv }}"

@@ -56,6 +56,7 @@ jobs:
           python3 -m pip install poetry ansible-core
           poetry install
           poetry update
+          ansible-galaxy collection install 'git+https://github.com/ansible-collections/community.general.git'
         working-directory: antsibull
 
       - name: "Test building a release: ${{ matrix.name }}"

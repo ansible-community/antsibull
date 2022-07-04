@@ -1,0 +1,13 @@
+---
+# Note: the value is either _ansible_base_version or _ansible_core_version depending on the version
+# ex: https://github.com/ansible-community/ansible-build-data/blob/main/4/ansible-4.4.0.deps
+# Variables that start with `_` are intermediate variables that are `register`ed in the playbook.
+antsibull_expected_ansible_core: "{{ _deps['_ansible_core_version'] | default(_deps['_ansible_base_version']) }}"
+antsibull_venv_pip_bin: "{{ antsibull_ansible_venv }}/bin/pip"
+antsibull_venv_pip_pkgs: "{{ _pip_pkgs['packages'][antsibull_venv_pip_bin] }}"
+antsibull_venv_pip_ansible_version: "{{ antsibull_venv_pip_pkgs['ansible'][0]['version'] }}"
+antsibull_venv_pip_ansible_core_version: "{{ antsibull_venv_pip_pkgs['ansible-core'][0]['version'] }}"
+
+antsibull_collections_path: "{{ antsibull_ansible_venv }}/lib/{{ _python_version }}/site-packages/ansible_collections"
+_antsibull_installed_collections: "{{ _installed_collections_json['stdout'] | from_json }}"
+antsibull_installed_collections: "{{ _antsibull_installed_collections[antsibull_collections_path] }}"

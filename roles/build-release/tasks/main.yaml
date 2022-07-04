@@ -4,7 +4,7 @@
 - include_tasks: tests.yaml
 
 - name: Release instructions
-  debug:
+  ansible.builtin.debug:
     msg: >-
       Build tested and complete!
       A changelog as well as a porting guide have probably been generated at {{ antsibull_data_dir }}.
