@@ -131,6 +131,16 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
             )
 
 
+def _check_release_build_directories(args: argparse.Namespace) -> None:
+    if args.command in ('single', 'multiple', 'rebuild-single'):
+        if not os.path.isdir(args.sdist_dir):
+            raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
+
+    if args.command in ('rebuild-single', ):
+        if args.sdist_src_dir is not None and os.path.exists(args.sdist_src_dir):
+            raise InvalidArgumentError(f'{args.sdist_src_dir} must not exist')
+
+
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
     if args.command not in ('prepare', 'single', 'multiple', 'rebuild-single'):
         return
@@ -165,13 +175,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
         args.galaxy_file = f'{basename}-{args.ansible_version}.yaml'
 
-    if args.command in ('single', 'multiple', 'rebuild-single'):
-        if not os.path.isdir(args.sdist_dir):
-            raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
-
-    if args.command in ('rebuild-single', ) and args.sdist_src_dir is not None:
-        if os.path.exists(args.sdist_src_dir):
-            raise InvalidArgumentError(f'{args.sdist_src_dir} must not exist')
+    _check_release_build_directories(args)
 
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
