@@ -11,6 +11,7 @@ import os
 import os.path
 import shutil
 import tempfile
+from collections import defaultdict
 from collections.abc import Collection, Mapping
 from typing import TYPE_CHECKING
 
@@ -167,6 +168,9 @@ def copy_boilerplate_files(package_dir: str) -> None:
     with open(os.path.join(package_dir, 'pyproject.toml'), 'wb') as f:
         f.write(pyproject_toml)
 
+    with open(os.path.join(package_dir, 'ansible_collections', '__init__.py'), 'wb') as f:
+        f.write(b'')
+
 
 def write_manifest(package_dir: str,
                    release_notes: ReleaseNotes | None = None,
@@ -209,7 +213,8 @@ def write_ansible_community_py(ansible_version: PypiVer, ansible_collections_dir
 
 def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
-                collection_exclude_paths: list[str],
+                collection_exclude_paths: Mapping[str, list[str]],
+                collection_exclude_packages: list[str],
                 collection_deps: str,
                 package_dir: str,
                 python_requires: str) -> None:
@@ -221,6 +226,7 @@ def write_setup(ansible_version: PypiVer,
         ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
         ansible_core_version=ansible_core_version,
         collection_exclude_paths=collection_exclude_paths,
+        collection_exclude_packages=collection_exclude_packages,
         collection_deps=collection_deps,
         python_requires=python_requires,
         PypiVer=PypiVer,
@@ -238,7 +244,8 @@ def copy_tags_file(tags_file: StrPath | None, package_dir: StrPath) -> None:
 
 def write_python_build_files(ansible_version: PypiVer,
                              ansible_core_version: PypiVer,
-                             collection_exclude_paths: list[str],
+                             collection_exclude_paths: Mapping[str, list[str]],
+                             collection_exclude_packages: list[str],
                              collection_deps: str,
                              package_dir: str,
                              release_notes: ReleaseNotes | None = None,
@@ -249,8 +256,8 @@ def write_python_build_files(ansible_version: PypiVer,
     copy_tags_file(tags_file, package_dir)
     write_manifest(package_dir, release_notes, debian, tags_file)
     write_setup(
-        ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
-        package_dir, python_requires)
+        ansible_version, ansible_core_version, collection_exclude_paths,
+        collection_exclude_packages, collection_deps, package_dir, python_requires)
 
 
 def write_debian_directory(ansible_version: PypiVer,
@@ -465,45 +472,98 @@ def prepare_command() -> int:
     return 0
 
 
-def compile_collection_exclude_paths(collection_names: Collection[str],
-                                     collection_root: str) -> tuple[list[str], list[str]]:
-    result = set()
-    ignored_files = set()
-    all_files: list[str] = []
-    for collection_name in collection_names:
-        namespace, name = collection_name.split('.', 1)
-        prefix = f"{namespace}/{name}/"
+class CollectionExcludePathsCompiler:
+    exclude_paths: Mapping[str, list[str]]
+    exclude_packages: list[str]
+    ignored_files: list[str]
 
-        # Check files
-        collection_dir = os.path.join(collection_root, namespace, name)
-        all_files.clear()
-        for directory, _, files in os.walk(collection_dir):
-            directory = os.path.relpath(directory, collection_dir)
-            for file in files:
-                all_files.append(os.path.normpath(os.path.join(directory, file)))
+    @staticmethod
+    def _get_package(path: str, is_directory: bool = False) -> tuple[str, str]:
+        if is_directory:
+            directory, file = path.rstrip('/'), ''
+        else:
+            directory, file = os.path.split(path)
+        package = 'ansible_collections'
+        if directory:
+            package += '.' + '.'.join(directory.split('/'))
+        return package, file
 
-        def ignore_file(prefix: str, filename: str):  # pylint: disable=unused-variable
-            if filename in all_files:
-                result.add(prefix + filename)
-                ignored_files.add(prefix + filename)
+    @staticmethod
+    def _get_parent_package(package: str) -> str:
+        parts = package.split('.')
+        return '.'.join(parts[:-1])
 
-        def ignore_start(prefix: str, start: str):
-            matching_files = [file for file in all_files if file.startswith(start)]
-            if matching_files:
-                result.add(prefix + start + '*')
-                ignored_files.update([prefix + file for file in matching_files])
+    def _ignore_file(self, prefix: str, filename: str):
+        if filename in self._all_files:
+            package, file = self._get_package(prefix + filename)
+            self._result[package].add(file)
+            self._ignored_files.add(prefix + filename)
 
-        def ignore_directory(prefix: str, directory: str):
-            directory = directory.rstrip('/') + '/'
-            matching_files = [file for file in all_files if file.startswith(directory)]
-            if matching_files:
-                result.add(prefix + directory + '*')
-                ignored_files.update([prefix + file for file in matching_files])
+    def _ignore_start(self, prefix: str, start: str):
+        matching_files_files = []
+        matching_directories_files = []
+        for file in [file for file in self._all_files if file.startswith(start)]:
+            if file[len(start):].find('/') < 0:
+                matching_files_files.append(file)
+            else:
+                matching_directories_files.append(file)
+        if matching_files_files:
+            package, file = self._get_package(prefix + start + '*')
+            self._result[package].add(file)
+            self._ignored_files.update([prefix + file for file in matching_files_files])
+        if matching_directories_files:
+            directories = {
+                start + file[len(start):].split('/', 1)[0]
+                for file in matching_directories_files
+            }
+            for directory in directories:
+                package, _ = self._get_package(prefix + directory, is_directory=True)
+                if not start.startswith('.'):
+                    self._excluded_packages.add(package)
+                    self._excluded_packages.add(package + '.*')
+                parent_package, _ = self._get_package(
+                    os.path.dirname(prefix + directory), is_directory=True)
+                self._result[parent_package].add(directory + '/*')
+            self._ignored_files.update([prefix + file for file in matching_directories_files])
 
-        ignore_start(prefix, '.')
-        ignore_directory(prefix, 'docs')
-        ignore_directory(prefix, 'tests')
-    return sorted(result), sorted(ignored_files)
+    def _ignore_directory(self, prefix: str, directory: str):
+        directory = directory.rstrip('/') + '/'
+        matching_files = [file for file in self._all_files if file.startswith(directory)]
+        if matching_files:
+            package, _ = self._get_package(prefix + directory, is_directory=True)
+            self._excluded_packages.add(package)
+            self._excluded_packages.add(package + '.*')
+            parent_package = self._get_parent_package(package)
+            self._result[parent_package].add(directory + '*')
+            self._ignored_files.update([prefix + file for file in matching_files])
+
+    def __init__(self,
+                 collection_names: Collection[str],
+                 collection_root: str):
+        self.collection_names = collection_names
+        self.collection_root = collection_root
+
+        self._ignored_files: set[str] = set()
+        self._result: dict[str, set[str]] = defaultdict(set)
+        self._excluded_packages: set[str] = set()
+        for collection_name in collection_names:
+            namespace, name = collection_name.split('.', 1)
+            prefix = f"{namespace}/{name}/"
+
+            collection_dir = os.path.join(collection_root, namespace, name)
+            self._all_files = []
+            for directory, _, files in os.walk(collection_dir):
+                directory = os.path.relpath(directory, collection_dir)
+                for file in files:
+                    self._all_files.append(os.path.normpath(os.path.join(directory, file)))
+
+            self._ignore_start(prefix, '.')
+            self._ignore_directory(prefix, 'docs')
+            self._ignore_directory(prefix, 'tests')
+
+        self.exclude_paths = {package: sorted(files) for package, files in self._result.items()}
+        self.exclude_packages = sorted(self._excluded_packages)
+        self.ignored_files = sorted(self._ignored_files)
 
 
 def rebuild_single_command() -> int:
@@ -570,11 +630,11 @@ def rebuild_single_command() -> int:
         release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
         release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
-        # pylint:disable-next=unused-variable
-        collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
+        # Compile excluded packages and paths
+        exclude_paths_compiler = CollectionExcludePathsCompiler(
             dependency_data.deps, ansible_collections_dir)
 
-        # TODO: do something with collection_ignored_files
+        # TODO: do something with exclude_paths_compiler.ignored_files
 
         # Write build scripts and files
         tags_path: str | None = None
@@ -583,7 +643,9 @@ def rebuild_single_command() -> int:
                                      app_ctx.extra['tags_file'])
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
-                                 collection_exclude_paths, '', package_dir, release_notes,
+                                 exclude_paths_compiler.exclude_paths,
+                                 exclude_paths_compiler.exclude_packages, '',
+                                 package_dir, release_notes,
                                  app_ctx.extra['debian'], python_requires, tags_path)
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
@@ -719,7 +781,7 @@ def build_multiple_command() -> int:
         collection_deps_str = '\n' + ',\n'.join(collection_deps)
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
-                                 [], collection_deps_str, package_dir,
+                                 {}, [], collection_deps_str, package_dir,
                                  python_requires=python_requires)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])

@@ -1,0 +1,2 @@
+minor_changes:
+  - "Make compatible with deprecations issued by the latest setuptools release (https://github.com/ansible-community/antsibull/issues/433, https://github.com/ansible-community/antsibull/pull/434)."

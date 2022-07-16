@@ -5,7 +5,7 @@
 
 import os
 import sys
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 {%- if version.major < 6 %}
 
@@ -174,14 +174,27 @@ setup(
     },
     license='GPLv3+',
     python_requires='{{ python_requires }}',
-    packages=['ansible_collections'],
-{% if version.major >= 6 and collection_exclude_paths %}
-    exclude_package_data={
-        'ansible_collections': [
-{%-  for path in collection_exclude_paths %}
+    packages=find_namespace_packages(
+        where='.',
+        include=['ansible_collections', 'ansible_collections.*'],
+{%- if version.major >= 6 and collection_exclude_packages %}
+        exclude=[
+{%-   for path in collection_exclude_packages %}
             '{{ path }}',
-{%-  endfor %}
+{%-   endfor %}
         ],
+    ),
+{%- endif %}
+    package_dir={'ansible_collections': 'ansible_collections'},
+{%- if version.major >= 6 and collection_exclude_paths %}
+    exclude_package_data={
+{%-   for package, paths in collection_exclude_paths | dictsort %}
+        '{{ package }}': [
+{%-     for path in paths %}
+            '{{ path }}',
+{%-     endfor %}
+        ],
+{%-   endfor %}
     },
 {%- endif %}
     include_package_data=True,
