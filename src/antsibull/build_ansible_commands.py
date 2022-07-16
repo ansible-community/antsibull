@@ -154,7 +154,7 @@ def write_manifest(package_dir: str,
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
     with open(manifest_file, 'w', encoding='utf-8') as f:
         f.write('include COPYING\n')
-        f.write('include README\n')
+        f.write('include README.rst\n')
         f.write('include build-ansible.sh\n')
         if release_notes:
             f.write(f'include {release_notes.changelog_filename}\n')
