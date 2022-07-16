@@ -538,6 +538,13 @@ def rebuild_single_command() -> int:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)
 
+        if app_ctx.extra.get('sdist_src_dir'):
+            shutil.copytree(
+                package_dir,
+                app_ctx.extra['sdist_src_dir'],
+                symlinks=True,
+                ignore_dangling_symlinks=True)
+
         # Create source distribution
         if app_ctx.extra["ansible_version"].major < 6:
             make_dist(package_dir, app_ctx.extra['sdist_dir'])

@@ -169,6 +169,10 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         if not os.path.isdir(args.sdist_dir):
             raise InvalidArgumentError(f'{args.sdist_dir} must be an existing directory')
 
+    if args.command in ('rebuild-single', ) and args.sdist_src_dir is not None:
+        if os.path.exists(args.sdist_src_dir):
+            raise InvalidArgumentError(f'{args.sdist_src_dir} must not exist')
+
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
     if args.command not in ('rebuild-single', ):
@@ -300,6 +304,10 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     rebuild_single_parser.add_argument('--debian', action='store_true',
                                        help='Include Debian/Ubuntu packaging files in'
                                        ' the resulting output directory')
+    rebuild_single_parser.add_argument('--sdist-src-dir',
+                                       help='Copy the files from which the source distribution is'
+                                       ' created to the specified directory. This is mainly useful'
+                                       ' for debugging antsibull-build')
 
     build_multiple_parser = subparsers.add_parser('multiple',
                                                   parents=[build_write_data_parser, cache_parser,
