@@ -1,0 +1,2 @@
+minor_changes:
+  - "Show warnings emitted by building the source distribution and/or wheels (https://github.com/ansible-community/antsibull/pull/434)."

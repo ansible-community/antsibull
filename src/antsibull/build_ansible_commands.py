@@ -26,6 +26,7 @@ from antsibull_core.ansible_core import get_ansible_core_package_name, AnsibleCo
 from antsibull_core.collections import install_separately, install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
+from antsibull_core.logging import log
 from antsibull_core.utils.io import write_file
 from antsibull_core.yaml import store_yaml_file
 
@@ -33,6 +34,9 @@ from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
 from .utils.get_pkg_data import get_antsibull_data
+
+
+mlog = log.fields(mod=__name__)
 
 
 #
@@ -257,9 +261,20 @@ def write_galaxy_requirements(filename: str, included_versions: t.Mapping[str, s
     })
 
 
+def show_warnings(result: sh.RunningCommand, **kwargs) -> None:
+    stderr = result.stderr.decode('utf-8').strip()
+    if stderr:
+        logger = mlog.fields(**kwargs)
+        for line in stderr.splitlines():
+            logger.warning(line)
+
+
 def make_dist(ansible_dir: str, dest_dir: str) -> None:
-    # pyre-ignore[16]
-    sh.python('setup.py', 'sdist', _cwd=ansible_dir)  # pylint:disable=no-member
+    show_warnings(
+        # pyre-ignore[16], pylint:disable-next=no-member
+        sh.python('setup.py', 'sdist', _cwd=ansible_dir),
+        func='make_dist',
+    )
     dist_dir = os.path.join(ansible_dir, 'dist')
     files = os.listdir(dist_dir)
     if len(files) != 1:
@@ -269,8 +284,11 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
 
 
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
-    # pyre-ignore[16]
-    sh.python('setup.py', 'sdist', 'bdist_wheel', _cwd=ansible_dir)  # pylint:disable=no-member
+    show_warnings(
+        # pyre-ignore[16], pylint:disable-next=no-member
+        sh.python('setup.py', 'sdist', 'bdist_wheel', _cwd=ansible_dir),
+        func='make_dist_with_wheels',
+    )
     dist_dir = os.path.join(ansible_dir, 'dist')
     files = os.listdir(dist_dir)
     tarball_count = 0
