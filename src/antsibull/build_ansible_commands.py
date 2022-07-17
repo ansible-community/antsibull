@@ -342,7 +342,8 @@ def build_single_command() -> int:
 
 def _is_alpha(version: PypiVer) -> bool:
     """Test whether the provided version is an alpha version."""
-    return version.is_prerelease and version.pre[0] == 'a'
+    pre = version.pre
+    return version.is_prerelease and pre is not None and pre[0] == 'a'
 
 
 def prepare_command() -> int:
