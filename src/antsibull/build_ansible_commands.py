@@ -45,7 +45,8 @@ mlog = log.fields(mod=__name__)
 
 
 async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
-                                          client: AnsibleCorePyPiClient) -> t.Optional[PypiVer]:
+                                          client: AnsibleCorePyPiClient,
+                                          pre: bool = False) -> t.Optional[PypiVer]:
     """
     Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
 
@@ -57,6 +58,7 @@ async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
     newer_versions = [
         version for version in all_versions
         if ansible_core_version <= version < next_version
+        and (pre or not version.is_prerelease)
     ]
     return max(newer_versions) if newer_versions else None
 
@@ -64,6 +66,7 @@ async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
 async def get_collection_and_core_versions(deps: t.Mapping[str, str],
                                            ansible_core_version: t.Optional[PypiVer],
                                            galaxy_url: str,
+                                           ansible_core_allow_prerelease: bool = False,
                                            ) -> t.Tuple[t.Dict[str, SemVer], t.Optional[PypiVer]]:
     """
     Retrieve the latest version of each collection.
@@ -72,6 +75,7 @@ async def get_collection_and_core_versions(deps: t.Mapping[str, str],
     :arg ansible_core_version: Optional ansible-core version. Will search for the latest bugfix
         release.
     :arg galaxy_url: The url for the galaxy server to use.
+    :arg ansible_core_allow_prerelease: Whether to allow prereleases for ansible-core
     :returns: Tuple consisting of a dict mapping collection name to latest version, and of the
         ansible-core version if it was provided.
     """
@@ -85,7 +89,8 @@ async def get_collection_and_core_versions(deps: t.Mapping[str, str],
                     client.get_latest_matching_version(collection_name, version_spec, pre=True))
             if ansible_core_version:
                 requestors['_ansible_core'] = await pool.spawn(get_latest_ansible_core_version(
-                    ansible_core_version, AnsibleCorePyPiClient(aio_session)))
+                    ansible_core_version, AnsibleCorePyPiClient(aio_session),
+                    pre=ansible_core_allow_prerelease))
 
             responses = await asyncio.gather(*requestors.values())
 
@@ -335,6 +340,11 @@ def build_single_command() -> int:
     return rebuild_single_command()
 
 
+def _is_alpha(version: PypiVer) -> bool:
+    """Test whether the provided version is an alpha version."""
+    return version.is_prerelease and version.pre[0] == 'a'
+
+
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
@@ -372,7 +382,9 @@ def prepare_command() -> int:
             deps[collection_name] = ','.join(new_clauses)
 
     included_versions, new_ansible_core_version = asyncio.run(
-        get_collection_and_core_versions(deps, ansible_core_version, app_ctx.galaxy_url))
+        get_collection_and_core_versions(
+            deps, ansible_core_version, app_ctx.galaxy_url,
+            ansible_core_allow_prerelease=_is_alpha(app_ctx.extra['ansible_version'])))
     if new_ansible_core_version:
         ansible_core_version = new_ansible_core_version
 
