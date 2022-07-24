@@ -1,0 +1,2 @@
+minor_changes:
+  - "The files in the source repository now follow the `REUSE Specification <https://reuse.software/spec/>`_. The only exceptions are changelog fragments in ``changelogs/fragments/`` (https://github.com/ansible-community/antsibull/pull/437)."
