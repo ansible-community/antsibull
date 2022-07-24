@@ -1,0 +1,5 @@
+bugfixes:
+  - When preparing a new Ansible release, only use pre-releases for ansible-core when the
+    Ansible release itself is an alpha pre-release. This encodes that the first beta release of
+    a new major Ansible release coincides with the ansible-core GA
+    (https://github.com/ansible-community/antsibull/pull/436).
