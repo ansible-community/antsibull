@@ -2,7 +2,8 @@
 # Author: Felix Fontein <tkuratom@redhat.com>
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
-# Copyright: Ansible Project, 2020
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Ansible Project, 2020
 """Build Ansible changelog and porting guide."""
 
 import os

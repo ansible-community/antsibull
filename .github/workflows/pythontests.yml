@@ -1,3 +1,8 @@
+---
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # This workflow will install a variety of Python versions and other
 # dependencies to run tests. For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions

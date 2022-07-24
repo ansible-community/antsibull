@@ -1,7 +1,8 @@
 # coding: utf-8
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # License: GPLv3+
-# Copyright: Ansible Project, 2021
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Ansible Project, 2021
 """Check collection dependencies."""
 
 import json
