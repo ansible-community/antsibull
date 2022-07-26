@@ -1,6 +1,5 @@
 # Author: Felix Fontein <felix@fontein.de>
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
-# License: GPLv3+
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Helper to use pkgutil.get_data without having to check the return value."""

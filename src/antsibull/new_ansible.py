@@ -1,6 +1,5 @@
 # coding: utf-8
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
-# License: GPLv3+
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Build command for creating a new major Ansible version."""

@@ -1,7 +1,6 @@
 # coding: utf-8
 # Author: Felix Fontein <tkuratom@redhat.com>
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
-# License: GPLv3+
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Changelog handling and processing code."""
