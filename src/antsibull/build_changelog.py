@@ -1,4 +1,3 @@
-# coding: utf-8
 # Author: Felix Fontein <felix@fontein.de>
 # Author: Toshio Kuratomi <tkuratom@redhat.com>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or
