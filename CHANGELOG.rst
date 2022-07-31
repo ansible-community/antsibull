@@ -5,6 +5,33 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.49.0
+=======
+
+Release Summary
+---------------
+
+Bugfix and feature release containing breaking changes in the release role.
+
+Minor Changes
+-------------
+
+- Allow to copy the files used to create the source distribution and wheels to a new directory during ``antsibull-build rebuild-single`` (https://github.com/ansible-community/antsibull/pull/435).
+- Perform minor refactoring of the ``build-release`` role, mostly concerning ``tasks/tests.yml``. This reduces use of ``shell`` and ``set_fact``, makes the role more robust, and replaces short names with FQCNs (https://github.com/ansible-community/antsibull/pull/432).
+- Show warnings emitted by building the source distribution and/or wheels (https://github.com/ansible-community/antsibull/pull/435).
+- The files in the source repository now follow the `REUSE Specification <https://reuse.software/spec/>`_. The only exceptions are changelog fragments in ``changelogs/fragments/`` (https://github.com/ansible-community/antsibull/pull/437).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- The ``build-release`` role now depends on the ``community.general`` collection (https://github.com/ansible-community/antsibull/pull/432).
+
+Bugfixes
+--------
+
+- Fix typo in generated MANIFEST.in to list the existing file ``README.rst`` instead of the non-existing file ``README`` (https://github.com/ansible-community/antsibull/pull/435).
+- When preparing a new Ansible release, only use pre-releases for ansible-core when the Ansible release itself is an alpha pre-release. This encodes that the first beta release of a new major Ansible release coincides with the ansible-core GA (https://github.com/ansible-community/antsibull/pull/436).
+
 v0.48.0
 =======
 

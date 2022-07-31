@@ -421,6 +421,36 @@ releases:
     - 430-prepare-ansible-core-version.yml
     - 431-role.yml
     release_date: '2022-06-18'
+  0.49.0:
+    changes:
+      breaking_changes:
+      - The ``build-release`` role now depends on the ``community.general`` collection
+        (https://github.com/ansible-community/antsibull/pull/432).
+      bugfixes:
+      - Fix typo in generated MANIFEST.in to list the existing file ``README.rst``
+        instead of the non-existing file ``README`` (https://github.com/ansible-community/antsibull/pull/435).
+      - When preparing a new Ansible release, only use pre-releases for ansible-core
+        when the Ansible release itself is an alpha pre-release. This encodes that
+        the first beta release of a new major Ansible release coincides with the ansible-core
+        GA (https://github.com/ansible-community/antsibull/pull/436).
+      minor_changes:
+      - Allow to copy the files used to create the source distribution and wheels
+        to a new directory during ``antsibull-build rebuild-single`` (https://github.com/ansible-community/antsibull/pull/435).
+      - Perform minor refactoring of the ``build-release`` role, mostly concerning
+        ``tasks/tests.yml``. This reduces use of ``shell`` and ``set_fact``, makes
+        the role more robust, and replaces short names with FQCNs (https://github.com/ansible-community/antsibull/pull/432).
+      - Show warnings emitted by building the source distribution and/or wheels (https://github.com/ansible-community/antsibull/pull/435).
+      - The files in the source repository now follow the `REUSE Specification <https://reuse.software/spec/>`_.
+        The only exceptions are changelog fragments in ``changelogs/fragments/`` (https://github.com/ansible-community/antsibull/pull/437).
+      release_summary: Bugfix and feature release containing breaking changes in the
+        release role.
+    fragments:
+    - 0.49.0.yml
+    - 432-build-release-role-minor-refactoring.yml
+    - 435-setup.py.yml
+    - 436-ansible-core-prereleases.yml
+    - 437-licenses.yml
+    release_date: '2022-07-31'
   0.5.0:
     release_date: '2020-06-02'
   0.6.0:

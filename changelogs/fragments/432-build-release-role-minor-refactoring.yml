@@ -1,5 +1,0 @@
----
-breaking_changes:
-  - The ``build-release`` role now depends on the ``community.general`` collection (https://github.com/ansible-community/antsibull/pull/432).
-minor_changes:
-  - Perform minor refactoring of the ``build-release`` role, mostly concerning ``tasks/tests.yml``. This reduces use of ``shell`` and ``set_fact``, makes the role more robust, and replaces short names with FQCNs (https://github.com/ansible-community/antsibull/pull/432).
