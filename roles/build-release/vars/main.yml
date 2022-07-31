@@ -1,4 +1,8 @@
 ---
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Note: the value is either _ansible_base_version or _ansible_core_version depending on the version
 # ex: https://github.com/ansible-community/ansible-build-data/blob/main/4/ansible-4.4.0.deps
 # Variables that start with `_` are intermediate variables that are `register`ed in the playbook.

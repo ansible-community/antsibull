@@ -1,3 +1,8 @@
+..
+  Copyright (c) Ansible Project
+  GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+  SPDX-License-Identifier: GPL-3.0-or-later
+
 .. automodule:: antsibull.schemas.docs.base
 
 There is a dictionary named ANSIBLE_DOC_SCHEMAS to allow you easier access to these

@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 set -e
 
 PURELIB=$(poetry run python -c 'from distutils.sysconfig import get_python_lib;print(get_python_lib(0))')
