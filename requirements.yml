@@ -5,6 +5,4 @@
 
 # roles/build-release is dependent on community.general collection
 collections:
-  - name: https://github.com/ansible-collections/community.general.git
-    type: git
-    version: main
+  - name: community.general
