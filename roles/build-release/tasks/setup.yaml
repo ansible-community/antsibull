@@ -17,3 +17,10 @@
     force: true
   # By setting antsibull_data_reset to false, we can run with an edited or otherwise prepared version of ansible-build-data
   when: antsibull_data_reset | bool
+
+- name: Ensure {{ antsibull_data_git_dir }} exists when antsibull_data_reset variable is set to false
+  ansible.builtin.stat:
+    path: "{{ antsibull_data_git_dir }}"
+  register: antsibull_data_directory
+  failed_when: not antsibull_data_directory.stat.exists
+  when: not (antsibull_data_reset | bool)
