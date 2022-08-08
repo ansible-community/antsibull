@@ -1,0 +1,4 @@
+---
+# roles/build-release is dependent on community.general collection
+collections:
+  - community.general
