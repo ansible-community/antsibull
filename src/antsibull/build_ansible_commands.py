@@ -562,7 +562,7 @@ def rebuild_single_command() -> int:
         dep_errors = check_collection_dependencies(os.path.join(package_dir, 'ansible_collections'))
 
         if dep_errors:
-            is_error = app_ctx.extra["ansible_version"].major >= PypiVer('6.3.0')
+            is_error = app_ctx.extra["ansible_version"] >= PypiVer('6.3.0')
             warning_error = 'ERROR' if is_error else 'WARNING'
             print(f'{warning_error}: found collection dependency errors!')
             for error in dep_errors:
