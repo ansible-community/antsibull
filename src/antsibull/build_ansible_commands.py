@@ -557,19 +557,23 @@ def rebuild_single_command() -> int:
                 symlinks=True,
                 ignore_dangling_symlinks=True)
 
+        # Check dependencies
+        dep_errors = check_collection_dependencies(os.path.join(package_dir, 'ansible_collections'))
+
+        if dep_errors:
+            is_error = app_ctx.extra["ansible_version"] >= PypiVer('6.3.0')
+            warning_error = 'ERROR' if is_error else 'WARNING'
+            print(f'{warning_error}: found collection dependency errors!')
+            for error in dep_errors:
+                print(f'{warning_error}: {error}')
+            if is_error:
+                return 3
+
         # Create source distribution
         if app_ctx.extra["ansible_version"].major < 6:
             make_dist(package_dir, app_ctx.extra['sdist_dir'])
         else:
             make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
-
-        # Check dependencies
-        dep_errors = check_collection_dependencies(os.path.join(package_dir, 'ansible_collections'))
-
-        if dep_errors:
-            print('WARNING: found collection dependency errors!')
-            for error in dep_errors:
-                print(f'WARNING: {error}')
 
     return 0
 
