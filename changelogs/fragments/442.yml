@@ -1,3 +1,3 @@
 ---
 minor_changes:
-  - "The ``build-release`` role fails to execute when ``./build/antsibull-build-data`` doesn't exist and when the antsibull_data_reset variable is set to false (https://github.com/ansible-community/antsibull/pull/442)."
+  - "The ``build-release`` role fails to execute when ``./build/antsibull-build-data`` doesn't exist and when the ``antsibull_data_reset`` variable is set to ``false`` (https://github.com/ansible-community/antsibull/pull/442)."
