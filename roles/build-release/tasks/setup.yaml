@@ -22,4 +22,5 @@
   ansible.builtin.stat:
     path: "{{ antsibull_data_git_dir }}"
   register: antsibull_data_directory
-  failed_when: antsibull_data_reset == 0 and antsibull_data_directory.stat.exists == 0
+  failed_when: not antsibull_data_directory.stat.exists
+  when: not (antsibull_data_reset | bool)
