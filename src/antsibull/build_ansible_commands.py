@@ -700,6 +700,9 @@ def build_multiple_command() -> int:
     # Write the deps file
     deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
-    deps_file.write(app_ctx.extra['ansible_version'], ansible_core_version, included_versions)
+    deps_file.write(
+        str(app_ctx.extra['ansible_version']),
+        str(ansible_core_version),
+        {collection: str(version) for collection, version in included_versions.items()})
 
     return 0
