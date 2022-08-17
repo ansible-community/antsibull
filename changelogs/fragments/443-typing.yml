@@ -1,0 +1,2 @@
+bugfixes:
+  - "Fix typing errors in the ``multiple`` subcommand (https://github.com/ansible-community/antsibull/pull/443)."
