@@ -14,7 +14,7 @@ from functools import partial
 
 import aiofiles
 import aiohttp
-import asyncio_pool
+import asyncio_pool  # type: ignore[import]
 import sh
 from jinja2 import Template
 from packaging.version import Version as PypiVer
@@ -351,7 +351,7 @@ def prepare_command() -> int:
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
     build_ansible_version, ansible_core_version, deps = build_file.parse()
-    ansible_core_version = PypiVer(ansible_core_version)
+    ansible_core_version_obj = PypiVer(ansible_core_version)
 
     # If we're building a feature frozen release (betas and rcs) then we need to
     # change the upper version limit to not include new features.
@@ -359,12 +359,12 @@ def prepare_command() -> int:
         old_deps, deps = deps, {}
         # For each collection that's listed...
         for collection_name, spec in old_deps.items():
-            spec = SemVerSpec(spec)
+            spec_obj = SemVerSpec(spec)
             new_clauses = []
             min_version = None
 
             # Look at each clause of the version specification
-            for clause in spec.clause.clauses:
+            for clause in spec_obj.clause.clauses:
                 if clause.operator in ('<', '<='):
                     # Omit the upper bound as we're replacing it
                     continue
@@ -376,17 +376,17 @@ def prepare_command() -> int:
                 new_clauses.append(str(clause))
 
             if min_version is None:
-                raise ValueError(f'No minimum version specified for {collection_name}: {spec}')
+                raise ValueError(f'No minimum version specified for {collection_name}: {spec_obj}')
 
             new_clauses.append(f'<{min_version.major}.{min_version.minor + 1}.0')
             deps[collection_name] = ','.join(new_clauses)
 
     included_versions, new_ansible_core_version = asyncio.run(
         get_collection_and_core_versions(
-            deps, ansible_core_version, app_ctx.galaxy_url,
+            deps, ansible_core_version_obj, app_ctx.galaxy_url,
             ansible_core_allow_prerelease=_is_alpha(app_ctx.extra['ansible_version'])))
     if new_ansible_core_version:
-        ansible_core_version = new_ansible_core_version
+        ansible_core_version_obj = new_ansible_core_version
 
     if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
         print(f'{build_filename} is for version {build_ansible_version} but we need'
@@ -396,7 +396,7 @@ def prepare_command() -> int:
 
     dependency_data = DependencyFileData(
         str(app_ctx.extra['ansible_version']),
-        str(ansible_core_version),
+        str(ansible_core_version_obj),
         {collection: str(version) for collection, version in included_versions.items()})
 
     # Get Ansible changelog, add new release
@@ -430,7 +430,7 @@ def compile_collection_exclude_paths(collection_names: t.Collection[str],
                                      collection_root: str) -> t.Tuple[t.List[str], t.List[str]]:
     result = set()
     ignored_files = set()
-    all_files = []
+    all_files: t.List[str] = []
     for collection_name in collection_names:
         namespace, name = collection_name.split('.', 1)
         prefix = f"{namespace}/{name}/"
@@ -650,7 +650,7 @@ def build_multiple_command() -> int:
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
     build_ansible_version, ansible_core_version, deps = build_file.parse()
-    ansible_core_version = PypiVer(ansible_core_version)
+    ansible_core_version_obj = PypiVer(ansible_core_version)
 
     # TODO: implement --feature-frozen support
 
@@ -690,10 +690,10 @@ def build_multiple_command() -> int:
         collection_deps = []
         for collection, version in sorted(included_versions.items()):
             collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
-        collection_deps = '\n' + ',\n'.join(collection_deps)
-        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
-                                 [], collection_deps, package_dir)
+        collection_deps_str = '\n' + ',\n'.join(collection_deps)
+        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
+        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
+                                 [], collection_deps_str, package_dir)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
@@ -702,7 +702,7 @@ def build_multiple_command() -> int:
     deps_file = DepsFile(deps_filename)
     deps_file.write(
         str(app_ctx.extra['ansible_version']),
-        str(ansible_core_version),
+        str(ansible_core_version_obj),
         {collection: str(version) for collection, version in included_versions.items()})
 
     return 0

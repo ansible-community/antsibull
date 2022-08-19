@@ -17,8 +17,7 @@ import tempfile
 import typing as t
 
 import aiohttp
-import asyncio_pool
-import yaml
+import asyncio_pool  # type: ignore[import]
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
 
@@ -31,6 +30,7 @@ from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
 from antsibull_core.dependency_files import DepsFile, DependencyFileData
 from antsibull_core.galaxy import CollectionDownloader
+from antsibull_core.yaml import load_yaml_bytes, load_yaml_file
 
 
 class ChangelogData:
@@ -163,10 +163,10 @@ class CollectionChangelogCollector:
                              collection_downloader: CollectionDownloader
                              ) -> t.Optional[ChangelogData]:
         path = await collection_downloader.download(self.collection, version)
-        changelog = read_changelog_file(path)
-        if changelog is None:
+        changelog_bytes = read_changelog_file(path)
+        if changelog_bytes is None:
             return None
-        changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
+        changelog_data = load_yaml_bytes(changelog_bytes)
         return ChangelogData.collection(self.collection, str(version), changelog_data)
 
     async def _download_changelog_stream(self, start_version: SemVer,
@@ -245,15 +245,15 @@ class AnsibleCoreChangelogCollector:
             for root, dummy, files in os.walk(path):
                 if 'changelog.yaml' in files:
                     with open(os.path.join(root, 'changelog.yaml'), 'rb') as f:
-                        changelog = f.read()
-                    changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
+                        changelog_bytes = f.read()
+                    changelog_data = load_yaml_bytes(changelog_bytes)
                     changelog = ChangelogData.ansible_core(changelog_data)
             return changelog
         if os.path.isfile(path) and path.endswith('.tar.gz'):
-            changelog = read_changelog_file(path, is_ansible_core=True)
-            if changelog is None:
+            maybe_changelog_bytes = read_changelog_file(path, is_ansible_core=True)
+            if maybe_changelog_bytes is None:
                 return None
-            changelog_data = yaml.load(changelog, Loader=yaml.SafeLoader)
+            changelog_data = load_yaml_bytes(maybe_changelog_bytes)
             return ChangelogData.ansible_core(changelog_data)
         return None
 
@@ -408,8 +408,7 @@ class CollectionsMetadata:
         if deps_dir is not None:
             collection_meta_path = os.path.join(deps_dir, 'collection-meta.yaml')
             if os.path.exists(collection_meta_path):
-                with open(collection_meta_path, 'rb') as collection_meta_file:
-                    data = yaml.load(collection_meta_file, Loader=yaml.SafeLoader)
+                data = load_yaml_file(collection_meta_path)
                 if data and 'collections' in data:
                     for collection_name, collection_data in data['collections'].items():
                         self.data[collection_name] = CollectionMetadata(collection_data)
