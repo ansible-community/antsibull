@@ -46,12 +46,13 @@ cryptography = "*"
 codecov = "*"
 flake8 = ">= 3.8.0"
 mypy = "*"
-# https://github.com/facebook/pyre-check/issues/398
-pyre-check = "^0.0.46"
+pyre-check = "^0.9.15"
 pylint = "^2.12.0"
 pytest = "*"
 pytest-asyncio = ">= 0.12"
 pytest-cov = "*"
+types-docutils = "*"
+types-PyYAML = "*"
 # For development, we install dependent projects under our control in dev mode:
 antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
 antsibull-core = { path = "../antsibull-core/", develop = true }

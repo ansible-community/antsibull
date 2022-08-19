@@ -10,7 +10,7 @@ import os.path
 import sys
 from typing import List
 
-import twiggy
+import twiggy  # type: ignore[import]
 from packaging.version import Version as PypiVer
 
 from antsibull_core.logging import log, initialize_app_logging
@@ -351,19 +351,19 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     subparsers.add_parser('build-multiple', add_help=False, parents=[build_multiple_parser])
     subparsers.add_parser('build-collection', add_help=False, parents=[collection_parser])
 
-    args: argparse.Namespace = parser.parse_args(args)
+    parsed_args: argparse.Namespace = parser.parse_args(args)
 
     # Validation and coercion
-    normalize_toplevel_options(args)
-    _normalize_commands(args)
-    _normalize_build_options(args)
-    _normalize_build_write_data_options(args)
-    _normalize_new_release_options(args)
-    _normalize_release_build_options(args)
-    _normalize_release_rebuild_options(args)
-    _normalize_collection_build_options(args)
+    normalize_toplevel_options(parsed_args)
+    _normalize_commands(parsed_args)
+    _normalize_build_options(parsed_args)
+    _normalize_build_write_data_options(parsed_args)
+    _normalize_new_release_options(parsed_args)
+    _normalize_release_build_options(parsed_args)
+    _normalize_release_rebuild_options(parsed_args)
+    _normalize_collection_build_options(parsed_args)
 
-    return args
+    return parsed_args
 
 
 def run(args: List[str]) -> int:
@@ -379,20 +379,20 @@ def run(args: List[str]) -> int:
 
     program_name = os.path.basename(args[0])
     try:
-        args: argparse.Namespace = parse_args(program_name, args[1:])
+        parsed_args: argparse.Namespace = parse_args(program_name, args[1:])
     except InvalidArgumentError as e:
         print(e)
         return 2
 
-    cfg = load_config(args.config_file)
+    cfg = load_config(parsed_args.config_file)
     flog.fields(config=cfg).info('Config loaded')
 
-    context_data = app_context.create_contexts(args=args, cfg=cfg)
+    context_data = app_context.create_contexts(args=parsed_args, cfg=cfg)
     with app_context.app_and_lib_context(context_data) as (app_ctx, dummy_):
         twiggy.dict_config(app_ctx.logging_cfg.dict())
         flog.debug('Set logging config')
 
-        return ARGS_MAP[args.command]()
+        return ARGS_MAP[parsed_args.command]()
 
 
 def main() -> int:

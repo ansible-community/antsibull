@@ -9,7 +9,7 @@ import asyncio
 import os
 
 import aiohttp
-import asyncio_pool
+import asyncio_pool  # type: ignore[import]
 import semantic_version as semver
 
 from antsibull_core import app_context

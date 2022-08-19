@@ -73,9 +73,9 @@ def _add_rst_table_row(builder: RstBuilder, column_widths: t.List[int], row: t.L
             if j >= len(lines):
                 lines.append([''] * len(column_widths))
             lines[j][i] = line
-    for line in lines:
+    for cells in lines:
         parts = ['|']
-        for j, cell in enumerate(line):
+        for j, cell in enumerate(cells):
             parts.append(' ' + cell + ' ' * (1 + column_widths[j] - len(cell)) + '|')
         builder.add_raw_rst(''.join(parts))
 
@@ -90,7 +90,7 @@ def _add_rst_table_line(builder: RstBuilder, column_widths: t.List[int], sep: st
 def render_rst_table(builder: RstBuilder, headings: t.List[str],
                      cells: t.List[t.List[str]]) -> None:
     # Determine column widths
-    column_widths = []
+    column_widths: t.List[int] = []
     for row in [headings] + cells:
         while len(row) > len(column_widths):
             column_widths.append(0)
@@ -255,7 +255,7 @@ PluginDumpT = t.List[t.Tuple[t.List[str], str, str]]
 
 
 def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
-    last_title = []
+    last_title: t.List[str] = []
     for title, name, description in sorted(items):
         if title != last_title:
             if last_title:
@@ -375,7 +375,7 @@ def append_changelog(builder: RstBuilder,
     for section, section_title in DEFAULT_SECTIONS:
         maybe_add_section_title = create_title_adder(builder, section_title, 1)
 
-        for name, dummy, dummy, release_entry in data:
+        for name, dummy, dummy2, release_entry in data:
             if not release_entry or release_entry.has_no_changes([section]):
                 continue
 
@@ -557,8 +557,8 @@ class ReleaseNotes:
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
         if changelog.ansible_version.major > 2:
             version = f"{changelog.ansible_version.major}"
-            core_version = changelog.core_collector.latest
-            core_version = f"{core_version.major}.{core_version.minor}"
+            core_version_obj = changelog.core_collector.latest
+            core_version = f"{core_version_obj.major}.{core_version_obj.minor}"
         else:
             version = f"{changelog.ansible_version.major}.{changelog.ansible_version.minor}"
             core_version = f"{changelog.ansible_version.major}.{changelog.ansible_version.minor}"
@@ -621,8 +621,8 @@ class ReleaseNotes:
         if any(entry.is_ancestor for entry in changelog.entries):
             # If there is an ancestor, the earliest ansible-core version will be the
             # version used in the previous major release.
-            prev_core_version = changelog.core_collector.earliest
-            prev_core_version = f"{prev_core_version.major}.{prev_core_version.minor}"
+            prev_core_version_obj = changelog.core_collector.earliest
+            prev_core_version = f"{prev_core_version_obj.major}.{prev_core_version_obj.minor}"
 
         # Determine whether to include ansible-core porting guide or not
         if changelog.ansible_version.major == 2 or core_version != prev_core_version:

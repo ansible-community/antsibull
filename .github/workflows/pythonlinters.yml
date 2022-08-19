@@ -79,9 +79,8 @@ jobs:
         working-directory: antsibull
         if: always()
 
-      # note: mypy is run informationally, never to fail the build
       - name: Lint with mypy
         run: |
-          ./lint-mypy.sh || :
+          ./lint-mypy.sh
         working-directory: antsibull
         if: always()
