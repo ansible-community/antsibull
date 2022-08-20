@@ -23,7 +23,7 @@ from antsibull_core import app_context  # noqa: E402
 from antsibull_core.args import (  # noqa: E402
     InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
 )
-from antsibull_core.config import load_config  # noqa: E402
+from antsibull_core.config import ConfigError, load_config  # noqa: E402
 
 from ..build_collection import build_collection_command  # noqa: E402
 from ..build_ansible_commands import (  # noqa: E402
@@ -384,14 +384,19 @@ def run(args: List[str]) -> int:
         print(e)
         return 2
 
-    cfg = load_config(parsed_args.config_file)
-    flog.fields(config=cfg).info('Config loaded')
+    try:
+        cfg = load_config(parsed_args.config_file)
+        flog.fields(config=cfg).info('Config loaded')
+    except ConfigError as e:
+        print(e)
+        return 2
 
     context_data = app_context.create_contexts(args=parsed_args, cfg=cfg)
     with app_context.app_and_lib_context(context_data) as (app_ctx, dummy_):
         twiggy.dict_config(app_ctx.logging_cfg.dict())
         flog.debug('Set logging config')
 
+        flog.fields(command=parsed_args.command).info('Action')
         return ARGS_MAP[parsed_args.command]()
 
 
