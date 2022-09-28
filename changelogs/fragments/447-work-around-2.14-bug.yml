@@ -1,0 +1,2 @@
+bugfixes:
+  - "Adjust release role to work around a bug in the current beta version of ansible-core 2.14 (https://github.com/ansible-community/antsibull/pull/447)."

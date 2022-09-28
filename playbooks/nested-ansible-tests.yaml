@@ -42,8 +42,8 @@
 
     - name: Retrieve unavailable collections and modules
       ansible.builtin.set_fact:
-        _unavailable_collections: "{{ _collection_availability.results | selectattr('failed', '==', true) | selectattr('item', '!=', 'testns.testcoll') }}"
-        _unavailable_modules: "{{ _module_availability.results | selectattr('failed', '==', true) | selectattr('item', '!=', 'testns.testcoll.ping') }}"
+        _unavailable_collections: "{{ _collection_availability.results | selectattr('failed', 'eq', true) | selectattr('item', 'ne', 'testns.testcoll') }}"
+        _unavailable_modules: "{{ _module_availability.results | selectattr('failed', 'eq', true) | selectattr('item', 'ne', 'testns.testcoll.ping') }}"
 
     - name: Print unavailable collections
       ansible.builtin.debug:

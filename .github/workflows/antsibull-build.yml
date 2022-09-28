@@ -21,10 +21,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: Ansible 5 with default settings
-            options: '-e antsibull_ansible_version=5.99.0 -e antsibull_ansible_git_version=stable-2.12'
-          - name: Ansible 6 with ansible-core devel
-            options: '-e antsibull_ansible_version=6.99.0 -e antsibull_ansible_git_version=devel'
+          - name: Ansible 6 with default settings
+            options: '-e antsibull_ansible_version=6.99.0 -e antsibull_ansible_git_version=stable-2.13'
+          - name: Ansible 7 with ansible-core devel
+            options: '-e antsibull_ansible_version=7.99.0 -e antsibull_ansible_git_version=devel'
 
     steps:
       - name: Check out antsibull
@@ -50,10 +50,10 @@ jobs:
           repository: ansible-community/antsibull-docs
           path: antsibull-docs
 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
