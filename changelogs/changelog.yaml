@@ -453,6 +453,34 @@ releases:
     release_date: '2022-07-31'
   0.5.0:
     release_date: '2020-06-02'
+  0.50.0:
+    changes:
+      bugfixes:
+      - Adjust release role to work around a bug in the current beta version of ansible-core
+        2.14 (https://github.com/ansible-community/antsibull/pull/447).
+      - Fix typing errors in the ``multiple`` subcommand (https://github.com/ansible-community/antsibull/pull/443).
+      minor_changes:
+      - Added galaxy ``requirements.yml`` file as ``build-release`` role depends on
+        ``community.general`` collection (https://github.com/ansible-community/antsibull/pull/432)
+      - Define minimal Python requirement for Ansible X depending on X, under the
+        assumption that ansible-core's Python requirement is increased by one version
+        every two ansible-core major releases, and that every Ansible major release
+        corresponds to an ansible-core major release from Ansible 5 on (https://github.com/ansible-community/antsibull/pull/448).
+      - The ``build-release`` role fails to execute when ``./build/antsibull-build-data``
+        doesn't exist and when the ``antsibull_data_reset`` variable is set to ``false``
+        (https://github.com/ansible-community/antsibull/pull/442).
+      - When building Ansible 6.3.0 or newer, fail on collection dependency validations
+        (https://github.com/ansible-community/community-topics/issues/94, https://github.com/ansible-community/antsibull/pull/440).
+      release_summary: Feature and bugfix release.
+    fragments:
+    - 0.50.0.yml
+    - 440-fail-on-invalid-dependencies.yml
+    - 441-add-galaxy-requirement-file.yml
+    - 442.yml
+    - 443-typing.yml
+    - 447-work-around-2.14-bug.yml
+    - 448-python-version.yml
+    release_date: '2022-09-29'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

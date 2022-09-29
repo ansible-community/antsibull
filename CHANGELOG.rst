@@ -5,6 +5,28 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.50.0
+=======
+
+Release Summary
+---------------
+
+Feature and bugfix release.
+
+Minor Changes
+-------------
+
+- Added galaxy ``requirements.yml`` file as ``build-release`` role depends on ``community.general`` collection (https://github.com/ansible-community/antsibull/pull/432)
+- Define minimal Python requirement for Ansible X depending on X, under the assumption that ansible-core's Python requirement is increased by one version every two ansible-core major releases, and that every Ansible major release corresponds to an ansible-core major release from Ansible 5 on (https://github.com/ansible-community/antsibull/pull/448).
+- The ``build-release`` role fails to execute when ``./build/antsibull-build-data`` doesn't exist and when the ``antsibull_data_reset`` variable is set to ``false`` (https://github.com/ansible-community/antsibull/pull/442).
+- When building Ansible 6.3.0 or newer, fail on collection dependency validations (https://github.com/ansible-community/community-topics/issues/94, https://github.com/ansible-community/antsibull/pull/440).
+
+Bugfixes
+--------
+
+- Adjust release role to work around a bug in the current beta version of ansible-core 2.14 (https://github.com/ansible-community/antsibull/pull/447).
+- Fix typing errors in the ``multiple`` subcommand (https://github.com/ansible-community/antsibull/pull/443).
+
 v0.49.0
 =======
 

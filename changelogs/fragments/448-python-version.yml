@@ -1,4 +1,0 @@
-minor_changes:
-  - "Define minimal Python requirement for Ansible X depending on X, under the assumption that ansible-core's Python
-     requirement is increased by one version every two ansible-core major releases, and that every Ansible major release
-     corresponds to an ansible-core major release from Ansible 5 on (https://github.com/ansible-community/antsibull/pull/448)."

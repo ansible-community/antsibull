@@ -1,2 +1,0 @@
-minor_changes:
-  - "When building Ansible 6.3.0 or newer, fail on collection dependency validations (https://github.com/ansible-community/community-topics/issues/94, https://github.com/ansible-community/antsibull/pull/440)."

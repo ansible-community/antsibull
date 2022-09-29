@@ -1,3 +1,0 @@
----
-minor_changes:
-  - "Added galaxy ``requirements.yml`` file as ``build-release`` role depends on ``community.general`` collection (https://github.com/ansible-community/antsibull/pull/432)"
