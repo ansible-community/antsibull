@@ -192,7 +192,8 @@ def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
                 collection_exclude_paths: t.List[str],
                 collection_deps: str,
-                package_dir: str) -> None:
+                package_dir: str,
+                python_requires: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
 
     setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
@@ -202,6 +203,7 @@ def write_setup(ansible_version: PypiVer,
         ansible_core_version=ansible_core_version,
         collection_exclude_paths=collection_exclude_paths,
         collection_deps=collection_deps,
+        python_requires=python_requires,
         PypiVer=PypiVer,
     )
 
@@ -215,12 +217,13 @@ def write_python_build_files(ansible_version: PypiVer,
                              collection_deps: str,
                              package_dir: str,
                              release_notes: t.Optional[ReleaseNotes] = None,
-                             debian: bool = False) -> None:
+                             debian: bool = False,
+                             python_requires: str = '>=3.8') -> None:
     copy_boilerplate_files(package_dir)
     write_manifest(package_dir, release_notes, debian)
     write_setup(
         ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
-        package_dir)
+        package_dir, python_requires)
 
 
 def write_debian_directory(ansible_version: PypiVer,
@@ -345,6 +348,24 @@ def _is_alpha(version: PypiVer) -> bool:
     return version.is_prerelease and pre is not None and pre[0] == 'a'
 
 
+def _extract_python_requires(ansible_core_version: PypiVer, deps: t.Dict[str, str]) -> str:
+    python_requires = deps.pop('_python', None)
+    if python_requires is not None:
+        return python_requires
+    if ansible_core_version < PypiVer('2.12.0a'):
+        # Ansible 2.9, ansible-base 2.10, and ansible-core 2.11 support Python 2.7 and Python 3.5+
+        return '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*'
+    if ansible_core_version < PypiVer('2.14.0a'):
+        # ansible-core 2.12 and 2.13 support Python 3.8+
+        return '>=3.8'
+    if ansible_core_version < PypiVer('2.15.0a'):
+        # ansible-core 2.14 supports Python 3.9+
+        return '>=3.9'
+    raise ValueError(
+        f'Python requirements for ansible-core {ansible_core_version} should be part of'
+        ' dependency information')
+
+
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
@@ -352,6 +373,7 @@ def prepare_command() -> int:
     build_file = BuildFile(build_filename)
     build_ansible_version, ansible_core_version, deps = build_file.parse()
     ansible_core_version_obj = PypiVer(ansible_core_version)
+    python_requires = _extract_python_requires(ansible_core_version_obj, deps)
 
     # If we're building a feature frozen release (betas and rcs) then we need to
     # change the upper version limit to not include new features.
@@ -417,7 +439,8 @@ def prepare_command() -> int:
     deps_file.write(
         dependency_data.ansible_version,
         dependency_data.ansible_core_version,
-        dependency_data.deps)
+        dependency_data.deps,
+        python_requires=python_requires)
 
     # Write Galaxy requirements.yml file
     galaxy_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['galaxy_file'])
@@ -473,6 +496,8 @@ def rebuild_single_command() -> int:
     deps_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file'])
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
+    python_requires = _extract_python_requires(
+        PypiVer(dependency_data.ansible_core_version), dependency_data.deps)
 
     # Determine included collection versions
     ansible_core_version = PypiVer(dependency_data.ansible_core_version)
@@ -545,7 +570,7 @@ def rebuild_single_command() -> int:
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
                                  collection_exclude_paths, '', package_dir, release_notes,
-                                 app_ctx.extra['debian'])
+                                 app_ctx.extra['debian'], python_requires)
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)
@@ -651,6 +676,7 @@ def build_multiple_command() -> int:
     build_file = BuildFile(build_filename)
     build_ansible_version, ansible_core_version, deps = build_file.parse()
     ansible_core_version_obj = PypiVer(ansible_core_version)
+    python_requires = _extract_python_requires(ansible_core_version_obj, deps)
 
     # TODO: implement --feature-frozen support
 
@@ -693,7 +719,8 @@ def build_multiple_command() -> int:
         collection_deps_str = '\n' + ',\n'.join(collection_deps)
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
-                                 [], collection_deps_str, package_dir)
+                                 [], collection_deps_str, package_dir,
+                                 python_requires=python_requires)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
 
@@ -703,6 +730,7 @@ def build_multiple_command() -> int:
     deps_file.write(
         str(app_ctx.extra['ansible_version']),
         str(ansible_core_version_obj),
-        {collection: str(version) for collection, version in included_versions.items()})
+        {collection: str(version) for collection, version in included_versions.items()},
+        python_requires=python_requires)
 
     return 0

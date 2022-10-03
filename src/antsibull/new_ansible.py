@@ -10,6 +10,7 @@ import os
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
+from packaging.version import Version as PypiVer
 import semantic_version as semver
 
 from antsibull_core import app_context
@@ -36,7 +37,7 @@ async def get_version_info(collections, pypi_server_url):
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             pypi_client = AnsibleCorePyPiClient(aio_session, pypi_server_url=pypi_server_url)
-            requestors['_ansible_core'] = await pool.spawn(pypi_client.get_versions())
+            requestors['_ansible_core'] = await pool.spawn(pypi_client.get_release_info())
             galaxy_client = GalaxyClient(aio_session)
 
             for collection in collections:
@@ -91,13 +92,24 @@ def new_ansible_command():
         os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['pieces_file']))
     dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
 
-    ansible_core_version = dependencies.pop('_ansible_core')[0]
+    ansible_core_release_infos = dependencies.pop('_ansible_core')
+    ansible_core_versions = [
+        (PypiVer(version), data[0]['requires_python'])
+        for version, data in ansible_core_release_infos.items()
+    ]
+    ansible_core_versions.sort(reverse=True, key=lambda tuple: tuple[0])
+
+    ansible_core_version, python_requires = ansible_core_versions[0]
     dependencies = find_latest_compatible(
         ansible_core_version, dependencies, allow_prereleases=app_ctx.extra['allow_prereleases'])
 
     build_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)
-    build_file.write(app_ctx.extra['ansible_version'], ansible_core_version, dependencies)
+    build_file.write(
+        app_ctx.extra['ansible_version'],
+        ansible_core_version,
+        dependencies,
+        python_requires=python_requires)
 
     changelog = ChangelogData.ansible(app_ctx.extra['dest_data_dir'])
     changelog.changes.save()
