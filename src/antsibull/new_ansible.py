@@ -97,7 +97,7 @@ def new_ansible_command():
         (PypiVer(version), data[0]['requires_python'])
         for version, data in ansible_core_release_infos.items()
     ]
-    ansible_core_versions.sort(reverse=True, key=lambda tuple: tuple[0])
+    ansible_core_versions.sort(reverse=True, key=lambda ver_req: ver_req[0])
 
     ansible_core_version, python_requires = ansible_core_versions[0]
     dependencies = find_latest_compatible(
