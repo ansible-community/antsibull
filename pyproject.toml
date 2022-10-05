@@ -53,6 +53,7 @@ pytest-asyncio = ">= 0.12"
 pytest-cov = "*"
 types-docutils = "*"
 types-PyYAML = "*"
+types-aiofiles = "*"
 # For development, we install dependent projects under our control in dev mode:
 antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
 antsibull-core = { path = "../antsibull-core/", develop = true }
