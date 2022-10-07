@@ -54,7 +54,7 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             }
 
 
-def _normalize_commands(args: argparse.Namespace) -> None:
+def _normalize_commands(args: argparse.Namespace) -> None:  # pylint: disable=unused-argument
     # If command names change and old ones need to be deprecated, do that here.
     # Check out the git history for examples.
     pass

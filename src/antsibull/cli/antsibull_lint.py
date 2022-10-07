@@ -13,7 +13,7 @@ import sys
 from typing import List
 
 
-def run(args: List[str]) -> int:
+def run(args: List[str]) -> int:  # pylint: disable=unused-argument
     """
     Main program entry point.
     """
