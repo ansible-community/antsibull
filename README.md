@@ -15,7 +15,7 @@ Tooling for building various things related to Ansible
 Scripts that are here:
 
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
-* antsibull-lint - Soon to be deprecated; collection docs linting functionality is now part of antsibull-docs, and ``changelogs/changelog.yaml`` validation functionality is now part of antsibull-changelog.
+* antsibull-lint - Deprecated; collection docs linting functionality is now part of antsibull-docs, and ``changelogs/changelog.yaml`` validation functionality is now part of antsibull-changelog.
 
 This also includes a [Sphinx extension](https://www.sphinx-doc.org/en/master/) `sphinx_antsibull_ext` which provides a minimal CSS file to render the output of `antsibull-docs` correctly.
 
