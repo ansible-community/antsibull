@@ -1,3 +1,0 @@
-minor_changes:
-  - "Now requires antsibull-core >= 1.3.0 (https://github.com/ansible-community/antsibull/pull/449)."
-  - "The ``python_requires`` information is now extracted from ansible-core and stored in the ``.build`` and ``.deps`` files instead of guessing it from the Ansible version (https://github.com/ansible-community/antsibull/pull/449)."

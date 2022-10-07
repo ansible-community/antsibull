@@ -5,6 +5,20 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.51.0
+=======
+
+Release Summary
+---------------
+
+Feature release for Ansible 7.
+
+Minor Changes
+-------------
+
+- Now requires antsibull-core >= 1.3.0 (https://github.com/ansible-community/antsibull/pull/449).
+- The ``python_requires`` information is now extracted from ansible-core and stored in the ``.build`` and ``.deps`` files instead of guessing it from the Ansible version (https://github.com/ansible-community/antsibull/pull/449).
+
 v0.50.0
 =======
 
