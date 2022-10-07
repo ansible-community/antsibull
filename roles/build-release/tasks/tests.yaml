@@ -26,10 +26,10 @@
 
 # Note: the version of ansible-core doesn't necessarily match the deps file since the version requirement is >=
 - block:
-    - name: Include deps_file
-      ansible.builtin.include_vars:
-        file: "{{ antsibull_data_dir }}/{{ _deps_file }}"
-        name: _deps
+    - name: Load deps_file
+      ansible.builtin.set_fact:
+        _deps: >-
+          {{ lookup('file', antsibull_data_dir ~ '/' ~ _deps_file) | _antsibull_parse_deps }}
 
     - name: Query installed pip packages
       community.general.pip_package_info:
