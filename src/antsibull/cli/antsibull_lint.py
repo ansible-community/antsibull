@@ -21,7 +21,7 @@ def run(args: List[str]) -> int:  # pylint: disable=unused-argument
         'WARNING: `antsibull-lint` is deprecated. Use `antsibull-changelog lint-changelog-yaml`'
         ' or `antsibull-docs lint-collection-docs` depending on your use-case.',
         file=sys.stderr)
-    return 1
+    return 2
 
 
 def main() -> int:
