@@ -4,5 +4,5 @@ removed_features:
   - "The deprecated ``build-multiple`` subcommand of ``antsibull-build`` has been removed. Use ``multiple`` instead (https://github.com/ansible-community/antsibull/pull/451)."
   - "The deprecated ``build-collection`` subcommand of ``antsibull-build`` has been removed. Use ``collection`` instead (https://github.com/ansible-community/antsibull/pull/451)."
   - "The deprecated ``antsibull-lint`` subcommands have been removed. Use ``antsibull-changelog lint-changelog-yaml`` or ``antsibull-docs lint-collection-docs`` depending on your use-case (https://github.com/ansible-community/antsibull/pull/451)."
-minor_changes:
+breaking_changes:
   - "The antsibull-docs dependency has been removed (https://github.com/ansible-community/antsibull/pull/451)."
