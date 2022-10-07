@@ -36,12 +36,6 @@ jobs:
           repository: ansible-community/antsibull-core
           path: antsibull-core
 
-      - name: Check out dependent project antsibull-docs
-        uses: actions/checkout@v3
-        with:
-          repository: ansible-community/antsibull-docs
-          path: antsibull-docs
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
