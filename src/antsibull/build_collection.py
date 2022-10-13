@@ -33,6 +33,7 @@ def build_collection_command():
         # Parse the deps file
         deps_file = DepsFile(os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file']))
         dummy1_, dummy2_, deps = deps_file.parse()
+        deps.pop('_python', None)
 
         # Template the galaxy.yml file
         dep_string = json.dumps(deps)
