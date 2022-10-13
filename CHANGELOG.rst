@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.51.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- Fix handling of Python dependency data when building changelogs and collections (https://github.com/ansible-community/antsibull/pull/452).
+
 v0.51.0
 =======
 

@@ -493,6 +493,16 @@ releases:
     - 0.51.0.yml
     - 449-python_requires.yml
     release_date: '2022-10-07'
+  0.51.1:
+    changes:
+      bugfixes:
+      - Fix handling of Python dependency data when building changelogs and collections
+        (https://github.com/ansible-community/antsibull/pull/452).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.51.1.yml
+    - 452-python-deps-build.yml
+    release_date: '2022-10-13'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:
