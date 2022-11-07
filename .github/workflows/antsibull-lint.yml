@@ -56,7 +56,7 @@ jobs:
         working-directory: antsibull
 
       - name: Check out community.general's stable-4 branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: ansible-collections/community.general
           ref: stable-4
