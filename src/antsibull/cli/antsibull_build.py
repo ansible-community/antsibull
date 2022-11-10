@@ -32,6 +32,7 @@ from ..build_ansible_commands import (  # noqa: E402
 from ..build_changelog import build_changelog  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
+from ..tagging import validate_tags_command  # noqa: E402
 # pylint: enable=wrong-import-position
 
 
@@ -48,6 +49,7 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             'changelog': build_changelog,
             'rebuild-single': rebuild_single_command,
             'validate-deps': validate_dependencies_command,
+            'validate-tags': validate_tags_command,
             # Old names, deprecated
             'new-acd': new_ansible_command,
             'build-single': build_single_command,
@@ -87,7 +89,7 @@ def _normalize_commands(args: argparse.Namespace) -> None:
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
-    if args.command in ('validate-deps', ):
+    if args.command in ('validate-deps', 'validate-tags'):
         return
 
     if not os.path.isdir(args.data_dir):
@@ -197,6 +199,15 @@ def _normalize_collection_build_options(args: argparse.Namespace) -> None:
 
     if not os.path.isdir(args.collection_dir):
         raise InvalidArgumentError(f'{args.collection_dir} must be an existing directory')
+
+
+def _normalize_validate_tags_options(args: argparse.Namespace) -> None:
+    if args.command not in ('validate-deps',):
+        return
+    if args.deps_file is None:
+        args.deps_file = DEFAULT_FILE_BASE + f'-{args.ansible_version}.deps'
+    if args.input and not os.path.exists(args.input):
+        raise InvalidArgumentError(f"{args.dep_file} does not exist!")
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -345,6 +356,25 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                help='Path to a ansible_collections directory containing a'
                                ' collection tree to check.')
 
+    validate_tags = subparsers.add_parser('validate-tags',
+                                          parents=[build_parser])
+    validate_tags.add_argument(
+        '--deps-file',
+        default=None,
+        help='File which contains the list of collections and'
+        ' versions which were included in this version of Ansible.'
+        '  This is considered to be relative to --data-dir.'
+        f'  The default is {DEFAULT_FILE_BASE}-X.Y.Z.deps',
+    )
+    tag_file = validate_tags.add_mutually_exclusive_group()
+    tag_file.add_argument('-i',
+                          '--input',
+                          help=('Collection tag data file to validate.'
+                                'Mutually exclusive with --output.'))
+    tag_file.add_argument('-o',
+                          '--output',
+                          help='Path to output a collection tag data file.'
+                          'If this is ommited, no tag data will be written')
     # Backwards compat
     subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
     subparsers.add_parser('build-single', add_help=False, parents=[build_single_parser])
@@ -362,6 +392,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_release_build_options(parsed_args)
     _normalize_release_rebuild_options(parsed_args)
     _normalize_collection_build_options(parsed_args)
+    _normalize_validate_tags_options(parsed_args)
 
     return parsed_args
 
