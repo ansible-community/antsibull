@@ -182,7 +182,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
-    if args.command not in ('rebuild-single', ):
+    if args.command not in ('rebuild-single', 'validate-tags'):
         return
 
     deps_filename = os.path.join(args.data_dir, args.deps_file)
@@ -202,12 +202,12 @@ def _normalize_collection_build_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_validate_tags_options(args: argparse.Namespace) -> None:
-    if args.command not in ('validate-deps',):
+    if args.command not in ('validate-tags',):
         return
     if args.deps_file is None:
         args.deps_file = DEFAULT_FILE_BASE + f'-{args.ansible_version}.deps'
     if args.input and not os.path.exists(args.input):
-        raise InvalidArgumentError(f"{args.dep_file} does not exist!")
+        raise InvalidArgumentError(f"{args.input} does not exist!")
 
 
 def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
@@ -390,9 +390,9 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     _normalize_build_write_data_options(parsed_args)
     _normalize_new_release_options(parsed_args)
     _normalize_release_build_options(parsed_args)
+    _normalize_validate_tags_options(parsed_args)
     _normalize_release_rebuild_options(parsed_args)
     _normalize_collection_build_options(parsed_args)
-    _normalize_validate_tags_options(parsed_args)
 
     return parsed_args
 
