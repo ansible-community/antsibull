@@ -540,14 +540,8 @@ def rebuild_single_command() -> int:
             write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
-        # TODO: PY3.8:
-        # collections_to_install = [p for f in os.listdir(download_dir)
-        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
-        collections_to_install = []
-        for collection in os.listdir(download_dir):
-            path = os.path.join(download_dir, collection)
-            if os.path.isfile(path):
-                collections_to_install.append(path)
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
 
         asyncio.run(install_together(collections_to_install, ansible_collections_dir))
 
@@ -694,14 +688,8 @@ def build_multiple_command() -> int:
         asyncio.run(
             download_collections(included_versions, app_ctx.galaxy_url, download_dir,
                                  app_ctx.collection_cache))
-        # TODO: PY3.8:
-        # collections_to_install = [p for f in os.listdir(download_dir)
-        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
-        collections_to_install = []
-        for collection in os.listdir(download_dir):
-            path = os.path.join(download_dir, collection)
-            if os.path.isfile(path):
-                collections_to_install.append(path)
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
 
         collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
         asyncio.run(make_collection_dists(app_ctx.extra['sdist_dir'], collection_dirs))
