@@ -21,6 +21,7 @@ from antsibull_core.yaml import store_yaml_file, load_yaml_file
 
 from antsibull.collection_meta import CollectionsMetadata
 
+TAG_MATCHER: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
 mlog = log.fields(mod=__name__)
 
 
@@ -117,12 +118,11 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
         flog.error(f'Failed to fetch tags for {repository}')
         return
     tags: t.List[str] = stdout.decode('utf-8').splitlines()
-    matcher: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
     if not tags:
         flog.warning(f'{repository} does not have any tags')
         return
     for tag in tags:
-        match = matcher.match(tag)
+        match = TAG_MATCHER.match(tag)
         if match:
             yield match.group(1)
         else:
