@@ -20,13 +20,15 @@ class CollectionMetadata:
     '''
 
     changelog_url: t.Optional[str]
+    collection_directory: t.Optional[str]
+    repository: t.Optional[str]
 
     def __init__(self, source: t.Optional[t.Mapping[str, t.Any]] = None):
         if source is None:
             source = {}
-        self.changelog_url: t.Optional[str] = source.get('changelog-url')
-        self.collection_directory: t.Optional[str] = source.get('collection-directory')
-        self.repository: t.Optional[str] = source.get('repository')
+        self.changelog_url = source.get('changelog-url')
+        self.collection_directory = source.get('collection-directory')
+        self.repository = source.get('repository')
 
 
 class CollectionsMetadata:
