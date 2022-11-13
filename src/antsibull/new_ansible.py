@@ -15,6 +15,7 @@ import semantic_version as semver
 
 from antsibull_core import app_context
 from antsibull_core.ansible_core import AnsibleCorePyPiClient
+from antsibull_core.compat import asyncio_run
 from antsibull_core.dependency_files import BuildFile, parse_pieces_file
 from antsibull_core.galaxy import GalaxyClient
 
@@ -90,7 +91,7 @@ def new_ansible_command():
     app_ctx = app_context.app_ctx.get()
     collections = parse_pieces_file(
         os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['pieces_file']))
-    dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
+    dependencies = asyncio_run(get_version_info(collections, app_ctx.pypi_url))
 
     ansible_core_release_infos = dependencies.pop('_ansible_core')
     ansible_core_versions = [
