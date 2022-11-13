@@ -9,6 +9,7 @@ Validate that collections tag their releases in their respective git repositorie
 import asyncio
 import os
 import re
+import sys
 import typing as t
 
 import asyncio_pool  # type: ignore[import]
@@ -33,26 +34,28 @@ def validate_tags_command() -> int:
         tag_data = asyncio.run(get_collections_tags())
         if app_ctx.extra['output']:
             store_yaml_file(app_ctx.extra['output'], tag_data)
-    return validate_tags(tag_data)
+    errors = validate_tags(tag_data)
+    if not errors:
+        return 0
+    for error in errors:
+        print(error, file=sys.stderr)
+    return 1
 
 
-def validate_tags(tag_data: t.Dict[str, t.Dict[str, t.Optional[str]]]) -> int:
-    r = 0
-    flog = mlog.fields(func='validate_tags')
+def validate_tags(tag_data: t.Dict[str, t.Dict[str, t.Optional[str]]]) -> t.List[str]:
+    errors = []
     for name, data in tag_data.items():
         if not data['repository']:
-            flog.error(
+            errors.append(
                 f"{name}'s repository is not specified at all in collection-meta.yaml"
             )
-            r = 1
             continue
         if not data['tag']:
-            flog.error(
+            errors.append(
                 f"{name} {data['version']} is not tagged in "
                 f"{data['repository']}"
             )
-            r = 1
-    return r
+    return errors
 
 
 async def get_collections_tags() -> t.Dict[str, t.Dict[str, t.Optional[str]]]:
