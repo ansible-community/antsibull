@@ -31,7 +31,11 @@ def validate_tags_command() -> int:
     if app_ctx.extra['input']:
         tag_data = load_yaml_file(app_ctx.extra['input'])
     else:
-        tag_data = asyncio.run(get_collections_tags())
+        tag_data = asyncio.run(
+            get_collections_tags(
+                app_ctx.extra['data_dir'], app_ctx.extra['deps_file']
+            )
+        )
         if app_ctx.extra['output']:
             store_yaml_file(app_ctx.extra['output'], tag_data)
     errors = validate_tags(tag_data)
@@ -58,15 +62,14 @@ def validate_tags(tag_data: t.Dict[str, t.Dict[str, t.Optional[str]]]) -> t.List
     return errors
 
 
-async def get_collections_tags() -> t.Dict[str, t.Dict[str, t.Optional[str]]]:
-    app_ctx = app_context.app_ctx.get()
+async def get_collections_tags(
+    data_dir: str, deps_filename: str
+) -> t.Dict[str, t.Dict[str, t.Optional[str]]]:
     lib_ctx = app_context.lib_ctx.get()
 
-    deps_filename = os.path.join(
-        app_ctx.extra['data_dir'], app_ctx.extra['deps_file']
-    )
+    deps_filename = os.path.join(data_dir, deps_filename)
     deps_data = DepsFile(deps_filename).parse()
-    meta_data = CollectionsMetadata(app_ctx.extra['data_dir'])
+    meta_data = CollectionsMetadata(data_dir)
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         collection_tags = {}
