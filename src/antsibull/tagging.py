@@ -20,7 +20,7 @@ from antsibull_core import app_context
 from antsibull_core.dependency_files import DepsFile
 from antsibull_core.yaml import store_yaml_file, load_yaml_file
 
-from antsibull.collection_meta import CollectionsMetadata
+from antsibull.collection_meta import CollectionMetadata, CollectionsMetadata
 
 TAG_MATCHER: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
 TAG_VERSION_REGEX: t.Pattern[str] = re.compile(r'^v?(.*)$')
@@ -118,7 +118,7 @@ async def get_collections_tags(
         collection_tags = {}
         for name, data in meta_data.data.items():
             collection_tags[name] = pool.spawn_n(
-                _get_collection_tags(deps_data.deps[name], data)
+                _get_collection_tags(deps_data.deps[name], data, name)
             )
         collection_tags = {
             name: await data for name, data in collection_tags.items()
@@ -127,7 +127,7 @@ async def get_collections_tags(
 
 
 async def _get_collection_tags(
-    version: str, meta_data=t.Dict[str, t.Optional[str]]
+    version: str, meta_data: CollectionMetadata, name: str
 ) -> t.Dict[str, t.Optional[str]]:
     flog = mlog.fields(func='_get_collection_tags')
     repository = meta_data.repository
@@ -144,7 +144,9 @@ async def _get_collection_tags(
         try:
             tag_version_regex = re.compile(meta_data.tag_version_regex)
         except re.error as err:
-            flog.fields(err=err).error(f'{tag_version_regex} is an invalid regex')
+            flog.fields(err=err, collection=name).error(
+                f'{tag_version_regex} is an invalid regex'
+            )
             return data
     async for tag in _get_tags(repository):
         if _normalize_tag(tag, tag_version_regex) == version:
