@@ -159,9 +159,14 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
         *args,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
+        # This makes it so git doesn't ask for a password when a repository
+        # is inaccessible.
+        env={'GIT_TERMINAL_PROMPT': '0'},
     )
     stdout, stderr = await proc.communicate()
-    flog.fields(stderr=stderr).debug('Ran git ls-remote')
+    flog.fields(stderr=stderr, returncode=proc.returncode).debug(
+        'Ran git ls-remote'
+    )
     if proc.returncode != 0:
         flog.error(f'Failed to fetch tags for {repository}')
         return
