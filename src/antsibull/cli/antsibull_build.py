@@ -331,8 +331,8 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                                    ' versions which were included in this version of Ansible.'
                                    '  This is considered to be relative to --data-dir.'
                                    f'  The default is {DEFAULT_FILE_BASE}-X.Y.Z.deps')
-    build_parser.add_argument('--collection-dir', default='.',
-                              help='Directory to write collection to')
+    collection_parser.add_argument('--collection-dir', default='.',
+                                   help='Directory to write collection to')
 
     subparsers.add_parser('changelog',
                           parents=[build_write_data_parser, cache_parser],
