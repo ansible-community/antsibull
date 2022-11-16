@@ -23,6 +23,7 @@ from antsibull_core.yaml import store_yaml_file, load_yaml_file
 from antsibull.collection_meta import CollectionsMetadata
 
 TAG_MATCHER: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
+TAG_VERSION_REGEX: t.Pattern[str] = re.compile(r'^v?(.*)$')
 mlog = log.fields(mod=__name__)
 
 
@@ -138,8 +139,15 @@ async def _get_collection_tags(
     if not repository:
         flog.debug("'repository' is None. Exitting...")
         return data
+    tag_version_regex: t.Optional[t.Pattern[str]] = None
+    if meta_data.tag_version_regex:
+        try:
+            tag_version_regex = re.compile(meta_data.tag_version_regex)
+        except re.error as err:
+            flog.fields(err=err).error(f'{tag_version_regex} is an invalid regex')
+            return data
     async for tag in _get_tags(repository):
-        if _normalize_tag(tag) == version:
+        if _normalize_tag(tag, tag_version_regex) == version:
             data['tag'] = tag
             break
     return data
@@ -182,7 +190,10 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
             flog.debug(f'git ls-remote output line skipped: {tag}')
 
 
-def _normalize_tag(tag: str) -> str:
-    if tag.startswith('v'):
-        tag = tag[1:]
+def _normalize_tag(
+    tag: str, regex: t.Optional[t.Pattern[str]]
+) -> t.Optional[str]:
+    regex = regex or TAG_VERSION_REGEX
+    if match := regex.match(tag):
+        return match.group(1)
     return tag

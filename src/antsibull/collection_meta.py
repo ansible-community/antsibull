@@ -22,6 +22,7 @@ class CollectionMetadata:
     changelog_url: t.Optional[str]
     collection_directory: t.Optional[str]
     repository: t.Optional[str]
+    tag_version_regex: t.Optional[str]
 
     def __init__(self, source: t.Optional[t.Mapping[str, t.Any]] = None):
         if source is None:
@@ -29,6 +30,7 @@ class CollectionMetadata:
         self.changelog_url = source.get('changelog-url')
         self.collection_directory = source.get('collection-directory')
         self.repository = source.get('repository')
+        self.tag_version_regex = source.get('tag_version_regex')
 
 
 class CollectionsMetadata:
