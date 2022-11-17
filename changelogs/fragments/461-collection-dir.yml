@@ -1,4 +1,4 @@
-removed_features:
-  - "The ``--collection-dir`` option was removed from the ``antsibull-build`` subcommands ``build-collection``, ``build-multiple``, ``build-single``,
-     ``changelog``, ``collection``, ``multiple``, ``new-acd``, ``new-ansible``, ``prepare``, ``rebuild-single``, and ``single``, which should never
-     have had this option. The option was not used for these subcommands (https://github.com/ansible-community/antsibull/pull/461)."
+bugfixes:
+  - "The ``--collection-dir`` option was added to the wrong CLI argument parser.
+     This had no practical effect for end-users, but would also add it to other build-data based subcommands added in the future
+     (https://github.com/ansible-community/antsibull/pull/461)."
