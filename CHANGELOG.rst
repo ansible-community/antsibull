@@ -5,6 +5,20 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.51.2
+=======
+
+Release Summary
+---------------
+
+Bugfix release. The next minor release will no longer support Python 3.6 and 3.7.
+
+Bugfixes
+--------
+
+- Add ``--collection-dir`` to the ``antsibull-build`` ``collection`` and ``build-collection`` subcommands. Previously, the ``--collection-dir`` option was added to the wrong CLI argument parser and not exposed to users. (https://github.com/ansible-community/antsibull/pull/461).
+- Use compatibility code instead of trying to run ``asyncio.run`` directly, which will fail with Python 3.6 (https://github.com/ansible-community/antsibull/pull/459).
+
 v0.51.1
 =======
 

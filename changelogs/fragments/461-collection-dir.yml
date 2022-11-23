@@ -1,2 +1,0 @@
-bugfixes:
-  - "Add ``--collection-dir`` to the ``antsibull-build`` ``collection`` and ``build-collection`` subcommands. Previously, the ``--collection-dir`` option was added to the wrong CLI argument parser and not exposed to users. (https://github.com/ansible-community/antsibull/pull/461)."

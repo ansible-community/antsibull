@@ -503,6 +503,21 @@ releases:
     - 0.51.1.yml
     - 452-python-deps-build.yml
     release_date: '2022-10-13'
+  0.51.2:
+    changes:
+      bugfixes:
+      - Add ``--collection-dir`` to the ``antsibull-build`` ``collection`` and ``build-collection``
+        subcommands. Previously, the ``--collection-dir`` option was added to the
+        wrong CLI argument parser and not exposed to users. (https://github.com/ansible-community/antsibull/pull/461).
+      - Use compatibility code instead of trying to run ``asyncio.run`` directly,
+        which will fail with Python 3.6 (https://github.com/ansible-community/antsibull/pull/459).
+      release_summary: Bugfix release. The next minor release will no longer support
+        Python 3.6 and 3.7.
+    fragments:
+    - 0.51.2.yml
+    - 459-asyncio.run-compat.yml
+    - 461-collection-dir.yml
+    release_date: '2022-11-23'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

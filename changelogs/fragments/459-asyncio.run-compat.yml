@@ -1,2 +1,0 @@
-bugfixes:
-  - "Use compatibility code instead of trying to run ``asyncio.run`` directly, which will fail with Python 3.6 (https://github.com/ansible-community/antsibull/pull/459)."
