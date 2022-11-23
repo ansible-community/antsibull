@@ -21,7 +21,8 @@ from antsibull_changelog.rst import RstBuilder
 
 from antsibull_core import app_context
 
-from .changelog import Changelog, ChangelogData, ChangelogEntry, CollectionsMetadata, get_changelog
+from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
+from .collection_meta import CollectionsMetadata
 
 
 #

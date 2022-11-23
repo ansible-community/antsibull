@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - Add a ``validate-tags`` subcommand to ensure that collection versions in an
+    Ansible release are tagged in collections' respective git repositories
+    (https://github.com/ansible-community/antsibull/pull/456).

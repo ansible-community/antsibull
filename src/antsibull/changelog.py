@@ -31,7 +31,9 @@ from antsibull_core.ansible_core import get_ansible_core
 from antsibull_core.compat import asyncio_run
 from antsibull_core.dependency_files import DepsFile, DependencyFileData
 from antsibull_core.galaxy import CollectionDownloader
-from antsibull_core.yaml import load_yaml_bytes, load_yaml_file
+from antsibull_core.yaml import load_yaml_bytes
+
+from antsibull.collection_meta import CollectionsMetadata
 
 
 class ChangelogData:
@@ -382,44 +384,6 @@ class ChangelogEntry:
 
             self.changed_collections.append((
                 collector, collection_version, prev_collection_version, added))
-
-
-class CollectionMetadata:
-    '''
-    Stores metadata about one collection.
-    '''
-
-    changelog_url: t.Optional[str]
-
-    def __init__(self, source: t.Optional[t.Mapping[str, t.Any]] = None):
-        if source is None:
-            source = {}
-        self.changelog_url = source.get('changelog-url')
-
-
-class CollectionsMetadata:
-    '''
-    Stores metadata about a set of collections.
-    '''
-
-    data: t.Dict[str, CollectionMetadata]
-
-    def __init__(self, deps_dir: t.Optional[str]):
-        self.data = {}
-        if deps_dir is not None:
-            collection_meta_path = os.path.join(deps_dir, 'collection-meta.yaml')
-            if os.path.exists(collection_meta_path):
-                data = load_yaml_file(collection_meta_path)
-                if data and 'collections' in data:
-                    for collection_name, collection_data in data['collections'].items():
-                        self.data[collection_name] = CollectionMetadata(collection_data)
-
-    def get_meta(self, collection_name: str) -> CollectionMetadata:
-        result = self.data.get(collection_name)
-        if result is None:
-            result = CollectionMetadata()
-            self.data[collection_name] = result
-        return result
 
 
 class Changelog:
