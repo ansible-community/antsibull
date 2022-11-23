@@ -1,0 +1,2 @@
+breaking_changes:
+  - Drops support for Python 3.6 an 3.7 (https://github.com/ansible-community/antsibull/issues/458, https://github.com/ansible-community/antsibull/pull/460).

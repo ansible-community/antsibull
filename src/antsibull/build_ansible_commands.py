@@ -23,7 +23,6 @@ from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core_package_name, AnsibleCorePyPiClient
 from antsibull_core.collections import install_separately, install_together
-from antsibull_core.compat import asyncio_run
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
@@ -404,7 +403,7 @@ def prepare_command() -> int:
             new_clauses.append(f'<{min_version.major}.{min_version.minor + 1}.0')
             deps[collection_name] = ','.join(new_clauses)
 
-    included_versions, new_ansible_core_version = asyncio_run(
+    included_versions, new_ansible_core_version = asyncio.run(
         get_collection_and_core_versions(
             deps, ansible_core_version_obj, app_ctx.galaxy_url,
             ansible_core_allow_prerelease=_is_alpha(app_ctx.extra['ansible_version'])))
@@ -512,7 +511,7 @@ def rebuild_single_command() -> int:
         os.mkdir(download_dir, mode=0o700)
 
         # Download included collections
-        asyncio_run(download_collections(included_versions, app_ctx.galaxy_url,
+        asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
                                          download_dir, app_ctx.collection_cache))
 
         # Get Ansible changelog, add new release
@@ -541,16 +540,10 @@ def rebuild_single_command() -> int:
             write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
-        # TODO: PY3.8:
-        # collections_to_install = [p for f in os.listdir(download_dir)
-        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
-        collections_to_install = []
-        for collection in os.listdir(download_dir):
-            path = os.path.join(download_dir, collection)
-            if os.path.isfile(path):
-                collections_to_install.append(path)
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
 
-        asyncio_run(install_together(collections_to_install, ansible_collections_dir))
+        asyncio.run(install_together(collections_to_install, ansible_collections_dir))
 
         # Compose and write release notes to destination directory
         release_notes = ReleaseNotes.build(changelog)
@@ -691,21 +684,15 @@ def build_multiple_command() -> int:
         download_dir = os.path.join(tmp_dir, 'collections')
         os.mkdir(download_dir, mode=0o700)
 
-        included_versions = asyncio_run(get_collection_versions(deps, app_ctx.galaxy_url))
-        asyncio_run(
+        included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
+        asyncio.run(
             download_collections(included_versions, app_ctx.galaxy_url, download_dir,
                                  app_ctx.collection_cache))
-        # TODO: PY3.8:
-        # collections_to_install = [p for f in os.listdir(download_dir)
-        #                           if os.path.isfile(p := os.path.join(download_dir, f))]
-        collections_to_install = []
-        for collection in os.listdir(download_dir):
-            path = os.path.join(download_dir, collection)
-            if os.path.isfile(path):
-                collections_to_install.append(path)
+        collections_to_install = [p for f in os.listdir(download_dir)
+                                  if os.path.isfile(p := os.path.join(download_dir, f))]
 
-        collection_dirs = asyncio_run(install_separately(collections_to_install, download_dir))
-        asyncio_run(make_collection_dists(app_ctx.extra['sdist_dir'], collection_dirs))
+        collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
+        asyncio.run(make_collection_dists(app_ctx.extra['sdist_dir'], collection_dirs))
 
         # Create the ansible package that deps on the collections we just wrote
         package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')

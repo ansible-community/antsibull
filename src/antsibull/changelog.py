@@ -28,7 +28,6 @@ from antsibull_changelog.utils import collect_versions
 
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
-from antsibull_core.compat import asyncio_run
 from antsibull_core.dependency_files import DepsFile, DependencyFileData
 from antsibull_core.galaxy import CollectionDownloader
 from antsibull_core.yaml import load_yaml_bytes
@@ -459,7 +458,7 @@ def get_changelog(
         CollectionChangelogCollector(collection, versions_per_collection[collection].values())
         for collection in sorted(versions_per_collection.keys())
     ]
-    asyncio_run(collect_changelogs(collectors, core_collector, collection_cache))
+    asyncio.run(collect_changelogs(collectors, core_collector, collection_cache))
 
     changelog = []
 
