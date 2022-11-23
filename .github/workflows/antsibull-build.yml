@@ -21,10 +21,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: Ansible 6 with default settings
-            options: '-e antsibull_ansible_version=6.99.0 -e antsibull_ansible_git_version=stable-2.13'
-          - name: Ansible 7 with ansible-core devel
-            options: '-e antsibull_ansible_version=7.99.0 -e antsibull_ansible_git_version=devel'
+          - name: Ansible 7 with default settings
+            options: '-e antsibull_ansible_version=7.99.0 -e antsibull_ansible_git_version=stable-2.14'
+          - name: Ansible 8 with ansible-core devel
+            options: '-e antsibull_ansible_version=8.99.0 -e antsibull_ansible_git_version=devel'
 
     steps:
       - name: Check out antsibull
