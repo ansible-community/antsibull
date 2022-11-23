@@ -51,42 +51,13 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             'validate-deps': validate_dependencies_command,
             'validate-tags': validate_tags_command,
             'validate-tags-file': validate_tags_file_command,
-            # Old names, deprecated
-            'new-acd': new_ansible_command,
-            'build-single': build_single_command,
-            'build-multiple': build_multiple_command,
-            'build-collection': build_collection_command,
             }
 
 
-def _normalize_commands(args: argparse.Namespace) -> None:
-    flog = mlog.fields(func='_normalize_commands')
-
-    if args.command == 'new-acd':
-        flog.warning('The new-acd command is deprecated.  Use `new-ansible` instead.')
-        args.command = 'new-ansible'
-
-    if args.command == 'single':
-        flog.warning(
-            'The single command is deprecated.  Use `prepare` followed by `rebuild-single`'
-            ' instead.')
-
-    if args.command == 'build-single':
-        flog.warning(
-            'The build-single command is deprecated.  Use `prepare` followed by'
-            ' `rebuild-single` instead.')
-        args.command = 'single'
-
-    if args.command == 'build-multiple':
-        flog.warning(
-            'The build-multiple command is deprecated and will be removed in a future release.')
-        args.command = 'multiple'
-    elif args.command == 'multiple':
-        flog.warning('The multiple command is deprecated and will be removed in a future release.')
-
-    if args.command == 'build-collection':
-        flog.warning('The build-collection command is deprecated.  Use `collection` instead.')
-        args.command = 'collection'
+def _normalize_commands(args: argparse.Namespace) -> None:  # pylint: disable=unused-argument
+    # If command names change and old ones need to be deprecated, do that here.
+    # Check out the git history for examples.
+    pass
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
@@ -99,8 +70,7 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
 
 def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
     if args.command not in (
-            'new-ansible', 'prepare', 'single', 'rebuild-single', 'multiple', 'changelog',
-            'new-acd', 'build-single', 'build-multiple'):
+            'new-ansible', 'prepare', 'single', 'rebuild-single', 'multiple', 'changelog'):
         return
 
     if args.dest_data_dir is None:
@@ -390,12 +360,6 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
                     " the 'validate-tags' subcommand."
         )
     validate_tags_file.add_argument('tags_file')
-
-    # Backwards compat
-    subparsers.add_parser('new-acd', add_help=False, parents=[new_parser])
-    subparsers.add_parser('build-single', add_help=False, parents=[build_single_parser])
-    subparsers.add_parser('build-multiple', add_help=False, parents=[build_multiple_parser])
-    subparsers.add_parser('build-collection', add_help=False, parents=[collection_parser])
 
     parsed_args: argparse.Namespace = parser.parse_args(args)
 

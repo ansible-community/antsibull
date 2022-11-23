@@ -36,7 +36,6 @@ antsibull-lint = "antsibull.cli.antsibull_lint:main"
 python = "^3.6.1"
 antsibull-changelog = ">= 0.14.0"
 antsibull-core = ">= 1.3.0, < 2.0.0"
-antsibull-docs = ">= 1.0.0, < 2.0.0"
 asyncio-pool = "*"
 jinja2 = "*"
 
@@ -57,7 +56,6 @@ types-aiofiles = "*"
 # For development, we install dependent projects under our control in dev mode:
 antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
 antsibull-core = { path = "../antsibull-core/", develop = true }
-antsibull-docs = { path = "../antsibull-docs/", develop = true }
 
 [tool.isort]
 line_length = 100
