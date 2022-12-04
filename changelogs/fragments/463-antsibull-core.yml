@@ -1,0 +1,2 @@
+minor_changes:
+  - "Make compatible with antsibull-core 2.x.y (https://github.com/ansible-community/antsibull/pull/463)."
