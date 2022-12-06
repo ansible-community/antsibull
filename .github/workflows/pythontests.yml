@@ -46,8 +46,8 @@ jobs:
         with:
           repository: ansible-community/antsibull-core
           path: antsibull-core
-          # TODO: As long as we still support Python 3.8, use stable-1 instead of main!
-          ref: stable-1
+          ref: >-
+            ${{ contains(fromJson('["3.8"]'), matrix.python-version) && 'stable-1' || 'main' }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -58,6 +58,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install poetry
+          sed -i -e 's/^python = .*/python = "^${{ matrix.python-version }}"/' pyproject.toml
           poetry install
           poetry update
         working-directory: antsibull
