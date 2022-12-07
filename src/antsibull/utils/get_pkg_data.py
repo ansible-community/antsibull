@@ -6,6 +6,8 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Helper to use pkgutil.get_data without having to check the return value."""
 
+from __future__ import annotations
+
 import pkgutil
 
 

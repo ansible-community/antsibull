@@ -5,10 +5,11 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Entrypoint to the antsibull-build tool."""
 
+from __future__ import annotations
+
 import argparse
 import os.path
 import sys
-from typing import List
 
 import twiggy  # type: ignore[import]
 from packaging.version import Version as PypiVer
@@ -186,7 +187,7 @@ def _normalize_validate_tags_file_options(args: argparse.Namespace) -> None:
         raise InvalidArgumentError(f"{args.tags_file} does not exist!")
 
 
-def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
+def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     """
     Parse and coerce the command line arguments.
 
@@ -378,7 +379,7 @@ def parse_args(program_name: str, args: List[str]) -> argparse.Namespace:
     return parsed_args
 
 
-def run(args: List[str]) -> int:
+def run(args: list[str]) -> int:
     """
     Run the program.
 

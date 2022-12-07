@@ -8,8 +8,12 @@
 """
 Classes to encapsulate collection metadata from collection-meta.yaml
 """
+
+from __future__ import annotations
+
 import typing as t
 import os
+from collections.abc import Mapping
 
 from antsibull_core.yaml import load_yaml_file
 
@@ -19,12 +23,12 @@ class CollectionMetadata:
     Stores metadata about one collection.
     '''
 
-    changelog_url: t.Optional[str]
-    collection_directory: t.Optional[str]
-    repository: t.Optional[str]
-    tag_version_regex: t.Optional[str]
+    changelog_url: str | None
+    collection_directory: str | None
+    repository: str | None
+    tag_version_regex: str | None
 
-    def __init__(self, source: t.Optional[t.Mapping[str, t.Any]] = None):
+    def __init__(self, source: Mapping[str, t.Any] | None = None):
         if source is None:
             source = {}
         self.changelog_url = source.get('changelog-url')
@@ -38,9 +42,9 @@ class CollectionsMetadata:
     Stores metadata about a set of collections.
     '''
 
-    data: t.Dict[str, CollectionMetadata]
+    data: dict[str, CollectionMetadata]
 
-    def __init__(self, deps_dir: t.Optional[str]):
+    def __init__(self, deps_dir: str | None):
         self.data = {}
         if deps_dir is not None:
             collection_meta_path = os.path.join(deps_dir, 'collection-meta.yaml')

@@ -6,6 +6,8 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Build Ansible changelog and porting guide."""
 
+from __future__ import annotations
+
 import os
 import os.path
 import typing as t
@@ -33,7 +35,7 @@ from .collection_meta import CollectionsMetadata
 PluginDataT = t.List[t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogGeneratorEntry]]]
 
 
-def _cleanup_plugins(entries: t.List[t.Any]) -> t.List[t.Any]:
+def _cleanup_plugins(entries: list[t.Any]) -> list[t.Any]:
     '''Remove duplicate module/plugin/object entries from the given list.
     '''
     result = []
@@ -67,7 +69,7 @@ def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGenerator
     return entry
 
 
-def _add_rst_table_row(builder: RstBuilder, column_widths: t.List[int], row: t.List[str]):
+def _add_rst_table_row(builder: RstBuilder, column_widths: list[int], row: list[str]):
     lines = [[''] * len(column_widths)]
     for i, value in enumerate(row):
         for j, line in enumerate(value.splitlines()):
@@ -81,17 +83,17 @@ def _add_rst_table_row(builder: RstBuilder, column_widths: t.List[int], row: t.L
         builder.add_raw_rst(''.join(parts))
 
 
-def _add_rst_table_line(builder: RstBuilder, column_widths: t.List[int], sep: str):
+def _add_rst_table_line(builder: RstBuilder, column_widths: list[int], sep: str):
     parts = ['+']
     for w in column_widths:
         parts.append(sep * (w + 2) + '+')
     builder.add_raw_rst(''.join(parts))
 
 
-def render_rst_table(builder: RstBuilder, headings: t.List[str],
-                     cells: t.List[t.List[str]]) -> None:
+def render_rst_table(builder: RstBuilder, headings: list[str],
+                     cells: list[list[str]]) -> None:
     # Determine column widths
-    column_widths: t.List[int] = []
+    column_widths: list[int] = []
     for row in [headings] + cells:
         while len(row) > len(column_widths):
             column_widths.append(0)
@@ -240,7 +242,7 @@ def append_changelog_changes_core(builder: RstBuilder,
     return [(core_name, "ansible.builtin.", changelog.generator, release_entry)]
 
 
-def common_start(a: t.List[t.Any], b: t.List[t.Any]) -> int:
+def common_start(a: list[t.Any], b: list[t.Any]) -> int:
     '''
     Given two sequences a and b, determines maximal index so that
     all elements up to that index are equal.
@@ -256,7 +258,7 @@ PluginDumpT = t.List[t.Tuple[t.List[str], str, str]]
 
 
 def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
-    last_title: t.List[str] = []
+    last_title: list[str] = []
     for title, name, description in sorted(items):
         if title != last_title:
             if last_title:
@@ -407,9 +409,9 @@ def append_porting_guide_section(builder: RstBuilder, changelog_entry: Changelog
 
     def check_changelog(
             name: str,
-            changelog: t.Optional[ChangelogData],
+            changelog: ChangelogData | None,
             version: str,
-            prev_version: t.Optional[str]) -> None:
+            prev_version: str | None) -> None:
         if not changelog:
             return
         entries = changelog.generator.collect(
@@ -472,7 +474,7 @@ def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -
         append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
 
 
-def insert_after_heading(lines: t.List[str], content: str) -> None:
+def insert_after_heading(lines: list[str], content: str) -> None:
     has_heading = False
     for index, line in enumerate(lines):
         if line.startswith('***') and line == '*' * len(line):
@@ -712,7 +714,7 @@ def build_changelog() -> int:
     ansible_version: PypiVer = app_ctx.extra['ansible_version']
     data_dir: str = app_ctx.extra['data_dir']
     dest_data_dir: str = app_ctx.extra['dest_data_dir']
-    collection_cache: t.Optional[str] = app_ctx.collection_cache
+    collection_cache: str | None = app_ctx.collection_cache
 
     changelog = get_changelog(ansible_version, deps_dir=data_dir, collection_cache=collection_cache)
 
