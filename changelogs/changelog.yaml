@@ -518,6 +518,36 @@ releases:
     - 459-asyncio.run-compat.yml
     - 461-collection-dir.yml
     release_date: '2022-11-23'
+  0.52.0:
+    changes:
+      breaking_changes:
+      - Drops support for Python 3.6 an 3.7 (https://github.com/ansible-community/antsibull/issues/458,
+        https://github.com/ansible-community/antsibull/pull/460).
+      - The antsibull-docs dependency has been removed (https://github.com/ansible-community/antsibull/pull/451).
+      minor_changes:
+      - Add a ``validate-tags`` subcommand to ensure that collection versions in an
+        Ansible release are tagged in collections' respective git repositories (https://github.com/ansible-community/antsibull/pull/456).
+      - Make compatible with antsibull-core 2.x.y (https://github.com/ansible-community/antsibull/pull/463).
+      release_summary: Major feature and bugfix release with breaking changes.
+      removed_features:
+      - The deprecated ``antsibull-lint`` subcommands have been removed. Use ``antsibull-changelog
+        lint-changelog-yaml`` or ``antsibull-docs lint-collection-docs`` depending
+        on your use-case (https://github.com/ansible-community/antsibull/pull/451).
+      - The deprecated ``build-collection`` subcommand of ``antsibull-build`` has
+        been removed. Use ``collection`` instead (https://github.com/ansible-community/antsibull/pull/451).
+      - The deprecated ``build-multiple`` subcommand of ``antsibull-build`` has been
+        removed. Use ``multiple`` instead (https://github.com/ansible-community/antsibull/pull/451).
+      - The deprecated ``build-single`` subcommand of ``antsibull-build`` has been
+        removed. Use ``single`` instead (https://github.com/ansible-community/antsibull/pull/451).
+      - The deprecated ``new-acd`` subcommand of ``antsibull-build`` has been removed.
+        Use ``new-ansible`` instead (https://github.com/ansible-community/antsibull/pull/451).
+    fragments:
+    - 0.52.0.yml
+    - 456-validate-tags.yaml
+    - 460-drop-python-3.6-3.7.yml
+    - 463-antsibull-core.yml
+    - removals.yml
+    release_date: '2022-12-07'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

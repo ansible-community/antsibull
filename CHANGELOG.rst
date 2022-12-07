@@ -5,6 +5,35 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.52.0
+=======
+
+Release Summary
+---------------
+
+Major feature and bugfix release with breaking changes.
+
+Minor Changes
+-------------
+
+- Add a ``validate-tags`` subcommand to ensure that collection versions in an Ansible release are tagged in collections' respective git repositories (https://github.com/ansible-community/antsibull/pull/456).
+- Make compatible with antsibull-core 2.x.y (https://github.com/ansible-community/antsibull/pull/463).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- Drops support for Python 3.6 an 3.7 (https://github.com/ansible-community/antsibull/issues/458, https://github.com/ansible-community/antsibull/pull/460).
+- The antsibull-docs dependency has been removed (https://github.com/ansible-community/antsibull/pull/451).
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- The deprecated ``antsibull-lint`` subcommands have been removed. Use ``antsibull-changelog lint-changelog-yaml`` or ``antsibull-docs lint-collection-docs`` depending on your use-case (https://github.com/ansible-community/antsibull/pull/451).
+- The deprecated ``build-collection`` subcommand of ``antsibull-build`` has been removed. Use ``collection`` instead (https://github.com/ansible-community/antsibull/pull/451).
+- The deprecated ``build-multiple`` subcommand of ``antsibull-build`` has been removed. Use ``multiple`` instead (https://github.com/ansible-community/antsibull/pull/451).
+- The deprecated ``build-single`` subcommand of ``antsibull-build`` has been removed. Use ``single`` instead (https://github.com/ansible-community/antsibull/pull/451).
+- The deprecated ``new-acd`` subcommand of ``antsibull-build`` has been removed. Use ``new-ansible`` instead (https://github.com/ansible-community/antsibull/pull/451).
+
 v0.51.2
 =======
 
