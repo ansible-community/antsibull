@@ -38,13 +38,11 @@ Please note that to run antsibull from source, you need to install some related 
 
 - [antsibull-changelog](https://github.com/ansible-community/antsibull-changelog/) needs to be checked out in `./antsibull-changelog/`.
 - [antsibull-core](https://github.com/ansible-community/antsibull-core/) needs to be checked out in `./antsibull-core/`.
-- [antsibull-docs](https://github.com/ansible-community/antsibull-docs/) needs to be checked out in `./antsibull-docs/`.
 
 This can be done as follows:
 
     git clone https://github.com/ansible-community/antsibull-changelog.git
     git clone https://github.com/ansible-community/antsibull-core.git
-    git clone https://github.com/ansible-community/antsibull-docs.git
     git clone https://github.com/ansible-community/antsibull.git
     cd antsibull
 
