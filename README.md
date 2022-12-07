@@ -17,8 +17,6 @@ Scripts that are here:
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
 * antsibull-lint - Deprecated and no functionality left, will be removed soon.
 
-This also includes a [Sphinx extension](https://www.sphinx-doc.org/en/master/) `sphinx_antsibull_ext` which provides a minimal CSS file to render the output of `antsibull-docs` correctly.
-
 Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-changelog/) and [antsibull-docs](https://pypi.org/project/antsibull-docs/), which are in their own repositories ([antsibull-changelog repository](https://github.com/ansible-community/antsibull-changelog/), [antsibull-docs repository](https://github.com/ansible-community/antsibull-docs/)). Currently both are dependencies of antsibull. Therefore, the scripts contained in them will be available as well when installing antsibull.
 
 You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
