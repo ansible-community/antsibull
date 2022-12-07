@@ -43,8 +43,6 @@ jobs:
         with:
           repository: ansible-community/antsibull-core
           path: antsibull-core
-          # TODO: As long as we still support Python 3.8, use stable-1 instead of main!
-          ref: stable-1
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
