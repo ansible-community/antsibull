@@ -1,0 +1,2 @@
+removed_features:
+  - "Removed the ``antsibull-lint`` command line utility. It had no functionality anymore for some time now (https://github.com/ansible-community/antsibull/pull/466)."

@@ -15,7 +15,6 @@ Tooling for building various things related to Ansible
 Scripts that are here:
 
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
-* antsibull-lint - Deprecated and no functionality left, will be removed soon.
 
 Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-changelog/) and [antsibull-docs](https://pypi.org/project/antsibull-docs/), which are in their own repositories ([antsibull-changelog repository](https://github.com/ansible-community/antsibull-changelog/), [antsibull-docs repository](https://github.com/ansible-community/antsibull-docs/)). Currently antsibull-changelog is a dependency of antsibull. Therefore, the scripts contained in it will be available as well when installing antsibull.
 
@@ -28,7 +27,7 @@ antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/a
 
 ## Versioning and compatibility
 
-From version 0.1.0 on, antsibull sticks to semantic versioning and aims at providing no backwards compatibility breaking changes **to the command line API (antsibull and antsibull-lint)** during a major release cycle. We might make exceptions from this in case of security fixes for vulnerabilities that are severe enough.
+From version 0.1.0 on, antsibull sticks to semantic versioning and aims at providing no backwards compatibility breaking changes **to the command line API (antsibull)** during a major release cycle. We might make exceptions from this in case of security fixes for vulnerabilities that are severe enough.
 
 We explicitly exclude code compatibility. **antsibull is not supposed to be used as a library.** The only exception are potential dependencies with other antsibull projects (currently, none). If you want to use a certain part of antsibull as a library, please create an issue so we can discuss whether we add a stable interface for **parts** of the Python code. We do not promise that this will actually happen though.
 
