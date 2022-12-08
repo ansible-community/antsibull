@@ -3,13 +3,15 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Build Ansible packages."""
 
+from __future__ import annotations
+
 import asyncio
 import datetime
 import os
 import os.path
 import shutil
 import tempfile
-import typing as t
+from collections.abc import Collection, Mapping
 from functools import partial
 
 import aiofiles
@@ -45,7 +47,7 @@ mlog = log.fields(mod=__name__)
 
 async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
                                           client: AnsibleCorePyPiClient,
-                                          pre: bool = False) -> t.Optional[PypiVer]:
+                                          pre: bool = False) -> PypiVer | None:
     """
     Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
 
@@ -62,11 +64,11 @@ async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
     return max(newer_versions) if newer_versions else None
 
 
-async def get_collection_and_core_versions(deps: t.Mapping[str, str],
-                                           ansible_core_version: t.Optional[PypiVer],
+async def get_collection_and_core_versions(deps: Mapping[str, str],
+                                           ansible_core_version: PypiVer | None,
                                            galaxy_url: str,
                                            ansible_core_allow_prerelease: bool = False,
-                                           ) -> t.Tuple[t.Dict[str, SemVer], t.Optional[PypiVer]]:
+                                           ) -> tuple[dict[str, SemVer], PypiVer | None]:
     """
     Retrieve the latest version of each collection.
 
@@ -96,7 +98,7 @@ async def get_collection_and_core_versions(deps: t.Mapping[str, str],
     # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
     # used requestors.values() to generate responses, requestors and responses therefore have
     # a matching order.
-    included_versions: t.Dict[str, SemVer] = {}
+    included_versions: dict[str, SemVer] = {}
     for collection_name, version in zip(requestors, responses):
         if collection_name == '_ansible_core':
             ansible_core_version = version
@@ -106,9 +108,9 @@ async def get_collection_and_core_versions(deps: t.Mapping[str, str],
     return included_versions, ansible_core_version
 
 
-async def get_collection_versions(deps: t.Mapping[str, str],
+async def get_collection_versions(deps: Mapping[str, str],
                                   galaxy_url: str,
-                                  ) -> t.Dict[str, SemVer]:
+                                  ) -> dict[str, SemVer]:
     """
     Retrieve the latest version of each collection.
 
@@ -119,10 +121,10 @@ async def get_collection_versions(deps: t.Mapping[str, str],
     return (await get_collection_and_core_versions(deps, None, galaxy_url))[0]
 
 
-async def download_collections(versions: t.Mapping[str, SemVer],
+async def download_collections(versions: Mapping[str, SemVer],
                                galaxy_url: str,
                                download_dir: str,
-                               collection_cache: t.Optional[str] = None,
+                               collection_cache: str | None = None,
                                ) -> None:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
@@ -157,7 +159,7 @@ def copy_boilerplate_files(package_dir: str) -> None:
 
 
 def write_manifest(package_dir: str,
-                   release_notes: t.Optional[ReleaseNotes] = None,
+                   release_notes: ReleaseNotes | None = None,
                    debian: bool = False) -> None:
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
     with open(manifest_file, 'w', encoding='utf-8') as f:
@@ -194,7 +196,7 @@ def write_ansible_community_py(ansible_version: PypiVer, ansible_collections_dir
 
 def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
-                collection_exclude_paths: t.List[str],
+                collection_exclude_paths: list[str],
                 collection_deps: str,
                 package_dir: str,
                 python_requires: str) -> None:
@@ -217,10 +219,10 @@ def write_setup(ansible_version: PypiVer,
 
 def write_python_build_files(ansible_version: PypiVer,
                              ansible_core_version: PypiVer,
-                             collection_exclude_paths: t.List[str],
+                             collection_exclude_paths: list[str],
                              collection_deps: str,
                              package_dir: str,
-                             release_notes: t.Optional[ReleaseNotes] = None,
+                             release_notes: ReleaseNotes | None = None,
                              debian: bool = False,
                              python_requires: str = '>=3.8') -> None:
     copy_boilerplate_files(package_dir)
@@ -258,7 +260,7 @@ def write_debian_directory(ansible_version: PypiVer,
             f.write(data)
 
 
-def write_galaxy_requirements(filename: str, included_versions: t.Mapping[str, str]) -> None:
+def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str]) -> None:
     galaxy_reqs = []
     for collection, version in sorted(included_versions.items()):
         galaxy_reqs.append({
@@ -352,7 +354,7 @@ def _is_alpha(version: PypiVer) -> bool:
     return version.is_prerelease and pre is not None and pre[0] == 'a'
 
 
-def _extract_python_requires(ansible_core_version: PypiVer, deps: t.Dict[str, str]) -> str:
+def _extract_python_requires(ansible_core_version: PypiVer, deps: dict[str, str]) -> str:
     python_requires = deps.pop('_python', None)
     if python_requires is not None:
         return python_requires
@@ -453,11 +455,11 @@ def prepare_command() -> int:
     return 0
 
 
-def compile_collection_exclude_paths(collection_names: t.Collection[str],
-                                     collection_root: str) -> t.Tuple[t.List[str], t.List[str]]:
+def compile_collection_exclude_paths(collection_names: Collection[str],
+                                     collection_root: str) -> tuple[list[str], list[str]]:
     result = set()
     ignored_files = set()
-    all_files: t.List[str] = []
+    all_files: list[str] = []
     for collection_name in collection_names:
         namespace, name = collection_name.split('.', 1)
         prefix = f"{namespace}/{name}/"
@@ -653,7 +655,7 @@ async def make_collection_dist(name: str,
     await loop.run_in_executor(None, shutil.move, dist_file, dest_dir)
 
 
-async def make_collection_dists(dest_dir: str, collection_dirs: t.List[str]) -> None:
+async def make_collection_dists(dest_dir: str, collection_dirs: list[str]) -> None:
     dist_creators = []
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:

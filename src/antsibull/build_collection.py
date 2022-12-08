@@ -5,6 +5,8 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Build collection that collects all collections included in Ansible."""
 
+from __future__ import annotations
+
 import json
 import os.path
 import tempfile

@@ -6,11 +6,14 @@
 """
 Validate that collections tag their releases in their respective git repositories
 """
+
+from __future__ import annotations
+
 import asyncio
 import os
 import re
 import sys
-import typing as t
+from collections.abc import AsyncGenerator
 
 import asyncio_pool  # type: ignore[import]
 
@@ -22,8 +25,8 @@ from antsibull_core.yaml import store_yaml_file, load_yaml_file
 
 from antsibull.collection_meta import CollectionMetadata, CollectionsMetadata
 
-TAG_MATCHER: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
-TAG_VERSION_REGEX: t.Pattern[str] = re.compile(r'^v?(.*)$')
+TAG_MATCHER: re.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
+TAG_VERSION_REGEX: re.Pattern[str] = re.compile(r'^v?(.*)$')
 mlog = log.fields(mod=__name__)
 
 
@@ -58,7 +61,7 @@ def validate_tags_command() -> int:
 
 
 def _print_validation_errors(
-    tag_data: t.Dict[str, t.Dict[str, t.Optional[str]]]
+    tag_data: dict[str, dict[str, str | None]]
 ) -> int:
     """
     This takes the tag_data and prints any validation errors to stderr.
@@ -77,8 +80,8 @@ def _print_validation_errors(
 
 
 def validate_tags(
-    tag_data: t.Dict[str, t.Dict[str, t.Optional[str]]]
-) -> t.List[str]:
+    tag_data: dict[str, dict[str, str | None]]
+) -> list[str]:
     """
     Validate that each collection in tag_data has a repository and a tag
     associated with it. Return a list of validation errors.
@@ -100,7 +103,7 @@ def validate_tags(
 
 async def get_collections_tags(
     data_dir: str, deps_filename: str
-) -> t.Dict[str, t.Dict[str, t.Optional[str]]]:
+) -> dict[str, dict[str, str | None]]:
     """
     Iterate over the collections in a CollectionsMetadata file,
     retrieve their tags, and return a dictionary
@@ -128,10 +131,10 @@ async def get_collections_tags(
 
 async def _get_collection_tags(
     version: str, meta_data: CollectionMetadata, name: str
-) -> t.Dict[str, t.Optional[str]]:
+) -> dict[str, str | None]:
     flog = mlog.fields(func='_get_collection_tags')
     repository = meta_data.repository
-    data: t.Dict[str, t.Optional[str]] = dict(
+    data: dict[str, str | None] = dict(
         version=version, repository=repository, tag=None
     )
     if meta_data.collection_directory:
@@ -139,7 +142,7 @@ async def _get_collection_tags(
     if not repository:
         flog.debug("'repository' is None. Exitting...")
         return data
-    tag_version_regex: t.Optional[t.Pattern[str]] = None
+    tag_version_regex: re.Pattern[str] | None = None
     if meta_data.tag_version_regex:
         try:
             tag_version_regex = re.compile(meta_data.tag_version_regex)
@@ -155,7 +158,7 @@ async def _get_collection_tags(
     return data
 
 
-async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
+async def _get_tags(repository) -> AsyncGenerator[str, None]:
     flog = mlog.fields(func='_get_tags')
     args = (
         'git',
@@ -180,7 +183,7 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
     if proc.returncode != 0:
         flog.error(f'Failed to fetch tags for {repository}')
         return
-    tags: t.List[str] = stdout.decode('utf-8').splitlines()
+    tags: list[str] = stdout.decode('utf-8').splitlines()
     if not tags:
         flog.warning(f'{repository} does not have any tags')
         return
@@ -193,8 +196,8 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
 
 
 def _normalize_tag(
-    tag: str, regex: t.Optional[t.Pattern[str]]
-) -> t.Optional[str]:
+    tag: str, regex: re.Pattern[str] | None
+) -> str | None:
     regex = regex or TAG_VERSION_REGEX
     if match := regex.match(tag):
         return match.group(1)

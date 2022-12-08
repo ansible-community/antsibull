@@ -5,11 +5,13 @@
 # SPDX-FileCopyrightText: Ansible Project, 2021
 """Check collection dependencies."""
 
+from __future__ import annotations
+
 import json
 import pathlib
 
 from collections import namedtuple
-from typing import Dict, List, Mapping
+from collections.abc import Mapping
 
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
@@ -33,7 +35,7 @@ def parse_manifest(collection_dir: pathlib.Path) -> Mapping[str, CollectionRecor
     return collection_record
 
 
-def analyze_deps(collections: Mapping[str, CollectionRecord]) -> List[str]:
+def analyze_deps(collections: Mapping[str, CollectionRecord]) -> list[str]:
     '''Analyze dependencies of a set of collections. Return list of errors found.'''
     errors = []
 
@@ -55,12 +57,12 @@ def analyze_deps(collections: Mapping[str, CollectionRecord]) -> List[str]:
     return errors
 
 
-def check_collection_dependencies(collection_root: str) -> List[str]:
+def check_collection_dependencies(collection_root: str) -> list[str]:
     '''Analyze dependencies between collections in a collection root.'''
     ansible_collection_dir = pathlib.Path(collection_root)
     errors = []
 
-    collections: Dict[str, CollectionRecord] = {}
+    collections: dict[str, CollectionRecord] = {}
     for namespace_dir in (n for n in ansible_collection_dir.iterdir() if n.is_dir()):
         for collection_dir in (c for c in namespace_dir.iterdir() if c.is_dir()):
             try:

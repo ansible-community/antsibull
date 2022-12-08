@@ -5,6 +5,8 @@
 # SPDX-FileCopyrightText: Ansible Project, 2020
 """Build command for creating a new major Ansible version."""
 
+from __future__ import annotations
+
 import asyncio
 import os
 

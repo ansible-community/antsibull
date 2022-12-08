@@ -8,12 +8,12 @@
 Entrypoint to the antsibull-changelog script.
 """
 
+from __future__ import annotations
+
 import sys
 
-from typing import List
 
-
-def run(args: List[str]) -> int:  # pylint: disable=unused-argument
+def run(args: list[str]) -> int:  # pylint: disable=unused-argument
     """
     Main program entry point.
     """

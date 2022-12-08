@@ -1,0 +1,2 @@
+minor_changes:
+  - "There have been internal refactorings to simplify typing (https://github.com/ansible-community/antsibull/pull/469)."
