@@ -230,25 +230,16 @@ Announcing Ansible
 * Add any info specific to this release.
 
   * Send any important information (like one-off changes to the release schedule) from here to
+    The Bullhorn by posting this in the #social:ansible.com Matrix room while tagging `newsbot`.
 
-    `The Bullhorn <https://github.com/ansible/community/issues/546>`_
+For alphas, send to ansible-devel@googlegroups.com.
 
-For alphas, send to ansible-devel@googlegroups.com
-
-For betas and rcs, send to ansible-devel and ansible-project@googlegroups.com
+For betas and rcs, send to ansible-devel and ansible-project@googlegroups.com.
 
 For final, send to ansible-devel, ansible-project, and ansible-announce.
 
-Post a link to the mailing list post to the #ansible and #ansible-devel irc channels.
+Post a link to the mailing list post to the #users:ansible.com, #devel:ansible.com, and #community:ansible.com Matrix rooms.
 
-For all, post the link to Reddit
+For all, post the link to Reddit.
 
-Update the topic in the #ansible channel with the new version
-
-TODO
-====
-
-* Right now the script assumes ansible-core and ansible will have the same version.  This is true
-  for 2.10 and possibly for 3 but in the longer term ansible-core major releases are going to
-  slow down while ansible releases may speed up slightly.  We'll need to adapt the script to handle
-  these diverged versions.
+Update the topic in the #ansible channel (Libera) respectively the #users:ansible.com Matrix room with the new version.
