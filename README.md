@@ -17,8 +17,6 @@ Scripts that are here:
 * antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
 * antsibull-lint - Deprecated and no functionality left, will be removed soon.
 
-This also includes a [Sphinx extension](https://www.sphinx-doc.org/en/master/) `sphinx_antsibull_ext` which provides a minimal CSS file to render the output of `antsibull-docs` correctly.
-
 Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-changelog/) and [antsibull-docs](https://pypi.org/project/antsibull-docs/), which are in their own repositories ([antsibull-changelog repository](https://github.com/ansible-community/antsibull-changelog/), [antsibull-docs repository](https://github.com/ansible-community/antsibull-docs/)). Currently both are dependencies of antsibull. Therefore, the scripts contained in them will be available as well when installing antsibull.
 
 You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
@@ -32,7 +30,7 @@ antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/a
 
 From version 0.1.0 on, antsibull sticks to semantic versioning and aims at providing no backwards compatibility breaking changes **to the command line API (antsibull and antsibull-lint)** during a major release cycle. We might make exceptions from this in case of security fixes for vulnerabilities that are severe enough.
 
-We explicitly exclude code compatibility. **antsibull is not supposed to be used as a library.** The only exception are potential dependencies with other antsibull projects (currently, none). If you want to use a certain part of antsibull-docs as a library, please create an issue so we can discuss whether we add a stable interface for **parts** of the Python code. We do not promise that this will actually happen though.
+We explicitly exclude code compatibility. **antsibull is not supposed to be used as a library.** The only exception are potential dependencies with other antsibull projects (currently, none). If you want to use a certain part of antsibull as a library, please create an issue so we can discuss whether we add a stable interface for **parts** of the Python code. We do not promise that this will actually happen though.
 
 ## Running from source
 
@@ -40,13 +38,11 @@ Please note that to run antsibull from source, you need to install some related 
 
 - [antsibull-changelog](https://github.com/ansible-community/antsibull-changelog/) needs to be checked out in `./antsibull-changelog/`.
 - [antsibull-core](https://github.com/ansible-community/antsibull-core/) needs to be checked out in `./antsibull-core/`.
-- [antsibull-docs](https://github.com/ansible-community/antsibull-docs/) needs to be checked out in `./antsibull-docs/`.
 
 This can be done as follows:
 
     git clone https://github.com/ansible-community/antsibull-changelog.git
     git clone https://github.com/ansible-community/antsibull-core.git
-    git clone https://github.com/ansible-community/antsibull-docs.git
     git clone https://github.com/ansible-community/antsibull.git
     cd antsibull
 
