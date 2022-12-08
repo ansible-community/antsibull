@@ -36,7 +36,7 @@ antsibull uses the ``poetry`` tool to build and install::
     poetry install
 
 When running from source, you need to use poetry to run :cmd:`antsibull-build`.  For instance,
-``poetry run antsibull-build new-ansible 2.10.0 --data-dir ansible-build-data/2.10``.
+``poetry run antsibull-build new-ansible 7.0.0 --data-dir ansible-build-data/7``.
 So just prepend ``poetry run`` to all of the :cmd:`antsibull-build` commands in the instructions
 below.
 
@@ -70,18 +70,18 @@ All alpha releases and the first beta
     mkdir built
 
     # Generate the list of compatible versions. For the alpha versions, allow prereleases of collections:
-    antsibull-build new-ansible 3.0.0a1 --data-dir ansible-build-data/3 --allow-prereleases
+    antsibull-build new-ansible 8.0.0a1 --data-dir ansible-build-data/8 --allow-prereleases
 
     # Generate the list of compatible versions. For the first beta, no collection prereleases are allowed:
-    antsibull-build new-ansible 3.0.0b1 --data-dir ansible-build-data/3
+    antsibull-build new-ansible 8.0.0b1 --data-dir ansible-build-data/8
 
     # Prepare the ansible release
     # (This generates the dependency file and updates changelog.yaml)
-    antsibull-build prepare 3.0.0a1 --data-dir ansible-build-data/3
+    antsibull-build prepare 8.0.0a1 --data-dir ansible-build-data/8
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-core package)
-    antsibull-build rebuild-single 3.0.0a1 --data-dir ansible-build-data/3 --sdist-dir built --debian
+    antsibull-build rebuild-single 8.0.0a1 --data-dir ansible-build-data/8 --sdist-dir built --debian
 
 
 Setup for the first beta release
@@ -92,16 +92,16 @@ is made.  That way, there's no period when we're frozen with no place for new co
 
 .. code-block:: shell
 
-    # If the current version is 5:
-    mkdir ansible-build-data/6
-    cd ansible-build-data/6
+    # If the current version is 8:
+    mkdir ansible-build-data/9
+    cd ansible-build-data/9
     # Copy from previous version
-    cp ../5/ansible.in .
-    cp ../5/collection-meta.yaml .
+    cp ../8/ansible.in .
+    cp ../8/collection-meta.yaml .
     # Link initial release of previous version as changelog ancestor
-    ln -s ../5/ansible-5.0.0.deps ancestor.deps
+    ln -s ../8/ansible-8.0.0.deps ancestor.deps
     # Create changelog stub with ancestor
-    echo -e "ancestor: 5.0.0\nreleases: {}" > changelog.yaml
+    echo -e "ancestor: 8.0.0\nreleases: {}" > changelog.yaml
     # Make any additions or subtractions to the set of collections in the ansible.in file
 
 
@@ -116,11 +116,11 @@ Beta2 up to and including rc1
 
     # Prepare the ansible release
     # (This generates the dependency file and updates changelog.yaml)
-    antsibull-build prepare 3.0.0b2 --feature-frozen --data-dir ansible-build-data/3
+    antsibull-build prepare 8.0.0b2 --feature-frozen --data-dir ansible-build-data/8
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-core package)
-    antsibull-build rebuild-single 3.0.0b2 --data-dir ansible-build-data/3 --sdist-dir built --debian
+    antsibull-build rebuild-single 8.0.0b2 --data-dir ansible-build-data/8 --sdist-dir built --debian
 
 
 Any subsequent rcs and final
@@ -129,7 +129,7 @@ Any subsequent rcs and final
 .. code-block:: shell
 
     # Copy the previous rc's .deps file to the new rc version
-    cp ansible-build-data/3/ansible-3.0.0rc1.deps ansible-build-data/3/ansible-3.0.0rc2.deps
+    cp ansible-build-data/8/ansible-8.0.0rc1.deps ansible-build-data/8/ansible-8.0.0rc2.deps
 
     # We do not run antsibull-build prepare because the compatible collection version information
     # is now set until final.
@@ -137,14 +137,14 @@ Any subsequent rcs and final
     # * If ansible-core needs a version update, change it in the .build and .deps file.
     # * If any collections have been granted an update exception, change the range manually in the
     #   .build and .deps file.
-    # vim ansible-build-data/3/ansible-3.build
-    # vim ansible-build-data/3/ansible-3.0.0rc2.deps
+    # vim ansible-build-data/8/ansible-8.build
+    # vim ansible-build-data/8/ansible-8.0.0rc2.deps
 
     # Build it:
-    antsibull-build rebuild-single 3.0.0rc2 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.0.0rc2.deps --sdist-dir built --debian
+    antsibull-build rebuild-single 8.0.0rc2 --data-dir ansible-build-data/8 --build-file ansible-8.build --deps-file ansible-8.0.0rc2.deps --sdist-dir built --debian
 
 
-New minor releases (3.Y.0)
+New minor releases (8.Y.0)
 --------------------------
 
 .. code-block:: shell
@@ -155,18 +155,18 @@ New minor releases (3.Y.0)
 
     # Prepare the ansible release
     # (This generates the dependency file and updates changelog.yaml)
-    antsibull-build prepare 3.1.0 --data-dir ansible-build-data/3
+    antsibull-build prepare 8.1.0 --data-dir ansible-build-data/8
 
     # Until we get separate versions for ansible-core working correctly:
     # https://github.com/ansible-community/antsibull/issues/187
     # We'll need to update the ansible-core version manually. Follow
     # these steps after running antsibull-build prepare above:
-    # vim ansible-build-data/3/ansible-3.1.0.deps
+    # vim ansible-build-data/8/ansible-8.1.0.deps
     # Change the ansible-core version information in here to the latest compatible version on pypi
 
     # Create the ansible release
     # (This generates a single tarball for ansible with a dep on the ansible-core package)
-    antsibull-build rebuild-single 3.1.0 --data-dir ansible-build-data/3 --build-file ansible-3.build --deps-file ansible-3.1.0.deps --sdist-dir built --debian
+    antsibull-build rebuild-single 8.1.0 --data-dir ansible-build-data/8 --build-file ansible-8.build --deps-file ansible-8.1.0.deps --sdist-dir built --debian
 
 
 Recording release information
@@ -175,7 +175,7 @@ Recording release information
 .. code-block:: shell
 
     # Update the porting guide (check for breaking changes)
-    cp ansible-build-data/3/porting_guide_3.rst ansible/docs/docsite/rst/porting_guides/
+    cp ansible-build-data/8/porting_guide_8.rst ansible/docs/docsite/rst/porting_guides/
     cd ansible
     git checkout -b update-porting-guide
     # If this is a brand new major release, add the new porting guide to:
@@ -186,9 +186,9 @@ Recording release information
     cd ..
 
     # Record the files used to build:
-    export ANSIBLE_VERSION=3.0.0a1
-    cd ansible-build-data/3
-    git add ansible-3.build porting_guide_3.rst "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v3.rst
+    export ANSIBLE_VERSION=8.0.0a1
+    cd ansible-build-data/8
+    git add ansible-8.build porting_guide_8.rst "ansible-$ANSIBLE_VERSION.deps" changelog.yaml CHANGELOG-v8.rst
     git commit -m "Collection dependency information for ansible $ANSIBLE_VERSION"
     git push
     git tag $ANSIBLE_VERSION
@@ -196,7 +196,7 @@ Recording release information
     cd ../..
 
     # Then we can test installation with pip:
-    python -m pip install --user built/ansible-3.0.0a1.tar.gz
+    python -m pip install --user built/ansible-8.0.0a1.tar.gz
 
     ansible -m ansible.posix.synchronize -a 'src=/etc/skel dest=/var/tmp/testing-ansible' localhost
 
@@ -218,7 +218,7 @@ schedule too).
 * Build Ansible Docs to docs.ansible.com
 * Upload the tarball to pypi::
 
-    twine upload --sign built/ansible-3.0.0.tar.gz
+    twine upload --sign built/ansible-8.0.0.tar.gz
 
 
 Announcing Ansible
