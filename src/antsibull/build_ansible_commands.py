@@ -151,6 +151,10 @@ def copy_boilerplate_files(package_dir: str) -> None:
     with open(os.path.join(package_dir, 'README.rst'), 'wb') as f:
         f.write(readme)
 
+    pyproject_toml = get_antsibull_data('pyproject.toml')
+    with open(os.path.join(package_dir, 'pyproject.toml'), 'wb') as f:
+        f.write(pyproject_toml)
+
 
 def write_manifest(package_dir: str,
                    release_notes: t.Optional[ReleaseNotes] = None,
