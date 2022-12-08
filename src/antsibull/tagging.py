@@ -13,7 +13,7 @@ import asyncio
 import os
 import re
 import sys
-import typing as t
+from collections.abc import AsyncGenerator
 
 import asyncio_pool  # type: ignore[import]
 
@@ -25,8 +25,8 @@ from antsibull_core.yaml import store_yaml_file, load_yaml_file
 
 from antsibull.collection_meta import CollectionMetadata, CollectionsMetadata
 
-TAG_MATCHER: t.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
-TAG_VERSION_REGEX: t.Pattern[str] = re.compile(r'^v?(.*)$')
+TAG_MATCHER: re.Pattern[str] = re.compile(r'^.*refs/tags/(.*)$')
+TAG_VERSION_REGEX: re.Pattern[str] = re.compile(r'^v?(.*)$')
 mlog = log.fields(mod=__name__)
 
 
@@ -142,7 +142,7 @@ async def _get_collection_tags(
     if not repository:
         flog.debug("'repository' is None. Exitting...")
         return data
-    tag_version_regex: t.Pattern[str] | None = None
+    tag_version_regex: re.Pattern[str] | None = None
     if meta_data.tag_version_regex:
         try:
             tag_version_regex = re.compile(meta_data.tag_version_regex)
@@ -158,7 +158,7 @@ async def _get_collection_tags(
     return data
 
 
-async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
+async def _get_tags(repository) -> AsyncGenerator[str, None]:
     flog = mlog.fields(func='_get_tags')
     args = (
         'git',
@@ -196,7 +196,7 @@ async def _get_tags(repository) -> t.AsyncGenerator[str, None]:
 
 
 def _normalize_tag(
-    tag: str, regex: t.Pattern[str] | None
+    tag: str, regex: re.Pattern[str] | None
 ) -> str | None:
     regex = regex or TAG_VERSION_REGEX
     if match := regex.match(tag):
