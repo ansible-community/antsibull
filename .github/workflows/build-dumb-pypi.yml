@@ -46,35 +46,32 @@ jobs:
     - name: Figure out the source repos
       id: build-settings
       run: |
-        print(
-            '::set-output name=ansible-base-slug::${{
+        {
+        echo \
+            'ansible-base-slug=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-base-slug ||
                 'ansible/ansible'
             }}'
-        )
-        print(
-            '::set-output name=ansible-base-ref::${{
+        echo \
+            'ansible-base-ref=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-base-ref ||
                 'devel'
             }}'
-        )
-        print(
-            '::set-output name=ansible-build-data-slug::${{
+        echo \
+            'ansible-build-data-slug=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-build-data-slug ||
                 'ansible-community/ansible-build-data'
             }}'
-        )
-        print(
-            '::set-output name=ansible-build-data-ref::${{
+        echo \
+            'ansible-build-data-ref=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-build-data-ref ||
                 'main'
             }}'
-        )
-      shell: python
+        } >> ${GITHUB_OUTPUT}
 
     - name: Check out antsibull
       uses: actions/checkout@v3
