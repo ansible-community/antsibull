@@ -34,7 +34,7 @@ on:
 
 jobs:
   build-dumb-pypi:
-    name: ansible-base and ACD 🌃
+    name: ansible-core and ansible 🌃
     runs-on: ubuntu-latest
 
     steps:
