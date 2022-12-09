@@ -212,3 +212,5 @@ jobs:
         deploy_key: ${{ secrets.NIGHTLIES_DEPLOYMENT_KEY }}
         external_repository: ansible-community/nightly-builds
         publish_dir: www
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
