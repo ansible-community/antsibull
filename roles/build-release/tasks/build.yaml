@@ -9,7 +9,7 @@
     _galaxy_file: "ansible-{{ antsibull_ansible_version }}.yaml"
     _build_file: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.build"
     _tags_file: "{{ '' if antsibull_ansible_version is
-                    _antsibull_packaging_version('7.0.0rc1', '<') else
+                    _antsibull_packaging_version('7.2.0', '<') else
                     '--tags-file'}}"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
     _release_wheel: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}-py3-none-any.whl"
