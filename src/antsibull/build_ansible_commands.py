@@ -13,6 +13,7 @@ import shutil
 import tempfile
 from collections.abc import Collection, Mapping
 from functools import partial
+from typing import TYPE_CHECKING
 
 import aiofiles
 import aiohttp
@@ -29,15 +30,25 @@ from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsF
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
 from antsibull_core.utils.io import write_file
-from antsibull_core.yaml import store_yaml_file
+from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
+from .tagging import get_collections_tags
 from .utils.get_pkg_data import get_antsibull_data
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
 
 
 mlog = log.fields(mod=__name__)
+
+TAG_FILE_MESSAGE = """\
+# This is a mapping of collections to their git repositories and the git tag
+# that corresponds to the version included in this ansible release. A null
+# 'tag' field means that a collection's release wasn't tagged.
+"""
 
 
 #
@@ -160,7 +171,8 @@ def copy_boilerplate_files(package_dir: str) -> None:
 
 def write_manifest(package_dir: str,
                    release_notes: ReleaseNotes | None = None,
-                   debian: bool = False) -> None:
+                   debian: bool = False,
+                   tags_file: StrPath | None = None) -> None:
     manifest_file = os.path.join(package_dir, 'MANIFEST.in')
     with open(manifest_file, 'w', encoding='utf-8') as f:
         f.write('include COPYING\n')
@@ -171,6 +183,8 @@ def write_manifest(package_dir: str,
             f.write(f'include {release_notes.porting_guide_filename}\n')
         if debian:
             f.write('include debian/*\n')
+        if tags_file:
+            f.write('include tags.yaml\n')
         f.write('recursive-include ansible_collections/ **\n')
 
 
@@ -217,6 +231,12 @@ def write_setup(ansible_version: PypiVer,
         f.write(setup_contents)
 
 
+def copy_tags_file(tags_file: StrPath | None, package_dir: StrPath) -> None:
+    if tags_file:
+        dest = os.path.join(package_dir, 'tags.yaml')
+        shutil.copy(tags_file, dest)
+
+
 def write_python_build_files(ansible_version: PypiVer,
                              ansible_core_version: PypiVer,
                              collection_exclude_paths: list[str],
@@ -224,9 +244,11 @@ def write_python_build_files(ansible_version: PypiVer,
                              package_dir: str,
                              release_notes: ReleaseNotes | None = None,
                              debian: bool = False,
-                             python_requires: str = '>=3.8') -> None:
+                             python_requires: str = '>=3.8',
+                             tags_file: StrPath | None = None) -> None:
     copy_boilerplate_files(package_dir)
-    write_manifest(package_dir, release_notes, debian)
+    copy_tags_file(tags_file, package_dir)
+    write_manifest(package_dir, release_notes, debian, tags_file)
     write_setup(
         ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
         package_dir, python_requires)
@@ -448,6 +470,19 @@ def prepare_command() -> int:
         dependency_data.deps,
         python_requires=python_requires)
 
+    # Write tags data
+    if app_ctx.extra['tags_file']:
+        tag_data = asyncio.run(
+            get_collections_tags(
+                app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file']
+            )
+        )
+        tags_path = os.path.join(app_ctx.extra['dest_data_dir'],
+                                 app_ctx.extra['tags_file'])
+        with open(tags_path, 'w', encoding='utf-8') as fp:
+            fp.write(TAG_FILE_MESSAGE)
+            store_yaml_stream(fp, tag_data)
+
     # Write Galaxy requirements.yml file
     galaxy_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['galaxy_file'])
     write_galaxy_requirements(galaxy_filename, dependency_data.deps)
@@ -567,10 +602,14 @@ def rebuild_single_command() -> int:
         # TODO: do something with collection_ignored_files
 
         # Write build scripts and files
+        tags_path: str | None = None
+        if app_ctx.extra['tags_file']:
+            tags_path = os.path.join(app_ctx.extra['data_dir'],
+                                     app_ctx.extra['tags_file'])
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
                                  collection_exclude_paths, '', package_dir, release_notes,
-                                 app_ctx.extra['debian'], python_requires)
+                                 app_ctx.extra['debian'], python_requires, tags_path)
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)

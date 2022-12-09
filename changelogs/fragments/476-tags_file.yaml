@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - Add ``--tags-file`` option to the ``single``, ``rebuild-single``, and
+    ``prepare`` subcommands. This allows including a collection git tags data
+    file in ansible-build-data and the ansible sdist
+    (https://github.com/ansible-community/antsibull/pull/476/).
