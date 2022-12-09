@@ -14,13 +14,13 @@ deployment, cloud provisioning, ad-hoc task execution, network automation, and m
 orchestration. Ansible makes complex changes like zero-downtime rolling updates with load balancers
 easy. More information on the Ansible `website <https://ansible.com/>`_.
 
-This is the ``ansible`` ccmmunity package.
+This is the ``ansible`` community package.
 ``ansible`` contains a set of independent Ansible collections that are currated
 by the community, and it pulls in
 `ansible-core <pypi.org/project/ansible-core/>`_.
-The ``ansible-core`` package contains the core engine and cli tools (e.g.
-``ansible``, ``ansible-playbook``) while ``ansible`` contains extra modules and
-plugins.
+The ``ansible-core`` package contains the core engine and CLI tools (such as
+``ansible``, ``ansible-playbook``) while ``ansible`` contains extra modules,
+plugins, and roles.
 
 ``ansible`` follows `semantic versioning <https://semver.org/>`_.
 Each major version of ``ansible`` depends on a specific major version of
