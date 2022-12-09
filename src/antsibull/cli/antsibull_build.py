@@ -142,14 +142,11 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
 
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
-    if args.tags_file:
+    if args.command != 'multiple' and args.tags_file:
         args.tags_file = f'{DEFAULT_FILE_BASE}-{args.ansible_version}-tags.yaml'
         tags_path = os.path.join(args.data_dir, args.tags_file)
 
-        if (
-            args.command not in ('prepare', 'single', 'multiple') and
-            not os.path.isfile(tags_path)
-        ):
+        if args.command == 'rebuild-single' and not os.path.isfile(tags_path):
             raise InvalidArgumentError(f'{tags_path} does not exist!')
 
     if args.command in ('prepare', 'single') and args.galaxy_file is None:
@@ -217,10 +214,6 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
                                          help='Directory to write .build and .deps files to,'
                                          ' as well as changelog and porting guide if applicable.'
                                          '  Defaults to --data-dir')
-    build_write_data_parser.add_argument('--tags-file', action='store_true',
-                                         default=None,
-                                         help='Whether to write a tags data file')
-
     cache_parser = argparse.ArgumentParser(add_help=False)
     cache_parser.add_argument('--collection-cache', default=argparse.SUPPRESS,
                               help='Directory of cached collection tarballs.  Will be'
@@ -279,12 +272,20 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
                             help='Allow prereleases of collections to be included in the build'
                             ' file')
 
-    subparsers.add_parser('prepare',
-                          parents=[
-                              build_write_data_parser, build_step_parser, feature_freeze_parser,
-                              galaxy_file_parser,
-                          ],
-                          description='Collect dependencies for an Ansible release')
+    prepare_parser = subparsers.add_parser(
+        'prepare',
+        parents=[
+            build_write_data_parser,
+            build_step_parser,
+            feature_freeze_parser,
+            galaxy_file_parser,
+        ],
+        description='Collect dependencies for an Ansible release',
+    )
+    prepare_parser.add_argument(
+        '--tags-file', action='store_true', default=None,
+        help='Whether to include a tags data file in --dest-data-dir'
+    )
 
     build_single_parser = subparsers.add_parser('single',
                                                 parents=[
@@ -299,6 +300,10 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     build_single_parser.add_argument('--debian', action='store_true',
                                      help='Include Debian/Ubuntu packaging files in'
                                      ' the resulting output directory')
+    build_single_parser.add_argument(
+        '--tags-file', action='store_true', default=None,
+        help='Whether to include a tags data file in --dest-data-dir and the sdist'
+    )
 
     rebuild_single_parser = subparsers.add_parser('rebuild-single',
                                                   parents=[build_write_data_parser, cache_parser,
@@ -315,6 +320,10 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
                                        ' created to the specified directory. This is mainly useful'
                                        ' for debugging antsibull-build')
 
+    rebuild_single_parser.add_argument(
+        '--tags-file', action='store_true', default=None,
+        help='Whether to include a tags data file in the sdist'
+    )
     build_multiple_parser = subparsers.add_parser('multiple',
                                                   parents=[build_write_data_parser, cache_parser,
                                                            build_step_parser,
