@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 name: 👷 dumb PyPI on GH pages
-
+env:
+  ANSIBLE_MAJOR_VERSION: '7'
 on:
   push:
     branches:
@@ -34,7 +35,7 @@ on:
 
 jobs:
   build-dumb-pypi:
-    name: ansible-base and ACD 🌃
+    name: ansible-core and ansible 🌃
     runs-on: ubuntu-latest
 
     steps:
@@ -46,35 +47,32 @@ jobs:
     - name: Figure out the source repos
       id: build-settings
       run: |
-        print(
-            '::set-output name=ansible-base-slug::${{
+        {
+        echo \
+            'ansible-base-slug=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-base-slug ||
                 'ansible/ansible'
             }}'
-        )
-        print(
-            '::set-output name=ansible-base-ref::${{
+        echo \
+            'ansible-base-ref=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-base-ref ||
                 'devel'
             }}'
-        )
-        print(
-            '::set-output name=ansible-build-data-slug::${{
+        echo \
+            'ansible-build-data-slug=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-build-data-slug ||
                 'ansible-community/ansible-build-data'
             }}'
-        )
-        print(
-            '::set-output name=ansible-build-data-ref::${{
+        echo \
+            'ansible-build-data-ref=${{
                 github.event_name == 'workflow_dispatch' &&
                 github.event.inputs.ansible-build-data-ref ||
                 'main'
             }}'
-        )
-      shell: python
+        } >> ${GITHUB_OUTPUT}
 
     - name: Check out antsibull
       uses: actions/checkout@v3
@@ -115,23 +113,22 @@ jobs:
         .
 
     - name: Generate the list of compatible versions
-      # FIXME: should 6 / 6.99.0 be parametrized?
       run: >-
         ~/.local/bin/antsibull-build
-        new-ansible 6.99.0
-        --data-dir ansible-build-data/6
+        new-ansible "${ANSIBLE_MAJOR_VERSION}.99.0"
+        --data-dir "ansible-build-data/${ANSIBLE_MAJOR_VERSION}"
 
     - name: Prepare an Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        prepare 6.99.0
-        --data-dir ansible-build-data/6
+        prepare "${ANSIBLE_MAJOR_VERSION}.99.0"
+        --data-dir "ansible-build-data/${ANSIBLE_MAJOR_VERSION}"
 
     - name: Create a single-tarball Ansible dist
       run: >-
         ~/.local/bin/antsibull-build
-        rebuild-single 6.99.0
-        --data-dir ansible-build-data/6
+        rebuild-single "${ANSIBLE_MAJOR_VERSION}.99.0"
+        --data-dir "ansible-build-data/${ANSIBLE_MAJOR_VERSION}"
         --sdist-dir dist
 
     - name: >-
@@ -212,3 +209,5 @@ jobs:
         deploy_key: ${{ secrets.NIGHTLIES_DEPLOYMENT_KEY }}
         external_repository: ansible-community/nightly-builds
         publish_dir: www
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
