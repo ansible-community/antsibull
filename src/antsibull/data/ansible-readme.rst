@@ -119,7 +119,8 @@ License
 
 GNU General Public License v3.0 or later
 
-See `COPYING <COPYING>`_ for the full license text.
+See `COPYING <https://github.com/ansible-community/antsibull/blob/main/src/antsibull/data/gplv3.txt>`_
+for the full license text.
 
 .. |PyPI version| image:: https://img.shields.io/pypi/v/ansible.svg
    :target: https://pypi.org/project/ansible
