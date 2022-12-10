@@ -1,0 +1,6 @@
+---
+bufixes:
+  - Correct Python version classifiers in the ansible ``setup.py`` template.
+    Limit the Python 3.8 classifer to ansible 5 and 6
+    and add the Python 3.11 classifier to ansible >= 7
+    (https://github.com/ansible-community/antsibull/pull/479).
