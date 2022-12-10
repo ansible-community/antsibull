@@ -40,6 +40,9 @@ jobs:
         with:
           repository: ansible-community/antsibull-changelog
           path: antsibull-changelog
+          ref: >-
+            ${{ contains(fromJson('["3.8"]'), matrix.python-version)
+                && '0.17.0' || 'main' }}
 
       - name: Check out dependent project antsibull-core
         uses: actions/checkout@v3
