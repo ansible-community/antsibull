@@ -37,6 +37,8 @@ jobs:
         with:
           repository: ansible-community/antsibull-changelog
           path: antsibull-changelog
+          # TODO: Remove once we drop support for Python 3.8
+          ref: 0.17.0
 
       - name: Check out dependent project antsibull-core
         uses: actions/checkout@v3
