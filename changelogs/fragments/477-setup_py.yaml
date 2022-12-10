@@ -1,0 +1,4 @@
+---
+breaking_changes:
+  - Remove code for old ansible versions from the setup.py template
+    (https://github.com/ansible-community/antsibull/pull/477).
