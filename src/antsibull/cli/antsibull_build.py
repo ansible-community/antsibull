@@ -143,12 +143,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
     if args.command != 'multiple' and args.tags_file:
-        if args.tags_file == "DEFAULT":
-            args.tags_file = f'{DEFAULT_FILE_BASE}-{args.ansible_version}-tags.yaml'
-        tags_path = os.path.join(args.data_dir, args.tags_file)
-
-        if args.command == 'rebuild-single' and not os.path.isfile(tags_path):
-            raise InvalidArgumentError(f'{tags_path} does not exist!')
+        _check_tags_file(args)
 
     if args.command in ('prepare', 'single') and args.galaxy_file is None:
         version_suffix = f'-{compat_version_part}'
@@ -159,6 +154,15 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         args.galaxy_file = f'{basename}-{args.ansible_version}.yaml'
 
     _check_release_build_directories(args)
+
+
+def _check_tags_file(args: argparse.Namespace) -> None:
+    if args.tags_file == "DEFAULT":
+        args.tags_file = f'{DEFAULT_FILE_BASE}-{args.ansible_version}-tags.yaml'
+    tags_path = os.path.join(args.data_dir, args.tags_file)
+
+    if args.command == 'rebuild-single' and not os.path.isfile(tags_path):
+        raise InvalidArgumentError(f'{tags_path} does not exist!')
 
 
 def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
