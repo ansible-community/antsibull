@@ -143,7 +143,8 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         args.deps_file = f'{basename}-{args.ansible_version}.deps'
 
     if args.command != 'multiple' and args.tags_file:
-        args.tags_file = f'{DEFAULT_FILE_BASE}-{args.ansible_version}-tags.yaml'
+        if args.tags_file == "DEFAULT":
+            args.tags_file = f'{DEFAULT_FILE_BASE}-{args.ansible_version}-tags.yaml'
         tags_path = os.path.join(args.data_dir, args.tags_file)
 
         if args.command == 'rebuild-single' and not os.path.isfile(tags_path):
@@ -283,8 +284,11 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         description='Collect dependencies for an Ansible release',
     )
     prepare_parser.add_argument(
-        '--tags-file', action='store_true', default=None,
-        help='Whether to include a tags data file in --dest-data-dir'
+        '--tags-file', nargs='?', const='DEFAULT',
+        help='Whether to include a tags data file in --dest-data-dir.'
+             ' By default, the tags data file is stored in --dest-data-dir'
+             f' as {DEFAULT_FILE_BASE}-X.Y.Z-tags.yaml.'
+             ' --tags-file takes an optional argument to change the filename.'
     )
 
     build_single_parser = subparsers.add_parser('single',
@@ -301,8 +305,12 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
                                      help='Include Debian/Ubuntu packaging files in'
                                      ' the resulting output directory')
     build_single_parser.add_argument(
-        '--tags-file', action='store_true', default=None,
-        help='Whether to include a tags data file in --dest-data-dir and the sdist'
+        '--tags-file', nargs='?', const='DEFAULT',
+        help='Whether to include a tags data file in --dest-data-dir and the sdist.'
+             ' By default, the tags data file is stored in --dest-data-dir'
+             f' as {DEFAULT_FILE_BASE}-X.Y.Z-tags.yaml.'
+             ' --tags-file takes an optional argument to change the filename.'
+             " The tags data file in the sdist is always named 'tags.yaml'"
     )
 
     rebuild_single_parser = subparsers.add_parser('rebuild-single',
@@ -321,8 +329,12 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
                                        ' for debugging antsibull-build')
 
     rebuild_single_parser.add_argument(
-        '--tags-file', action='store_true', default=None,
-        help='Whether to include a tags data file in the sdist'
+        '--tags-file', nargs='?', const='DEFAULT',
+        help='Whether to include a tags data file in the sdist.'
+             ' By default, the tags data file is stored in --data-dir'
+             f' as {DEFAULT_FILE_BASE}-X.Y.Z-tags.yaml.'
+             ' --tags-file takes an optional argument to change the filename.'
+             " The tags data file in the sdist is always named 'tags.yaml'"
     )
     build_multiple_parser = subparsers.add_parser('multiple',
                                                   parents=[build_write_data_parser, cache_parser,
