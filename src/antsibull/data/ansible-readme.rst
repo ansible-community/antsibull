@@ -15,12 +15,12 @@ orchestration. Ansible makes complex changes like zero-downtime rolling updates 
 easy. More information on the Ansible `website <https://ansible.com/>`_.
 
 This is the ``ansible`` community package.
-``ansible`` contains a set of independent Ansible collections that are currated
-by the community, and it pulls in
-`ansible-core <pypi.org/project/ansible-core/>`_.
-The ``ansible-core`` package contains the core engine and CLI tools (such as
-``ansible``, ``ansible-playbook``) while ``ansible`` contains extra modules,
-plugins, and roles.
+The ``ansible`` python package contains a set of
+independent Ansible collections that are curated by the community,
+and it pulls in `ansible-core <pypi.org/project/ansible-core/>`_.
+The ``ansible-core`` python package contains the core runtime and CLI tools,
+such as ``ansible`` and ``ansible-playbook``,
+while the ``ansible`` package contains extra modules, plugins, and roles.
 
 ``ansible`` follows `semantic versioning <https://semver.org/>`_.
 Each major version of ``ansible`` depends on a specific major version of
@@ -52,10 +52,10 @@ on a variety of platforms.
 
 Reporting Issues
 ================
-Issues with plugins and modules within the Ansible package should be reported at
-collections' respective issue trackers.
-Issues with ``ansible-core`` should be reported in
-`its issue tracker <https://github.com/ansible/ansible/issues/>`_.
+Issues with plugins and modules in the Ansible package should be reported
+on the individual collection's issue tracker.
+Issues with ``ansible-core`` should be reported on
+the `ansible-core issue tracker <https://github.com/ansible/ansible/issues/>`_.
 
 Refer to the `Communication page
 <https://docs.ansible.com/ansible/latest/community/communication.html>`_ for a
