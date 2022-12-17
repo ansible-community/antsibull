@@ -8,6 +8,9 @@
     _deps_file: "ansible-{{ antsibull_ansible_version }}.deps"
     _galaxy_file: "ansible-{{ antsibull_ansible_version }}.yaml"
     _build_file: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.build"
+    _tags_file: "{{ '' if antsibull_ansible_version is
+                    _antsibull_packaging_version('7.2.0', '<') else
+                    '--tags-file'}}"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
     _release_wheel: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}-py3-none-any.whl"
 
@@ -43,6 +46,7 @@
     {{ antsibull_build_command }} prepare {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       {{ _feature_freeze | default('') }}
+      {{ _tags_file }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
@@ -70,6 +74,7 @@
       --build-file {{ antsibull_build_file }}
       --deps-file {{ _deps_file }}
       --debian
+      {{ _tags_file }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
