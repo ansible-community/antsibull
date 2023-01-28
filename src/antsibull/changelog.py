@@ -173,7 +173,7 @@ class CollectionChangelogCollector:
         try:
             changelog_data = load_yaml_bytes(changelog_bytes)
             return ChangelogData.collection(self.collection, str(version), changelog_data)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             print(f'WARNING: cannot load changelog of {self.collection} {version} due to {exc}')
             return None
 
