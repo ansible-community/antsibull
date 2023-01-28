@@ -174,8 +174,7 @@ class CollectionChangelogCollector:
             changelog_data = load_yaml_bytes(changelog_bytes)
             return ChangelogData.collection(self.collection, str(version), changelog_data)
         except Exception as exc:
-            print('WARNING: cannot load changelog of {collection_name} {version} due to {err}'.format(
-                collection_name=self.collection, version=version, err=exc))
+            print(f'WARNING: cannot load changelog of {self.collection} {version} due to {exc}')
             return None
 
     async def _download_changelog_stream(self, start_version: SemVer,
