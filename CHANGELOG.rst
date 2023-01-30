@@ -5,6 +5,28 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.53.0
+=======
+
+Release Summary
+---------------
+
+Feature and bugfix release.
+
+Minor Changes
+-------------
+
+- Add ``--tags-file`` option to the ``single``, ``rebuild-single``, and ``prepare`` subcommands. This allows including a collection git tags data file in ansible-build-data and the ansible sdist (https://github.com/ansible-community/antsibull/pull/476/).
+- Add ``pyproject.toml`` to ansible sdist to use the ``setuptools.build_meta`` `PEP 517 <https://peps.python.org/pep-0517/>`__ backend. Tools that still call ``setup.py`` directly will work the same as they did before (https://github.com/ansible-community/antsibull/pull/471).
+- Bump minimum ``antsibull-core`` requirement to 1.5.0. It contains changes that are needed for the new ``--tags-file`` option (https://github.com/ansible-community/antsibull/pull/476/).
+- There have been internal refactorings to simplify typing (https://github.com/ansible-community/antsibull/pull/469).
+
+Bugfixes
+--------
+
+- Correct Python version classifiers in the ansible ``setup.py`` template. Limit the Python 3.8 classifer to ansible 5 and 6 and add the Python 3.11 classifier to ansible >= 7 (https://github.com/ansible-community/antsibull/pull/479).
+- Do not crash when the ``changelogs/changelog.yaml`` file of a collection cannot be loaded (https://github.com/ansible-community/antsibull/issues/481, https://github.com/ansible-community/antsibull/pull/482).
+
 v0.52.0
 =======
 

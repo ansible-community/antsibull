@@ -1,7 +1,0 @@
----
-minor_changes:
-  - Add ``pyproject.toml`` to ansible sdist to use the
-    ``setuptools.build_meta`` `PEP 517 <https://peps.python.org/pep-0517/>`__
-    backend. Tools that still call ``setup.py`` directly will work the same as
-    they did before
-    (https://github.com/ansible-community/antsibull/pull/471).
