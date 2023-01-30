@@ -1,0 +1,2 @@
+bugfixes:
+  - "Do not crash when the ``changelogs/changelog.yaml`` file of a collection cannot be loaded (https://github.com/ansible-community/antsibull/issues/481, https://github.com/ansible-community/antsibull/pull/482)."
