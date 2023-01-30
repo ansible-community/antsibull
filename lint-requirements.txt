@@ -1,0 +1,12 @@
+# Copyright (C) 2023 Maxwell G <gotmax@e.email>
+# SPDX-License-Identifier: GPL-3.0-or-later
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+codecov
+flake8 >= 3.8.0
+mypy
+pyre-check ~= 0.9.15
+pylint ~= 2.12.0
+types-docutils
+types-PyYAML
+types-aiofiles
