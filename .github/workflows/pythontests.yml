@@ -24,7 +24,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - 3.8
           - 3.9
           - '3.10'
           - '3.11'
@@ -49,8 +48,6 @@ jobs:
         with:
           repository: ansible-community/antsibull-core
           path: antsibull-core
-          ref: >-
-            ${{ contains(fromJson('["3.8"]'), matrix.python-version) && 'stable-1' || 'main' }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
