@@ -30,7 +30,6 @@ classifiers = [
 
 [tool.poetry.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
-antsibull-lint = "antsibull.cli.antsibull_lint:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
