@@ -134,9 +134,9 @@ async def _get_collection_tags(
 ) -> dict[str, str | None]:
     flog = mlog.fields(func='_get_collection_tags')
     repository = meta_data.repository
-    data: dict[str, str | None] = dict(
-        version=version, repository=repository, tag=None
-    )
+    data: dict[str, str | None] = {
+        'version': version, 'repository': repository, 'tag': None,
+    }
     if meta_data.collection_directory:
         data['collection_directory'] = meta_data.collection_directory
     if not repository:
