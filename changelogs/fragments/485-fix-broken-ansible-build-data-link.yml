@@ -1,0 +1,2 @@
+bugfixes:
+  - "Fixed broken ansible-build-data repository link in ansible package readme (https://github.com/ansible-community/antsibull/pull/485)."

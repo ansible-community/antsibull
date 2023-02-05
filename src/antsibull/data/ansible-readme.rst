@@ -93,7 +93,7 @@ Branch Info
 *  The Ansible package has only one stable branch, called 'latest' in the documentation.
 *  See `Ansible release and maintenance <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html>`_  for information about active branches and their corresponding ``ansible-core`` versions.
 *  Refer to the
-   `ansible-build-data <https://https://github.com/ansible-community/ansible-build-data/>`_
+   `ansible-build-data <https://github.com/ansible-community/ansible-build-data/>`_
    repository for the exact versions of ``ansible-core`` and collections that
    are included in each ``ansible`` release.
 
