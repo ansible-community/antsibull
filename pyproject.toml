@@ -38,6 +38,11 @@ antsibull-core = ">= 1.5.0, < 3.0.0"
 asyncio-pool = "*"
 jinja2 = "*"
 sh = ">= 1.0.0 < 2.0.0"
+packaging = ">= 20.0"
+semantic_version = "*"
+aiofiles = "*"
+aiohttp = ">= 3.0.0"
+twiggy = "*"
 
 [tool.poetry.dev-dependencies]
 asynctest = "*"
