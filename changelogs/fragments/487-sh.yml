@@ -1,0 +1,2 @@
+bugfixes:
+  - "Explicitly declare the ``sh`` dependency and limit it to before 2.0.0 (https://github.com/ansible-community/antsibull/pull/487)."
