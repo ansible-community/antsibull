@@ -37,6 +37,8 @@ antsibull-changelog = ">= 0.14.0"
 antsibull-core = ">= 1.5.0, < 3.0.0"
 asyncio-pool = "*"
 jinja2 = "*"
+# sh v2 has breaking changes.
+# https://github.com/ansible-community/antsibull-core/issues/34
 sh = ">= 1.0.0 < 2.0.0"
 packaging = ">= 20.0"
 semantic_version = "*"
