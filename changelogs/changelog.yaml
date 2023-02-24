@@ -575,6 +575,26 @@ releases:
     - 482-changelog-yaml-parsing-handling.yml
     - correct-classifiers.yaml
     release_date: '2023-01-30'
+  0.54.0:
+    changes:
+      breaking_changes:
+      - Drop support for Python 3.8 (https://github.com/ansible-community/antsibull/pull/465).
+      bugfixes:
+      - Explicitly declare the ``sh`` dependency and limit it to before 2.0.0. Also
+        explicitly declare the dependencies on ``packaging``, ``semantic_version``,
+        ``aiofiles``, ``aiohttp``, and ``twiggy`` (https://github.com/ansible-community/antsibull/pull/487).
+      - Fix broken ansible-build-data repository link in ansible package README (https://github.com/ansible-community/antsibull/pull/485).
+      release_summary: New release with features, bugfixes, and breaking changes.
+      removed_features:
+      - Removed the ``antsibull-lint`` command line utility. It had no functionality
+        anymore for some time now (https://github.com/ansible-community/antsibull/pull/466).
+    fragments:
+    - 0.54.0.yml
+    - 465-drop-python3.8.yml
+    - 466-remove-antsibull-lint.yml
+    - 485-fix-broken-ansible-build-data-link.yml
+    - 487-sh.yml
+    release_date: '2023-02-24'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

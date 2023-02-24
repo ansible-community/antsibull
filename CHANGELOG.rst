@@ -5,6 +5,30 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.54.0
+=======
+
+Release Summary
+---------------
+
+New release with features, bugfixes, and breaking changes.
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- Drop support for Python 3.8 (https://github.com/ansible-community/antsibull/pull/465).
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- Removed the ``antsibull-lint`` command line utility. It had no functionality anymore for some time now (https://github.com/ansible-community/antsibull/pull/466).
+
+Bugfixes
+--------
+
+- Explicitly declare the ``sh`` dependency and limit it to before 2.0.0. Also explicitly declare the dependencies on ``packaging``, ``semantic_version``, ``aiofiles``, ``aiohttp``, and ``twiggy`` (https://github.com/ansible-community/antsibull/pull/487).
+- Fix broken ansible-build-data repository link in ansible package README (https://github.com/ansible-community/antsibull/pull/485).
+
 v0.53.0
 =======
 
