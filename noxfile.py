@@ -109,6 +109,14 @@ def coverage_release(session: nox.Session):
             "-e",
             "antsibull_ansible_git_version=stable-2.14",
         )
+    collections = Path(session.create_tmp()).joinpath("collections")
+    os.environ["ANSIBLE_COLLECTIONS_PATH"] = str(collections)
+    session.run(
+        "ansible-galaxy",
+        "collection",
+        "install",
+        "git+https://github.com/ansible-collections/community.general",
+    )
     session.run(
         "ansible-playbook",
         "-vv",
