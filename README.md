@@ -58,11 +58,10 @@ You can change this behavior through the `OTHER_ANTSIBULL_MODE` env var:
 To run specific tests:
 
 1. `nox -e test` to only run unit tests;
-2. `nox -e lint` to run all linters and formatters at once;
-3. `nox -e formatters` to run `isort`;
-4. `nox -e codeqa` to run `flake8`, `pylint`, and `reuse lint`;
-5. `nox -e typing` to run `mypy` and `pyre`.
-6. `nox -e coverage_release` to build a test ansible release.
+2. `nox -e lint` to run all linters;
+3. `nox -e codeqa` to run `flake8`, `pylint`, and `reuse lint`;
+4. `nox -e typing` to run `mypy` and `pyre`.
+5. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
 
 To create a more complete local development env:

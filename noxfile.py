@@ -16,10 +16,6 @@ ALLOW_EDITABLE = os.environ.get("ALLOW_EDITABLE", str(not IN_CI)).lower() in (
     "1",
     "true",
 )
-LINT_CHECK_MODE = os.environ.get("LINT_CHECK_MODE", str(IN_CI)).lower() in (
-    "1",
-    "true",
-)
 
 # Always install latest pip version
 os.environ["VIRTUALENV_DOWNLOAD"] = "1"
@@ -128,18 +124,8 @@ def coverage_release(session: nox.Session):
 
 @nox.session
 def lint(session: nox.Session):
-    session.notify("formatters")
     session.notify("codeqa")
     session.notify("typing")
-
-
-@nox.session
-def formatters(session: nox.Session):
-    install(session, ".[formatters]", editable=True)
-    posargs = list(session.posargs)
-    if LINT_CHECK_MODE:
-        posargs.append("--check")
-    session.run("isort", *posargs, "src", "tests", "noxfile.py")
 
 
 @nox.session

@@ -84,13 +84,9 @@ codeqa = [
     "pylint",
     "reuse",
 ]
-formatters = [
-    "isort",
-]
 dev = [
     # Used by nox sessions
     "antsibull[codeqa]",
-    "antsibull[formatters]",
     "antsibull[test]",
     "antsibull[typing]",
     # misc
