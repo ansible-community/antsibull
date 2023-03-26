@@ -385,9 +385,9 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         type=argparse.FileType('r'),
     )
     validate_tags_shared.add_argument(
-        '-W', '--warn-useless-ignores',
+        '-E', '--error-on-useless-ignores',
         action=BooleanOptionalAction,
-        dest='warn_useless_ignores',
+        dest='error_on_useless_ignores',
         default=True,
         help='By default, useless ignores (e.g. passing'
              ' `--ignore collection.collection` when that collection is'

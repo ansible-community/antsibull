@@ -43,7 +43,7 @@ def validate_tags_file_command() -> int:
     return _print_validation_errors(
         tag_data,
         ignores,
-        app_ctx.extra['warn_useless_ignores'],
+        app_ctx.extra['error_on_useless_ignores'],
     )
 
 
@@ -67,19 +67,19 @@ def validate_tags_command() -> int:
     return _print_validation_errors(
         tag_data,
         ignores,
-        app_ctx.extra['warn_useless_ignores'],
+        app_ctx.extra['error_on_useless_ignores'],
     )
 
 
 def _print_validation_errors(
     tag_data: dict[str, dict[str, str | None]],
     ignores: Collection[str] = (),
-    warn_useless_ignores: bool = True,
+    error_on_useless_ignores: bool = True,
 ) -> int:
     """
     This takes the tag_data and prints any validation errors to stderr.
     """
-    errors = validate_tags(tag_data, ignores, warn_useless_ignores)
+    errors = validate_tags(tag_data, ignores, error_on_useless_ignores)
     if not errors:
         return 0
     for error in errors:
@@ -106,7 +106,7 @@ def _get_ignores(
 def validate_tags(
     tag_data: dict[str, dict[str, str | None]],
     ignores: Collection[str] = (),
-    warn_useless_ignores: bool = True,
+    error_on_useless_ignores: bool = True,
 ) -> list[str]:
     """
     Validate that each collection in tag_data has a repository and a tag
@@ -114,7 +114,7 @@ def validate_tags(
 
     :param tag_data: A tag data dictionary as returned by `get_collections_tags`
     :param ignores: A list of collection names for which to ignore errors
-    :param warn_useless_ignores: Whether to error for useless ignores
+    :param error_on_useless_ignores: Whether to error for useless ignores
     """
     errors = []
     ignore_set = set(ignores)
@@ -122,7 +122,7 @@ def validate_tags(
         version = data['version']
         if name in ignore_set:
             ignore_set.remove(name)
-            if data['repository'] and data['tag'] and warn_useless_ignores:
+            if data['repository'] and data['tag'] and error_on_useless_ignores:
                 errors.append(
                     f'useless ignore {name!r}: {name} {version} is properly tagged'
                 )
@@ -134,7 +134,7 @@ def validate_tags(
             errors.append(
                 f'{name} {version} is not tagged in {data["repository"]}'
             )
-    if ignore_set and warn_useless_ignores:
+    if ignore_set and error_on_useless_ignores:
         for name in ignore_set:
             errors.append(
                 f'invalid ignore {name!r}: {name} does not match any collection'
