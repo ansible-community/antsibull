@@ -140,3 +140,6 @@ poetry.lock
 *.in
 *.build
 *.deps
+
+# antsibull specific
+antsibull.cfg
