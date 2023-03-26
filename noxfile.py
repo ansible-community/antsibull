@@ -31,7 +31,7 @@ def install(session: nox.Session, *args, editable=False, **kwargs):
     # This ensures that the wheel contains all of the correct files.
     if editable and ALLOW_EDITABLE:
         args = ("-e", *args)
-    session.install(*args, "-U", **kwargs)
+    session.install(*(str(arg) for arg in args), "-U", **kwargs)
 
 
 def other_antsibull(
