@@ -3,66 +3,95 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 [build-system]
-requires = ["poetry-core>=1.0.7"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "antsibull"
 version = "0.54.0.post0"
 description = "Tools for building the Ansible Distribution"
-authors = ["Toshio Kuratomi <a.badger@gmail.com>"]
 license = "GPL-3.0-or-later"
+license-files = {globs=["LICENSES/*.txt"]}
 readme = "README.md"
-repository = "https://github.com/ansible-community/antsibull"
-packages = [
-    { include = "antsibull", from="src" },
-    { include = "tests", format = "sdist" }
-]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: Ansible",
-    "Intended Audience :: Developers"
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Typing :: Typed",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "antsibull-changelog >= 0.14.0",
+    "antsibull-core >= 1.5.0, < 3.0.0",
+    "asyncio-pool",
+    "jinja2",
+    # sh v2 has breaking changes.,
+    # https://github.com/ansible-community/antsibull-core/issues/34,
+    "sh >= 1.0.0, < 2.0.0",
+    "packaging >= 20.0",
+    "semantic_version",
+    "aiofiles",
+    "aiohttp >= 3.0.0",
+    "twiggy",
 ]
 
-[tool.poetry.urls]
+[[project.authors]]
+name = "Toshio Kuratomi"
+email = "a.badger@gmail.com"
+
+[[project.authors]]
+name = "Felix Fontein"
+email = "felix@fontein.de"
+
+[[project.maintainers]]
+name = "Felix Fontein"
+email = "felix@fontein.de"
+
+[[project.maintainers]]
+name = "Maxwell G"
+email = "maxwell@gtmx.me"
+
+
+[project.urls]
+"Source code" = "https://github.com/ansible-community/antsibull"
 "Code of Conduct" = "https://docs.ansible.com/ansible/latest/community/code_of_conduct.html"
 "Bug tracker" = "https://github.com/ansible-community/antsibull/issues"
 
-[tool.poetry.scripts]
+[project.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-antsibull-changelog = ">= 0.14.0"
-antsibull-core = ">= 1.5.0, < 3.0.0"
-asyncio-pool = "*"
-jinja2 = "*"
-# sh v2 has breaking changes.
-# https://github.com/ansible-community/antsibull-core/issues/34
-sh = ">= 1.0.0 < 2.0.0"
-packaging = ">= 20.0"
-semantic_version = "*"
-aiofiles = "*"
-aiohttp = ">= 3.0.0"
-twiggy = "*"
-
-[tool.poetry.dev-dependencies]
-asynctest = "*"
-cryptography = "*"
-codecov = "*"
-flake8 = ">= 3.8.0"
-mypy = "*"
-pyre-check = "^0.9.15"
-pylint = "^2.12.0"
-pytest = "*"
-pytest-asyncio = ">= 0.12"
-pytest-cov = "*"
-types-docutils = "*"
-types-PyYAML = "*"
-types-aiofiles = "*"
-# For development, we install dependent projects under our control in dev mode:
-antsibull-changelog = { path = "../antsibull-changelog/", develop = true }
-antsibull-core = { path = "../antsibull-core/", develop = true }
+[project.optional-dependencies]
+test = [
+    "asynctest",
+    "cryptography",
+    "pytest",
+    "pytest-asyncio >= 0.12",
+    "pytest-cov",
+]
+typing = [
+    "mypy",
+    # https://github.com/facebook/pyre-check/issues/398
+    "pyre-check ~= 0.9.15",
+    "types-aiofiles",
+    "types-docutils",
+    "types-PyYAML",
+]
+codeqa = [
+    "flake8 >= 3.8.0",
+    "pylint",
+    "reuse",
+]
+dev = [
+    # Used by nox sessions
+    "antsibull[codeqa]",
+    "antsibull[test]",
+    "antsibull[typing]",
+    # misc
+    "nox",
+]
 
 [tool.isort]
 line_length = 100

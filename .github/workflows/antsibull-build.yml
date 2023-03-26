@@ -57,25 +57,16 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install poetry ansible-core
-          sed -i -e 's/^python = .*/python = "^${{ matrix.python }}"/' pyproject.toml
-          poetry install
-          poetry update
-          ansible-galaxy collection install 'git+https://github.com/ansible-collections/community.general.git'
-        working-directory: antsibull
+      # Use pip manually to ensure the correct Python is used
+      - name: Install nox
+        run: pip install --user -U nox
 
       - name: "Test building a release: ${{ matrix.name }}"
         run: |
-          ansible-playbook -vv playbooks/build-single-release.yaml -e 'antsibull_build_command="poetry run coverage run -p --source antsibull -m antsibull.cli.antsibull_build"' ${{ matrix.options }}
+          OTHER_ANTSIBULL_MODE=local nox -e coverage_release -- ${{ matrix.options }}
         working-directory: antsibull
 
-      - name: Combine and upload coverage stats
-        run: |
-          poetry run coverage combine .coverage.*
-          poetry run coverage report
-          poetry run coverage xml -i
-          poetry run codecov
-        working-directory: antsibull
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          working-directory: antsibull

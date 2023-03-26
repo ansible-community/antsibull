@@ -1,0 +1,54 @@
+---
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2023 Maxwell G <maxwell@gtmx.me
+
+name: nox
+'on':
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Run once per week (Monday at 04:00 UTC)
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  nox-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: antsibull
+    steps:
+      - name: Check out antsibull
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+      - name: Setup nox
+        uses: wntrblm/nox@2022.11.21
+        with:
+          python-versions: "3.11"
+      - name: nox -e lint
+        run: |
+          OTHER_ANTSIBULL_MODE=git nox -v -e lint
+  nox-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: antsibull
+    steps:
+      - name: Check out antsibull
+        uses: actions/checkout@v3
+        with:
+          path: antsibull
+      - name: Setup nox
+        uses: wntrblm/nox@2022.11.21
+        with:
+          python-versions: "3.9, 3.10, 3.11"
+      - name: nox -e test
+        run: |
+          OTHER_ANTSIBULL_MODE=git nox -v -e test -- --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
