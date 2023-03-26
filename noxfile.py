@@ -146,8 +146,14 @@ def codeqa(session: nox.Session):
 
 @nox.session
 def typing(session: nox.Session):
-    install(session, ".[typing]", *other_antsibull(), editable=True)
+    others = other_antsibull()
+    install(session, ".[typing]", *others, editable=True)
     session.run("mypy", "src/antsibull")
+
+    additional_libraries = []
+    for path in others:
+        if isinstance(path, Path):
+            additional_libraries.extend(('--search-path', str(path / 'src')))
 
     purelib = session.run(
         "python",
@@ -171,6 +177,7 @@ def typing(session: nox.Session):
         platlib,
         "--search-path",
         "stubs/",
+        *additional_libraries,
     )
 
 
