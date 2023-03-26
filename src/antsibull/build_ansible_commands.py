@@ -12,7 +12,6 @@ import os.path
 import shutil
 import tempfile
 from collections.abc import Collection, Mapping
-from functools import partial
 from typing import TYPE_CHECKING
 
 import aiofiles
@@ -305,46 +304,20 @@ def show_warnings(result: sh.RunningCommand, **kwargs) -> None:
 
 
 def make_dist(ansible_dir: str, dest_dir: str) -> None:
+    # XXX: build has an API, but it's quite unstable, so we use the cli for now
     show_warnings(
         # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('setup.py', 'sdist', _cwd=ansible_dir),
+        sh.python('-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir),
         func='make_dist',
     )
-    dist_dir = os.path.join(ansible_dir, 'dist')
-    files = os.listdir(dist_dir)
-    if len(files) != 1:
-        # pylint:disable-next=broad-exception-raised
-        raise Exception('python setup.py sdist should only have created one file')
-
-    shutil.move(os.path.join(dist_dir, files[0]), dest_dir)
 
 
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
     show_warnings(
         # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('setup.py', 'sdist', 'bdist_wheel', _cwd=ansible_dir),
+        sh.python('-m', 'build', '--outdir', dest_dir, ansible_dir),
         func='make_dist_with_wheels',
     )
-    dist_dir = os.path.join(ansible_dir, 'dist')
-    files = os.listdir(dist_dir)
-    tarball_count = 0
-    wheel_count = 0
-    for file in files:
-        if file.endswith('.tar') or file.endswith('.tar.gz'):
-            tarball_count += 1
-        elif file.endswith('.whl'):
-            wheel_count += 1
-        else:
-            tarball_count = 2  # the number is wrong, but this triggers an error
-            break
-    if tarball_count != 1 or wheel_count == 0:
-        # pylint:disable-next=broad-exception-raised
-        raise Exception(
-            "python setup.py sdist bdist_wheel should have created exactly one tarball and at"
-            f" least one wheel (got {files})")
-
-    for file in files:
-        shutil.move(os.path.join(dist_dir, file), dest_dir)
 
 
 def write_build_script(ansible_version: PypiVer,
@@ -685,16 +658,7 @@ async def make_collection_dist(name: str,
     loop = asyncio.get_running_loop()
 
     # Create the python sdist
-    # pyre-ignore[16], pylint:disable=no-member
-    await loop.run_in_executor(None, partial(sh.python, 'setup.py', 'sdist', _cwd=package_dir))
-    dist_dir = os.path.join(package_dir, 'dist')
-    files = os.listdir(dist_dir)
-    if len(files) != 1:
-        # pylint:disable-next=broad-exception-raised
-        raise Exception('python setup.py sdist should only have created one file')
-
-    dist_file = os.path.join(dist_dir, files[0])
-    await loop.run_in_executor(None, shutil.move, dist_file, dest_dir)
+    await loop.run_in_executor(None, make_dist, package_dir, dest_dir)
 
 
 async def make_collection_dists(dest_dir: str, collection_dirs: list[str]) -> None:
