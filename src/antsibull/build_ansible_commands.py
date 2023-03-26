@@ -307,7 +307,7 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
     # XXX: build has an API, but it's quite unstable, so we use the cli for now
     show_warnings(
         # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('-m', 'build', '-s', '-o', dest_dir, ansible_dir),
+        sh.python('-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir),
         func='make_dist',
     )
 
@@ -315,7 +315,7 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
     show_warnings(
         # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('-m', 'build', '-o', dest_dir, ansible_dir),
+        sh.python('-m', 'build', '--outdir', dest_dir, ansible_dir),
         func='make_dist_with_wheels',
     )
 
