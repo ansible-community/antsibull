@@ -105,3 +105,14 @@ source = [
     "src",
    "*/site-packages",
 ]
+
+[tool.mypy]
+mypy_path = stubs/
+
+[[tool.mypy.overrides]]
+module = "sh"
+ignore_missing_imports = True
+
+[[tool.mypy.overrides]]
+module = "semantic_version"
+ignore_missing_imports = True
