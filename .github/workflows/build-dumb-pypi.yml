@@ -181,7 +181,7 @@ jobs:
       env:
         _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
-        packaging/release.py build
+        packaging/release.py build --allow-dirty
         packaging/release.py test
         python -m setup sdist --dist-dir=../dist
       working-directory: ansible--ansible--devel
