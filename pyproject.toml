@@ -71,6 +71,7 @@ test = [
     "pytest",
     "pytest-asyncio >= 0.12",
     "pytest-cov",
+    "pytest-error-for-skips",
 ]
 typing = [
     "mypy",
@@ -98,3 +99,9 @@ dev = [
 line_length = 100
 multi_line_output = 3
 include_trailing_comma = true
+
+[tool.coverage.paths]
+source = [
+    "src",
+   "*/site-packages",
+]

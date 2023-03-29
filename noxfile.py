@@ -75,11 +75,19 @@ def test(session: nox.Session):
         *other_antsibull(),
         editable=True,
     )
+    covfile = Path(session.create_tmp(), ".coverage")
+    more_args = []
+    if session.python == "3.11":
+        more_args.append("--error-for-skips")
     session.run(
         "pytest",
         "--cov-branch",
         "--cov=antsibull",
+        "--cov-report",
+        "term-missing",
+        *more_args,
         *session.posargs,
+        env={"COVERAGE_FILE": f"{covfile}", **session.env},
     )
 
 
@@ -97,6 +105,8 @@ def coverage_release(session: nox.Session):
         editable=True,
     )
 
+    covfile = Path(session.create_tmp()) / ".coverage"
+    env = {"COVERAGE_FILE": f"{covfile}", **session.env}
     build_command = (
         "coverage run -p --source antsibull -m antsibull.cli.antsibull_build"
     )
@@ -110,12 +120,12 @@ def coverage_release(session: nox.Session):
             "antsibull_ansible_git_version=stable-2.14",
         )
     collections = Path(session.create_tmp()).joinpath("collections")
-    os.environ["ANSIBLE_COLLECTIONS_PATH"] = str(collections)
     session.run(
         "ansible-galaxy",
         "collection",
         "install",
         "git+https://github.com/ansible-collections/community.general",
+        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **session.env},
     )
     session.run(
         "ansible-playbook",
@@ -124,10 +134,24 @@ def coverage_release(session: nox.Session):
         *posargs,
         "-e",
         f"antsibull_build_command={build_command!r}",
+        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **env},
     )
-    session.run("coverage", "combine", *Path(".").glob(".coverage.*"))
-    session.run("coverage", "report")
-    session.run("coverage", "xml", "-i")
+
+    combined = map(str, tmp.glob(".coverage.*"))
+    session.run("coverage", "combine", *combined, env=env)
+    session.run("coverage", "report", env=env)
+
+
+@nox.session
+def coverage(session: nox.Session):
+    install(session, ".[coverage]", editable=True)
+    combined = map(str, Path().glob(".nox/*/tmp/.coverage"))
+    # Combine the results into a single .coverage file in the root
+    session.run("coverage", "combine", "--keep", *combined)
+    # Create a coverage.xml for codecov
+    session.run("coverage", "xml")
+    # Display the combined results to the user
+    session.run("coverage", "report", "-m")
 
 
 @nox.session

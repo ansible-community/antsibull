@@ -66,6 +66,11 @@ jobs:
           OTHER_ANTSIBULL_MODE=local nox -e coverage_release -- ${{ matrix.options }}
         working-directory: antsibull
 
+      - name: Report coverage
+        run: |
+          nox -v -e coverage
+        working-directory: antsibull
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:

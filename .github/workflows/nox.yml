@@ -49,7 +49,10 @@ jobs:
           python-versions: "3.9, 3.10, 3.11"
       - name: nox -e test
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e test -- --cov-report=xml --cov-append
+          OTHER_ANTSIBULL_MODE=git nox -v -e test
+      - name: Report coverage
+        run: |
+          nox -v -e coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
