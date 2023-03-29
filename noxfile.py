@@ -189,6 +189,7 @@ def _repl_version(session: nox.Session, new_version: str):
             if line.startswith("version = "):
                 line = f'version = "{new_version}"\n'
             fp.write(line)
+        fp.truncate()
 
 
 def check_no_modifications(session: nox.Session) -> None:
