@@ -104,7 +104,8 @@ def coverage_release(session: nox.Session):
         editable=True,
     )
 
-    covfile = Path(session.create_tmp()) / ".coverage"
+    tmp = Path(session.create_tmp())
+    covfile = tmp / ".coverage"
     env = {"COVERAGE_FILE": f"{covfile}", **session.env}
     build_command = (
         "coverage run -p --source antsibull -m antsibull.cli.antsibull_build"
