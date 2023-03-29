@@ -159,7 +159,7 @@ jobs:
       env:
         _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
-        make sdist_check
+        packaging/release.py test-sdist
         python -m setup sdist --dist-dir=../dist
       working-directory: ansible--ansible--devel
 
@@ -180,7 +180,7 @@ jobs:
       env:
         _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
-        make sdist_check
+        packaging/release.py test-sdist
         python -m setup sdist --dist-dir=../dist
       working-directory: ansible--ansible--devel
 
