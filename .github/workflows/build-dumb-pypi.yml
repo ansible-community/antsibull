@@ -143,24 +143,14 @@ jobs:
         ref: ${{ steps.build-settings.outputs.ansible-base-ref }}
         repository: ${{ steps.build-settings.outputs.ansible-base-slug }}
 
-    - name: Install packaging-related dists from PyPI
-      run: >-
-        python -m
-        pip install
-        -U --user
-        packaging straight.plugin
-
     - name: >-
         Build ${{
           steps.build-settings.outputs.ansible-base-slug
         }}@${{
           steps.build-settings.outputs.ansible-base-ref
         }}
-      env:
-        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
-        make sdist_check
-        python -m setup sdist --dist-dir=../dist
+        python -m build --outdir=../dist
       working-directory: ansible--ansible--devel
 
     - name: Make ansible version stable
@@ -177,11 +167,8 @@ jobs:
         }}@${{
           steps.build-settings.outputs.ansible-base-ref
         }} as stable
-      env:
-        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
-        make sdist_check
-        python -m setup sdist --dist-dir=../dist
+        python -m build --outdir=../dist
       working-directory: ansible--ansible--devel
 
     - name: Install dumb-pypi dist from PyPI
