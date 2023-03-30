@@ -63,6 +63,8 @@ To run specific tests:
 4. `nox -e typing` to run `mypy` and `pyre`.
 5. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
+6. `nox -e coverage` to display combined coverage results after running `nox -e
+   test integration` and `nox -e test`;
 
 To create a more complete local development env:
 
