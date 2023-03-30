@@ -185,7 +185,9 @@ setup(
             'ansible_collections*',
         ],
         exclude=[
+            'ansible_collections.*.*.tests.*',
             'ansible_collections.*.*.tests',
+            'ansible_collections.*.*.docs.*',
             'ansible_collections.*.*.docs',
         ],
     ),
