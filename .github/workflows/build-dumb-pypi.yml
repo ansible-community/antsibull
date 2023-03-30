@@ -150,9 +150,7 @@ jobs:
           steps.build-settings.outputs.ansible-base-ref
         }}
       run: |
-        packaging/release.py build
-        packaging/release.py test
-        python -m setup sdist --dist-dir=../dist
+        python -m build --outdir=../dist
       working-directory: ansible--ansible--devel
 
     - name: Make ansible version stable
@@ -170,9 +168,7 @@ jobs:
           steps.build-settings.outputs.ansible-base-ref
         }} as stable
       run: |
-        packaging/release.py build --allow-dirty
-        packaging/release.py test
-        python -m setup sdist --dist-dir=../dist
+        python -m build --outdir=../dist
       working-directory: ansible--ansible--devel
 
     - name: Install dumb-pypi dist from PyPI
