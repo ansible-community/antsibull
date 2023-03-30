@@ -92,6 +92,7 @@ codeqa = [
 dev = [
     # Used by nox sessions
     "antsibull[codeqa]",
+    "antsibull[coverage]",
     "antsibull[test]",
     "antsibull[typing]",
     # misc
