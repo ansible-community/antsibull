@@ -119,7 +119,7 @@ def coverage_release(session: nox.Session):
             "-e",
             "antsibull_ansible_git_version=stable-2.14",
         )
-    collections = Path(session.create_tmp()).joinpath("collections")
+    collections = tmp / "collections"
     session.run(
         "ansible-galaxy",
         "collection",
