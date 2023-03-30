@@ -143,21 +143,12 @@ jobs:
         ref: ${{ steps.build-settings.outputs.ansible-base-ref }}
         repository: ${{ steps.build-settings.outputs.ansible-base-slug }}
 
-    - name: Install packaging-related dists from PyPI
-      run: >-
-        python -m
-        pip install
-        -U --user
-        packaging straight.plugin
-
     - name: >-
         Build ${{
           steps.build-settings.outputs.ansible-base-slug
         }}@${{
           steps.build-settings.outputs.ansible-base-ref
         }}
-      env:
-        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
         packaging/release.py build
         packaging/release.py test
@@ -178,8 +169,6 @@ jobs:
         }}@${{
           steps.build-settings.outputs.ansible-base-ref
         }} as stable
-      env:
-        _ANSIBLE_SDIST_FROM_MAKEFILE: 1
       run: |
         packaging/release.py build --allow-dirty
         packaging/release.py test
