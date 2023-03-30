@@ -185,14 +185,25 @@ setup(
             'ansible_collections*',
         ],
         exclude=[
-            'ansible_collections.*.*.tests.*',
-            'ansible_collections.*.*.tests',
-            'ansible_collections.*.*.docs.*',
-            'ansible_collections.*.*.docs',
+{%-   for collection in collection_names %}
+            'ansible_collections.{{ collection }}.tests.*',
+            'ansible_collections.{{ collection }}.tests',
+            'ansible_collections.{{ collection }}.docs.*',
+            'ansible_collections.{{ collection }}.docs',
+{%-   endfor %}
         ],
     ),
     package_dir={'': '.'},
     package_data={'': ['*', '*/*/*/**/.*']},
+    exclude_package_data={
+        'ansible_collections': ['*/*/tests/.*', '*/*/tests/**/.*', '*/*/docs/.*', '*/*/docs/**/.*'],
+{%-   for namespace in collection_namespaces %}
+        'ansible_collections.{{ namespace }}': ['*/tests/.*', '*/tests/**/.*', '*/docs/.*', '*/docs/**/.*'],
+{%-   endfor %}
+{%-   for collection in collection_names %}
+        'ansible_collections.{{ collection }}': ['tests/.*', 'tests/**/.*', 'docs/.*', 'docs/**/.*'],
+{%-   endfor %}
+    },
 {%- else %}
     packages=['ansible_collections'],
 {%-   if version.major >= 6 and collection_exclude_paths %}

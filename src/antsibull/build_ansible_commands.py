@@ -211,6 +211,8 @@ def write_setup(ansible_version: PypiVer,
                 ansible_core_version: PypiVer,
                 collection_exclude_paths: list[str],
                 collection_deps: str,
+                collection_names: list[str],
+                collection_namespaces: list[str],
                 package_dir: str,
                 python_requires: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
@@ -222,6 +224,8 @@ def write_setup(ansible_version: PypiVer,
         ansible_core_version=ansible_core_version,
         collection_exclude_paths=collection_exclude_paths,
         collection_deps=collection_deps,
+        collection_names=collection_names,
+        collection_namespaces=collection_namespaces,
         python_requires=python_requires,
         PypiVer=PypiVer,
     )
@@ -240,6 +244,8 @@ def write_python_build_files(ansible_version: PypiVer,
                              ansible_core_version: PypiVer,
                              collection_exclude_paths: list[str],
                              collection_deps: str,
+                             collection_names: list[str],
+                             collection_namespaces: list[str],
                              package_dir: str,
                              release_notes: ReleaseNotes | None = None,
                              debian: bool = False,
@@ -250,7 +256,7 @@ def write_python_build_files(ansible_version: PypiVer,
     write_manifest(package_dir, release_notes, debian, tags_file)
     write_setup(
         ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
-        package_dir, python_requires)
+        collection_names, collection_namespaces, package_dir, python_requires)
 
 
 def write_debian_directory(ansible_version: PypiVer,
@@ -576,6 +582,11 @@ def rebuild_single_command() -> int:
 
         # TODO: do something with collection_ignored_files
 
+        # Collect collection namespaces
+        collection_namespaces: set[str] = set()
+        for collection in dependency_data.deps:
+            collection_namespaces.add(collection.split('.', 1)[0])
+
         # Write build scripts and files
         tags_path: str | None = None
         if app_ctx.extra['tags_file']:
@@ -583,7 +594,8 @@ def rebuild_single_command() -> int:
                                      app_ctx.extra['tags_file'])
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
-                                 collection_exclude_paths, '', package_dir, release_notes,
+                                 collection_exclude_paths, '', sorted(dependency_data.deps),
+                                 sorted(collection_namespaces), package_dir, release_notes,
                                  app_ctx.extra['debian'], python_requires, tags_path)
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
@@ -719,7 +731,7 @@ def build_multiple_command() -> int:
         collection_deps_str = '\n' + ',\n'.join(collection_deps)
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
-                                 [], collection_deps_str, package_dir,
+                                 [], collection_deps_str, [], [], package_dir,
                                  python_requires=python_requires)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
