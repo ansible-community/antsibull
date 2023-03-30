@@ -106,7 +106,7 @@ def coverage_release(session: nox.Session):
 
     tmp = Path(session.create_tmp())
     covfile = tmp / ".coverage"
-    env = {"COVERAGE_FILE": f"{covfile}", **session.env}
+    cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
     build_command = (
         "coverage run -p --source antsibull -m antsibull.cli.antsibull_build"
     )
@@ -134,12 +134,12 @@ def coverage_release(session: nox.Session):
         *posargs,
         "-e",
         f"antsibull_build_command={build_command!r}",
-        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **env},
+        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **cov_env},
     )
 
     combined = map(str, tmp.glob(".coverage.*"))
-    session.run("coverage", "combine", *combined, env=env)
-    session.run("coverage", "report", env=env)
+    session.run("coverage", "combine", *combined, env=cov_env)
+    session.run("coverage", "report", env=cov_env)
 
 
 @nox.session
