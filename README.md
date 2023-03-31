@@ -64,7 +64,7 @@ To run specific tests:
 5. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
 6. `nox -e coverage` to display combined coverage results after running `nox -e
-   test integration` and `nox -e test`;
+   test coverage_release`;
 
 To create a more complete local development env:
 
