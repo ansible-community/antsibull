@@ -71,6 +71,10 @@ test = [
     "pytest",
     "pytest-asyncio >= 0.12",
     "pytest-cov",
+    "pytest-error-for-skips",
+]
+coverage = [
+    "coverage[toml]",
 ]
 typing = [
     "mypy",
@@ -88,6 +92,7 @@ codeqa = [
 dev = [
     # Used by nox sessions
     "antsibull[codeqa]",
+    "antsibull[coverage]",
     "antsibull[test]",
     "antsibull[typing]",
     # misc
@@ -98,3 +103,20 @@ dev = [
 line_length = 100
 multi_line_output = 3
 include_trailing_comma = true
+
+[tool.coverage.paths]
+source = [
+    "src",
+    "*/site-packages",
+]
+
+[tool.mypy]
+mypy_path = "stubs/"
+
+[[tool.mypy.overrides]]
+module = "sh"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "semantic_version"
+ignore_missing_imports = true

@@ -19,7 +19,7 @@ ALLOW_EDITABLE = os.environ.get("ALLOW_EDITABLE", str(not IN_CI)).lower() in (
 
 # Always install latest pip version
 os.environ["VIRTUALENV_DOWNLOAD"] = "1"
-nox.options.sessions = "lint", "test"
+nox.options.sessions = "lint", "test", "coverage"
 
 
 def install(session: nox.Session, *args, editable=False, **kwargs):
@@ -71,15 +71,23 @@ def other_antsibull(
 def test(session: nox.Session):
     install(
         session,
-        ".[test]",
+        ".[test, coverage]",
         *other_antsibull(),
         editable=True,
     )
+    covfile = Path(session.create_tmp(), ".coverage")
+    more_args = []
+    if session.python == "3.11":
+        more_args.append("--error-for-skips")
     session.run(
         "pytest",
         "--cov-branch",
         "--cov=antsibull",
+        "--cov-report",
+        "term-missing",
+        *more_args,
         *session.posargs,
+        env={"COVERAGE_FILE": f"{covfile}", **session.env},
     )
 
 
@@ -90,15 +98,17 @@ def coverage_release(session: nox.Session):
     """
     install(
         session,
-        ".",
+        ".[coverage]",
         *other_antsibull(),
         "ansible-core",
-        "coverage",
         editable=True,
     )
 
+    tmp = Path(session.create_tmp())
+    covfile = tmp / ".coverage"
+    cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
     build_command = (
-        "coverage run -p --source antsibull -m antsibull.cli.antsibull_build"
+        "coverage run -p --branch --source antsibull -m antsibull.cli.antsibull_build"
     )
     posargs = session.posargs
     # Set default settings
@@ -109,13 +119,13 @@ def coverage_release(session: nox.Session):
             "-e",
             "antsibull_ansible_git_version=stable-2.14",
         )
-    collections = Path(session.create_tmp()).joinpath("collections")
-    os.environ["ANSIBLE_COLLECTIONS_PATH"] = str(collections)
+    collections = tmp / "collections"
     session.run(
         "ansible-galaxy",
         "collection",
         "install",
         "git+https://github.com/ansible-collections/community.general",
+        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **session.env},
     )
     session.run(
         "ansible-playbook",
@@ -124,10 +134,24 @@ def coverage_release(session: nox.Session):
         *posargs,
         "-e",
         f"antsibull_build_command={build_command!r}",
+        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **cov_env},
     )
-    session.run("coverage", "combine", *Path(".").glob(".coverage.*"))
-    session.run("coverage", "report")
-    session.run("coverage", "xml", "-i")
+
+    combined = map(str, tmp.glob(".coverage.*"))
+    session.run("coverage", "combine", *combined, env=cov_env)
+    session.run("coverage", "report", env=cov_env)
+
+
+@nox.session
+def coverage(session: nox.Session):
+    install(session, ".[coverage]", editable=True)
+    combined = map(str, Path().glob(".nox/*/tmp/.coverage"))
+    # Combine the results into a single .coverage file in the root
+    session.run("coverage", "combine", "--keep", *combined)
+    # Create a coverage.xml for codecov
+    session.run("coverage", "xml")
+    # Display the combined results to the user
+    session.run("coverage", "report", "-m")
 
 
 @nox.session
