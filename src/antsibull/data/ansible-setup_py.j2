@@ -196,9 +196,20 @@ setup(
     package_dir={'': '.'},
     package_data={'': ['*', '*/*/*/**/.*']},
     exclude_package_data={
-        'ansible_collections': ['*/*/tests/.*', '*/*/tests/**/.*', '*/*/docs/.*', '*/*/docs/**/.*'],
-{%-   for namespace in collection_namespaces %}
-        'ansible_collections.{{ namespace }}': ['*/tests/.*', '*/tests/**/.*', '*/docs/.*', '*/docs/**/.*'],
+        'ansible_collections': [
+{%-   for collection in collection_names %}
+            '{{ collection.replace('.', '/') }}/tests/.*',
+            '{{ collection.replace('.', '/') }}/tests/**/.*',
+            '{{ collection.replace('.', '/') }}/docs/.*',
+            '{{ collection.replace('.', '/') }}/docs/**/.*',
+{%-   endfor %}
+        ],
+{%-   for namespace, names in collection_namespaces | dictsort %}
+        'ansible_collections.{{ namespace }}': [
+{%-     for name in names %}
+            '{{ name }}/tests/.*', '{{ name }}/tests/**/.*', '{{ name }}/docs/.*', '{{ name }}/docs/**/.*',
+{%-     endfor %}
+        ],
 {%-   endfor %}
 {%-   for collection in collection_names %}
         'ansible_collections.{{ collection }}': ['tests/.*', 'tests/**/.*', 'docs/.*', 'docs/**/.*'],
