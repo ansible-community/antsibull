@@ -108,7 +108,7 @@ def coverage_release(session: nox.Session):
     covfile = tmp / ".coverage"
     cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
     build_command = (
-        "coverage run -p --source antsibull -m antsibull.cli.antsibull_build"
+        "coverage run -p --branch --source antsibull -m antsibull.cli.antsibull_build"
     )
     posargs = session.posargs
     # Set default settings
