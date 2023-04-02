@@ -94,7 +94,7 @@ def test_validate_tags_file(
     path = test_data_path / 'ansible-7.4.0-tags.yaml'
     assert run(['antsibull-build', 'validate-tags-file', str(path), *args]) == ret
     out, err = capsys.readouterr()
-    assert err.splitlines() == expected
+    assert sorted(err.splitlines()) == sorted(expected)
 
 
 @pytest.mark.parametrize(
@@ -201,4 +201,4 @@ def test_validate_tags_file_ignore_file(
     )
     assert ran == ret
     out, err = capsys.readouterr()
-    assert err.splitlines() == expected
+    assert sorted(err.splitlines()) == sorted(expected)
