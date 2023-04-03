@@ -377,7 +377,8 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     validate_tags_shared = argparse.ArgumentParser(add_help=False)
     validate_tags_shared.add_argument(
         '-I', '--ignore',
-        action='append', help='Ignore these collections when reporting errors.'
+        action='append', help='Ignore these collections when reporting errors.',
+        default=[],
     )
     validate_tags_shared.add_argument(
         '--ignores-file',
