@@ -182,7 +182,8 @@ setup(
     packages=find_namespace_packages(
         '.',
         include=[
-            'ansible_collections*',
+            'ansible_collections',
+            'ansible_collections.*',
         ],
         exclude=[
 {%-   for collection in collection_names %}
@@ -194,25 +195,19 @@ setup(
         ],
     ),
     package_dir={'': '.'},
-    package_data={'': ['*', '*/*/*/**/.*']},
-    exclude_package_data={
-        'ansible_collections': [
+    package_data={
 {%-   for collection in collection_names %}
-            '{{ collection.replace('.', '/') }}/tests/.*',
-            '{{ collection.replace('.', '/') }}/tests/**/.*',
-            '{{ collection.replace('.', '/') }}/docs/.*',
-            '{{ collection.replace('.', '/') }}/docs/**/.*',
-{%-   endfor %}
-        ],
-{%-   for namespace, names in collection_namespaces | dictsort %}
-        'ansible_collections.{{ namespace }}': [
-{%-     for name in names %}
-            '{{ name }}/tests/.*', '{{ name }}/tests/**/.*', '{{ name }}/docs/.*', '{{ name }}/docs/**/.*',
+        'ansible_collections.{{ collection }}': [
+            '*',
+{%-     for dir in collection_directories[collection] %}
+            '{{ dir }}/**/*', '{{ dir }}/**/.*',
 {%-     endfor %}
         ],
 {%-   endfor %}
+    },
+    exclude_package_data={
 {%-   for collection in collection_names %}
-        'ansible_collections.{{ collection }}': ['tests/.*', 'tests/**/.*', 'docs/.*', 'docs/**/.*'],
+        'ansible_collections.{{ collection }}': ['tests/**/*', 'docs/**/*'],
 {%-   endfor %}
     },
 {%- else %}

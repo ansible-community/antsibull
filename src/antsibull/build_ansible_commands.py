@@ -214,6 +214,7 @@ def write_setup(ansible_version: PypiVer,
                 collection_deps: str,
                 collection_names: list[str],
                 collection_namespaces: Mapping[str, list[str]],
+                collection_directories: Mapping[str, list[str]],
                 package_dir: str,
                 python_requires: str) -> None:
     setup_filename = os.path.join(package_dir, 'setup.py')
@@ -227,6 +228,7 @@ def write_setup(ansible_version: PypiVer,
         collection_deps=collection_deps,
         collection_names=collection_names,
         collection_namespaces=collection_namespaces,
+        collection_directories=collection_directories,
         python_requires=python_requires,
         PypiVer=PypiVer,
     )
@@ -247,6 +249,7 @@ def write_python_build_files(ansible_version: PypiVer,
                              collection_deps: str,
                              collection_names: list[str],
                              collection_namespaces: Mapping[str, list[str]],
+                             collection_directories: Mapping[str, list[str]],
                              package_dir: str,
                              release_notes: ReleaseNotes | None = None,
                              debian: bool = False,
@@ -257,7 +260,8 @@ def write_python_build_files(ansible_version: PypiVer,
     write_manifest(package_dir, release_notes, debian, tags_file)
     write_setup(
         ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
-        collection_names, collection_namespaces, package_dir, python_requires)
+        collection_names, collection_namespaces, collection_directories, package_dir,
+        python_requires)
 
 
 def write_debian_directory(ansible_version: PypiVer,
@@ -583,11 +587,16 @@ def rebuild_single_command() -> int:
 
         # TODO: do something with collection_ignored_files
 
-        # Collect collection namespaces
+        # Collect collection namespaces and collection root subdirectories
         collection_namespaces: dict[str, list[str]] = defaultdict(list)
+        collection_directories: dict[str, list[str]] = {}
         for collection in dependency_data.deps:
             namespace, name = collection.split('.', 1)
             collection_namespaces[namespace].append(name)
+            collection_directories[collection] = [
+                dir for dir in os.listdir(os.path.join(ansible_collections_dir, namespace, name))
+                if dir not in ('tests', 'docs') and not dir.startswith('.')
+            ]
 
         # Write build scripts and files
         tags_path: str | None = None
@@ -597,8 +606,9 @@ def rebuild_single_command() -> int:
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
                                  collection_exclude_paths, '', sorted(dependency_data.deps),
-                                 collection_namespaces, package_dir, release_notes,
-                                 app_ctx.extra['debian'], python_requires, tags_path)
+                                 collection_namespaces, collection_directories, package_dir,
+                                 release_notes, app_ctx.extra['debian'], python_requires,
+                                 tags_path)
         if app_ctx.extra['debian']:
             write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
                                    package_dir)
@@ -733,7 +743,7 @@ def build_multiple_command() -> int:
         collection_deps_str = '\n' + ',\n'.join(collection_deps)
         write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
         write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
-                                 [], collection_deps_str, [], {}, package_dir,
+                                 [], collection_deps_str, [], {}, {}, package_dir,
                                  python_requires=python_requires)
 
         make_dist(package_dir, app_ctx.extra['sdist_dir'])
