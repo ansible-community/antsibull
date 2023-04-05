@@ -205,11 +205,6 @@ setup(
         ],
 {%-   endfor %}
     },
-    exclude_package_data={
-{%-   for collection in collection_names %}
-        'ansible_collections.{{ collection }}': ['tests/**/*', 'docs/**/*'],
-{%-   endfor %}
-    },
 {%- else %}
     packages=['ansible_collections'],
 {%-   if version.major >= 6 and collection_exclude_paths %}
