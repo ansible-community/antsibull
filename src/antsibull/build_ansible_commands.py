@@ -593,9 +593,12 @@ def rebuild_single_command() -> int:
         for collection in dependency_data.deps:
             namespace, name = collection.split('.', 1)
             collection_namespaces[namespace].append(name)
+            collection_path = os.path.join(ansible_collections_dir, namespace, name)
             collection_directories[collection] = [
-                dir for dir in os.listdir(os.path.join(ansible_collections_dir, namespace, name))
-                if dir not in ('tests', 'docs') and not dir.startswith('.')
+                file for file in os.listdir(collection_path)
+                if file not in ('tests', 'docs')
+                and not file.startswith('.')
+                and os.path.isdir(os.path.join(collection_path, file))
             ]
 
         # Write build scripts and files
