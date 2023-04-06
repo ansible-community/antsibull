@@ -517,7 +517,7 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
     return sorted(result), sorted(ignored_files)
 
 
-def rebuild_single_command() -> int:
+def rebuild_single_command() -> int:  # noqa: C901
     app_ctx = app_context.app_ctx.get()
 
     deps_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file'])
@@ -581,11 +581,13 @@ def rebuild_single_command() -> int:
         release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
         release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
-        # pylint:disable-next=unused-variable
-        collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
-            dependency_data.deps, ansible_collections_dir)
-
-        # TODO: do something with collection_ignored_files
+        if app_ctx.extra['ansible_version'].major >= 8:
+            collection_exclude_paths: list[str] = []
+        else:
+            # pylint:disable-next=unused-variable
+            collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
+                dependency_data.deps, ansible_collections_dir)
+            # TODO: do something with collection_ignored_files
 
         # Collect collection namespaces and collection root subdirectories
         collection_namespaces: dict[str, list[str]] = defaultdict(list)
