@@ -22,6 +22,13 @@ from .utils.get_pkg_data import get_antsibull_data
 
 def build_collection_command():
     app_ctx = app_context.app_ctx.get()
+
+    print(
+        'DEPRECATION WARNING: The `collection` subcommand is deprecated and will be removed soon.'
+        ' If you are actively using this subcommand and are interested in keeping it, please'
+        ' create an issue in the antsibull repository as soon as possible.'
+    )
+
     with tempfile.TemporaryDirectory() as working_dir:
         collection_dir = os.path.join(working_dir, 'community', 'ansible')
 
