@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os.path
+import sys
 import tempfile
 
 import sh
@@ -26,7 +27,8 @@ def build_collection_command():
     print(
         'DEPRECATION WARNING: The `collection` subcommand is deprecated and will be removed soon.'
         ' If you are actively using this subcommand and are interested in keeping it, please'
-        ' create an issue in the antsibull repository as soon as possible.'
+        ' create an issue in the antsibull repository as soon as possible.',
+        file=sys.stderr,
     )
 
     with tempfile.TemporaryDirectory() as working_dir:

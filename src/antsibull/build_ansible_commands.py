@@ -10,6 +10,7 @@ import datetime
 import os
 import os.path
 import shutil
+import sys
 import tempfile
 from collections.abc import Collection, Mapping
 from typing import TYPE_CHECKING
@@ -681,7 +682,8 @@ def build_multiple_command() -> int:
     print(
         'DEPRECATION WARNING: The `multiple` subcommand is deprecated and will be removed soon.'
         ' If you are actively using this subcommand and are interested in keeping it, please'
-        ' create an issue in the antsibull repository as soon as possible.'
+        ' create an issue in the antsibull repository as soon as possible.',
+        file=sys.stderr,
     )
 
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
