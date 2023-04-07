@@ -517,7 +517,36 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
     return sorted(result), sorted(ignored_files)
 
 
-def rebuild_single_command() -> int:  # noqa: C901
+def collect_collection_info(
+    ansible_version: PypiVer,
+    dependency_data: DependencyFileData,
+    ansible_collections_dir: str,
+) -> tuple[list[str], dict[str, list[str]], dict[str, list[str]]]:
+    collection_exclude_paths: list[str] = []
+    collection_namespaces: dict[str, list[str]] = defaultdict(list)
+    collection_directories: dict[str, list[str]] = {}
+
+    if ansible_version.major >= 8:
+        for collection in dependency_data.deps:
+            namespace, name = collection.split('.', 1)
+            collection_namespaces[namespace].append(name)
+            collection_path = os.path.join(ansible_collections_dir, namespace, name)
+            collection_directories[collection] = [
+                file for file in os.listdir(collection_path)
+                if file not in ('tests', 'docs')
+                and not file.startswith('.')
+                and os.path.isdir(os.path.join(collection_path, file))
+            ]
+    else:
+        # pylint:disable-next=unused-variable
+        collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
+            dependency_data.deps, ansible_collections_dir)
+        # TODO: do something with collection_ignored_files
+
+    return collection_exclude_paths, collection_namespaces, collection_directories
+
+
+def rebuild_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
     deps_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file'])
@@ -581,27 +610,9 @@ def rebuild_single_command() -> int:  # noqa: C901
         release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
         release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
 
-        if app_ctx.extra['ansible_version'].major >= 8:
-            collection_exclude_paths: list[str] = []
-        else:
-            # pylint:disable-next=unused-variable
-            collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
-                dependency_data.deps, ansible_collections_dir)
-            # TODO: do something with collection_ignored_files
-
-        # Collect collection namespaces and collection root subdirectories
-        collection_namespaces: dict[str, list[str]] = defaultdict(list)
-        collection_directories: dict[str, list[str]] = {}
-        for collection in dependency_data.deps:
-            namespace, name = collection.split('.', 1)
-            collection_namespaces[namespace].append(name)
-            collection_path = os.path.join(ansible_collections_dir, namespace, name)
-            collection_directories[collection] = [
-                file for file in os.listdir(collection_path)
-                if file not in ('tests', 'docs')
-                and not file.startswith('.')
-                and os.path.isdir(os.path.join(collection_path, file))
-            ]
+        collection_exclude_paths, collection_namespaces, collection_directories = \
+            collect_collection_info(
+                app_ctx.extra['ansible_version'], dependency_data, ansible_collections_dir)
 
         # Write build scripts and files
         tags_path: str | None = None
