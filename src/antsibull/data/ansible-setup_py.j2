@@ -5,7 +5,11 @@
 
 import os
 import sys
+{%- if version.major >= 8 %}
+from setuptools import setup, find_namespace_packages
+{%- else %}
 from setuptools import setup
+{%- endif %}
 
 {%- if version.major < 6 %}
 
@@ -174,17 +178,46 @@ setup(
     },
     license='GPLv3+',
     python_requires='{{ python_requires }}',
+{%- if version.major >= 8 %}
+    packages=find_namespace_packages(
+        '.',
+        include=[
+            'ansible_collections',
+            'ansible_collections.*',
+        ],
+        exclude=[
+{%-   for collection in collection_names %}
+            'ansible_collections.{{ collection }}.tests.*',
+            'ansible_collections.{{ collection }}.tests',
+            'ansible_collections.{{ collection }}.docs.*',
+            'ansible_collections.{{ collection }}.docs',
+{%-   endfor %}
+        ],
+    ),
+    package_dir={'': '.'},
+    package_data={
+{%-   for collection in collection_names %}
+        'ansible_collections.{{ collection }}': [
+            '*',
+{%-     for dir in collection_directories[collection] %}
+            '{{ dir }}/**/*', '{{ dir }}/**/.*',
+{%-     endfor %}
+        ],
+{%-   endfor %}
+    },
+{%- else %}
     packages=['ansible_collections'],
-{% if version.major >= 6 and collection_exclude_paths %}
+{%-   if version.major >= 6 and collection_exclude_paths %}
     exclude_package_data={
         'ansible_collections': [
-{%-  for path in collection_exclude_paths %}
+{%-     for path in collection_exclude_paths %}
             '{{ path }}',
-{%-  endfor %}
+{%-     endfor %}
         ],
     },
-{%- endif %}
+{%-   endif %}
     include_package_data=True,
+{%- endif %}
     install_requires=[
         '{{ ansible_core_package_name }} ~= {{ ansible_core_version }}',{{ collection_deps }}
     ],
