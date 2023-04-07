@@ -10,6 +10,7 @@ import datetime
 import os
 import os.path
 import shutil
+import sys
 import tempfile
 from collections import defaultdict
 from collections.abc import Collection, Mapping
@@ -717,6 +718,13 @@ async def make_collection_dists(dest_dir: str, collection_dirs: list[str]) -> No
 
 def build_multiple_command() -> int:
     app_ctx = app_context.app_ctx.get()
+
+    print(
+        'DEPRECATION WARNING: The `multiple` subcommand is deprecated and will be removed soon.'
+        ' If you are actively using this subcommand and are interested in keeping it, please'
+        ' create an issue in the antsibull repository as soon as possible.',
+        file=sys.stderr,
+    )
 
     build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
     build_file = BuildFile(build_filename)

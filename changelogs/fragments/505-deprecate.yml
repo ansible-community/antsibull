@@ -1,0 +1,2 @@
+deprecated_features:
+  - "The ``multiple`` and ``collection`` subcommands are deprecated and will be removed soon. They were never used to our knowledge except in the exploratory phase before the first Ansible 2.10 releases, have no test coverage, and might not even work at all. If you are actively using them and are interested in keeping them, please create an issue in the antsibull repository as soon as possible (https://github.com/ansible-community/antsibull/pull/505)."
