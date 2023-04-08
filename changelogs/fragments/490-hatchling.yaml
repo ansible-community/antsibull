@@ -1,7 +1,0 @@
----
-major_changes:
-  - Change pyproject build backend from ``poetry-core`` to ``hatchling``.
-    ``pip install antsibull`` works exactly the same as before,
-    but some users may be affected depending on how they build/install the
-    project
-    (https://github.com/ansible-community/antsibull/pull/490).

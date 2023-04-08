@@ -1,6 +1,0 @@
----
-minor_changes:
-  - Add a ``-I`` / ``--ignore`` and a ``--ignores-file`` flag to the
-    ``antsibull-build validate-tags`` and ``antsibull-build validate-tags-file``
-    subcommands to ignore errors for certain collections
-    (https://github.com/ansible-community/antsibull/pull/491).

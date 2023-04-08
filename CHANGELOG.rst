@@ -5,6 +5,31 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.55.0
+=======
+
+Release Summary
+---------------
+
+Release with new features, other improvements, a new build system, and a deprecation
+
+Major Changes
+-------------
+
+- Change pyproject build backend from ``poetry-core`` to ``hatchling``. ``pip install antsibull`` works exactly the same as before, but some users may be affected depending on how they build/install the project (https://github.com/ansible-community/antsibull/pull/490).
+
+Minor Changes
+-------------
+
+- Add a ``-I`` / ``--ignore`` and a ``--ignores-file`` flag to the ``antsibull-build validate-tags`` and ``antsibull-build validate-tags-file`` subcommands to ignore errors for certain collections (https://github.com/ansible-community/antsibull/pull/491).
+- Make compatible with deprecations issued by newer setuptools releases (https://github.com/ansible-community/antsibull/issues/433, https://github.com/ansible-community/antsibull/pull/502).
+- Use the pypa ``build`` tool to build wheels and source distributions for ansible in an isolated environment. This replaces direct calls to ``python setup.py bdist_wheel`` and ``python setup.py sdist`` which are deprecated (https://github.com/ansible-community/antsibull/pull/492).
+
+Deprecated Features
+-------------------
+
+- The ``multiple`` and ``collection`` subcommands are deprecated and will be removed soon. They were never used to our knowledge except in the exploratory phase before the first Ansible 2.10 releases, have no test coverage, and might not even work at all. If you are actively using them and are interested in keeping them, please create an issue in the antsibull repository as soon as possible (https://github.com/ansible-community/antsibull/pull/505).
+
 v0.54.0
 =======
 

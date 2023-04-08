@@ -1,6 +1,0 @@
----
-minor_changes:
-  - Use the pypa ``build`` tool to build wheels and source distributions for
-    ansible in an isolated environment. This replaces direct calls to ``python
-    setup.py bdist_wheel`` and ``python setup.py sdist`` which are deprecated
-    (https://github.com/ansible-community/antsibull/pull/492).
