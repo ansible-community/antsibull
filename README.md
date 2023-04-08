@@ -87,10 +87,11 @@ nox
    * Creates `changelogs/fragments/<version>.yml` with a `release_summary` section.
    * Runs `antsibull-changelog release` and adds the changed files to git.
    * Commits with message `Release <version>.` and runs `git tag -a -m 'antsibull <version>' <version>`.
-   * Runs `hatch build`.
+   * Runs `hatch build --clean` to build an sdist and wheel in `dist/` and
+     clean up any old artifacts in that directory.
 2. Run `git push` to the appropriate remotes.
 3. Once CI passes on GitHub, run `nox -e publish`. This:
-   * Runs `hatch publish`;
+   * Runs `hatch publish` to publish the sdist and wheel generated during step 1 to PyPI;
    * Bumps the version to `<version>.post0`;
-   * Adds the changed file to git and run `git commit -m 'Post-release version bump.'`;
+   * Adds the changed file to git and runs `git commit -m 'Post-release version bump.'`;
 4. Run `git push --follow-tags` to the appropriate remotes and create a GitHub release.
