@@ -79,7 +79,7 @@ coverage = [
 typing = [
     "mypy",
     # https://github.com/facebook/pyre-check/issues/398
-    "pyre-check ~= 0.9.15",
+    "pyre-check >= 0.9.15",
     "types-aiofiles",
     "types-docutils",
     "types-PyYAML",
