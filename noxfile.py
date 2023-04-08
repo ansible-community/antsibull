@@ -295,7 +295,7 @@ def publish(session: nox.Session):
     session.run("hatch", "publish", *session.posargs)
     version = session.run("hatch", "version", silent=True).strip()
     _repl_version(session, f"{version}.post0")
-    session.run("git", "commit", "pyproject.toml", external=True)
+    session.run("git", "add", "pyproject.toml", external=True)
     session.run("git", "commit", "-m", "Post-release version bump.", external=True)
 
 
