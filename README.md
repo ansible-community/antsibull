@@ -59,7 +59,7 @@ To run specific tests:
 
 1. `nox -e test` to only run unit tests;
 2. `nox -e lint` to run all linters;
-3. `nox -e codeqa` to run `flake8`, `pylint`, and `reuse lint`;
+3. `nox -e codeqa` to run `flake8`, `pylint`, `reuse lint`, and `antsibull-changelog lint`;
 4. `nox -e typing` to run `mypy` and `pyre`.
 5. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
