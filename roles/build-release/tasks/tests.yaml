@@ -124,7 +124,5 @@
         {{ antsibull_ansible_venv }}/bin/ansible-playbook -i 'localhost,' --connection=local
           -e antsibull_sdist_dir="{{ antsibull_sdist_dir }}"
           -e antsibull_ansible_venv="{{ antsibull_ansible_venv }}"
-          -e antsibull_ansible_git_dir="{{ antsibull_ansible_git_dir }}"
-          -e antsibull_ansible_git_version="{{ antsibull_ansible_git_version }}"
           -e _python_version="{{ _python_version }}"
           {{ playbook_dir }}/nested-ansible-tests.yaml

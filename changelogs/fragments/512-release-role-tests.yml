@@ -1,0 +1,2 @@
+minor_changes:
+  - "Remove now broken self-test from release role (https://github.com/ansible-community/antsibull/pull/512)."

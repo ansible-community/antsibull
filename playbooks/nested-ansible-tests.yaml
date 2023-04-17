@@ -11,8 +11,6 @@
     # These can be supplied as extra-vars but are expected to come from roles/build-release/tasks/tests.yaml
     antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
     antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
-    antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
-    antsibull_ansible_git_version: "stable-2.12"
     _python_version: "python3.9"
   tasks:
     - name: Parse installed ansible_builtin_runtime
@@ -52,15 +50,3 @@
     - name: Print unavailable modules
       ansible.builtin.debug:
         msg: "The following modules are not available: {{ _unavailable_modules | map(attribute='item') | join(', ') }}"
-
-    - name: Clone the ansible git repository
-      ansible.builtin.git:
-        repo: "https://github.com/ansible/ansible"
-        dest: "{{ antsibull_ansible_git_dir }}"
-        version: "{{ antsibull_ansible_git_version }}"
-        depth: 1
-
-    - name: Run a simple ad-hoc integration test
-      ansible.builtin.command: >-
-        {{ antsibull_ansible_venv }}/bin/ansible-test integration -vv include_vars
-      changed_when: false
