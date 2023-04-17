@@ -134,7 +134,11 @@ def coverage_release(session: nox.Session):
         *posargs,
         "-e",
         f"antsibull_build_command={build_command!r}",
-        env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **cov_env},
+        env={
+            "ANSIBLE_COLLECTIONS_PATH": str(collections),
+            "ANSIBLE_CALLBACK_RESULT_FORMAT": "yaml",
+            **cov_env,
+        },
     )
 
     combined = map(str, tmp.glob(".coverage.*"))
