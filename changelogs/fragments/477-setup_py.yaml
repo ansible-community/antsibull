@@ -1,4 +1,5 @@
 ---
-breaking_changes:
-  - Remove code for old ansible versions from the setup.py template
+removed_features:
+  - Remove code to build ansible versions < 6.0.0 from the ``setup.py``
+    template and elsewhere in the codebase
     (https://github.com/ansible-community/antsibull/pull/477).

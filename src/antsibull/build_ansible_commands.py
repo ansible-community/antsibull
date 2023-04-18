@@ -367,9 +367,6 @@ def _extract_python_requires(ansible_core_version: PypiVer, deps: dict[str, str]
     python_requires = deps.pop('_python', None)
     if python_requires is not None:
         return python_requires
-    if ansible_core_version < PypiVer('2.12.0a'):
-        # Ansible 2.9, ansible-base 2.10, and ansible-core 2.11 support Python 2.7 and Python 3.5+
-        return '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*'
     if ansible_core_version < PypiVer('2.14.0a'):
         # ansible-core 2.12 and 2.13 support Python 3.8+
         return '>=3.8'
@@ -602,9 +599,8 @@ def rebuild_single_command() -> int:
         # Write the ansible release info to the collections dir
         write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
-        # Write the ansible-community CLI program (starting with Ansible 6.0.0rc1)
-        if app_ctx.extra['ansible_version'] >= PypiVer('6.0.0rc1'):
-            write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
+        # Write the ansible-community CLI program
+        write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
 
         # Install collections
         collections_to_install = [p for f in os.listdir(download_dir)
@@ -660,10 +656,7 @@ def rebuild_single_command() -> int:
                 return 3
 
         # Create source distribution
-        if app_ctx.extra["ansible_version"].major < 6:
-            make_dist(package_dir, app_ctx.extra['sdist_dir'])
-        else:
-            make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
+        make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
 
     return 0
 
