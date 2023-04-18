@@ -32,12 +32,6 @@ antsibull_data_git_dir: "{{ antsibull_sdist_dir }}/ansible-build-data"
 # Directory to read .build and .deps files from
 antsibull_data_dir: "{{ antsibull_data_git_dir }}/{{ antsibull_ansible_major_version }}"
 
-# Where to clone the Ansible git repo from so we can run integration tests
-antsibull_ansible_git_repo: "https://github.com/ansible/ansible"
-
-# Where to clone the Ansible git repo
-antsibull_ansible_git_dir: "{{ antsibull_sdist_dir }}/ansible"
-
 # The major version of ansible to build
 antsibull_ansible_major_version: "{{ (antsibull_ansible_version | default('')).split('.', 1)[0] }}"
 

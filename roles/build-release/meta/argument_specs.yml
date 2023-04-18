@@ -67,25 +67,6 @@ argument_specs:
         type: path
         default: "{{ antsibull_data_git_dir }}/<major_version>"
 
-      antsibull_ansible_git_repo:
-        description:
-          - Where to clone the Ansible git repository from so we can run integration tests.
-        type: str
-        default: "https://github.com/ansible/ansible"
-
-      antsibull_ansible_git_version:
-        description:
-          - The git tag (or branch) of the ansible repository to check out.
-          - Could be C(devel), C(stable-2.12), C(stable-2.13), etc.
-        type: str
-        required: true
-
-      antsibull_ansible_git_dir:
-        description:
-          - Where to clone the Ansible git repository.
-        type: path
-        default: "{{ antsibull_sdist_dir }}/ansible"
-
       antsibull_ansible_version:
         description:
           - The version of ansible to build.
