@@ -13,13 +13,13 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      ansible-base-slug:
+      ansible-core-slug:
         default: ansible/ansible
-        description: The GitHub repo slug for pulling ansible-base from
+        description: The GitHub repo slug for pulling ansible-core from
         required: true
-      ansible-base-ref:
+      ansible-core-ref:
         default: devel
-        description: The GitHub repo ref for pulling ansible-base from
+        description: The GitHub repo ref for pulling ansible-core from
         required: true
       ansible-build-data-slug:
         default: ansible-community/ansible-build-data
@@ -49,15 +49,15 @@ jobs:
       run: |
         {
         echo \
-            'ansible-base-slug=${{
+            'ansible-core-slug=${{
                 github.event_name == 'workflow_dispatch' &&
-                github.event.inputs.ansible-base-slug ||
+                github.event.inputs.ansible-core-slug ||
                 'ansible/ansible'
             }}'
         echo \
-            'ansible-base-ref=${{
+            'ansible-core-ref=${{
                 github.event_name == 'workflow_dispatch' &&
-                github.event.inputs.ansible-base-ref ||
+                github.event.inputs.ansible-core-ref ||
                 'devel'
             }}'
         echo \
@@ -133,21 +133,21 @@ jobs:
 
     - name: >-
         Check out ${{
-          steps.build-settings.outputs.ansible-base-slug
+          steps.build-settings.outputs.ansible-core-slug
         }}@${{
-          steps.build-settings.outputs.ansible-base-ref
+          steps.build-settings.outputs.ansible-core-ref
         }} src from Git
       uses: actions/checkout@v3
       with:
         path: ansible--ansible--devel
-        ref: ${{ steps.build-settings.outputs.ansible-base-ref }}
-        repository: ${{ steps.build-settings.outputs.ansible-base-slug }}
+        ref: ${{ steps.build-settings.outputs.ansible-core-ref }}
+        repository: ${{ steps.build-settings.outputs.ansible-core-slug }}
 
     - name: >-
         Build ${{
-          steps.build-settings.outputs.ansible-base-slug
+          steps.build-settings.outputs.ansible-core-slug
         }}@${{
-          steps.build-settings.outputs.ansible-base-ref
+          steps.build-settings.outputs.ansible-core-ref
         }}
       run: |
         python -m build --outdir=../dist
@@ -163,9 +163,9 @@ jobs:
 
     - name: >-
         Build ${{
-          steps.build-settings.outputs.ansible-base-slug
+          steps.build-settings.outputs.ansible-core-slug
         }}@${{
-          steps.build-settings.outputs.ansible-base-ref
+          steps.build-settings.outputs.ansible-core-ref
         }} as stable
       run: |
         python -m build --outdir=../dist
