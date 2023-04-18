@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 import aiofiles
 import aiohttp
 import asyncio_pool  # type: ignore[import]
-import sh
 from jinja2 import Template
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
@@ -30,6 +29,7 @@ from antsibull_core.collections import install_separately, install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
+from antsibull_core.subprocess_util import log_run
 from antsibull_core.utils.io import write_file
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 
@@ -307,28 +307,20 @@ def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str
     })
 
 
-def show_warnings(result: sh.RunningCommand, **kwargs) -> None:
-    stderr = result.stderr.decode('utf-8').strip()
-    if stderr:
-        logger = mlog.fields(**kwargs)
-        for line in stderr.splitlines():
-            logger.warning(line)
-
-
 def make_dist(ansible_dir: str, dest_dir: str) -> None:
     # XXX: build has an API, but it's quite unstable, so we use the cli for now
-    show_warnings(
-        # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir),
-        func='make_dist',
+    log_run(
+        ['python', '-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir],
+        logger=mlog.fields(func='make_dist'),
+        stderr_loglevel='warning',
     )
 
 
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
-    show_warnings(
-        # pyre-ignore[16], pylint:disable-next=no-member
-        sh.python('-m', 'build', '--outdir', dest_dir, ansible_dir),
-        func='make_dist_with_wheels',
+    log_run(
+        ['python', '-m', 'build', '--outdir', dest_dir, ansible_dir],
+        logger=mlog.fields(func='make_dist_with_wheels'),
+        stderr_loglevel='warning',
     )
 
 
