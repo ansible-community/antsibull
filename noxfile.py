@@ -267,7 +267,7 @@ def bump(session: nox.Session):
         )
         with open(fragment_file, "w") as fp:
             print(fragment, file=fp)
-        session.run("git", "add", "pyproject.toml", fragment_file, external=True)
+        session.run("git", "add", "pyproject.toml", str(fragment_file), external=True)
         session.run("git", "commit", "-m", f"Prepare {version}.", external=True)
     session.run("antsibull-changelog", "release")
     session.run(
