@@ -1,5 +1,0 @@
----
-deprecated_features:
-  - "Support for building ansible major versions less than 6 is deprecated and
-    will be removed in an upcoming release
-    (https://github.com/ansible-community/antsibull/pull/515)."

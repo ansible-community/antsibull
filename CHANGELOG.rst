@@ -5,6 +5,25 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.56.0
+=======
+
+Release Summary
+---------------
+
+Maintenance release.
+
+Minor Changes
+-------------
+
+- Remove now broken self-test from release role (https://github.com/ansible-community/antsibull/pull/512).
+- Remove the parameters ``antsibull_ansible_git_repo``, ``antsibull_ansible_git_version``, and ``antsibull_ansible_git_dir`` from release role (https://github.com/ansible-community/antsibull/pull/512).
+
+Deprecated Features
+-------------------
+
+- Support for building ansible major versions less than 6 is deprecated and will be removed in an upcoming release (https://github.com/ansible-community/antsibull/pull/515).
+
 v0.55.0
 =======
 

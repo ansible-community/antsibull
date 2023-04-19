@@ -627,6 +627,21 @@ releases:
     - 502-setup.py.yml
     - 505-deprecate.yml
     release_date: '2023-04-08'
+  0.56.0:
+    changes:
+      deprecated_features:
+      - Support for building ansible major versions less than 6 is deprecated and
+        will be removed in an upcoming release (https://github.com/ansible-community/antsibull/pull/515).
+      minor_changes:
+      - Remove now broken self-test from release role (https://github.com/ansible-community/antsibull/pull/512).
+      - Remove the parameters ``antsibull_ansible_git_repo``, ``antsibull_ansible_git_version``,
+        and ``antsibull_ansible_git_dir`` from release role (https://github.com/ansible-community/antsibull/pull/512).
+      release_summary: Maintenance release.
+    fragments:
+    - 0.56.0.yml
+    - 512-release-role-tests.yml
+    - 515-deprecate-old-ansible.yaml
+    release_date: '2023-04-19'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:
