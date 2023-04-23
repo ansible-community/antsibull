@@ -15,6 +15,9 @@ name: nox
     - cron: '0 4 * * 1'
   workflow_dispatch:
 
+env:
+  FORCE_COLOR: "1"
+
 jobs:
   nox-lint:
     runs-on: ubuntu-latest
