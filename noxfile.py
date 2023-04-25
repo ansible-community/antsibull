@@ -176,7 +176,8 @@ def codeqa(session: nox.Session):
 @nox.session
 def typing(session: nox.Session):
     others = other_antsibull()
-    install(session, ".[typing]", *others, editable=True)
+    # pyre does not work when we don't install ourself in editable mode 🙄.
+    install(session, "-e", ".[typing]", *others)
     session.run("mypy", "src/antsibull")
 
     additional_libraries = []
