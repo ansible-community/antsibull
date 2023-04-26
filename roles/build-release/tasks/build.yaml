@@ -8,11 +8,14 @@
     _deps_file: "ansible-{{ antsibull_ansible_version }}.deps"
     _galaxy_file: "ansible-{{ antsibull_ansible_version }}.yaml"
     _build_file: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.build"
-    _tags_file: "{{ '' if antsibull_ansible_version is
-                    _antsibull_packaging_version('7.2.0', '<') else
-                    '--tags-file'}}"
     _release_archive: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}.tar.gz"
     _release_wheel: "{{ antsibull_sdist_dir }}/ansible-{{ antsibull_ansible_version }}-py3-none-any.whl"
+
+- name: Override antsibull_enforce_tag_policy
+  when: "antsibull_ansible_version is _antsibull_packaging_version('9.0.0a1', '>=')"
+  ansible.builtin.set_fact:
+    antsibull_tags_validate: true
+    antsibull_tags_enforce_policy: true
 
 # Documentation for the following commands:
 # https://github.com/ansible-community/antsibull/blob/main/docs/build-ansible.rst
@@ -46,7 +49,7 @@
     {{ antsibull_build_command }} prepare {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       {{ _feature_freeze | default('') }}
-      {{ _tags_file }}
+      {{ '--tags-file' if antsibull_tags_validate else '' }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
@@ -55,6 +58,21 @@
   args:
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
+
+- name: Find ignores file
+  when: antsibull_tags_validate
+  register: _ignores_stat
+  ansible.builtin.stat:
+    dest: "{{ antsibull_tags_ignores_file }}"
+
+- name: Validate tags file
+  when: antsibull_tags_validate
+  # ignore_errors creates conspicuous error messages without failing the playbook
+  ignore_errors: "{{ not antsibull_tags_enforce_policy }}"
+  ansible.builtin.command: >-
+    {{ antsibull_build_command }} validate-tags-file
+    {{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version }}-tags.yaml
+    {{ '--ignores-file ' ~ antsibull_tags_ignores_file if _ignores_stat.stat.exists else '' }}
 
 - name: Remove existing release tarball and wheel if they exist
   ansible.builtin.file:
@@ -74,7 +92,7 @@
       --build-file {{ antsibull_build_file }}
       --deps-file {{ _deps_file }}
       --debian
-      {{ _tags_file }}
+      {{ '--tags-file' if antsibull_tags_validate else '' }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
