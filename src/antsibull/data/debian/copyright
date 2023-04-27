@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: ansible
 Upstream-Contact: https://github.com/ansible-community/antsibull
-Source: https://github.com/ansible-community/anstibull
+Source: https://github.com/ansible-community/antsibull
 
 Files: *
 Copyright: 2020 Red Hat, Inc.
