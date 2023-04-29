@@ -200,7 +200,7 @@ setup(
         'ansible_collections.{{ collection }}': [
             '*',
 {%-     for dir in collection_directories[collection] %}
-            '{{ dir }}/**/*', '{{ dir }}/**/.*',
+            '{{ dir }}/*', '{{ dir }}/.*',
 {%-     endfor %}
         ],
 {%-   endfor %}
