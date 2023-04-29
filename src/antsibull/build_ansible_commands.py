@@ -520,7 +520,7 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
 
 def _collect_collection_data_dirs(collection_path: str) -> list[str]:
     directories = []
-    for root, dirs, _ in os.walk(collection_path, topdown=True):
+    for root, dirs, _ in os.walk(collection_path, topdown=True, followlinks=True):
         if root == collection_path:
             # Make sure that all directories starting with '.', and all
             # directories called 'tests' or 'docs', are not traversed into.
