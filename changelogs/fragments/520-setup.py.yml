@@ -1,0 +1,2 @@
+bugfixes:
+  - "For ``setup.py`` generated for Ansible 8+, do not use recursive globs (``**``) as these are only supported since setuptools 62.3.0 (https://github.com/ansible-community/antsibull/pull/520)."

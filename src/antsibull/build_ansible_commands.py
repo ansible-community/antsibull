@@ -518,6 +518,21 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
     return sorted(result), sorted(ignored_files)
 
 
+def _collect_collection_data_dirs(collection_path: str) -> list[str]:
+    directories = []
+    for root, dirs, _ in os.walk(collection_path, topdown=True, followlinks=True):
+        if root == collection_path:
+            # Make sure that all directories starting with '.', and all
+            # directories called 'tests' or 'docs', are not traversed into.
+            for dirname in list(dirs):
+                if dirname in ('tests', 'docs') or dirname.startswith('.'):
+                    dirs.remove(dirname)
+            continue
+        relative_dir = os.path.relpath(root, collection_path)
+        directories.append(relative_dir)
+    return sorted(directories)
+
+
 def collect_collection_info(
     ansible_version: PypiVer,
     dependency_data: DependencyFileData,
@@ -532,12 +547,7 @@ def collect_collection_info(
             namespace, name = collection.split('.', 1)
             collection_namespaces[namespace].append(name)
             collection_path = os.path.join(ansible_collections_dir, namespace, name)
-            collection_directories[collection] = [
-                file for file in os.listdir(collection_path)
-                if file not in ('tests', 'docs')
-                and not file.startswith('.')
-                and os.path.isdir(os.path.join(collection_path, file))
-            ]
+            collection_directories[collection] = _collect_collection_data_dirs(collection_path)
     else:
         # pylint:disable-next=unused-variable
         collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
