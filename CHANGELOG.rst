@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.56.1
+=======
+
+Release Summary
+---------------
+
+Hotfix release to fix compatibility with older setuptools versions
+
+Bugfixes
+--------
+
+- For ``setup.py`` generated for Ansible 8+, do not use recursive globs (``**``) as these are only supported since setuptools 62.3.0 (https://github.com/ansible-community/antsibull/pull/520).
+
 v0.56.0
 =======
 

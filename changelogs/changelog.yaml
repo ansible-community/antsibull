@@ -642,6 +642,16 @@ releases:
     - 512-release-role-tests.yml
     - 515-deprecate-old-ansible.yaml
     release_date: '2023-04-19'
+  0.56.1:
+    changes:
+      bugfixes:
+      - For ``setup.py`` generated for Ansible 8+, do not use recursive globs (``**``)
+        as these are only supported since setuptools 62.3.0 (https://github.com/ansible-community/antsibull/pull/520).
+      release_summary: Hotfix release to fix compatibility with older setuptools versions
+    fragments:
+    - 0.56.1.yml
+    - 520-setup.py.yml
+    release_date: '2023-05-01'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:
