@@ -85,3 +85,26 @@ argument_specs:
           - Whether or not to start from scratch with a new venv if one exists.
         type: bool
         default: true
+
+      antsibull_tags_validate:
+        description:
+          - Whether to generate a tags data file as part of the release and
+            validate it.
+          - This is enabled by default for C(ansible >= 7.2.0).
+        type: bool
+
+      antsibull_tags_enforce_policy:
+        description:
+          - Whether to abort on C(antsibull-build validate-tags-file) errors;
+            when False, only warnings are printed.
+          - This option is unconditionally enabled for C(ansible >= 9.0.0a1).
+          - This option does nothing if O(antsibull_tags_validate) is False.
+        type: bool
+
+      antsibull_tags_ignores_file:
+        description:
+          - File containing a newline separated list of collections to ignore
+            when running C(antsibull-build validate-tags-file).
+            This file will be ignored if it doesn't exist.
+        type: path
+        default: "{{ antsibull_data_dir }}/validate-tags-ignores"

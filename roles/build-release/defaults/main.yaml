@@ -41,6 +41,24 @@ antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
 # Whether or not to start from scratch with a new venv if one exists
 antsibull_venv_cleanup: true
 
+
+#####
+# These variables relate to verifying that collections properly tag their
+# releases as per the Collection Requirements.
+# None of them apply if antsibull_tags_validate is false
+#####
+# Whether to generate a tags data file and validate it
+antsibull_tags_validate: "{{ antsibull_ansible_version is
+                             _antsibull_packaging_version('7.2.0', '>=') }}"
+
+# Whether to abort on `antsibull-build validate-tags-file` errors.
+# When False, only warnings are printed.
+# This option is unconditionally enabled for `ansible >= 9.0.0a1`.
+antsibull_tags_enforce_policy: false
+
+# File containing a newline separated list of collections to ignore
+antsibull_tags_ignores_file: "{{ antsibull_data_dir }}/validate-tags-ignores"
+
 # TODO:
 # --dest-data-dir (Directory to write .build and .deps files to, as well as changelog and porting guide if applicable. Defaults to --data-dir)
 # --collection-cache (Directory of cached collection tarballs. Will be used if a collection tarball to be downloaded exists in here, and will be populated when downloading new tarballs.)

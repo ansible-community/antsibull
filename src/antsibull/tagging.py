@@ -93,7 +93,8 @@ def _get_ignores(
     ignores = set(ignores)
     if ignore_fp:
         ignores.update(
-            line.strip() for line in ignore_fp if not line.startswith('#')
+            line.strip() for line in ignore_fp
+            if line.strip() and not line.startswith('#')
         )
     return ignores
 
