@@ -310,7 +310,7 @@ def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str
 def make_dist(ansible_dir: str, dest_dir: str) -> None:
     # XXX: build has an API, but it's quite unstable, so we use the cli for now
     log_run(
-        ['python', '-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir],
+        [sys.executable, '-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir],
         logger=mlog.fields(func='make_dist'),
         stderr_loglevel='warning',
     )
@@ -318,7 +318,7 @@ def make_dist(ansible_dir: str, dest_dir: str) -> None:
 
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
     log_run(
-        ['python', '-m', 'build', '--outdir', dest_dir, ansible_dir],
+        [sys.executable, '-m', 'build', '--outdir', dest_dir, ansible_dir],
         logger=mlog.fields(func='make_dist_with_wheels'),
         stderr_loglevel='warning',
     )
