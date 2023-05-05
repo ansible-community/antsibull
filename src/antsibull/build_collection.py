@@ -12,11 +12,11 @@ import os.path
 import sys
 import tempfile
 
-import sh
 from jinja2 import Template
 
 from antsibull_core import app_context
 from antsibull_core.dependency_files import DepsFile
+from antsibull_core.subprocess_util import log_run
 
 from .utils.get_pkg_data import get_antsibull_data
 
@@ -34,8 +34,14 @@ def build_collection_command():
     with tempfile.TemporaryDirectory() as working_dir:
         collection_dir = os.path.join(working_dir, 'community', 'ansible')
 
-        # pylint:disable-next=no-member
-        sh.ansible_galaxy('collection', 'init', 'community.ansible', '--init-path', working_dir)
+        log_run([
+            'ansible-galaxy',
+            'collection',
+            'init',
+            'community.ansible',
+            '--init-path',
+            working_dir,
+        ])
         # Copy the README.md file
         readme = get_antsibull_data('README_md.txt')
         with open(os.path.join(collection_dir, 'README.md'), 'wb') as f:
@@ -57,9 +63,13 @@ def build_collection_command():
         with open(os.path.join(collection_dir, 'galaxy.yml'), 'w', encoding='utf-8') as f:
             f.write(galaxy_yml_contents)
 
-        # pylint:disable-next=no-member
-        sh.ansible_galaxy('collection', 'build',
-                          '--output-path', app_ctx.extra['collection_dir'],
-                          collection_dir)
+        log_run([
+            'ansible-galaxy',
+            'collection',
+            'build',
+            '--output-path',
+            app_ctx.extra['collection_dir'],
+            collection_dir,
+        ])
 
     return 0

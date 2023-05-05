@@ -1,0 +1,4 @@
+minor_changes:
+  - "Now depends antsibull-core 2.0.0 or newer; antsibull-core 1.x.y is no longer supported (https://github.com/ansible-community/antsibull/pull/514)."
+  - "Antsibull now no longer depends directly on ``sh`` (https://github.com/ansible-community/antsibull/pull/514)."
+  - "Antsibull now uses ``sys.executable`` instead of the first ``'python'`` in ``$PATH`` to call the PyPA build tool (https://github.com/ansible-community/antsibull/pull/514)."
