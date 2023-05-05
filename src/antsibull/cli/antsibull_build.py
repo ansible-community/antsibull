@@ -35,6 +35,7 @@ from ..build_ansible_commands import (  # noqa: E402
     prepare_command, build_single_command, build_multiple_command, rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
+from ..constants import MINIMUM_ANSIBLE_VERSION  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 from ..tagging import validate_tags_command, validate_tags_file_command  # noqa: E402
@@ -66,8 +67,14 @@ def _normalize_commands(args: argparse.Namespace) -> None:  # pylint: disable=un
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
-    if args.command in ('validate-deps', 'validate-tags', 'validate-tags-file'):
+    if args.command in ('validate-deps', 'validate-tags-file'):
         return
+
+    if args.ansible_version < MINIMUM_ANSIBLE_VERSION:
+        raise InvalidArgumentError(
+            f'Ansible < {MINIMUM_ANSIBLE_VERSION} is not supported'
+            ' by this antsibull version.'
+        )
 
     if not os.path.isdir(args.data_dir):
         raise InvalidArgumentError(f'{args.data_dir} must be an existing directory')
