@@ -30,7 +30,6 @@ from antsibull_core.vendored._argparse_booleanoptionalaction import (  # noqa: E
 )
 
 
-from ..build_collection import build_collection_command  # noqa: E402
 from ..build_ansible_commands import (  # noqa: E402
     prepare_command, build_single_command, build_multiple_command, rebuild_single_command,
 )
@@ -51,7 +50,6 @@ ARGS_MAP = {'new-ansible': new_ansible_command,
             'prepare': prepare_command,
             'single': build_single_command,
             'multiple': build_multiple_command,
-            'collection': build_collection_command,
             'changelog': build_changelog,
             'rebuild-single': rebuild_single_command,
             'validate-deps': validate_dependencies_command,
@@ -183,17 +181,6 @@ def _normalize_release_rebuild_options(args: argparse.Namespace) -> None:
     deps_filename = os.path.join(args.data_dir, args.deps_file)
     if not os.path.isfile(deps_filename):
         raise InvalidArgumentError(f'The dependency file, {deps_filename} must already exist.')
-
-
-def _normalize_collection_build_options(args: argparse.Namespace) -> None:
-    if args.command != 'collection':
-        return
-
-    if args.deps_file is None:
-        args.deps_file = DEFAULT_FILE_BASE + f'{args.ansible_version}.deps'
-
-    if not os.path.isdir(args.collection_dir):
-        raise InvalidArgumentError(f'{args.collection_dir} must be an existing directory')
 
 
 def _normalize_validate_tags_options(args: argparse.Namespace) -> None:
@@ -359,18 +346,6 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     build_multiple_parser.add_argument('--sdist-dir', default='.',
                                        help='Directory to write the generated sdist tarballs to')
 
-    collection_parser = subparsers.add_parser('collection',
-                                              parents=[build_parser],
-                                              description='Build a collection which will'
-                                              ' install Ansible')
-    collection_parser.add_argument('--deps-file', default=None,
-                                   help='File which contains the list of collections and'
-                                   ' versions which were included in this version of Ansible.'
-                                   '  This is considered to be relative to --data-dir.'
-                                   f'  The default is {DEFAULT_FILE_BASE}-X.Y.Z.deps')
-    collection_parser.add_argument('--collection-dir', default='.',
-                                   help='Directory to write collection to')
-
     subparsers.add_parser('changelog',
                           parents=[build_write_data_parser, cache_parser],
                           description='Build the Ansible changelog')
@@ -443,7 +418,6 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_release_build_options(parsed_args)
     _normalize_validate_tags_options(parsed_args)
     _normalize_release_rebuild_options(parsed_args)
-    _normalize_collection_build_options(parsed_args)
     _normalize_validate_tags_file_options(parsed_args)
 
     return parsed_args
