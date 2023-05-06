@@ -12,20 +12,17 @@ import os
 import os.path
 import typing as t
 
-from packaging.version import Version as PypiVer
-
 from antsibull_changelog.changelog_generator import (
-    ChangelogGenerator,
     ChangelogEntry as ChangelogGeneratorEntry,
 )
+from antsibull_changelog.changelog_generator import ChangelogGenerator
 from antsibull_changelog.config import DEFAULT_SECTIONS
 from antsibull_changelog.rst import RstBuilder
-
 from antsibull_core import app_context
+from packaging.version import Version as PypiVer
 
 from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
 from .collection_meta import CollectionsMetadata
-
 
 #
 # Changelog

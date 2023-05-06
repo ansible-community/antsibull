@@ -18,18 +18,21 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
-from jinja2 import Template
-from packaging.version import Version as PypiVer
-from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
-
 from antsibull_core import app_context
-from antsibull_core.ansible_core import get_ansible_core_package_name, AnsibleCorePyPiClient
+from antsibull_core.ansible_core import (
+    AnsibleCorePyPiClient,
+    get_ansible_core_package_name,
+)
 from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import log_run
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
+from jinja2 import Template
+from packaging.version import Version as PypiVer
+from semantic_version import SimpleSpec as SemVerSpec
+from semantic_version import Version as SemVer
 
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog

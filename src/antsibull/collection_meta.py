@@ -11,8 +11,8 @@ Classes to encapsulate collection metadata from collection-meta.yaml
 
 from __future__ import annotations
 
-import typing as t
 import os
+import typing as t
 from collections.abc import Mapping
 
 from antsibull_core.yaml import load_yaml_file

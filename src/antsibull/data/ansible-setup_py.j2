@@ -5,10 +5,13 @@
 
 import os
 import sys
+
 {%- if version.major >= 8 %}
-from setuptools import setup, find_namespace_packages
+from setuptools import find_namespace_packages, setup
+
 {%- else %}
 from setuptools import setup
+
 {%- endif %}
 
 

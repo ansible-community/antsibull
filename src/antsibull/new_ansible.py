@@ -12,13 +12,12 @@ import os
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
-from packaging.version import Version as PypiVer
 import semantic_version as semver
-
 from antsibull_core import app_context
 from antsibull_core.ansible_core import AnsibleCorePyPiClient
 from antsibull_core.dependency_files import BuildFile, parse_pieces_file
 from antsibull_core.galaxy import GalaxyClient
+from packaging.version import Version as PypiVer
 
 from .changelog import ChangelogData
 

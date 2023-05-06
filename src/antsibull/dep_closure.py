@@ -9,14 +9,12 @@ from __future__ import annotations
 
 import json
 import pathlib
-
 from collections import namedtuple
 from collections.abc import Mapping
 
-from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
-
 from antsibull_core import app_context
-
+from semantic_version import SimpleSpec as SemVerSpec
+from semantic_version import Version as SemVer
 
 CollectionRecord = namedtuple('CollectionRecord', ('version', 'dependencies'))
 

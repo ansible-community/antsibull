@@ -4,6 +4,7 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from pathlib import Path
+
 import pytest
 
 from antsibull.cli.antsibull_build import run

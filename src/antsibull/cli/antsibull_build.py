@@ -12,32 +12,36 @@ import os.path
 import sys
 
 import twiggy  # type: ignore[import]
+from antsibull_core.logging import initialize_app_logging, log
 from packaging.version import Version as PypiVer
 
-from antsibull_core.logging import log, initialize_app_logging
 initialize_app_logging()
 
 # We have to call initialize_app_logging() before these imports so that the log object is configured
 # correctly before other antisbull modules make copies of it.
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position,ungrouped-imports
 from antsibull_core import app_context  # noqa: E402
 from antsibull_core.args import (  # noqa: E402
-    InvalidArgumentError, get_toplevel_parser, normalize_toplevel_options
+    InvalidArgumentError,
+    get_toplevel_parser,
+    normalize_toplevel_options,
 )
 from antsibull_core.config import ConfigError, load_config  # noqa: E402
 from antsibull_core.vendored._argparse_booleanoptionalaction import (  # noqa: E402
-    BooleanOptionalAction
+    BooleanOptionalAction,
 )
 
-
 from ..build_ansible_commands import (  # noqa: E402
-    prepare_command, build_single_command, rebuild_single_command,
+    build_single_command,
+    prepare_command,
+    rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
 from ..constants import MINIMUM_ANSIBLE_VERSION  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 from ..tagging import validate_tags_command, validate_tags_file_command  # noqa: E402
+
 # pylint: enable=wrong-import-position
 
 

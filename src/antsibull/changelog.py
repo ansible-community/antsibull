@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import asyncio
-from collections import defaultdict
 import datetime
 import glob
 import os
@@ -17,22 +16,21 @@ import os.path
 import tarfile
 import tempfile
 import typing as t
+from collections import defaultdict
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
-from packaging.version import Version as PypiVer
-from semantic_version import Version as SemVer
-
-from antsibull_changelog.config import PathsConfig, CollectionDetails, ChangelogConfig
-from antsibull_changelog.changes import add_release, ChangesData
 from antsibull_changelog.changelog_generator import ChangelogGenerator
+from antsibull_changelog.changes import ChangesData, add_release
+from antsibull_changelog.config import ChangelogConfig, CollectionDetails, PathsConfig
 from antsibull_changelog.utils import collect_versions
-
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
-from antsibull_core.dependency_files import DepsFile, DependencyFileData
+from antsibull_core.dependency_files import DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader
 from antsibull_core.yaml import load_yaml_bytes
+from packaging.version import Version as PypiVer
+from semantic_version import Version as SemVer
 
 from antsibull.collection_meta import CollectionsMetadata
 

@@ -7,5 +7,6 @@
 
 import antsibull
 
+
 def test_dummy():
     pass
