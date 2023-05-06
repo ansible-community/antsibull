@@ -71,6 +71,7 @@ codeqa = [
     "reuse",
 ]
 formatters = [
+    "black",
     "isort",
 ]
 test = [
