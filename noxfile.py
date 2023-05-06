@@ -162,8 +162,18 @@ def coverage(session: nox.Session):
 
 @nox.session
 def lint(session: nox.Session):
+    session.notify("formatters")
     session.notify("codeqa")
     session.notify("typing")
+
+
+@nox.session
+def formatters(session: nox.Session):
+    install(session, ".[formatters]")
+    posargs = list(session.posargs)
+    if IN_CI:
+        posargs.append("--check")
+    session.run("isort", *posargs, "src", "tests", "noxfile.py")
 
 
 @nox.session
