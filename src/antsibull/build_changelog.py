@@ -464,20 +464,6 @@ def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -
         append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
 
 
-def insert_after_heading(lines: list[str], content: str) -> None:
-    has_heading = False
-    for index, line in enumerate(lines):
-        if line.startswith('***') and line == '*' * len(line):
-            has_heading = True
-        elif has_heading:
-            if line:
-                has_heading = False
-            else:
-                # First empty line after top-level heading: insert TOC
-                lines.insert(index, content)
-                return
-
-
 #
 # Release Notes
 #

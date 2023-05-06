@@ -143,11 +143,6 @@ def get_porting_guide_filename(version: PypiVer):
     return f"docs/docsite/rst/porting_guides/{basename}_{version.major}.{version.minor}.rst"
 
 
-def read_porting_guide_file(tarball_path: str, version: PypiVer) -> bytes | None:
-    filename = get_porting_guide_filename(version)
-    return read_file(tarball_path, lambda fn: fn == filename)
-
-
 class CollectionChangelogCollector:
     collection: str
     versions: list[SemVer]
