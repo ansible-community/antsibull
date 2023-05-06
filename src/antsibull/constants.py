@@ -11,4 +11,4 @@ from __future__ import annotations
 
 from packaging.version import Version as PypiVer
 
-MINIMUM_ANSIBLE_VERSION = PypiVer('6.0.0')
+MINIMUM_ANSIBLE_VERSION = PypiVer("6.0.0")

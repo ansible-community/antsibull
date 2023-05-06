@@ -19,9 +19,9 @@ from antsibull_core.yaml import load_yaml_file
 
 
 class CollectionMetadata:
-    '''
+    """
     Stores metadata about one collection.
-    '''
+    """
 
     changelog_url: str | None
     collection_directory: str | None
@@ -31,27 +31,27 @@ class CollectionMetadata:
     def __init__(self, source: Mapping[str, t.Any] | None = None):
         if source is None:
             source = {}
-        self.changelog_url = source.get('changelog-url')
-        self.collection_directory = source.get('collection-directory')
-        self.repository = source.get('repository')
-        self.tag_version_regex = source.get('tag_version_regex')
+        self.changelog_url = source.get("changelog-url")
+        self.collection_directory = source.get("collection-directory")
+        self.repository = source.get("repository")
+        self.tag_version_regex = source.get("tag_version_regex")
 
 
 class CollectionsMetadata:
-    '''
+    """
     Stores metadata about a set of collections.
-    '''
+    """
 
     data: dict[str, CollectionMetadata]
 
     def __init__(self, deps_dir: str | None):
         self.data = {}
         if deps_dir is not None:
-            collection_meta_path = os.path.join(deps_dir, 'collection-meta.yaml')
+            collection_meta_path = os.path.join(deps_dir, "collection-meta.yaml")
             if os.path.exists(collection_meta_path):
                 data = load_yaml_file(collection_meta_path)
-                if data and 'collections' in data:
-                    for collection_name, collection_data in data['collections'].items():
+                if data and "collections" in data:
+                    for collection_name, collection_data in data["collections"].items():
                         self.data[collection_name] = CollectionMetadata(collection_data)
 
     def get_meta(self, collection_name: str) -> CollectionMetadata:

@@ -8,7 +8,8 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent
-TEST_DATA = HERE / 'test_data'
+TEST_DATA = HERE / "test_data"
+
 
 @pytest.fixture
 def test_data_path() -> Path:

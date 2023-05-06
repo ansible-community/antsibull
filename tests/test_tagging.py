@@ -11,69 +11,69 @@ from antsibull.cli.antsibull_build import run
 
 
 @pytest.mark.parametrize(
-    'args, expected, ret',
+    "args, expected, ret",
     [
         pytest.param(
             [],
             [
-                'cisco.nso 1.0.3 is not tagged in https://github.com/CiscoDevNet/ansible-nso',
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "cisco.nso 1.0.3 is not tagged in https://github.com/CiscoDevNet/ansible-nso",
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
             ],
             1,
-            id='simple',
+            id="simple",
         ),
         pytest.param(
-            ['-I', 'cisco.nso'],
+            ["-I", "cisco.nso"],
             [
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
             ],
             1,
-            id='one-ignore',
+            id="one-ignore",
         ),
         pytest.param(
-            ['-I', 'cisco.nso', '-I', 'xyz'],
+            ["-I", "cisco.nso", "-I", "xyz"],
             [
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
                 "invalid ignore 'xyz': xyz does not match any collection",
             ],
             1,
-            id='one-ignore-with-invalid',
+            id="one-ignore-with-invalid",
         ),
         pytest.param(
             [
-                '-I',
-                'cisco.nso',
-                '-I',
-                'hpe.nimble',
-                '-I',
-                'inspur.sm',
-                '-I',
-                'mellanox.onyx',
+                "-I",
+                "cisco.nso",
+                "-I",
+                "hpe.nimble",
+                "-I",
+                "inspur.sm",
+                "-I",
+                "mellanox.onyx",
             ],
             [],
             0,
-            id='ignore-all',
+            id="ignore-all",
         ),
         pytest.param(
             [
-                '-I',
-                'cisco.nso',
-                '-I',
-                'hpe.nimble',
-                '-I',
-                'inspur.sm',
-                '-I',
-                'mellanox.onyx',
-                '-I',
-                'asdf',
-                '-I',
-                'community.general',
+                "-I",
+                "cisco.nso",
+                "-I",
+                "hpe.nimble",
+                "-I",
+                "inspur.sm",
+                "-I",
+                "mellanox.onyx",
+                "-I",
+                "asdf",
+                "-I",
+                "community.general",
             ],
             [
                 "invalid ignore 'asdf': asdf does not match any collection",
@@ -81,7 +81,7 @@ from antsibull.cli.antsibull_build import run
                 " community.general 6.5.0 is properly tagged",
             ],
             1,
-            id='ignore-all-with-invalid',
+            id="ignore-all-with-invalid",
         ),
     ],
 )
@@ -92,89 +92,89 @@ def test_validate_tags_file(
     expected: list[str],
     ret: int,
 ):
-    path = test_data_path / 'ansible-7.4.0-tags.yaml'
-    assert run(['antsibull-build', 'validate-tags-file', str(path), *args]) == ret
+    path = test_data_path / "ansible-7.4.0-tags.yaml"
+    assert run(["antsibull-build", "validate-tags-file", str(path), *args]) == ret
     out, err = capsys.readouterr()
     assert sorted(err.splitlines()) == sorted(expected)
 
 
 @pytest.mark.parametrize(
-    'args, ignore_file_contents, expected, ret',
+    "args, ignore_file_contents, expected, ret",
     [
         pytest.param(
             [],
             [],
             [
-                'cisco.nso 1.0.3 is not tagged in https://github.com/CiscoDevNet/ansible-nso',
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "cisco.nso 1.0.3 is not tagged in https://github.com/CiscoDevNet/ansible-nso",
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
             ],
             1,
-            id='simple',
+            id="simple",
         ),
         pytest.param(
             [],
-            ['cisco.nso'],
+            ["cisco.nso"],
             [
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
             ],
             1,
-            id='one-ignore',
+            id="one-ignore",
         ),
         pytest.param(
             [],
-            ['cisco.nso', 'xyz'],
+            ["cisco.nso", "xyz"],
             [
-                'hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules',
-                'inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm',
-                'mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx',
+                "hpe.nimble 1.1.4 is not tagged in https://github.com/hpe-storage/nimble-ansible-modules",
+                "inspur.sm 2.3.0 is not tagged in https://github.com/ISIB-Group/inspur.sm",
+                "mellanox.onyx 1.0.0 is not tagged in https://github.com/ansible-collections/mellanox.onyx",
                 "invalid ignore 'xyz': xyz does not match any collection",
             ],
             1,
-            id='one-ignore-with-invalid',
+            id="one-ignore-with-invalid",
         ),
         pytest.param(
             [],
             [
-                'cisco.nso',
-                'hpe.nimble',
-                'inspur.sm',
-                'mellanox.onyx',
+                "cisco.nso",
+                "hpe.nimble",
+                "inspur.sm",
+                "mellanox.onyx",
             ],
             [],
             0,
-            id='ignore-all',
+            id="ignore-all",
         ),
         pytest.param(
             [],
             [
-                'cisco.nso',
-                'hpe.nimble',
-                'inspur.sm',
-                'mellanox.onyx',
-                'asdf',
+                "cisco.nso",
+                "hpe.nimble",
+                "inspur.sm",
+                "mellanox.onyx",
+                "asdf",
             ],
             ["invalid ignore 'asdf': asdf does not match any collection"],
             1,
-            id='ignore-all-with-invalid',
+            id="ignore-all-with-invalid",
         ),
         pytest.param(
-            ['-I', 'mellanox.onyx', '-I', 'xyz'],
+            ["-I", "mellanox.onyx", "-I", "xyz"],
             [
-                'cisco.nso',
-                'hpe.nimble',
-                'inspur.sm',
-                'asdf',
+                "cisco.nso",
+                "hpe.nimble",
+                "inspur.sm",
+                "asdf",
             ],
             [
                 "invalid ignore 'xyz': xyz does not match any collection",
                 "invalid ignore 'asdf': asdf does not match any collection",
             ],
             1,
-            id='mixed',
+            id="mixed",
         ),
     ],
 )
@@ -187,15 +187,15 @@ def test_validate_tags_file_ignore_file(
     expected: list[str],
     ret: int,
 ):
-    path = test_data_path / 'ansible-7.4.0-tags.yaml'
-    ignores_file = tmp_path / 'ignores_file'
-    ignores_file.write_text('\n'.join(ignore_file_contents))
+    path = test_data_path / "ansible-7.4.0-tags.yaml"
+    ignores_file = tmp_path / "ignores_file"
+    ignores_file.write_text("\n".join(ignore_file_contents))
     ran = run(
         [
-            'antsibull-build',
-            'validate-tags-file',
+            "antsibull-build",
+            "validate-tags-file",
             str(path),
-            '--ignores-file',
+            "--ignores-file",
             str(ignores_file),
             *args,
         ]

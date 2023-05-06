@@ -16,25 +16,26 @@ from antsibull_core import app_context
 from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
 
-CollectionRecord = namedtuple('CollectionRecord', ('version', 'dependencies'))
+CollectionRecord = namedtuple("CollectionRecord", ("version", "dependencies"))
 
 
 def parse_manifest(collection_dir: pathlib.Path) -> Mapping[str, CollectionRecord]:
-    '''Parse MANIFEST.json for a collection.'''
-    manifest = collection_dir.joinpath('MANIFEST.json')
+    """Parse MANIFEST.json for a collection."""
+    manifest = collection_dir.joinpath("MANIFEST.json")
     with manifest.open() as f:
-        manifest_data = json.load(f)['collection_info']
+        manifest_data = json.load(f)["collection_info"]
 
     collection_record = {
-        f'{manifest_data["namespace"]}.{manifest_data["name"]}':
-            CollectionRecord(manifest_data['version'], manifest_data['dependencies'])
+        f'{manifest_data["namespace"]}.{manifest_data["name"]}': CollectionRecord(
+            manifest_data["version"], manifest_data["dependencies"]
+        )
     }
 
     return collection_record
 
 
 def analyze_deps(collections: Mapping[str, CollectionRecord]) -> list[str]:
-    '''Analyze dependencies of a set of collections. Return list of errors found.'''
+    """Analyze dependencies of a set of collections. Return list of errors found."""
     errors = []
 
     # Look at dependencies
@@ -42,21 +43,25 @@ def analyze_deps(collections: Mapping[str, CollectionRecord]) -> list[str]:
     for collection_name, collection_info in collections.items():
         for dep_name, dep_version_spec in collection_info.dependencies.items():
             if dep_name not in collections:
-                errors.append(f'{collection_name} missing: {dep_name} ({dep_version_spec})')
+                errors.append(
+                    f"{collection_name} missing: {dep_name} ({dep_version_spec})"
+                )
                 continue
 
             dependency_version = SemVer(collections[dep_name].version)
             if dependency_version not in SemVerSpec(dep_version_spec):
-                errors.append(f'{collection_name} version_conflict:'
-                              f' {dep_name}-{str(dependency_version)} but needs'
-                              f' {dep_version_spec}')
+                errors.append(
+                    f"{collection_name} version_conflict:"
+                    f" {dep_name}-{str(dependency_version)} but needs"
+                    f" {dep_version_spec}"
+                )
                 continue
 
     return errors
 
 
 def check_collection_dependencies(collection_root: str) -> list[str]:
-    '''Analyze dependencies between collections in a collection root.'''
+    """Analyze dependencies between collections in a collection root."""
     ansible_collection_dir = pathlib.Path(collection_root)
     errors = []
 
@@ -66,17 +71,17 @@ def check_collection_dependencies(collection_root: str) -> list[str]:
             try:
                 collections.update(parse_manifest(collection_dir))
             except FileNotFoundError:
-                errors.append(f'{collection_dir} is not a valid collection')
+                errors.append(f"{collection_dir} is not a valid collection")
 
     errors.extend(analyze_deps(collections))
     return errors
 
 
 def validate_dependencies_command() -> int:
-    '''CLI functionality for analyzing dependencies.'''
+    """CLI functionality for analyzing dependencies."""
     app_ctx = app_context.app_ctx.get()
 
-    collection_root: str = app_ctx.extra['collection_root']
+    collection_root: str = app_ctx.extra["collection_root"]
 
     errors = check_collection_dependencies(collection_root)
 

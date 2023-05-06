@@ -58,9 +58,9 @@ TAG_FILE_MESSAGE = """\
 #
 
 
-async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
-                                          client: AnsibleCorePyPiClient,
-                                          pre: bool = False) -> PypiVer | None:
+async def get_latest_ansible_core_version(
+    ansible_core_version: PypiVer, client: AnsibleCorePyPiClient, pre: bool = False
+) -> PypiVer | None:
     """
     Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
 
@@ -68,20 +68,24 @@ async def get_latest_ansible_core_version(ansible_core_version: PypiVer,
     :arg client: A AnsibleCorePyPiClient instance.
     """
     all_versions = await client.get_versions()
-    next_version = PypiVer(f'{ansible_core_version.major}.{ansible_core_version.minor + 1}a')
+    next_version = PypiVer(
+        f"{ansible_core_version.major}.{ansible_core_version.minor + 1}a"
+    )
     newer_versions = [
-        version for version in all_versions
+        version
+        for version in all_versions
         if ansible_core_version <= version < next_version
         and (pre or not version.is_prerelease)
     ]
     return max(newer_versions) if newer_versions else None
 
 
-async def get_collection_and_core_versions(deps: Mapping[str, str],
-                                           ansible_core_version: PypiVer | None,
-                                           galaxy_url: str,
-                                           ansible_core_allow_prerelease: bool = False,
-                                           ) -> tuple[dict[str, SemVer], PypiVer | None]:
+async def get_collection_and_core_versions(
+    deps: Mapping[str, str],
+    ansible_core_version: PypiVer | None,
+    galaxy_url: str,
+    ansible_core_allow_prerelease: bool = False,
+) -> tuple[dict[str, SemVer], PypiVer | None]:
     """
     Retrieve the latest version of each collection.
 
@@ -100,11 +104,18 @@ async def get_collection_and_core_versions(deps: Mapping[str, str],
             client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
-                    client.get_latest_matching_version(collection_name, version_spec, pre=True))
+                    client.get_latest_matching_version(
+                        collection_name, version_spec, pre=True
+                    )
+                )
             if ansible_core_version:
-                requestors['_ansible_core'] = await pool.spawn(get_latest_ansible_core_version(
-                    ansible_core_version, AnsibleCorePyPiClient(aio_session),
-                    pre=ansible_core_allow_prerelease))
+                requestors["_ansible_core"] = await pool.spawn(
+                    get_latest_ansible_core_version(
+                        ansible_core_version,
+                        AnsibleCorePyPiClient(aio_session),
+                        pre=ansible_core_allow_prerelease,
+                    )
+                )
 
             responses = await asyncio.gather(*requestors.values())
 
@@ -113,7 +124,7 @@ async def get_collection_and_core_versions(deps: Mapping[str, str],
     # a matching order.
     included_versions: dict[str, SemVer] = {}
     for collection_name, version in zip(requestors, responses):
-        if collection_name == '_ansible_core':
+        if collection_name == "_ansible_core":
             ansible_core_version = version
         else:
             included_versions[collection_name] = version
@@ -121,21 +132,26 @@ async def get_collection_and_core_versions(deps: Mapping[str, str],
     return included_versions, ansible_core_version
 
 
-async def download_collections(versions: Mapping[str, SemVer],
-                               galaxy_url: str,
-                               download_dir: str,
-                               collection_cache: str | None = None,
-                               ) -> None:
+async def download_collections(
+    versions: Mapping[str, SemVer],
+    galaxy_url: str,
+    download_dir: str,
+    collection_cache: str | None = None,
+) -> None:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            downloader = CollectionDownloader(aio_session, download_dir,
-                                              collection_cache=collection_cache,
-                                              galaxy_server=galaxy_url)
+            downloader = CollectionDownloader(
+                aio_session,
+                download_dir,
+                collection_cache=collection_cache,
+                galaxy_server=galaxy_url,
+            )
             for collection_name, version in versions.items():
                 requestors[collection_name] = await pool.spawn(
-                    downloader.download(collection_name, version))
+                    downloader.download(collection_name, version)
+                )
 
             await asyncio.gather(*requestors.values())
 
@@ -144,71 +160,80 @@ async def download_collections(versions: Mapping[str, SemVer],
 # Single sdist for ansible
 #
 
+
 def copy_boilerplate_files(package_dir: str) -> None:
-    gpl_license = get_antsibull_data('gplv3.txt')
-    with open(os.path.join(package_dir, 'COPYING'), 'wb') as f:
+    gpl_license = get_antsibull_data("gplv3.txt")
+    with open(os.path.join(package_dir, "COPYING"), "wb") as f:
         f.write(gpl_license)
 
-    readme = get_antsibull_data('ansible-readme.rst')
-    with open(os.path.join(package_dir, 'README.rst'), 'wb') as f:
+    readme = get_antsibull_data("ansible-readme.rst")
+    with open(os.path.join(package_dir, "README.rst"), "wb") as f:
         f.write(readme)
 
-    pyproject_toml = get_antsibull_data('pyproject.toml')
-    with open(os.path.join(package_dir, 'pyproject.toml'), 'wb') as f:
+    pyproject_toml = get_antsibull_data("pyproject.toml")
+    with open(os.path.join(package_dir, "pyproject.toml"), "wb") as f:
         f.write(pyproject_toml)
 
 
-def write_manifest(package_dir: str,
-                   release_notes: ReleaseNotes | None = None,
-                   debian: bool = False,
-                   tags_file: StrPath | None = None) -> None:
-    manifest_file = os.path.join(package_dir, 'MANIFEST.in')
-    with open(manifest_file, 'w', encoding='utf-8') as f:
-        f.write('include COPYING\n')
-        f.write('include README.rst\n')
-        f.write('include build-ansible.sh\n')
+def write_manifest(
+    package_dir: str,
+    release_notes: ReleaseNotes | None = None,
+    debian: bool = False,
+    tags_file: StrPath | None = None,
+) -> None:
+    manifest_file = os.path.join(package_dir, "MANIFEST.in")
+    with open(manifest_file, "w", encoding="utf-8") as f:
+        f.write("include COPYING\n")
+        f.write("include README.rst\n")
+        f.write("include build-ansible.sh\n")
         if release_notes:
-            f.write(f'include {release_notes.changelog_filename}\n')
-            f.write(f'include {release_notes.porting_guide_filename}\n')
+            f.write(f"include {release_notes.changelog_filename}\n")
+            f.write(f"include {release_notes.porting_guide_filename}\n")
         if debian:
-            f.write('include debian/*\n')
+            f.write("include debian/*\n")
         if tags_file:
-            f.write('include tags.yaml\n')
-        f.write('recursive-include ansible_collections/ **\n')
+            f.write("include tags.yaml\n")
+        f.write("recursive-include ansible_collections/ **\n")
 
 
 def write_release_py(ansible_version: PypiVer, ansible_collections_dir: str) -> None:
-    release_filename = os.path.join(ansible_collections_dir, 'ansible_release.py')
+    release_filename = os.path.join(ansible_collections_dir, "ansible_release.py")
 
-    release_tmpl = Template(get_antsibull_data('ansible-release_py.j2').decode('utf-8'))
+    release_tmpl = Template(get_antsibull_data("ansible-release_py.j2").decode("utf-8"))
     release_contents = release_tmpl.render(version=ansible_version)
 
-    with open(release_filename, 'w', encoding='utf-8') as f:
+    with open(release_filename, "w", encoding="utf-8") as f:
         f.write(release_contents)
 
 
-def write_ansible_community_py(ansible_version: PypiVer, ansible_collections_dir: str) -> None:
-    release_filename = os.path.join(ansible_collections_dir, 'ansible_community.py')
+def write_ansible_community_py(
+    ansible_version: PypiVer, ansible_collections_dir: str
+) -> None:
+    release_filename = os.path.join(ansible_collections_dir, "ansible_community.py")
 
-    release_tmpl = Template(get_antsibull_data('ansible-community.py.j2').decode('utf-8'))
+    release_tmpl = Template(
+        get_antsibull_data("ansible-community.py.j2").decode("utf-8")
+    )
     release_contents = release_tmpl.render(version=ansible_version)
 
-    with open(release_filename, 'w', encoding='utf-8') as f:
-        f.write(release_contents + '\n')
+    with open(release_filename, "w", encoding="utf-8") as f:
+        f.write(release_contents + "\n")
 
 
-def write_setup(ansible_version: PypiVer,
-                ansible_core_version: PypiVer,
-                collection_exclude_paths: list[str],
-                collection_deps: str,
-                collection_names: list[str],
-                collection_namespaces: Mapping[str, list[str]],
-                collection_directories: Mapping[str, list[str]],
-                package_dir: str,
-                python_requires: str) -> None:
-    setup_filename = os.path.join(package_dir, 'setup.py')
+def write_setup(
+    ansible_version: PypiVer,
+    ansible_core_version: PypiVer,
+    collection_exclude_paths: list[str],
+    collection_deps: str,
+    collection_names: list[str],
+    collection_namespaces: Mapping[str, list[str]],
+    collection_directories: Mapping[str, list[str]],
+    package_dir: str,
+    python_requires: str,
+) -> None:
+    setup_filename = os.path.join(package_dir, "setup.py")
 
-    setup_tmpl = Template(get_antsibull_data('ansible-setup_py.j2').decode('utf-8'))
+    setup_tmpl = Template(get_antsibull_data("ansible-setup_py.j2").decode("utf-8"))
     setup_contents = setup_tmpl.render(
         version=ansible_version,
         ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
@@ -222,99 +247,118 @@ def write_setup(ansible_version: PypiVer,
         PypiVer=PypiVer,
     )
 
-    with open(setup_filename, 'w', encoding='utf-8') as f:
+    with open(setup_filename, "w", encoding="utf-8") as f:
         f.write(setup_contents)
 
 
 def copy_tags_file(tags_file: StrPath | None, package_dir: StrPath) -> None:
     if tags_file:
-        dest = os.path.join(package_dir, 'tags.yaml')
+        dest = os.path.join(package_dir, "tags.yaml")
         shutil.copy(tags_file, dest)
 
 
-def write_python_build_files(ansible_version: PypiVer,
-                             ansible_core_version: PypiVer,
-                             collection_exclude_paths: list[str],
-                             collection_deps: str,
-                             collection_names: list[str],
-                             collection_namespaces: Mapping[str, list[str]],
-                             collection_directories: Mapping[str, list[str]],
-                             package_dir: str,
-                             release_notes: ReleaseNotes | None = None,
-                             debian: bool = False,
-                             python_requires: str = '>=3.8',
-                             tags_file: StrPath | None = None) -> None:
+def write_python_build_files(
+    ansible_version: PypiVer,
+    ansible_core_version: PypiVer,
+    collection_exclude_paths: list[str],
+    collection_deps: str,
+    collection_names: list[str],
+    collection_namespaces: Mapping[str, list[str]],
+    collection_directories: Mapping[str, list[str]],
+    package_dir: str,
+    release_notes: ReleaseNotes | None = None,
+    debian: bool = False,
+    python_requires: str = ">=3.8",
+    tags_file: StrPath | None = None,
+) -> None:
     copy_boilerplate_files(package_dir)
     copy_tags_file(tags_file, package_dir)
     write_manifest(package_dir, release_notes, debian, tags_file)
     write_setup(
-        ansible_version, ansible_core_version, collection_exclude_paths, collection_deps,
-        collection_names, collection_namespaces, collection_directories, package_dir,
-        python_requires)
+        ansible_version,
+        ansible_core_version,
+        collection_exclude_paths,
+        collection_deps,
+        collection_names,
+        collection_namespaces,
+        collection_directories,
+        package_dir,
+        python_requires,
+    )
 
 
-def write_debian_directory(ansible_version: PypiVer,
-                           ansible_core_version: PypiVer,
-                           package_dir: str) -> None:
-    debian_dir = os.path.join(package_dir, 'debian')
+def write_debian_directory(
+    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: str
+) -> None:
+    debian_dir = os.path.join(package_dir, "debian")
     os.mkdir(debian_dir, mode=0o700)
-    debian_files = ('changelog.j2', 'control.j2', 'copyright', 'rules')
+    debian_files = ("changelog.j2", "control.j2", "copyright", "rules")
     ansible_core_package_name = get_ansible_core_package_name(ansible_core_version)
     for filename in debian_files:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
-        src_pkgfile = 'debian/' + filename
-        data = get_antsibull_data(src_pkgfile).decode('utf-8')
+        src_pkgfile = "debian/" + filename
+        data = get_antsibull_data(src_pkgfile).decode("utf-8")
 
-        if filename.endswith('.j2'):
-            filename = filename.replace('.j2', '')
+        if filename.endswith(".j2"):
+            filename = filename.replace(".j2", "")
             # If the file is a template, send it in vars it might need
             # and update 'data' to be the result.
             tmpl = Template(data)
             data = tmpl.render(
                 version=str(ansible_version),
-                date=datetime.datetime.utcnow().strftime('%a, %d %b %Y %T +0000'),
+                date=datetime.datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
                 ansible_core_package_name=ansible_core_package_name,
             )
 
-        with open(os.path.join(debian_dir, filename), 'w', encoding='utf-8') as f:
+        with open(os.path.join(debian_dir, filename), "w", encoding="utf-8") as f:
             f.write(data)
 
 
-def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str]) -> None:
+def write_galaxy_requirements(
+    filename: str, included_versions: Mapping[str, str]
+) -> None:
     galaxy_reqs = []
     for collection, version in sorted(included_versions.items()):
-        galaxy_reqs.append({
-            'name': collection,
-            'version': version,
-            'source': 'https://galaxy.ansible.com'
-        })
+        galaxy_reqs.append(
+            {
+                "name": collection,
+                "version": version,
+                "source": "https://galaxy.ansible.com",
+            }
+        )
 
-    store_yaml_file(filename, {
-        'collections': galaxy_reqs,
-    })
+    store_yaml_file(
+        filename,
+        {
+            "collections": galaxy_reqs,
+        },
+    )
 
 
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
     # TODO: build has an API, but it's quite unstable, so we use the cli for now
     log_run(
-        [sys.executable, '-m', 'build', '--outdir', dest_dir, ansible_dir],
-        logger=mlog.fields(func='make_dist_with_wheels'),
-        stderr_loglevel='warning',
+        [sys.executable, "-m", "build", "--outdir", dest_dir, ansible_dir],
+        logger=mlog.fields(func="make_dist_with_wheels"),
+        stderr_loglevel="warning",
     )
 
 
-def write_build_script(ansible_version: PypiVer,
-                       ansible_core_version: PypiVer,
-                       package_dir: str) -> None:
+def write_build_script(
+    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: str
+) -> None:
     """Write a build-script that tells how to build this tarball."""
-    build_ansible_filename = os.path.join(package_dir, 'build-ansible.sh')
+    build_ansible_filename = os.path.join(package_dir, "build-ansible.sh")
 
-    build_ansible_tmpl = Template(get_antsibull_data('build-ansible.sh.j2').decode('utf-8'))
-    build_ansible_contents = build_ansible_tmpl.render(version=ansible_version,
-                                                       ansible_core_version=ansible_core_version)
+    build_ansible_tmpl = Template(
+        get_antsibull_data("build-ansible.sh.j2").decode("utf-8")
+    )
+    build_ansible_contents = build_ansible_tmpl.render(
+        version=ansible_version, ansible_core_version=ansible_core_version
+    )
 
-    with open(build_ansible_filename, 'w', encoding='utf-8') as f:
+    with open(build_ansible_filename, "w", encoding="utf-8") as f:
         f.write(build_ansible_contents)
     os.chmod(build_ansible_filename, mode=0o755)
 
@@ -332,28 +376,33 @@ def build_single_command() -> int:
 def _is_alpha(version: PypiVer) -> bool:
     """Test whether the provided version is an alpha version."""
     pre = version.pre
-    return version.is_prerelease and pre is not None and pre[0] == 'a'
+    return version.is_prerelease and pre is not None and pre[0] == "a"
 
 
-def _extract_python_requires(ansible_core_version: PypiVer, deps: dict[str, str]) -> str:
-    python_requires = deps.pop('_python', None)
+def _extract_python_requires(
+    ansible_core_version: PypiVer, deps: dict[str, str]
+) -> str:
+    python_requires = deps.pop("_python", None)
     if python_requires is not None:
         return python_requires
-    if ansible_core_version < PypiVer('2.14.0a'):
+    if ansible_core_version < PypiVer("2.14.0a"):
         # ansible-core 2.12 and 2.13 support Python 3.8+
-        return '>=3.8'
-    if ansible_core_version < PypiVer('2.15.0a'):
+        return ">=3.8"
+    if ansible_core_version < PypiVer("2.15.0a"):
         # ansible-core 2.14 supports Python 3.9+
-        return '>=3.9'
+        return ">=3.9"
     raise ValueError(
-        f'Python requirements for ansible-core {ansible_core_version} should be part of'
-        ' dependency information')
+        f"Python requirements for ansible-core {ansible_core_version} should be part of"
+        " dependency information"
+    )
 
 
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
+    build_filename = os.path.join(
+        app_ctx.extra["data_dir"], app_ctx.extra["build_file"]
+    )
     build_file = BuildFile(build_filename)
     build_ansible_version, ansible_core_version, deps = build_file.parse()
     ansible_core_version_obj = PypiVer(ansible_core_version)
@@ -361,7 +410,7 @@ def prepare_command() -> int:
 
     # If we're building a feature frozen release (betas and rcs) then we need to
     # change the upper version limit to not include new features.
-    if app_ctx.extra['feature_frozen']:
+    if app_ctx.extra["feature_frozen"]:
         old_deps, deps = deps, {}
         # For each collection that's listed...
         for collection_name, spec in old_deps.items():
@@ -371,88 +420,106 @@ def prepare_command() -> int:
 
             # Look at each clause of the version specification
             for clause in spec_obj.clause.clauses:
-                if clause.operator in ('<', '<='):
+                if clause.operator in ("<", "<="):
                     # Omit the upper bound as we're replacing it
                     continue
 
-                if clause.operator == '>=':
+                if clause.operator == ">=":
                     # Save the lower bound so we can write out a new compatible version
                     min_version = clause.target
 
                 new_clauses.append(str(clause))
 
             if min_version is None:
-                raise ValueError(f'No minimum version specified for {collection_name}: {spec_obj}')
+                raise ValueError(
+                    f"No minimum version specified for {collection_name}: {spec_obj}"
+                )
 
-            new_clauses.append(f'<{min_version.major}.{min_version.minor + 1}.0')
-            deps[collection_name] = ','.join(new_clauses)
+            new_clauses.append(f"<{min_version.major}.{min_version.minor + 1}.0")
+            deps[collection_name] = ",".join(new_clauses)
 
     included_versions, new_ansible_core_version = asyncio.run(
         get_collection_and_core_versions(
-            deps, ansible_core_version_obj, app_ctx.galaxy_url,
-            ansible_core_allow_prerelease=_is_alpha(app_ctx.extra['ansible_version'])))
+            deps,
+            ansible_core_version_obj,
+            app_ctx.galaxy_url,
+            ansible_core_allow_prerelease=_is_alpha(app_ctx.extra["ansible_version"]),
+        )
+    )
     if new_ansible_core_version:
         ansible_core_version_obj = new_ansible_core_version
 
-    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
-        print(f'{build_filename} is for version {build_ansible_version} but we need'
-              f' {app_ctx.extra["ansible_version"].major}'
-              f'.{app_ctx.extra["ansible_version"].minor}')
+    if not str(app_ctx.extra["ansible_version"]).startswith(build_ansible_version):
+        print(
+            f"{build_filename} is for version {build_ansible_version} but we need"
+            f' {app_ctx.extra["ansible_version"].major}'
+            f'.{app_ctx.extra["ansible_version"].minor}'
+        )
         return 1
 
     dependency_data = DependencyFileData(
-        str(app_ctx.extra['ansible_version']),
+        str(app_ctx.extra["ansible_version"]),
         str(ansible_core_version_obj),
-        {collection: str(version) for collection, version in included_versions.items()})
+        {collection: str(version) for collection, version in included_versions.items()},
+    )
 
     # Get Ansible changelog, add new release
     ansible_changelog = ChangelogData.ansible(
-        app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
+        app_ctx.extra["data_dir"], app_ctx.extra["dest_data_dir"]
+    )
     date = datetime.date.today()
     ansible_changelog.add_ansible_release(
-        str(app_ctx.extra['ansible_version']),
+        str(app_ctx.extra["ansible_version"]),
         date,
-        f'Release Date: {date}'
-        f'\n\n'
-        f'`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_')
+        f"Release Date: {date}"
+        f"\n\n"
+        f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_",
+    )
     ansible_changelog.changes.save()
 
     # Write dependency file
-    deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
+    deps_filename = os.path.join(
+        app_ctx.extra["dest_data_dir"], app_ctx.extra["deps_file"]
+    )
     deps_file = DepsFile(deps_filename)
     deps_file.write(
         dependency_data.ansible_version,
         dependency_data.ansible_core_version,
         dependency_data.deps,
-        python_requires=python_requires)
+        python_requires=python_requires,
+    )
 
     # Write tags data
-    if app_ctx.extra['tags_file']:
+    if app_ctx.extra["tags_file"]:
         tag_data = asyncio.run(
             get_collections_tags(
-                app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file']
+                app_ctx.extra["dest_data_dir"], app_ctx.extra["deps_file"]
             )
         )
-        tags_path = os.path.join(app_ctx.extra['dest_data_dir'],
-                                 app_ctx.extra['tags_file'])
-        with open(tags_path, 'w', encoding='utf-8') as fp:
+        tags_path = os.path.join(
+            app_ctx.extra["dest_data_dir"], app_ctx.extra["tags_file"]
+        )
+        with open(tags_path, "w", encoding="utf-8") as fp:
             fp.write(TAG_FILE_MESSAGE)
             store_yaml_stream(fp, tag_data)
 
     # Write Galaxy requirements.yml file
-    galaxy_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['galaxy_file'])
+    galaxy_filename = os.path.join(
+        app_ctx.extra["dest_data_dir"], app_ctx.extra["galaxy_file"]
+    )
     write_galaxy_requirements(galaxy_filename, dependency_data.deps)
 
     return 0
 
 
-def compile_collection_exclude_paths(collection_names: Collection[str],
-                                     collection_root: str) -> tuple[list[str], list[str]]:
+def compile_collection_exclude_paths(
+    collection_names: Collection[str], collection_root: str
+) -> tuple[list[str], list[str]]:
     result = set()
     ignored_files = set()
     all_files: list[str] = []
     for collection_name in collection_names:
-        namespace, name = collection_name.split('.', 1)
+        namespace, name = collection_name.split(".", 1)
         prefix = f"{namespace}/{name}/"
 
         # Check files
@@ -466,19 +533,19 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
         def ignore_start(prefix: str, start: str):
             matching_files = [file for file in all_files if file.startswith(start)]
             if matching_files:
-                result.add(prefix + start + '*')
+                result.add(prefix + start + "*")
                 ignored_files.update([prefix + file for file in matching_files])
 
         def ignore_directory(prefix: str, directory: str):
-            directory = directory.rstrip('/') + '/'
+            directory = directory.rstrip("/") + "/"
             matching_files = [file for file in all_files if file.startswith(directory)]
             if matching_files:
-                result.add(prefix + directory + '*')
+                result.add(prefix + directory + "*")
                 ignored_files.update([prefix + file for file in matching_files])
 
-        ignore_start(prefix, '.')
-        ignore_directory(prefix, 'docs')
-        ignore_directory(prefix, 'tests')
+        ignore_start(prefix, ".")
+        ignore_directory(prefix, "docs")
+        ignore_directory(prefix, "tests")
     return sorted(result), sorted(ignored_files)
 
 
@@ -489,7 +556,7 @@ def _collect_collection_data_dirs(collection_path: str) -> list[str]:
             # Make sure that all directories starting with '.', and all
             # directories called 'tests' or 'docs', are not traversed into.
             for dirname in list(dirs):
-                if dirname in ('tests', 'docs') or dirname.startswith('.'):
+                if dirname in ("tests", "docs") or dirname.startswith("."):
                     dirs.remove(dirname)
             continue
         relative_dir = os.path.relpath(root, collection_path)
@@ -508,15 +575,20 @@ def collect_collection_info(
 
     if ansible_version.major >= 8:
         for collection in dependency_data.deps:
-            namespace, name = collection.split('.', 1)
+            namespace, name = collection.split(".", 1)
             collection_namespaces[namespace].append(name)
             collection_path = os.path.join(ansible_collections_dir, namespace, name)
-            collection_directories[collection] = _collect_collection_data_dirs(collection_path)
+            collection_directories[collection] = _collect_collection_data_dirs(
+                collection_path
+            )
     else:
-        # pylint:disable-next=unused-variable
-        collection_exclude_paths, collection_ignored_files = compile_collection_exclude_paths(
-            dependency_data.deps, ansible_collections_dir)
         # TODO: do something with collection_ignored_files
+        (
+            collection_exclude_paths,
+            collection_ignored_files,  # pylint:disable=unused-variable
+        ) = compile_collection_exclude_paths(
+            dependency_data.deps, ansible_collections_dir
+        )
 
     return collection_exclude_paths, collection_namespaces, collection_directories
 
@@ -524,11 +596,12 @@ def collect_collection_info(
 def rebuild_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
-    deps_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['deps_file'])
+    deps_filename = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
     python_requires = _extract_python_requires(
-        PypiVer(dependency_data.ansible_core_version), dependency_data.deps)
+        PypiVer(dependency_data.ansible_core_version), dependency_data.deps
+    )
 
     # Determine included collection versions
     ansible_core_version = PypiVer(dependency_data.ansible_core_version)
@@ -538,40 +611,55 @@ def rebuild_single_command() -> int:
     }
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        download_dir = os.path.join(tmp_dir, 'collections')
+        download_dir = os.path.join(tmp_dir, "collections")
         os.mkdir(download_dir, mode=0o700)
 
         # Download included collections
-        asyncio.run(download_collections(included_versions, app_ctx.galaxy_url,
-                                         download_dir, app_ctx.collection_cache))
+        asyncio.run(
+            download_collections(
+                included_versions,
+                app_ctx.galaxy_url,
+                download_dir,
+                app_ctx.collection_cache,
+            )
+        )
 
         # Get Ansible changelog, add new release
         ansible_changelog = ChangelogData.ansible(
-            app_ctx.extra['data_dir'], app_ctx.extra['dest_data_dir'])
+            app_ctx.extra["data_dir"], app_ctx.extra["dest_data_dir"]
+        )
 
         # Get changelog and porting guide data
         changelog = get_changelog(
-            app_ctx.extra['ansible_version'],
-            deps_dir=app_ctx.extra['data_dir'],
+            app_ctx.extra["ansible_version"],
+            deps_dir=app_ctx.extra["data_dir"],
             deps_data=[dependency_data],
             collection_cache=app_ctx.collection_cache,
-            ansible_changelog=ansible_changelog)
+            ansible_changelog=ansible_changelog,
+        )
 
         # Create package and collections directories
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
+        package_dir = os.path.join(
+            tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}'
+        )
         os.mkdir(package_dir, mode=0o700)
-        ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
+        ansible_collections_dir = os.path.join(package_dir, "ansible_collections")
         os.mkdir(ansible_collections_dir, mode=0o700)
 
         # Write the ansible release info to the collections dir
-        write_release_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
+        write_release_py(app_ctx.extra["ansible_version"], ansible_collections_dir)
 
         # Write the ansible-community CLI program
-        write_ansible_community_py(app_ctx.extra['ansible_version'], ansible_collections_dir)
+        write_ansible_community_py(
+            app_ctx.extra["ansible_version"], ansible_collections_dir
+        )
 
         # Install collections
-        collections_to_install = [p for f in os.listdir(download_dir)
-                                  if os.path.isfile(p := os.path.join(download_dir, f))]
+        collections_to_install = [
+            p
+            for f in os.listdir(download_dir)
+            if os.path.isfile(p := os.path.join(download_dir, f))
+        ]
 
         asyncio.run(install_together(collections_to_install, ansible_collections_dir))
 
@@ -581,48 +669,68 @@ def rebuild_single_command() -> int:
         release_notes.write_porting_guide_to(package_dir)
 
         # Write changelog and porting guide also to destination directory
-        release_notes.write_changelog_to(app_ctx.extra['dest_data_dir'])
-        release_notes.write_porting_guide_to(app_ctx.extra['dest_data_dir'])
+        release_notes.write_changelog_to(app_ctx.extra["dest_data_dir"])
+        release_notes.write_porting_guide_to(app_ctx.extra["dest_data_dir"])
 
-        collection_exclude_paths, collection_namespaces, collection_directories = \
-            collect_collection_info(
-                app_ctx.extra['ansible_version'], dependency_data, ansible_collections_dir)
+        (
+            collection_exclude_paths,
+            collection_namespaces,
+            collection_directories,
+        ) = collect_collection_info(
+            app_ctx.extra["ansible_version"], dependency_data, ansible_collections_dir
+        )
 
         # Write build scripts and files
         tags_path: str | None = None
-        if app_ctx.extra['tags_file']:
-            tags_path = os.path.join(app_ctx.extra['data_dir'],
-                                     app_ctx.extra['tags_file'])
-        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version,
-                                 collection_exclude_paths, '', sorted(dependency_data.deps),
-                                 collection_namespaces, collection_directories, package_dir,
-                                 release_notes, app_ctx.extra['debian'], python_requires,
-                                 tags_path)
-        if app_ctx.extra['debian']:
-            write_debian_directory(app_ctx.extra['ansible_version'], ansible_core_version,
-                                   package_dir)
+        if app_ctx.extra["tags_file"]:
+            tags_path = os.path.join(
+                app_ctx.extra["data_dir"], app_ctx.extra["tags_file"]
+            )
+        write_build_script(
+            app_ctx.extra["ansible_version"], ansible_core_version, package_dir
+        )
+        write_python_build_files(
+            app_ctx.extra["ansible_version"],
+            ansible_core_version,
+            collection_exclude_paths,
+            "",
+            sorted(dependency_data.deps),
+            collection_namespaces,
+            collection_directories,
+            package_dir,
+            release_notes,
+            app_ctx.extra["debian"],
+            python_requires,
+            tags_path,
+        )
+        if app_ctx.extra["debian"]:
+            write_debian_directory(
+                app_ctx.extra["ansible_version"], ansible_core_version, package_dir
+            )
 
-        if app_ctx.extra.get('sdist_src_dir'):
+        if app_ctx.extra.get("sdist_src_dir"):
             shutil.copytree(
                 package_dir,
-                app_ctx.extra['sdist_src_dir'],
+                app_ctx.extra["sdist_src_dir"],
                 symlinks=True,
-                ignore_dangling_symlinks=True)
+                ignore_dangling_symlinks=True,
+            )
 
         # Check dependencies
-        dep_errors = check_collection_dependencies(os.path.join(package_dir, 'ansible_collections'))
+        dep_errors = check_collection_dependencies(
+            os.path.join(package_dir, "ansible_collections")
+        )
 
         if dep_errors:
-            is_error = app_ctx.extra["ansible_version"] >= PypiVer('6.3.0')
-            warning_error = 'ERROR' if is_error else 'WARNING'
-            print(f'{warning_error}: found collection dependency errors!')
+            is_error = app_ctx.extra["ansible_version"] >= PypiVer("6.3.0")
+            warning_error = "ERROR" if is_error else "WARNING"
+            print(f"{warning_error}: found collection dependency errors!")
             for error in dep_errors:
-                print(f'{warning_error}: {error}')
+                print(f"{warning_error}: {error}")
             if is_error:
                 return 3
 
         # Create source distribution
-        make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
+        make_dist_with_wheels(package_dir, app_ctx.extra["sdist_dir"])
 
     return 0

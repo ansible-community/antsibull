@@ -196,7 +196,7 @@ def typing(session: nox.Session):
     additional_libraries = []
     for path in others:
         if isinstance(path, Path):
-            additional_libraries.extend(('--search-path', str(path / "src")))
+            additional_libraries.extend(("--search-path", str(path / "src")))
 
     purelib = session.run(
         "python",
