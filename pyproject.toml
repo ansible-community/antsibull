@@ -62,6 +62,14 @@ email = "maxwell@gtmx.me"
 antsibull-build = "antsibull.cli.antsibull_build:main"
 
 [project.optional-dependencies]
+coverage = [
+    "coverage[toml]",
+]
+codeqa = [
+    "flake8 >= 3.8.0",
+    "pylint",
+    "reuse",
+]
 test = [
     "asynctest",
     "cryptography",
@@ -70,9 +78,6 @@ test = [
     "pytest-cov",
     "pytest-error-for-skips",
 ]
-coverage = [
-    "coverage[toml]",
-]
 typing = [
     "mypy",
     # https://github.com/facebook/pyre-check/issues/398
@@ -80,11 +85,6 @@ typing = [
     "types-aiofiles",
     "types-docutils",
     "types-PyYAML",
-]
-codeqa = [
-    "flake8 >= 3.8.0",
-    "pylint",
-    "reuse",
 ]
 dev = [
     # Used by nox sessions
