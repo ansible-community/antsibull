@@ -4,4 +4,5 @@ removed_features:
     template and elsewhere in the codebase.
     ``antsibull-build`` will error out if a user attempts to build
     an unsupported version
-    (https://github.com/ansible-community/antsibull/pull/477).
+    (https://github.com/ansible-community/antsibull/pull/477,
+     https://github.com/ansible-community/antsibull/pull/524).
