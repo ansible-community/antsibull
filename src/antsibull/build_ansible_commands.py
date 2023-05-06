@@ -118,19 +118,6 @@ async def get_collection_and_core_versions(deps: Mapping[str, str],
     return included_versions, ansible_core_version
 
 
-async def get_collection_versions(deps: Mapping[str, str],
-                                  galaxy_url: str,
-                                  ) -> dict[str, SemVer]:
-    """
-    Retrieve the latest version of each collection.
-
-    :arg deps: Mapping of collection name to a version specification.
-    :arg galaxy_url: The url for the galaxy server to use.
-    :returns: Dict mapping collection name to latest version.
-    """
-    return (await get_collection_and_core_versions(deps, None, galaxy_url))[0]
-
-
 async def download_collections(versions: Mapping[str, SemVer],
                                galaxy_url: str,
                                download_dir: str,
@@ -305,16 +292,8 @@ def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str
     })
 
 
-def make_dist(ansible_dir: str, dest_dir: str) -> None:
-    # XXX: build has an API, but it's quite unstable, so we use the cli for now
-    log_run(
-        [sys.executable, '-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir],
-        logger=mlog.fields(func='make_dist'),
-        stderr_loglevel='warning',
-    )
-
-
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
+    # TODO: build has an API, but it's quite unstable, so we use the cli for now
     log_run(
         [sys.executable, '-m', 'build', '--outdir', dest_dir, ansible_dir],
         logger=mlog.fields(func='make_dist_with_wheels'),
@@ -480,11 +459,6 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
             directory = os.path.relpath(directory, collection_dir)
             for file in files:
                 all_files.append(os.path.normpath(os.path.join(directory, file)))
-
-        def ignore_file(prefix: str, filename: str):  # pylint: disable=unused-variable
-            if filename in all_files:
-                result.add(prefix + filename)
-                ignored_files.add(prefix + filename)
 
         def ignore_start(prefix: str, start: str):
             matching_files = [file for file in all_files if file.startswith(start)]
