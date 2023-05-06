@@ -59,11 +59,12 @@ To run specific tests:
 
 1. `nox -e test` to only run unit tests;
 2. `nox -e lint` to run all linters;
-3. `nox -e codeqa` to run `flake8`, `pylint`, `reuse lint`, and `antsibull-changelog lint`;
-4. `nox -e typing` to run `mypy` and `pyre`.
-5. `nox -e coverage_release` to build a test ansible release.
+3. `nox -e formatters` to run `isort` and `black`;
+4. `nox -e codeqa` to run `flake8`, `pylint`, `reuse lint`, and `antsibull-changelog lint`;
+5. `nox -e typing` to run `mypy` and `pyre`.
+6. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
-6. `nox -e coverage` to display combined coverage results after running `nox -e
+7. `nox -e coverage` to display combined coverage results after running `nox -e
    test coverage_release`;
 
 To create a more complete local development env:
