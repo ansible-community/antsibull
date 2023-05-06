@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
-Files: changelogs/fragments/*
+Files: changelogs/fragments/* .git-blame-ignore-revs
 Copyright: Ansible Project
 License: GPL-3.0-or-later
