@@ -16,7 +16,6 @@ from collections import defaultdict
 from collections.abc import Collection, Mapping
 from typing import TYPE_CHECKING
 
-import aiofiles
 import aiohttp
 import asyncio_pool  # type: ignore[import]
 from jinja2 import Template
@@ -25,12 +24,11 @@ from semantic_version import Version as SemVer, SimpleSpec as SemVerSpec
 
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core_package_name, AnsibleCorePyPiClient
-from antsibull_core.collections import install_separately, install_together
+from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import log_run
-from antsibull_core.utils.io import write_file
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 
 from .build_changelog import ReleaseNotes
@@ -118,19 +116,6 @@ async def get_collection_and_core_versions(deps: Mapping[str, str],
             included_versions[collection_name] = version
 
     return included_versions, ansible_core_version
-
-
-async def get_collection_versions(deps: Mapping[str, str],
-                                  galaxy_url: str,
-                                  ) -> dict[str, SemVer]:
-    """
-    Retrieve the latest version of each collection.
-
-    :arg deps: Mapping of collection name to a version specification.
-    :arg galaxy_url: The url for the galaxy server to use.
-    :returns: Dict mapping collection name to latest version.
-    """
-    return (await get_collection_and_core_versions(deps, None, galaxy_url))[0]
 
 
 async def download_collections(versions: Mapping[str, SemVer],
@@ -307,16 +292,8 @@ def write_galaxy_requirements(filename: str, included_versions: Mapping[str, str
     })
 
 
-def make_dist(ansible_dir: str, dest_dir: str) -> None:
-    # XXX: build has an API, but it's quite unstable, so we use the cli for now
-    log_run(
-        [sys.executable, '-m', 'build', '--sdist', '--outdir', dest_dir, ansible_dir],
-        logger=mlog.fields(func='make_dist'),
-        stderr_loglevel='warning',
-    )
-
-
 def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
+    # TODO: build has an API, but it's quite unstable, so we use the cli for now
     log_run(
         [sys.executable, '-m', 'build', '--outdir', dest_dir, ansible_dir],
         logger=mlog.fields(func='make_dist_with_wheels'),
@@ -483,11 +460,6 @@ def compile_collection_exclude_paths(collection_names: Collection[str],
             for file in files:
                 all_files.append(os.path.normpath(os.path.join(directory, file)))
 
-        def ignore_file(prefix: str, filename: str):  # pylint: disable=unused-variable
-            if filename in all_files:
-                result.add(prefix + filename)
-                ignored_files.add(prefix + filename)
-
         def ignore_start(prefix: str, start: str):
             matching_files = [file for file in all_files if file.startswith(start)]
             if matching_files:
@@ -649,131 +621,5 @@ def rebuild_single_command() -> int:
 
         # Create source distribution
         make_dist_with_wheels(package_dir, app_ctx.extra['sdist_dir'])
-
-    return 0
-
-
-#
-# Code to make one sdist per collection
-#
-
-
-async def write_collection_readme(collection_name: str, package_dir: str) -> None:
-    readme_tmpl = Template(get_antsibull_data('collection-readme.j2').decode('utf-8'))
-    readme_contents = readme_tmpl.render(collection_name=collection_name)
-
-    readme_filename = os.path.join(package_dir, 'README.rst')
-    await write_file(readme_filename, readme_contents)
-
-
-async def write_collection_setup(name: str, version: str, package_dir: str) -> None:
-    setup_filename = os.path.join(package_dir, 'setup.py')
-
-    setup_tmpl = Template(get_antsibull_data('collection-setup_py.j2').decode('utf-8'))
-    setup_contents = setup_tmpl.render(version=version, name=name)
-
-    await write_file(setup_filename, setup_contents)
-
-
-async def write_collection_manifest(package_dir: str) -> None:
-    manifest_file = os.path.join(package_dir, 'MANIFEST.in')
-    async with aiofiles.open(manifest_file, 'w') as f:
-        await f.write('include README.rst\n')
-        await f.write('recursive-include ansible_collections/ **\n')
-
-
-async def make_collection_dist(name: str,
-                               version: str,
-                               package_dir: str,
-                               dest_dir: str) -> None:
-    # Copy boilerplate into place
-    await write_collection_readme(name, package_dir)
-    await write_collection_setup(name, version, package_dir)
-    await write_collection_manifest(package_dir)
-
-    loop = asyncio.get_running_loop()
-
-    # Create the python sdist
-    await loop.run_in_executor(None, make_dist, package_dir, dest_dir)
-
-
-async def make_collection_dists(dest_dir: str, collection_dirs: list[str]) -> None:
-    dist_creators = []
-    lib_ctx = app_context.lib_ctx.get()
-    async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-        for collection_dir in collection_dirs:
-            dir_name_only = os.path.basename(collection_dir)
-            dummy_, dummy_, name, version = dir_name_only.split('-', 3)
-
-            dist_creators.append(await pool.spawn(
-                make_collection_dist(name, version, collection_dir, dest_dir)))
-
-        await asyncio.gather(*dist_creators)
-
-
-def build_multiple_command() -> int:
-    app_ctx = app_context.app_ctx.get()
-
-    print(
-        'DEPRECATION WARNING: The `multiple` subcommand is deprecated and will be removed soon.'
-        ' If you are actively using this subcommand and are interested in keeping it, please'
-        ' create an issue in the antsibull repository as soon as possible.',
-        file=sys.stderr,
-    )
-
-    build_filename = os.path.join(app_ctx.extra['data_dir'], app_ctx.extra['build_file'])
-    build_file = BuildFile(build_filename)
-    build_ansible_version, ansible_core_version, deps = build_file.parse()
-    ansible_core_version_obj = PypiVer(ansible_core_version)
-    python_requires = _extract_python_requires(ansible_core_version_obj, deps)
-
-    # TODO: implement --feature-frozen support
-
-    if not str(app_ctx.extra['ansible_version']).startswith(build_ansible_version):
-        print(f'{build_filename} is for version {build_ansible_version} but we need'
-              f' {app_ctx.extra["ansible_version"].major}'
-              f'.{app_ctx.extra["ansible_version"].minor}')
-        return 1
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        download_dir = os.path.join(tmp_dir, 'collections')
-        os.mkdir(download_dir, mode=0o700)
-
-        included_versions = asyncio.run(get_collection_versions(deps, app_ctx.galaxy_url))
-        asyncio.run(
-            download_collections(included_versions, app_ctx.galaxy_url, download_dir,
-                                 app_ctx.collection_cache))
-        collections_to_install = [p for f in os.listdir(download_dir)
-                                  if os.path.isfile(p := os.path.join(download_dir, f))]
-
-        collection_dirs = asyncio.run(install_separately(collections_to_install, download_dir))
-        asyncio.run(make_collection_dists(app_ctx.extra['sdist_dir'], collection_dirs))
-
-        # Create the ansible package that deps on the collections we just wrote
-        package_dir = os.path.join(tmp_dir, f'ansible-{app_ctx.extra["ansible_version"]}')
-        os.mkdir(package_dir, mode=0o700)
-        ansible_collections_dir = os.path.join(package_dir, 'ansible_collections')
-        os.mkdir(ansible_collections_dir, mode=0o700)
-
-        # Construct the list of dependent collection packages
-        collection_deps = []
-        for collection, version in sorted(included_versions.items()):
-            collection_deps.append(f"        '{collection}>={version},<{version.next_major()}'")
-        collection_deps_str = '\n' + ',\n'.join(collection_deps)
-        write_build_script(app_ctx.extra['ansible_version'], ansible_core_version_obj, package_dir)
-        write_python_build_files(app_ctx.extra['ansible_version'], ansible_core_version_obj,
-                                 [], collection_deps_str, [], {}, {}, package_dir,
-                                 python_requires=python_requires)
-
-        make_dist(package_dir, app_ctx.extra['sdist_dir'])
-
-    # Write the deps file
-    deps_filename = os.path.join(app_ctx.extra['dest_data_dir'], app_ctx.extra['deps_file'])
-    deps_file = DepsFile(deps_filename)
-    deps_file.write(
-        str(app_ctx.extra['ansible_version']),
-        str(ansible_core_version_obj),
-        {collection: str(version) for collection, version in included_versions.items()},
-        python_requires=python_requires)
 
     return 0
