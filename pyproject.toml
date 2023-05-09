@@ -103,6 +103,17 @@ dev = [
 
 [tool.isort]
 profile = "black"
+extend_skip = [
+    "tests/test_data",
+]
+
+[tool.black]
+extend-exclude = '''
+(
+^/tests/test_data/.*
+| ^/tests/.cache/.*
+)
+'''
 
 [tool.coverage.paths]
 source = [

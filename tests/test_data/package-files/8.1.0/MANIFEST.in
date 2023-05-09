@@ -1,0 +1,5 @@
+include COPYING
+include README.rst
+include build-ansible.sh
+include tags.yaml
+recursive-include ansible_collections/ **
