@@ -251,24 +251,25 @@ def check_package_files(session: nox.Session, major: str, version: str) -> None:
 
     Path("tests/.cache").mkdir(exist_ok=True)
     session.run(
-        "bash",
-        "-x",
-        "tests/download_ansible_sdist.sh",
+        "python",
+        "tests/verify_package_files.py",
+        "download",
+        "--no-force-dl",
         version,
-        "tests/.cache",
-        external=True,
     )
-    with coverage_run(session) as (build_command, cov_env):
+    with coverage_run(session) as (_, cov_env):
         session.run(
-            "bash",
-            "-x",
-            "tests/verify_package_files.sh",
-            f"tests/.cache/ansible-{version}.tar.gz",
-            f"tests/test_data/package-files/{version}",
+            "coverage",
+            "run",
+            "-p",
+            "--branch",
+            "--source=antsibull",
+            "tests/verify_package_files.py",
+            "check",
             f"--data-dir={build_data / major}",
             version,
-            external=True,
-            env={"ANTSIBULL_BUILD": build_command, **cov_env},
+            *session.posargs,
+            env=cov_env,
         )
 
 
