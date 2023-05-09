@@ -89,6 +89,7 @@ typing = [
     "types-aiofiles",
     "types-docutils",
     "types-PyYAML",
+    "types-setuptools",
 ]
 dev = [
     # Used by nox sessions

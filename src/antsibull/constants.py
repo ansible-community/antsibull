@@ -12,3 +12,11 @@ from __future__ import annotations
 from packaging.version import Version as PypiVer
 
 MINIMUM_ANSIBLE_VERSION = PypiVer("6.0.0")
+MINIMUM_ANSIBLE_VERSIONS = {
+    "PACKAGE_DATA_NEW_METHOD": PypiVer("8.0.0a1"),
+}
+
+DOCSITE_BASE_URL = "https://docs.ansible.com/ansible"
+DOCSITE_COMMUNITY_URL = "https://docs.ansible.com/ansible/latest/community"
+
+COLLECTION_EXCLUDE_DIRS = ("docs", "tests")
