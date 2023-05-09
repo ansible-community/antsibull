@@ -265,7 +265,8 @@ def write_debian_directory(
     ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: str
 ) -> None:
     debian_dir = os.path.join(package_dir, "debian")
-    os.mkdir(debian_dir, mode=0o700)
+    if not os.path.isdir(debian_dir):
+        os.mkdir(debian_dir, mode=0o700)
     debian_files = ("changelog.j2", "control.j2", "copyright", "rules")
     ansible_core_package_name = get_ansible_core_package_name(ansible_core_version)
     for filename in debian_files:
@@ -759,5 +760,59 @@ def rebuild_single_command() -> int:
 
         # Create source distribution
         make_dist_with_wheels(package_dir, app_ctx.extra["sdist_dir"])
+
+    return 0
+
+
+def generate_package_files_command() -> int:
+    """
+    PRIVATE, INTERNAL command to (re)generate package configuration files
+    """
+    app_ctx = app_context.app_ctx.get()
+    package_dir = app_ctx.extra["package_dir"]
+    tags_path: str | None = None
+    if app_ctx.extra["tags_file"]:
+        tags_path = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["tags_file"])
+
+    deps_filename = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
+    deps_file = DepsFile(deps_filename)
+    dependency_data = deps_file.parse()
+    ansible_core_version = PypiVer(dependency_data.ansible_core_version)
+
+    python_requires: str | None
+    try:
+        python_requires = _extract_python_requires(
+            PypiVer(dependency_data.ansible_core_version), dependency_data.deps
+        )
+    except ValueError:
+        python_requires = None
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        build_meta_maker = BuildMetaMaker(
+            package_dir=package_dir,
+            collections_dir=app_ctx.extra["collections_dir"],
+            ansible_version=app_ctx.extra["ansible_version"],
+            dependency_data=dependency_data,
+            ansible_core_version=ansible_core_version,
+            ansible_core_checkout=asyncio.run(
+                _get_ansible_core_path(tmp_dir, ansible_core_version)
+            ),
+            python_requires=python_requires,
+        )
+        build_meta_maker.write()
+
+    write_build_script(
+        app_ctx.extra["ansible_version"], ansible_core_version, package_dir
+    )
+    write_python_build_files(
+        package_dir,
+        None,
+        app_ctx.extra["debian"],
+        tags_path,
+    )
+    if app_ctx.extra["debian"]:
+        write_debian_directory(
+            app_ctx.extra["ansible_version"], ansible_core_version, package_dir
+        )
 
     return 0
