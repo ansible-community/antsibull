@@ -7,6 +7,7 @@ import os
 import sys
 from setuptools import setup
 
+
 __version__ = '7.5.0'
 __author__ = 'Ansible, Inc.'
 

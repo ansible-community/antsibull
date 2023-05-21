@@ -5,7 +5,8 @@
 
 import os
 import sys
-from setuptools import setup, find_namespace_packages
+from setuptools import find_namespace_packages, setup
+
 
 __version__ = '8.1.0'
 __author__ = 'Ansible, Inc.'
@@ -682,7 +683,6 @@ setup(
         'ansible_collections.check_point.mgmt': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
             'plugins/*', 'plugins/.*',
             'plugins/action/*', 'plugins/action/.*',
@@ -690,7 +690,6 @@ setup(
             'plugins/httpapi/*', 'plugins/httpapi/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
-            'roles/*', 'roles/.*',
         ],
         'ansible_collections.chocolatey.chocolatey': [
             '*',
@@ -703,15 +702,12 @@ setup(
         'ansible_collections.cisco.aci': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
-            'playbooks/*', 'playbooks/.*',
             'plugins/*', 'plugins/.*',
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
             'plugins/lookup/*', 'plugins/lookup/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
-            'roles/*', 'roles/.*',
         ],
         'ansible_collections.cisco.asa': [
             '*',
@@ -812,7 +808,6 @@ setup(
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
-            'roles/*', 'roles/.*',
         ],
         'ansible_collections.cisco.ios': [
             '*',
@@ -1047,7 +1042,6 @@ setup(
         'ansible_collections.cisco.meraki': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
             'plugins/*', 'plugins/.*',
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
@@ -1061,7 +1055,6 @@ setup(
         'ansible_collections.cisco.mso': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
             'plugins/*', 'plugins/.*',
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
@@ -1207,7 +1200,6 @@ setup(
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
-            'roles/*', 'roles/.*',
         ],
         'ansible_collections.cloud.common': [
             '*',
@@ -1666,7 +1658,6 @@ setup(
             'molecule/default/vars/*', 'molecule/default/vars/.*',
             'plugins/*', 'plugins/.*',
             'plugins/connection/*', 'plugins/connection/.*',
-            'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
             'plugins/inventory/*', 'plugins/inventory/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
@@ -2538,7 +2529,6 @@ setup(
         ],
         'ansible_collections.infinidat.infinibox': [
             '*',
-            'bin/*', 'bin/.*',
             'ibox_vars/*', 'ibox_vars/.*',
             'meta/*', 'meta/.*',
             'playbooks/*', 'playbooks/.*',
@@ -2547,7 +2537,6 @@ setup(
             'plugins/filter/*', 'plugins/filter/.*',
             'plugins/module_utils/*', 'plugins/module_utils/.*',
             'plugins/modules/*', 'plugins/modules/.*',
-            'test-args/*', 'test-args/.*',
         ],
         'ansible_collections.infoblox.nios_modules': [
             '*',
@@ -2574,7 +2563,6 @@ setup(
         'ansible_collections.inspur.sm': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
             'playbooks/*', 'playbooks/.*',
             'playbooks/modules/*', 'playbooks/modules/.*',
@@ -2857,7 +2845,6 @@ setup(
         'ansible_collections.netapp_eseries.santricity': [
             '*',
             'changelogs/*', 'changelogs/.*',
-            'changelogs/fragments/*', 'changelogs/fragments/.*',
             'meta/*', 'meta/.*',
             'plugins/*', 'plugins/.*',
             'plugins/doc_fragments/*', 'plugins/doc_fragments/.*',
@@ -2952,7 +2939,6 @@ setup(
             'changelogs/fragments/*', 'changelogs/fragments/.*',
             'examples/*', 'examples/.*',
             'examples/filters/*', 'examples/filters/.*',
-            'exported-artifacts/*', 'exported-artifacts/.*',
             'licenses/*', 'licenses/.*',
             'meta/*', 'meta/.*',
             'plugins/*', 'plugins/.*',
@@ -3243,7 +3229,6 @@ setup(
             '*',
             'changelogs/*', 'changelogs/.*',
             'changelogs/fragments/*', 'changelogs/fragments/.*',
-            'config/*', 'config/.*',
             'manual/*', 'manual/.*',
             'manual/source/*', 'manual/source/.*',
             'manual/source/vmware_rest_scenarios/*', 'manual/source/vmware_rest_scenarios/.*',

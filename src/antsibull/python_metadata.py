@@ -19,7 +19,9 @@ from email.message import Message
 from pathlib import Path
 from typing import Any, Union
 
+from antsibull_core.ansible_core import get_ansible_core_package_name
 from antsibull_core.dependency_files import DependencyFileData
+from jinja2 import Template
 from packaging.version import Version as PypiVer
 
 from .constants import (
@@ -28,6 +30,7 @@ from .constants import (
     DOCSITE_COMMUNITY_URL,
     MINIMUM_ANSIBLE_VERSIONS,
 )
+from .utils.get_pkg_data import get_antsibull_data
 
 
 class IniType:
@@ -156,6 +159,7 @@ class BuildMetaMaker:
 
     config: defaultdict[str, dict[str, INI_TYPES]]
     ansible_core_metadata: Message
+    _collection_directories: dict[str, list[str]]
 
     def __init__(
         self,
@@ -186,6 +190,8 @@ class BuildMetaMaker:
             self.ansible_core_metadata = message_from_file(fp)
 
         self._generated = False
+        # TODO: Remove once we drop LegacyBuildMetaMaker
+        self._collection_directories: dict[str, str] = {}
 
     def __getitem__(self, key: str) -> Any:
         return self.config[key]
@@ -219,7 +225,9 @@ class BuildMetaMaker:
 
     def _package_data_new_method(self) -> None:
         collection_namespaces: dict[str, list[str]] = defaultdict(list)
-        collection_directories: dict[str, list[str]] = {}
+        # We only need this as an attribute for the LegacyBuildMetaMaker compat
+        # TODO: Remove once we drop LegacyBuildMetaMaker
+        collection_directories = self._collection_directories
         for collection in self.dependency_data.deps:
             namespace, name = collection.split(".", 1)
             collection_namespaces[namespace].append(name)
@@ -284,3 +292,61 @@ class BuildMetaMaker:
         file = file or self.package_dir.joinpath("setup.cfg")
         with file.open("w", encoding="utf-8") as fp:
             parser.write(fp)
+
+
+class LegacyBuildMetaMaker:
+    """
+    Generate a setup.py and other Python metadata for ansible.
+    This is a wrapper around `BuildMetaMaker`.
+    """
+
+    def __init__(
+        self,
+        *,
+        package_dir: str | os.PathLike[str],
+        collections_dir: str | os.PathLike[str] | None = None,
+        ansible_version: PypiVer,
+        dependency_data: DependencyFileData,
+        ansible_core_version: PypiVer,
+        ansible_core_checkout: str | os.PathLike[str],
+        python_requires: str | None,
+    ) -> None:
+        self.maker: BuildMetaMaker = BuildMetaMaker(
+            package_dir=package_dir,
+            collections_dir=collections_dir,
+            ansible_version=ansible_version,
+            dependency_data=dependency_data,
+            ansible_core_version=ansible_core_version,
+            ansible_core_checkout=ansible_core_checkout,
+            initial_config=DEFAULT_CONFIG,
+            python_requires=python_requires,
+        )
+
+    def write(self, file: Path | None = None) -> None:
+        file = file or self.maker.package_dir / "setup.py"
+
+        self.maker.generate()
+
+        collection_exclude_paths = self.maker["options.exclude_package_data"].get(
+            "ansible_collections", []
+        )
+
+        setup_tmpl = Template(get_antsibull_data("ansible-setup_py.j2").decode("utf-8"))
+        setup_contents = setup_tmpl.render(
+            version=self.maker.ansible_version,
+            ansible_core_package_name=get_ansible_core_package_name(
+                self.maker.ansible_core_version
+            ),
+            ansible_core_version=self.maker.ansible_core_version,
+            collection_deps="",
+            # not PACKAGE_DATA_NEW_METHOD
+            collection_exclude_paths=sorted(collection_exclude_paths),
+            # PACKAGE_DATA_NEW_METHOD
+            collection_names=sorted(self.maker.dependency_data.deps),
+            # pylint: disable-next=protected-access
+            collection_directories=self.maker._collection_directories,
+            #
+            python_requires=self.maker["options"]["requires_python"],
+            PypiVer=PypiVer,
+        )
+        file.write_text(setup_contents, encoding="utf-8")

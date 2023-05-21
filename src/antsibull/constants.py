@@ -14,6 +14,8 @@ from packaging.version import Version as PypiVer
 MINIMUM_ANSIBLE_VERSION = PypiVer("6.0.0")
 MINIMUM_ANSIBLE_VERSIONS = {
     "PACKAGE_DATA_NEW_METHOD": PypiVer("8.0.0a1"),
+    # Whether to store setuptools config in setup.cfg
+    "BUILD_META_MAKER": PypiVer("9.0.0.dev0"),
 }
 
 DOCSITE_BASE_URL = "https://docs.ansible.com/ansible"

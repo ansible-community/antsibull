@@ -1,0 +1,123 @@
+#!/usr/bin/python -tt
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Ansible Project, 2020
+
+import os
+import sys
+
+{%- if version.major >= 8 %}
+from setuptools import find_namespace_packages, setup
+
+{%- else %}
+from setuptools import setup
+
+{%- endif %}
+
+
+__version__ = '{{ version }}'
+__author__ = 'Ansible, Inc.'
+
+
+with open('README.rst', 'r') as f:
+    long_desc = f.read()
+
+setup(
+    name='ansible',
+    version=__version__,
+    description='Radically simple IT automation',
+    long_description=long_desc,
+    author=__author__,
+    author_email='info@ansible.com',
+    url='https://ansible.com/',
+    project_urls={
+        'Bug Tracker': 'https://github.com/ansible/ansible/issues',
+        'Code of Conduct': 'https://docs.ansible.com/ansible/latest/community/code_of_conduct.html',
+        'Documentation': 'https://docs.ansible.com/ansible/',
+        'Mailing lists': 'https://docs.ansible.com/ansible/latest/community/communication.html#mailing-list-information',
+        'Source Code': 'https://github.com/ansible/ansible',
+    },
+    license='GPLv3+',
+    python_requires='{{ python_requires }}',
+{%- if version.major >= 8 %}
+    packages=find_namespace_packages(
+        '.',
+        include=[
+            'ansible_collections',
+            'ansible_collections.*',
+        ],
+        exclude=[
+{%-   for collection in collection_names %}
+            'ansible_collections.{{ collection }}.tests.*',
+            'ansible_collections.{{ collection }}.tests',
+            'ansible_collections.{{ collection }}.docs.*',
+            'ansible_collections.{{ collection }}.docs',
+{%-   endfor %}
+        ],
+    ),
+    package_dir={'': '.'},
+    package_data={
+{%-   for collection in collection_names %}
+        'ansible_collections.{{ collection }}': [
+            '*',
+{%-     for dir in collection_directories[collection] %}
+            '{{ dir }}/*', '{{ dir }}/.*',
+{%-     endfor %}
+        ],
+{%-   endfor %}
+    },
+{%- else %}
+    packages=['ansible_collections'],
+{%-   if version.major >= 6 and collection_exclude_paths %}
+    exclude_package_data={
+        'ansible_collections': [
+{%-     for path in collection_exclude_paths %}
+            '{{ path }}',
+{%-     endfor %}
+        ],
+    },
+{%-   endif %}
+    include_package_data=True,
+{%- endif %}
+    install_requires=[
+        '{{ ansible_core_package_name }} ~= {{ ansible_core_version }}',{{ collection_deps }}
+    ],
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Framework :: Ansible',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Natural Language :: English',
+        'Operating System :: POSIX',
+{%- if version.major < 5 %}
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+{%- endif %}
+{%- if version.major >= 5 and version.major < 7 %}
+        'Programming Language :: Python :: 3.8',
+{%- endif %}
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+{%- if version.major >= 7 %}
+        'Programming Language :: Python :: 3.11',
+{%- endif %}
+        'Topic :: System :: Installation/Setup',
+        'Topic :: System :: Systems Administration',
+        'Topic :: Utilities',
+    ],
+    data_files=[],
+    entry_points={
+        'console_scripts': [
+            'ansible-community=ansible_collections.ansible_community:main'
+        ]
+    },
+    # Installing as zip files would break due to references to __file__
+    zip_safe=False
+)
