@@ -8,7 +8,7 @@ from __future__ import annotations
 import contextlib
 import os
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 import nox
@@ -234,9 +234,24 @@ def typing(session: nox.Session):
 
 @nox.session
 @nox.parametrize(
-    ["major", "version"], [["8", "8.0.0a3"], ["7", "7.5.0"]], ["8.0.0a3", "7.5.0"]
+    ["major", "version", "extra_args"],
+    [
+        ["8", "8.1.0", []],
+        ["7", "7.5.0", []],
+        [
+            "8",
+            "8.1.0",
+            [
+                "--package-dir=tests/test_data/package-files/force_setup_cfg",
+                "--force-generate-setup-cfg",
+            ],
+        ],
+    ],
+    ["8.1.0", "7.5.0", "8.1.0_setup_cfg"],
 )
-def check_package_files(session: nox.Session, major: str, version: str) -> None:
+def check_package_files(
+    session: nox.Session, major: str, version: str, extra_args: Sequence[str]
+) -> None:
     install(session, ".[coverage]", *other_antsibull(), editable=True)
     tmp = session.create_tmp()
     build_data = Path(tmp, "ansible-build-data")
@@ -269,6 +284,7 @@ def check_package_files(session: nox.Session, major: str, version: str) -> None:
             f"--data-dir={build_data / major}",
             version,
             *session.posargs,
+            *extra_args,
             env=cov_env,
         )
 

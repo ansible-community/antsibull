@@ -43,6 +43,11 @@ jobs:
             codecov: true
             packages: ""
 
+          - session: "check_package_files(8.1.0_setup_cfg)"
+            python-versions: "3.11"
+            codecov: true
+            packages: ""
+
           - session: lint
             python-versions: "3.11"
             codecov: false

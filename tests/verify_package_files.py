@@ -15,15 +15,17 @@ import sys
 import tarfile
 import tempfile
 import zipfile
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, MutableMapping, Sequence
 from pathlib import Path
 from subprocess import run
-from typing import Union
+from typing import Any, Union
 
 import aiofiles
 import aiohttp
+from packaging.version import Version as PypiVer
 
 from antsibull.cli import antsibull_build
+from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -135,21 +137,30 @@ def download_command(*, version: str, cache_dir: Path, force_dl: bool) -> None:
 
 
 def generate_package_files(
-    version: str, cached_dist: AnsibleSdist, extract_dir: Path, data_dir: Path
+    version: str,
+    cached_dist: AnsibleSdist,
+    extract_dir: Path,
+    data_dir: Path,
+    force_generate_setup_cfg: bool,
 ) -> None:
     cached_dist.extract_collections(extract_dir)
-    if r := antsibull_build.run(
-        [
-            "antsibull-build",
-            "generate-package-files",
-            f"--data-dir={data_dir}",
-            "--tags-file",
-            f"--package-dir={extract_dir}",
-            version,
-        ]
-    ):
-        sys.exit(r)
-    return None
+    cm = (
+        patch_dict(MINIMUM_ANSIBLE_VERSIONS, "BUILD_META_MAKER", PypiVer(version))
+        if force_generate_setup_cfg
+        else contextlib.nullcontext()
+    )
+    with cm:
+        if r := antsibull_build.run(
+            [
+                "antsibull-build",
+                "generate-package-files",
+                f"--data-dir={data_dir}",
+                "--tags-file",
+                f"--package-dir={extract_dir}",
+                version,
+            ]
+        ):
+            sys.exit(r)
 
 
 @contextlib.contextmanager
@@ -161,6 +172,16 @@ def tmp_or_dir(build_dir: Path | None = None) -> Iterator[Path]:
     else:
         with tempfile.TemporaryDirectory() as tmp:
             yield Path(tmp)
+
+
+@contextlib.contextmanager
+def patch_dict(mapping: MutableMapping, key: Any, value: Any) -> Iterator[None]:
+    old = mapping[key]
+    try:
+        mapping[key] = value
+        yield
+    finally:
+        mapping[key] = old
 
 
 def write_file_list(
@@ -198,12 +219,15 @@ def check_command(
     data_dir: Path,
     build_check: Path,
     build_dir: Path | None,
+    force_generate_setup_cfg: bool,
 ) -> None:
     package_dir = package_dir / version
     cached_dist = AnsibleSdist(version, cache_dir)
 
     with tmp_or_dir() as extract_dir:
-        generate_package_files(version, cached_dist, extract_dir, data_dir)
+        generate_package_files(
+            version, cached_dist, extract_dir, data_dir, force_generate_setup_cfg
+        )
         diff_args = ["-ur", "-x", "ansible_collections", "-x", "*egg-info"]
         if build_check:
             write_file_list(version, extract_dir, build_dir)
@@ -212,7 +236,9 @@ def check_command(
         run(["diff", *diff_args, package_dir, extract_dir], check=True)
 
         # Make sure files can be regenerated
-        generate_package_files(version, cached_dist, extract_dir, data_dir)
+        generate_package_files(
+            version, cached_dist, extract_dir, data_dir, force_generate_setup_cfg
+        )
         run(["diff", *diff_args, package_dir, extract_dir], check=True)
 
 
@@ -225,6 +251,7 @@ def regen_command(
     build_check: Path,
     clean: bool,
     build_dir: Path | None,
+    force_generate_setup_cfg: bool,
 ) -> None:
     package_dir = package_dir / version
     cached_dist = AnsibleSdist(version, cache_dir)
@@ -233,7 +260,9 @@ def regen_command(
         shutil.rmtree(package_dir, True)
     package_dir.mkdir(exist_ok=True)
 
-    generate_package_files(version, cached_dist, package_dir, data_dir)
+    generate_package_files(
+        version, cached_dist, package_dir, data_dir, force_generate_setup_cfg
+    )
     if build_check:
         write_file_list(version, package_dir, build_dir)
     shutil.rmtree(package_dir / "ansible_collections", True)
@@ -273,6 +302,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Directory to use for storing temporary build artifacts"
         " when --build-check is used",
         type=Path,
+    )
+    _package_data_parser.add_argument(
+        "--force-generate-setup-cfg",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Generate setup.cfg even if that's not the default for VERSION."
+        " Default: False",
     )
 
     check_parser = subparsers.add_parser("check", parents=[_package_data_parser])
