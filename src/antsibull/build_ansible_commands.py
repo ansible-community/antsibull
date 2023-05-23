@@ -397,6 +397,84 @@ def _extract_python_requires(
     )
 
 
+# pylint: disable-next=too-many-branches
+def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C901
+    """
+    Make semantic version range specification valid for feature freeze.
+    """
+    spec_obj = SemVerSpec(spec)
+
+    potential_clauses = []
+    upper_operator = None
+    upper_version = None
+    min_version = None
+    pinned = False
+
+    # If there is a single clause, it's available as spec_obj.clause;
+    # multiple ones are available as spec_obj.clause.clauses.
+    try:
+        clauses = spec_obj.clause.clauses
+    except AttributeError:
+        clauses = [spec_obj.clause]
+
+    # Look at each clause of the version specification
+    for clause in clauses:
+        if clause.operator in ("<", "<="):
+            if upper_operator is not None:
+                raise ValueError(
+                    f"Multiple upper version limits specified for {collection_name}: {spec_obj}"
+                )
+            upper_operator = clause.operator
+            upper_version = clause.target
+            # Omit the upper bound as we're replacing it
+            continue
+
+        if clause.operator == ">=":
+            # Save the lower bound so we can write out a new compatible version
+            if min_version is not None:
+                raise ValueError(
+                    f"Multiple minimum versions specified for {collection_name}: {spec_obj}"
+                )
+            min_version = clause.target
+
+        if clause.operator == ">":
+            raise ValueError(
+                f"Strict lower bound specified for {collection_name}: {spec_obj}"
+            )
+
+        if clause.operator == "==":
+            pinned = True
+
+        potential_clauses.append(clause)
+
+    if pinned:
+        if len(clauses) != 1:
+            raise ValueError(
+                f"Pin combined with other clauses for {collection_name}: {spec_obj}"
+            )
+        return spec
+
+    if upper_operator is None or upper_version is None:
+        raise ValueError(
+            f"No upper version limit specified for {collection_name}: {spec_obj}"
+        )
+
+    if min_version is None:
+        raise ValueError(
+            f"No minimum version specified for {collection_name}: {spec_obj}"
+        )
+
+    if min_version.next_minor() <= upper_version:
+        upper_operator = "<"
+        upper_version = min_version.next_minor()
+
+    new_clauses = sorted(
+        str(clause) for clause in potential_clauses if clause.target < upper_version
+    )
+    new_clauses.append(f"{upper_operator}{upper_version}")
+    return ",".join(new_clauses)
+
+
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
@@ -412,31 +490,8 @@ def prepare_command() -> int:
     # change the upper version limit to not include new features.
     if app_ctx.extra["feature_frozen"]:
         old_deps, deps = deps, {}
-        # For each collection that's listed...
         for collection_name, spec in old_deps.items():
-            spec_obj = SemVerSpec(spec)
-            new_clauses = []
-            min_version = None
-
-            # Look at each clause of the version specification
-            for clause in spec_obj.clause.clauses:
-                if clause.operator in ("<", "<="):
-                    # Omit the upper bound as we're replacing it
-                    continue
-
-                if clause.operator == ">=":
-                    # Save the lower bound so we can write out a new compatible version
-                    min_version = clause.target
-
-                new_clauses.append(str(clause))
-
-            if min_version is None:
-                raise ValueError(
-                    f"No minimum version specified for {collection_name}: {spec_obj}"
-                )
-
-            new_clauses.append(f"<{min_version.major}.{min_version.minor + 1}.0")
-            deps[collection_name] = ",".join(new_clauses)
+            deps[collection_name] = feature_freeze_version(spec, collection_name)
 
     included_versions, new_ansible_core_version = asyncio.run(
         get_collection_and_core_versions(
