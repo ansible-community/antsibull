@@ -417,7 +417,6 @@ class _FeatureFreezeVersion:
             clauses = [spec_obj.clause]
 
         self.clauses = clauses
-        print(clauses)
         for clause in clauses:
             self._process_clause(clause)
 
@@ -482,7 +481,6 @@ class _FeatureFreezeVersion:
             if clause.target < upper_version
         )
         new_clauses.append(f"{upper_operator}{upper_version}")
-        print(self.potential_clauses, new_clauses)
         return ",".join(new_clauses)
 
 
