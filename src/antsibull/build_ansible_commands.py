@@ -397,80 +397,101 @@ def _extract_python_requires(
     )
 
 
-# pylint: disable-next=too-many-branches
-def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C901
-    """
-    Make semantic version range specification valid for feature freeze.
-    """
-    spec_obj = SemVerSpec(spec)
+class _FeatureFreezeVersion:
+    def __init__(self, spec: str, collection_name: str):
+        self.potential_clauses: list = []
+        self.spec = spec
+        self.collection_name = collection_name
+        self.upper_operator: str | None = None
+        self.upper_version: SemVer | None = None
+        self.min_version: SemVer | None = None
+        self.pinned = False
 
-    potential_clauses = []
-    upper_operator: str | None = None
-    upper_version: SemVer | None = None
-    min_version: SemVer | None = None
-    pinned = False
+        spec_obj = SemVerSpec(spec)
 
-    # If there is a single clause, it's available as spec_obj.clause;
-    # multiple ones are available as spec_obj.clause.clauses.
-    try:
-        clauses = spec_obj.clause.clauses
-    except AttributeError:
-        clauses = [spec_obj.clause]
+        # If there is a single clause, it's available as spec_obj.clause;
+        # multiple ones are available as spec_obj.clause.clauses.
+        try:
+            clauses = spec_obj.clause.clauses
+        except AttributeError:
+            clauses = [spec_obj.clause]
 
-    # Look at each clause of the version specification
-    for clause in clauses:
+        self.clauses = clauses
+        print(clauses)
+        for clause in clauses:
+            self._process_clause(clause)
+
+    def _process_clause(self, clause) -> None:
         if clause.operator in ("<", "<="):
-            if upper_operator is not None:
+            if self.upper_operator is not None:
                 raise ValueError(
-                    f"Multiple upper version limits specified for {collection_name}: {spec}"
+                    f"Multiple upper version limits specified for {self.collection_name}:"
+                    f" {self.spec}"
                 )
-            upper_operator = clause.operator
-            upper_version = clause.target
+            self.upper_operator = clause.operator
+            self.upper_version = clause.target
             # Omit the upper bound as we're replacing it
-            continue
+            return
 
         if clause.operator == ">=":
             # Save the lower bound so we can write out a new compatible version
-            if min_version is not None:
+            if self.min_version is not None:
                 raise ValueError(
-                    f"Multiple minimum versions specified for {collection_name}: {spec}"
+                    f"Multiple minimum versions specified for {self.collection_name}: {self.spec}"
                 )
-            min_version = clause.target
+            self.min_version = clause.target
 
         if clause.operator == ">":
             raise ValueError(
-                f"Strict lower bound specified for {collection_name}: {spec}"
+                f"Strict lower bound specified for {self.collection_name}: {self.spec}"
             )
 
         if clause.operator == "==":
-            pinned = True
+            self.pinned = True
 
-        potential_clauses.append(clause)
+        self.potential_clauses.append(clause)
 
-    if pinned:
-        if len(clauses) > 1:
+    def complete(self) -> str:
+        if self.pinned:
+            if len(self.clauses) > 1:
+                raise ValueError(
+                    f"Pin combined with other clauses for {self.collection_name}: {self.spec}"
+                )
+            return self.spec
+
+        upper_operator = self.upper_operator
+        upper_version = self.upper_version
+        if upper_operator is None or upper_version is None:
             raise ValueError(
-                f"Pin combined with other clauses for {collection_name}: {spec}"
+                f"No upper version limit specified for {self.collection_name}: {self.spec}"
             )
-        return spec
 
-    if upper_operator is None or upper_version is None:
-        raise ValueError(
-            f"No upper version limit specified for {collection_name}: {spec}"
+        min_version = self.min_version
+        if min_version is None:
+            raise ValueError(
+                f"No minimum version specified for {self.collection_name}: {self.spec}"
+            )
+
+        if min_version.next_minor() <= upper_version:
+            upper_operator = "<"
+            upper_version = min_version.next_minor()
+
+        new_clauses = sorted(
+            str(clause)
+            for clause in self.potential_clauses
+            if clause.target < upper_version
         )
+        new_clauses.append(f"{upper_operator}{upper_version}")
+        print(self.potential_clauses, new_clauses)
+        return ",".join(new_clauses)
 
-    if min_version is None:
-        raise ValueError(f"No minimum version specified for {collection_name}: {spec}")
 
-    if min_version.next_minor() <= upper_version:
-        upper_operator = "<"
-        upper_version = min_version.next_minor()
-
-    new_clauses = sorted(
-        str(clause) for clause in potential_clauses if clause.target < upper_version
-    )
-    new_clauses.append(f"{upper_operator}{upper_version}")
-    return ",".join(new_clauses)
+def feature_freeze_version(spec: str, collection_name: str) -> str:
+    """
+    Make semantic version range specification valid for feature freeze.
+    """
+    helper = _FeatureFreezeVersion(spec, collection_name)
+    return helper.complete()
 
 
 def prepare_command() -> int:
