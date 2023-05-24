@@ -398,6 +398,10 @@ def _extract_python_requires(
 
 
 class _FeatureFreezeVersion:
+    """
+    Helper for making semantic version range specification valid for feature freeze.
+    """
+
     def __init__(self, spec: str, collection_name: str):
         self.potential_clauses: list = []
         self.spec = spec
@@ -421,6 +425,9 @@ class _FeatureFreezeVersion:
             self._process_clause(clause)
 
     def _process_clause(self, clause) -> None:
+        """
+        Process one clause of the version range specification.
+        """
         if clause.operator in ("<", "<="):
             if self.upper_operator is not None:
                 raise ValueError(
@@ -450,7 +457,11 @@ class _FeatureFreezeVersion:
 
         self.potential_clauses.append(clause)
 
-    def complete(self) -> str:
+    def compute_new_spec(self) -> str:
+        """
+        Compute a new version range specification that only allows newer patch releases that also
+        match the original range specification.
+        """
         if self.pinned:
             if len(self.clauses) > 1:
                 raise ValueError(
@@ -488,8 +499,7 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:
     """
     Make semantic version range specification valid for feature freeze.
     """
-    helper = _FeatureFreezeVersion(spec, collection_name)
-    return helper.complete()
+    return _FeatureFreezeVersion(spec, collection_name).compute_new_spec()
 
 
 def prepare_command() -> int:
