@@ -405,9 +405,9 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C90
     spec_obj = SemVerSpec(spec)
 
     potential_clauses = []
-    upper_operator = None
-    upper_version = None
-    min_version = None
+    upper_operator: str | None = None
+    upper_version: SemVer | None = None
+    min_version: SemVer | None = None
     pinned = False
 
     # If there is a single clause, it's available as spec_obj.clause;
@@ -422,7 +422,7 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C90
         if clause.operator in ("<", "<="):
             if upper_operator is not None:
                 raise ValueError(
-                    f"Multiple upper version limits specified for {collection_name}: {spec_obj}"
+                    f"Multiple upper version limits specified for {collection_name}: {spec}"
                 )
             upper_operator = clause.operator
             upper_version = clause.target
@@ -433,13 +433,13 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C90
             # Save the lower bound so we can write out a new compatible version
             if min_version is not None:
                 raise ValueError(
-                    f"Multiple minimum versions specified for {collection_name}: {spec_obj}"
+                    f"Multiple minimum versions specified for {collection_name}: {spec}"
                 )
             min_version = clause.target
 
         if clause.operator == ">":
             raise ValueError(
-                f"Strict lower bound specified for {collection_name}: {spec_obj}"
+                f"Strict lower bound specified for {collection_name}: {spec}"
             )
 
         if clause.operator == "==":
@@ -448,20 +448,20 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C90
         potential_clauses.append(clause)
 
     if pinned:
-        if len(clauses) != 1:
+        if len(clauses) > 1:
             raise ValueError(
-                f"Pin combined with other clauses for {collection_name}: {spec_obj}"
+                f"Pin combined with other clauses for {collection_name}: {spec}"
             )
         return spec
 
     if upper_operator is None or upper_version is None:
         raise ValueError(
-            f"No upper version limit specified for {collection_name}: {spec_obj}"
+            f"No upper version limit specified for {collection_name}: {spec}"
         )
 
     if min_version is None:
         raise ValueError(
-            f"No minimum version specified for {collection_name}: {spec_obj}"
+            f"No minimum version specified for {collection_name}: {spec}"
         )
 
     if min_version.next_minor() <= upper_version:
