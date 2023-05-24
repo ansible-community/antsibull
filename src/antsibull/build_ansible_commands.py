@@ -460,9 +460,7 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:  # noqa: C90
         )
 
     if min_version is None:
-        raise ValueError(
-            f"No minimum version specified for {collection_name}: {spec}"
-        )
+        raise ValueError(f"No minimum version specified for {collection_name}: {spec}")
 
     if min_version.next_minor() <= upper_version:
         upper_operator = "<"
