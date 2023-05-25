@@ -51,8 +51,8 @@ def analyze_deps(collections: Mapping[str, CollectionRecord]) -> list[str]:
             dependency_version = SemVer(collections[dep_name].version)
             if dependency_version not in SemVerSpec(dep_version_spec):
                 errors.append(
-                    f"{collection_name} version_conflict:"
-                    f" {dep_name}-{str(dependency_version)} but needs"
+                    f"{collection_name} {collection_info.version} version_conflict:"
+                    f" {dep_name}-{dependency_version} but needs"
                     f" {dep_version_spec}"
                 )
                 continue
