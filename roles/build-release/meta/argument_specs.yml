@@ -108,3 +108,7 @@ argument_specs:
             This file will be ignored if it doesn't exist.
         type: path
         default: "{{ antsibull_data_dir }}/validate-tags-ignores"
+      antsibull_use_constraints_file:
+        description: Whether to use the C(ansible-VERSION.constraints) file if it exists
+        type: bool
+        default: true

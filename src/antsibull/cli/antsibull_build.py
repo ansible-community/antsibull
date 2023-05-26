@@ -218,6 +218,17 @@ def _normalize_validate_tags_file_options(args: argparse.Namespace) -> None:
         raise InvalidArgumentError(f"{args.tags_file} does not exist!")
 
 
+def _normalize_constraints_file_options(args: argparse.Namespace) -> None:
+    if args.command not in ("prepare", "single"):
+        return
+    if args.constraints_file:
+        if args.constraints_file == "DEFAULT":
+            args.constraints_file = f"ansible-{args.ansible_version.major}.constraints"
+        constraints_path = os.path.join(args.data_dir, args.constraints_file)
+        if not os.path.isfile(constraints_path):
+            raise InvalidArgumentError(f"{constraints_path} must be an existing file!")
+
+
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     """
     Parse and coerce the command line arguments.
@@ -246,6 +257,17 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         help="Directory to write .build and .deps files to,"
         " as well as changelog and porting guide if applicable."
         "  Defaults to --data-dir",
+    )
+    constraints_parser = argparse.ArgumentParser(add_help=False)
+    constraints_parser.add_argument(
+        "--constraints-file",
+        nargs="?",
+        const="DEFAULT",
+        help="File containing a list of collections with version ranges."
+        " This overrides the version ranges in --build-file."
+        f" The default path is {DEFAULT_FILE_BASE}-MAJOR_VERSION.constraints."
+        " An optional argument is accepted to change the default path."
+        " Paths are relative to --data-dir.",
     )
     cache_parser = argparse.ArgumentParser(add_help=False)
     cache_parser.add_argument(
@@ -344,6 +366,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
             build_step_parser,
             feature_freeze_parser,
             galaxy_file_parser,
+            constraints_parser,
         ],
         description="Collect dependencies for an Ansible release",
     )
@@ -365,6 +388,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
             build_step_parser,
             feature_freeze_parser,
             galaxy_file_parser,
+            constraints_parser,
         ],
         description="Build a single-file Ansible" " [deprecated]",
     )
@@ -506,6 +530,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_validate_tags_options(parsed_args)
     _normalize_release_rebuild_options(parsed_args)
     _normalize_validate_tags_file_options(parsed_args)
+    _normalize_constraints_file_options(parsed_args)
 
     return parsed_args
 

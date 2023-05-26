@@ -508,8 +508,15 @@ def prepare_command() -> int:
     build_filename = os.path.join(
         app_ctx.extra["data_dir"], app_ctx.extra["build_file"]
     )
+    constraints_filename: StrPath | None = None
+    if app_ctx.extra["constraints_file"]:
+        constraints_filename = os.path.join(
+            app_ctx.extra["data_dir"], app_ctx.extra["constraints_file"]
+        )
     build_file = BuildFile(build_filename)
-    build_ansible_version, ansible_core_version, deps = build_file.parse()
+    build_ansible_version, ansible_core_version, deps = build_file.parse(
+        constraints_filename
+    )
     ansible_core_version_obj = PypiVer(ansible_core_version)
     python_requires = _extract_python_requires(ansible_core_version_obj, deps)
 

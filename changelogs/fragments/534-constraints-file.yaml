@@ -1,0 +1,11 @@
+---
+minor_changes:
+  - "Support constraints files that allow tempoararily pinning collections
+     without modifying the ansible-VERSION.build file.
+     This adds a ``-constraints-file`` flag to the ``prepare`` and ``single``
+     commands to enable reading dependencies from a constraints file.
+     The flag takes an optional argument to specify the path to the constraints file
+     and otherwhise defaults to ``ansible-{VERSION}.constraints``
+     (https://github.com/ansible-community/antsibull/pull/534)."
+  - "Require antsibull-core 2.1.0 or greater that supports constraints files
+     (https://github.com/ansible-community/antsibull/pull/534)."

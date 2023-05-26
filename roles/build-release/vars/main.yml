@@ -15,3 +15,4 @@ antsibull_venv_pip_ansible_core_version: "{{ antsibull_venv_pip_pkgs['ansible-co
 antsibull_collections_path: "{{ antsibull_ansible_venv }}/lib/{{ _python_version }}/site-packages/ansible_collections"
 _antsibull_installed_collections: "{{ _installed_collections_json['stdout'] | from_json }}"
 antsibull_installed_collections: "{{ _antsibull_installed_collections[antsibull_collections_path] }}"
+antsibull_constraints_file_path: "{{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version.split('.', 1)[0] }}.constraints"

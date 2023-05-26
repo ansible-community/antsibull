@@ -123,6 +123,7 @@ jobs:
         ~/.local/bin/antsibull-build
         prepare "${ANSIBLE_MAJOR_VERSION}.99.0"
         --data-dir "ansible-build-data/${ANSIBLE_MAJOR_VERSION}"
+        $([ -f "ansible-build-data/${ANSIBLE_MAJOR_VERSION}/ansible-${ANSIBLE_MAJOR_VERSION}.constraints" ] && echo "--constraints-file" || :)
 
     - name: Create a single-tarball Ansible dist
       run: >-
