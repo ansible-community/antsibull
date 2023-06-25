@@ -25,3 +25,6 @@ coverage:
         only_pulls: false
 github_checks:
   annotations: false
+
+fixes:
+  - "antsibull/::"
