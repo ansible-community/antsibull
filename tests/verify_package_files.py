@@ -206,7 +206,7 @@ def write_file_list(
         dist_list_dir = source_dir / "dist-files"
         dist_list_dir.mkdir(exist_ok=True)
         for dist in dists:
-            dist_list = dist_list_dir / dist.name
+            dist_list = dist_list_dir / f"{dist.name}.txt"
             dist_list.write_text("\n".join(dist.list_files()) + "\n")
         return dists
 
