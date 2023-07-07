@@ -1,6 +1,0 @@
----
-minor_changes:
-  - release playbook - run ``antsibull-build validate-tags-file`` to ensure
-    that collections follow the Release Management section of the Collection
-    Requirements
-    (https://github.com/ansible-community/antsibull/pull/518).

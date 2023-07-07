@@ -1,8 +1,0 @@
----
-minor_changes:
-  - Move setuptools configuration into the declarative ``setup.cfg`` format for
-    Ansible 9 and above.
-    ``ansible`` sdists will still contain a ``setup.py`` file,
-    but we recommend that users move to tools like ``pip`` and ``build`` and
-    the PEP 517 interface instead of setuptools' deprecated ``setup.py`` interface
-    (https://github.com/ansible-community/antsibull/pull/530).

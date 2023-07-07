@@ -1,2 +1,0 @@
-removed_features:
-  - "Removed the deprecated ``multiple`` and ``collection`` subcommands (https://github.com/ansible-community/antsibull/issues/522, https://github.com/ansible-community/antsibull/pull/525)."

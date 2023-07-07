@@ -652,6 +652,46 @@ releases:
     - 0.56.1.yml
     - 520-setup.py.yml
     release_date: '2023-05-01'
+  0.57.0:
+    changes:
+      bugfixes:
+      - Properly handle non-standard version ranges or version pins for feature freeze
+        (https://github.com/ansible-community/antsibull/issues/532, https://github.com/ansible-community/antsibull/pull/533).
+      minor_changes:
+      - Antsibull now no longer depends directly on ``sh`` (https://github.com/ansible-community/antsibull/pull/514).
+      - Antsibull now uses ``sys.executable`` instead of the first ``'python'`` in
+        ``$PATH`` to call the PyPA build tool (https://github.com/ansible-community/antsibull/pull/514).
+      - Make ``dep_closure`` errors clearer by including the offending collection's
+        version in the message (https://github.com/ansible-community/antsibull/pull/531).
+      - Move setuptools configuration into the declarative ``setup.cfg`` format for
+        Ansible 9 and above. ``ansible`` sdists will still contain a ``setup.py``
+        file, but we recommend that users move to tools like ``pip`` and ``build``
+        and the PEP 517 interface instead of setuptools' deprecated ``setup.py`` interface
+        (https://github.com/ansible-community/antsibull/pull/530).
+      - Now depends antsibull-core 2.0.0 or newer; antsibull-core 1.x.y is no longer
+        supported (https://github.com/ansible-community/antsibull/pull/514).
+      - release playbook - run ``antsibull-build validate-tags-file`` to ensure that
+        collections follow the Release Management section of the Collection Requirements
+        (https://github.com/ansible-community/antsibull/pull/518).
+      release_summary: This release adds a couple new features and drops support for
+        older ansible versions.
+      removed_features:
+      - Remove code to build ansible versions < 6.0.0 from the ``setup.py`` template
+        and elsewhere in the codebase. ``antsibull-build`` will error out if a user
+        attempts to build an unsupported version (https://github.com/ansible-community/antsibull/pull/477,
+        https://github.com/ansible-community/antsibull/pull/524).
+      - Removed the deprecated ``multiple`` and ``collection`` subcommands (https://github.com/ansible-community/antsibull/issues/522,
+        https://github.com/ansible-community/antsibull/pull/525).
+    fragments:
+    - 0.57.0.yml
+    - 122-antsibull-core-sh.yml
+    - 477-setup_py.yaml
+    - 518-enforce-release-tagging.yaml
+    - 525-remove-multiple-collection-subcommands.yml
+    - 530-setup-cfg.yaml
+    - 531-dep-closure-error.yaml
+    - 533-feature-freeze.yml
+    release_date: '2023-07-07'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

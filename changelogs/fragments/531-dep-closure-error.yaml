@@ -1,4 +1,0 @@
----
-minor_changes:
-  - Make ``dep_closure`` errors clearer by including the offending collection's version in the message
-    (https://github.com/ansible-community/antsibull/pull/531).

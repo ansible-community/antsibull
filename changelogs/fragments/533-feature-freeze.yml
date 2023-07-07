@@ -1,2 +1,0 @@
-bugfixes:
-  - "Properly handle non-standard version ranges or version pins for feature freeze (https://github.com/ansible-community/antsibull/issues/532, https://github.com/ansible-community/antsibull/pull/533)."

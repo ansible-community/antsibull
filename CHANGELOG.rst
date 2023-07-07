@@ -5,6 +5,35 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.57.0
+=======
+
+Release Summary
+---------------
+
+This release adds a couple new features and drops support for older ansible versions.
+
+Minor Changes
+-------------
+
+- Antsibull now no longer depends directly on ``sh`` (https://github.com/ansible-community/antsibull/pull/514).
+- Antsibull now uses ``sys.executable`` instead of the first ``'python'`` in ``$PATH`` to call the PyPA build tool (https://github.com/ansible-community/antsibull/pull/514).
+- Make ``dep_closure`` errors clearer by including the offending collection's version in the message (https://github.com/ansible-community/antsibull/pull/531).
+- Move setuptools configuration into the declarative ``setup.cfg`` format for Ansible 9 and above. ``ansible`` sdists will still contain a ``setup.py`` file, but we recommend that users move to tools like ``pip`` and ``build`` and the PEP 517 interface instead of setuptools' deprecated ``setup.py`` interface (https://github.com/ansible-community/antsibull/pull/530).
+- Now depends antsibull-core 2.0.0 or newer; antsibull-core 1.x.y is no longer supported (https://github.com/ansible-community/antsibull/pull/514).
+- release playbook - run ``antsibull-build validate-tags-file`` to ensure that collections follow the Release Management section of the Collection Requirements (https://github.com/ansible-community/antsibull/pull/518).
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- Remove code to build ansible versions < 6.0.0 from the ``setup.py`` template and elsewhere in the codebase. ``antsibull-build`` will error out if a user attempts to build an unsupported version (https://github.com/ansible-community/antsibull/pull/477, https://github.com/ansible-community/antsibull/pull/524).
+- Removed the deprecated ``multiple`` and ``collection`` subcommands (https://github.com/ansible-community/antsibull/issues/522, https://github.com/ansible-community/antsibull/pull/525).
+
+Bugfixes
+--------
+
+- Properly handle non-standard version ranges or version pins for feature freeze (https://github.com/ansible-community/antsibull/issues/532, https://github.com/ansible-community/antsibull/pull/533).
+
 v0.56.1
 =======
 
