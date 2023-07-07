@@ -33,6 +33,7 @@ from antsibull_core.vendored._argparse_booleanoptionalaction import (  # noqa: E
 
 from ..build_ansible_commands import (  # noqa: E402
     build_single_command,
+    generate_package_files_command,
     prepare_command,
     rebuild_single_command,
 )
@@ -59,6 +60,7 @@ ARGS_MAP = {
     "validate-deps": validate_dependencies_command,
     "validate-tags": validate_tags_command,
     "validate-tags-file": validate_tags_file_command,
+    "generate-package-files": generate_package_files_command,
 }
 
 
@@ -142,7 +144,13 @@ def _check_release_build_directories(args: argparse.Namespace) -> None:
 
 
 def _normalize_release_build_options(args: argparse.Namespace) -> None:
-    if args.command not in ("prepare", "single", "rebuild-single"):
+    if args.command not in (
+        "prepare",
+        "single",
+        "rebuild-single",
+        "validate-tags",
+        "generate-package-files",
+    ):
         return
 
     compat_version_part = (
@@ -216,6 +224,19 @@ def _normalize_validate_tags_file_options(args: argparse.Namespace) -> None:
         return
     if not os.path.exists(args.tags_file):
         raise InvalidArgumentError(f"{args.tags_file} does not exist!")
+
+
+def _normalize_generate_package_files_options(args: argparse.Namespace) -> None:
+    if args.command not in ("generate-package-files",):
+        return
+    if not os.path.isdir(args.package_dir):
+        raise InvalidArgumentError(f"{args.package_dir} does not exist!")
+
+    args.collections_dir = args.collections_dir or os.path.join(
+        args.package_dir, "ansible_collections"
+    )
+    if not os.path.isdir(args.collections_dir):
+        raise InvalidArgumentError(f"{args.collections_dir} does not exist!")
 
 
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
@@ -390,30 +411,14 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         " The tags data file in the sdist is always named 'tags.yaml'",
     )
 
-    rebuild_single_parser = subparsers.add_parser(
-        "rebuild-single",
-        parents=[build_write_data_parser, cache_parser, build_step_parser],
-        description="Rebuild a single-file Ansible from" " a dependency file",
-    )
-    rebuild_single_parser.add_argument(
-        "--sdist-dir",
-        default=".",
-        help="Directory to write the generated sdist tarball to",
-    )
-    rebuild_single_parser.add_argument(
+    package_file_parser = argparse.ArgumentParser(add_help=False)
+    package_file_parser.add_argument(
         "--debian",
         action="store_true",
         help="Include Debian/Ubuntu packaging files in"
         " the resulting output directory",
     )
-    rebuild_single_parser.add_argument(
-        "--sdist-src-dir",
-        help="Copy the files from which the source distribution is"
-        " created to the specified directory. This is mainly useful"
-        " for debugging antsibull-build",
-    )
-
-    rebuild_single_parser.add_argument(
+    package_file_parser.add_argument(
         "--tags-file",
         nargs="?",
         const="DEFAULT",
@@ -422,6 +427,28 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         f" as {DEFAULT_FILE_BASE}-X.Y.Z-tags.yaml."
         " --tags-file takes an optional argument to change the filename."
         " The tags data file in the sdist is always named 'tags.yaml'",
+    )
+
+    rebuild_single_parser = subparsers.add_parser(
+        "rebuild-single",
+        parents=[
+            build_write_data_parser,
+            cache_parser,
+            build_step_parser,
+            package_file_parser,
+        ],
+        description="Rebuild a single-file Ansible from" " a dependency file",
+    )
+    rebuild_single_parser.add_argument(
+        "--sdist-dir",
+        default=".",
+        help="Directory to write the generated sdist tarball to",
+    )
+    rebuild_single_parser.add_argument(
+        "--sdist-src-dir",
+        help="Copy the files from which the source distribution is"
+        " created to the specified directory. This is mainly useful"
+        " for debugging antsibull-build",
     )
 
     subparsers.add_parser(
@@ -494,6 +521,21 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     )
     validate_tags_file.add_argument("tags_file")
 
+    generate_package_files = subparsers.add_parser(
+        "generate-package-files",
+        description=generate_package_files_command.__doc__,
+        parents=[build_parser, build_step_parser, package_file_parser],
+    )
+    generate_package_files.add_argument(
+        "-p",
+        "--package-dir",
+        required=True,
+        help="Directory in which to write the package files",
+    )
+    generate_package_files.add_argument(
+        "-c", "--collections-dir", help="Defaults to {PACKAGE_DIR}/ansible_collections"
+    )
+
     parsed_args: argparse.Namespace = parser.parse_args(args)
 
     # Validation and coercion
@@ -506,6 +548,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_validate_tags_options(parsed_args)
     _normalize_release_rebuild_options(parsed_args)
     _normalize_validate_tags_file_options(parsed_args)
+    _normalize_generate_package_files_options(parsed_args)
 
     return parsed_args
 

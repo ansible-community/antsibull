@@ -8,6 +8,7 @@ from __future__ import annotations
 import contextlib
 import os
 import tempfile
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 import nox
@@ -89,8 +90,23 @@ def test(session: nox.Session):
         "term-missing",
         *more_args,
         *session.posargs,
+        "tests",
         env={"COVERAGE_FILE": f"{covfile}", **session.env},
     )
+
+
+@contextlib.contextmanager
+def coverage_run(session: nox.Session) -> Iterator[tuple[str, dict[str, str]]]:
+    build_command = (
+        "coverage run -p --branch --source antsibull -m antsibull.cli.antsibull_build"
+    )
+    tmp = Path(session.create_tmp())
+    covfile = tmp / ".coverage"
+    cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
+    yield build_command, cov_env
+    combined = map(str, tmp.glob(".coverage.*"))
+    session.run("coverage", "combine", *combined, env=cov_env)
+    session.run("coverage", "report", env=cov_env)
 
 
 @nox.session
@@ -107,11 +123,6 @@ def coverage_release(session: nox.Session):
     )
 
     tmp = Path(session.create_tmp())
-    covfile = tmp / ".coverage"
-    cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
-    build_command = (
-        "coverage run -p --branch --source antsibull -m antsibull.cli.antsibull_build"
-    )
     posargs = session.posargs
     # Set default settings
     if not posargs:
@@ -129,23 +140,20 @@ def coverage_release(session: nox.Session):
         "git+https://github.com/ansible-collections/community.general",
         env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **session.env},
     )
-    session.run(
-        "ansible-playbook",
-        "-vv",
-        "playbooks/build-single-release.yaml",
-        *posargs,
-        "-e",
-        f"antsibull_build_command={build_command!r}",
-        env={
-            "ANSIBLE_COLLECTIONS_PATH": str(collections),
-            "ANSIBLE_CALLBACK_RESULT_FORMAT": "yaml",
-            **cov_env,
-        },
-    )
-
-    combined = map(str, tmp.glob(".coverage.*"))
-    session.run("coverage", "combine", *combined, env=cov_env)
-    session.run("coverage", "report", env=cov_env)
+    with coverage_run(session) as (build_command, cov_env):
+        session.run(
+            "ansible-playbook",
+            "-vv",
+            "playbooks/build-single-release.yaml",
+            *posargs,
+            "-e",
+            f"antsibull_build_command={build_command!r}",
+            env={
+                "ANSIBLE_COLLECTIONS_PATH": str(collections),
+                "ANSIBLE_CALLBACK_RESULT_FORMAT": "yaml",
+                **cov_env,
+            },
+        )
 
 
 @nox.session
@@ -222,6 +230,63 @@ def typing(session: nox.Session):
         "stubs/",
         *additional_libraries,
     )
+
+
+@nox.session
+@nox.parametrize(
+    ["major", "version", "extra_args"],
+    [
+        ["8", "8.1.0", []],
+        ["7", "7.5.0", []],
+        [
+            "8",
+            "8.1.0",
+            [
+                "--package-dir=tests/test_data/package-files/force_setup_cfg",
+                "--force-generate-setup-cfg",
+            ],
+        ],
+    ],
+    ["8.1.0", "7.5.0", "8.1.0_setup_cfg"],
+)
+def check_package_files(
+    session: nox.Session, major: str, version: str, extra_args: Sequence[str]
+) -> None:
+    install(session, ".[coverage]", *other_antsibull(), editable=True)
+    tmp = session.create_tmp()
+    build_data = Path(tmp, "ansible-build-data")
+    session.run_always(
+        "git",
+        "clone",
+        "--depth=1",
+        "https://github.com/ansible-community/ansible-build-data",
+        str(build_data),
+        external=True,
+    )
+
+    Path("tests/.cache").mkdir(exist_ok=True)
+    session.run(
+        "python",
+        "tests/verify_package_files.py",
+        "download",
+        "--no-force-dl",
+        version,
+    )
+    with coverage_run(session) as (_, cov_env):
+        session.run(
+            "coverage",
+            "run",
+            "-p",
+            "--branch",
+            "--source=antsibull",
+            "tests/verify_package_files.py",
+            "check",
+            f"--data-dir={build_data / major}",
+            version,
+            *session.posargs,
+            *extra_args,
+            env=cov_env,
+        )
 
 
 def _repl_version(session: nox.Session, new_version: str):

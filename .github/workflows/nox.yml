@@ -19,44 +19,63 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  nox-lint:
+  nox:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: antsibull
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - session: test
+            python-versions: "3.9, 3.10, 3.11"
+            codecov: true
+            packages: ""
+
+          - session: "check_package_files(8.1.0)"
+            python-versions: "3.11"
+            codecov: true
+            packages: ""
+
+          - session: "check_package_files(7.5.0)"
+            python-versions: "3.11"
+            codecov: true
+            packages: ""
+
+          - session: "check_package_files(8.1.0_setup_cfg)"
+            python-versions: "3.11"
+            codecov: true
+            packages: ""
+
+          - session: lint
+            python-versions: "3.11"
+            codecov: false
+            packages: ""
+    name: "Run nox ${{ matrix.session }} session"
     steps:
       - name: Check out antsibull
         uses: actions/checkout@v3
         with:
           path: antsibull
+      - name: Install extra packages
+        if: "matrix.packages != ''"
+        run: |
+          sudo apt-get install -y ${{ matrix.packages }}
       - name: Setup nox
         uses: wntrblm/nox@2023.04.22
         with:
-          python-versions: "3.11"
-      - name: nox -e lint
+          python-versions: "${{ matrix.python-versions }}"
+      - name: "Run nox -e ${{ matrix.session }}"
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e lint
-  nox-test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: antsibull
-    steps:
-      - name: Check out antsibull
-        uses: actions/checkout@v3
-        with:
-          path: antsibull
-      - name: Setup nox
-        uses: wntrblm/nox@2023.04.22
-        with:
-          python-versions: "3.9, 3.10, 3.11"
-      - name: nox -e test
-        run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e test
+          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}"
       - name: Report coverage
+        if: ${{ matrix.codecov }}
         run: |
           nox -v -e coverage
       - name: Upload coverage
+        if: ${{ matrix.codecov }}
         uses: codecov/codecov-action@v3
         with:
           directory: antsibull
+          name: "${{ matrix.session }}"

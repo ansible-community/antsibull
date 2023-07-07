@@ -12,8 +12,8 @@ import os.path
 import shutil
 import sys
 import tempfile
-from collections import defaultdict
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -21,18 +21,22 @@ import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
 from antsibull_core.ansible_core import (
     AnsibleCorePyPiClient,
+    get_ansible_core,
     get_ansible_core_package_name,
 )
 from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
 from antsibull_core.logging import log
-from antsibull_core.subprocess_util import log_run
+from antsibull_core.subprocess_util import async_log_run, log_run
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 from jinja2 import Template
 from packaging.version import Version as PypiVer
 from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
+
+from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
+from antsibull.python_metadata import BuildMetaMaker, LegacyBuildMetaMaker
 
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
@@ -156,12 +160,29 @@ async def download_collections(
             await asyncio.gather(*requestors.values())
 
 
+async def _get_ansible_core_path(
+    download_dir: StrPath, ansible_core_version: PypiVer | str
+) -> Path:
+    flog = mlog.fields(func="_get_ansible_core_path")
+    async with aiohttp.ClientSession() as aio_session:
+        ansible_core_tarball = Path(
+            await get_ansible_core(
+                aio_session, str(ansible_core_version), str(download_dir)
+            )
+        )
+    await async_log_run(
+        ["tar", "-C", download_dir, "-xf", ansible_core_tarball],
+        logger=flog,
+    )
+    return Path(download_dir, ansible_core_tarball.with_suffix("").with_suffix("").name)
+
+
 #
 # Single sdist for ansible
 #
 
 
-def copy_boilerplate_files(package_dir: str) -> None:
+def copy_boilerplate_files(package_dir: StrPath) -> None:
     gpl_license = get_antsibull_data("gplv3.txt")
     with open(os.path.join(package_dir, "COPYING"), "wb") as f:
         f.write(gpl_license)
@@ -176,7 +197,7 @@ def copy_boilerplate_files(package_dir: str) -> None:
 
 
 def write_manifest(
-    package_dir: str,
+    package_dir: StrPath,
     release_notes: ReleaseNotes | None = None,
     debian: bool = False,
     tags_file: StrPath | None = None,
@@ -220,37 +241,6 @@ def write_ansible_community_py(
         f.write(release_contents + "\n")
 
 
-def write_setup(
-    ansible_version: PypiVer,
-    ansible_core_version: PypiVer,
-    collection_exclude_paths: list[str],
-    collection_deps: str,
-    collection_names: list[str],
-    collection_namespaces: Mapping[str, list[str]],
-    collection_directories: Mapping[str, list[str]],
-    package_dir: str,
-    python_requires: str,
-) -> None:
-    setup_filename = os.path.join(package_dir, "setup.py")
-
-    setup_tmpl = Template(get_antsibull_data("ansible-setup_py.j2").decode("utf-8"))
-    setup_contents = setup_tmpl.render(
-        version=ansible_version,
-        ansible_core_package_name=get_ansible_core_package_name(ansible_core_version),
-        ansible_core_version=ansible_core_version,
-        collection_exclude_paths=collection_exclude_paths,
-        collection_deps=collection_deps,
-        collection_names=collection_names,
-        collection_namespaces=collection_namespaces,
-        collection_directories=collection_directories,
-        python_requires=python_requires,
-        PypiVer=PypiVer,
-    )
-
-    with open(setup_filename, "w", encoding="utf-8") as f:
-        f.write(setup_contents)
-
-
 def copy_tags_file(tags_file: StrPath | None, package_dir: StrPath) -> None:
     if tags_file:
         dest = os.path.join(package_dir, "tags.yaml")
@@ -258,40 +248,27 @@ def copy_tags_file(tags_file: StrPath | None, package_dir: StrPath) -> None:
 
 
 def write_python_build_files(
-    ansible_version: PypiVer,
-    ansible_core_version: PypiVer,
-    collection_exclude_paths: list[str],
-    collection_deps: str,
-    collection_names: list[str],
-    collection_namespaces: Mapping[str, list[str]],
-    collection_directories: Mapping[str, list[str]],
-    package_dir: str,
+    package_dir: StrPath,
     release_notes: ReleaseNotes | None = None,
     debian: bool = False,
-    python_requires: str = ">=3.8",
     tags_file: StrPath | None = None,
+    stub_setup_py: bool = False,
 ) -> None:
     copy_boilerplate_files(package_dir)
     copy_tags_file(tags_file, package_dir)
     write_manifest(package_dir, release_notes, debian, tags_file)
-    write_setup(
-        ansible_version,
-        ansible_core_version,
-        collection_exclude_paths,
-        collection_deps,
-        collection_names,
-        collection_namespaces,
-        collection_directories,
-        package_dir,
-        python_requires,
-    )
+    if stub_setup_py:
+        Path(package_dir, "setup.py").write_bytes(
+            get_antsibull_data("ansible-stub-setup.py")
+        )
 
 
 def write_debian_directory(
-    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: str
+    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: StrPath
 ) -> None:
     debian_dir = os.path.join(package_dir, "debian")
-    os.mkdir(debian_dir, mode=0o700)
+    if not os.path.isdir(debian_dir):
+        os.mkdir(debian_dir, mode=0o700)
     debian_files = ("changelog.j2", "control.j2", "copyright", "rules")
     ansible_core_package_name = get_ansible_core_package_name(ansible_core_version)
     for filename in debian_files:
@@ -346,7 +323,7 @@ def make_dist_with_wheels(ansible_dir: str, dest_dir: str) -> None:
 
 
 def write_build_script(
-    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: str
+    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: StrPath
 ) -> None:
     """Write a build-script that tells how to build this tarball."""
     build_ansible_filename = os.path.join(package_dir, "build-ansible.sh")
@@ -361,6 +338,53 @@ def write_build_script(
     with open(build_ansible_filename, "w", encoding="utf-8") as f:
         f.write(build_ansible_contents)
     os.chmod(build_ansible_filename, mode=0o755)
+
+
+def write_all_build_files(
+    *,
+    package_dir: StrPath,
+    collections_dir: StrPath,
+    ansible_version: PypiVer,
+    dependency_data: DependencyFileData,
+    ansible_core_version: PypiVer,
+    python_requires: str | None = None,
+    tags_path: StrPath | None = None,
+    debian: bool,
+    sdist_src_dir: StrPath | None = None,
+    ansible_core_checkout: StrPath,
+    release_notes: ReleaseNotes | None = None,
+) -> None:
+    use_build_meta_maker = (
+        ansible_version >= MINIMUM_ANSIBLE_VERSIONS["BUILD_META_MAKER"]
+    )
+    meta_maker_class: type[BuildMetaMaker | LegacyBuildMetaMaker] = (
+        BuildMetaMaker if use_build_meta_maker else LegacyBuildMetaMaker
+    )
+    build_meta_maker = meta_maker_class(
+        package_dir=package_dir,
+        collections_dir=collections_dir,
+        ansible_version=ansible_version,
+        dependency_data=dependency_data,
+        ansible_core_version=ansible_core_version,
+        ansible_core_checkout=ansible_core_checkout,
+        python_requires=python_requires,
+    )
+    build_meta_maker.write()
+
+    write_build_script(ansible_version, ansible_core_version, package_dir)
+    write_python_build_files(
+        package_dir, release_notes, debian, tags_path, use_build_meta_maker
+    )
+    if debian:
+        write_debian_directory(ansible_version, ansible_core_version, package_dir)
+
+    if sdist_src_dir:
+        shutil.copytree(
+            package_dir,
+            sdist_src_dir,
+            symlinks=True,
+            ignore_dangling_symlinks=True,
+        )
 
 
 def build_single_command() -> int:
@@ -594,96 +618,19 @@ def prepare_command() -> int:
     return 0
 
 
-def compile_collection_exclude_paths(
-    collection_names: Collection[str], collection_root: str
-) -> tuple[list[str], list[str]]:
-    result = set()
-    ignored_files = set()
-    all_files: list[str] = []
-    for collection_name in collection_names:
-        namespace, name = collection_name.split(".", 1)
-        prefix = f"{namespace}/{name}/"
-
-        # Check files
-        collection_dir = os.path.join(collection_root, namespace, name)
-        all_files.clear()
-        for directory, _, files in os.walk(collection_dir):
-            directory = os.path.relpath(directory, collection_dir)
-            for file in files:
-                all_files.append(os.path.normpath(os.path.join(directory, file)))
-
-        def ignore_start(prefix: str, start: str):
-            matching_files = [file for file in all_files if file.startswith(start)]
-            if matching_files:
-                result.add(prefix + start + "*")
-                ignored_files.update([prefix + file for file in matching_files])
-
-        def ignore_directory(prefix: str, directory: str):
-            directory = directory.rstrip("/") + "/"
-            matching_files = [file for file in all_files if file.startswith(directory)]
-            if matching_files:
-                result.add(prefix + directory + "*")
-                ignored_files.update([prefix + file for file in matching_files])
-
-        ignore_start(prefix, ".")
-        ignore_directory(prefix, "docs")
-        ignore_directory(prefix, "tests")
-    return sorted(result), sorted(ignored_files)
-
-
-def _collect_collection_data_dirs(collection_path: str) -> list[str]:
-    directories = []
-    for root, dirs, _ in os.walk(collection_path, topdown=True, followlinks=True):
-        if root == collection_path:
-            # Make sure that all directories starting with '.', and all
-            # directories called 'tests' or 'docs', are not traversed into.
-            for dirname in list(dirs):
-                if dirname in ("tests", "docs") or dirname.startswith("."):
-                    dirs.remove(dirname)
-            continue
-        relative_dir = os.path.relpath(root, collection_path)
-        directories.append(relative_dir)
-    return sorted(directories)
-
-
-def collect_collection_info(
-    ansible_version: PypiVer,
-    dependency_data: DependencyFileData,
-    ansible_collections_dir: str,
-) -> tuple[list[str], dict[str, list[str]], dict[str, list[str]]]:
-    collection_exclude_paths: list[str] = []
-    collection_namespaces: dict[str, list[str]] = defaultdict(list)
-    collection_directories: dict[str, list[str]] = {}
-
-    if ansible_version.major >= 8:
-        for collection in dependency_data.deps:
-            namespace, name = collection.split(".", 1)
-            collection_namespaces[namespace].append(name)
-            collection_path = os.path.join(ansible_collections_dir, namespace, name)
-            collection_directories[collection] = _collect_collection_data_dirs(
-                collection_path
-            )
-    else:
-        # TODO: do something with collection_ignored_files
-        (
-            collection_exclude_paths,
-            collection_ignored_files,  # pylint:disable=unused-variable
-        ) = compile_collection_exclude_paths(
-            dependency_data.deps, ansible_collections_dir
-        )
-
-    return collection_exclude_paths, collection_namespaces, collection_directories
-
-
 def rebuild_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
     deps_filename = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
-    python_requires = _extract_python_requires(
-        PypiVer(dependency_data.ansible_core_version), dependency_data.deps
-    )
+    python_requires: str | None
+    try:
+        python_requires = _extract_python_requires(
+            PypiVer(dependency_data.ansible_core_version), dependency_data.deps
+        )
+    except ValueError:
+        python_requires = None
 
     # Determine included collection versions
     ansible_core_version = PypiVer(dependency_data.ansible_core_version)
@@ -754,49 +701,28 @@ def rebuild_single_command() -> int:
         release_notes.write_changelog_to(app_ctx.extra["dest_data_dir"])
         release_notes.write_porting_guide_to(app_ctx.extra["dest_data_dir"])
 
-        (
-            collection_exclude_paths,
-            collection_namespaces,
-            collection_directories,
-        ) = collect_collection_info(
-            app_ctx.extra["ansible_version"], dependency_data, ansible_collections_dir
-        )
-
         # Write build scripts and files
         tags_path: str | None = None
         if app_ctx.extra["tags_file"]:
             tags_path = os.path.join(
                 app_ctx.extra["data_dir"], app_ctx.extra["tags_file"]
             )
-        write_build_script(
-            app_ctx.extra["ansible_version"], ansible_core_version, package_dir
-        )
-        write_python_build_files(
-            app_ctx.extra["ansible_version"],
-            ansible_core_version,
-            collection_exclude_paths,
-            "",
-            sorted(dependency_data.deps),
-            collection_namespaces,
-            collection_directories,
-            package_dir,
-            release_notes,
-            app_ctx.extra["debian"],
-            python_requires,
-            tags_path,
-        )
-        if app_ctx.extra["debian"]:
-            write_debian_directory(
-                app_ctx.extra["ansible_version"], ansible_core_version, package_dir
-            )
 
-        if app_ctx.extra.get("sdist_src_dir"):
-            shutil.copytree(
-                package_dir,
-                app_ctx.extra["sdist_src_dir"],
-                symlinks=True,
-                ignore_dangling_symlinks=True,
-            )
+        write_all_build_files(
+            package_dir=package_dir,
+            collections_dir=ansible_collections_dir,
+            ansible_version=app_ctx.extra["ansible_version"],
+            dependency_data=dependency_data,
+            ansible_core_version=ansible_core_version,
+            python_requires=python_requires,
+            tags_path=tags_path,
+            debian=app_ctx.extra["debian"],
+            sdist_src_dir=app_ctx.extra.get("sdist_src_dir"),
+            ansible_core_checkout=asyncio.run(
+                _get_ansible_core_path(tmp_dir, ansible_core_version)
+            ),
+            release_notes=release_notes,
+        )
 
         # Check dependencies
         dep_errors = check_collection_dependencies(
@@ -814,5 +740,46 @@ def rebuild_single_command() -> int:
 
         # Create source distribution
         make_dist_with_wheels(package_dir, app_ctx.extra["sdist_dir"])
+
+    return 0
+
+
+def generate_package_files_command() -> int:
+    """
+    PRIVATE, INTERNAL command to (re)generate package configuration files
+    """
+    app_ctx = app_context.app_ctx.get()
+    package_dir = app_ctx.extra["package_dir"]
+    tags_path: str | None = None
+    if app_ctx.extra["tags_file"]:
+        tags_path = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["tags_file"])
+
+    deps_filename = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
+    deps_file = DepsFile(deps_filename)
+    dependency_data = deps_file.parse()
+    ansible_core_version = PypiVer(dependency_data.ansible_core_version)
+
+    python_requires: str | None
+    try:
+        python_requires = _extract_python_requires(
+            PypiVer(dependency_data.ansible_core_version), dependency_data.deps
+        )
+    except ValueError:
+        python_requires = None
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        write_all_build_files(
+            package_dir=package_dir,
+            collections_dir=app_ctx.extra["collections_dir"],
+            ansible_version=app_ctx.extra["ansible_version"],
+            dependency_data=dependency_data,
+            ansible_core_version=ansible_core_version,
+            python_requires=python_requires,
+            tags_path=tags_path,
+            debian=app_ctx.extra["debian"],
+            ansible_core_checkout=asyncio.run(
+                _get_ansible_core_path(tmp_dir, ansible_core_version)
+            ),
+        )
 
     return 0
