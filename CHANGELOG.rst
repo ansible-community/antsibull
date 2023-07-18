@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.57.1
+=======
+
+Release Summary
+---------------
+
+This bugfix release fixes the retrieval of ansible-core Porting Guides.
+
+Bugfixes
+--------
+
+- Retrieve the ansible-core Porting Guide from the ansible-documentation repo. These files are being removed from the ansible-core repo (https://github.com/ansible-community/antsibull/pull/540).
+
 v0.57.0
 =======
 

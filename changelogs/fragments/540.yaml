@@ -1,5 +1,0 @@
----
-bugfixes:
-  - Retrieve the ansible-core Porting Guide from the ansible-documentation
-    repo. These files are being removed from the ansible-core repo
-    (https://github.com/ansible-community/antsibull/pull/540).
