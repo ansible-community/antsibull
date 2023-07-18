@@ -320,7 +320,9 @@ class AnsibleCoreChangelogCollector:
         self.changelog = ChangelogData.concatenate(changelogs)
 
     async def download_porting_guide(self, aio_session: aiohttp.client.ClientSession):
-        branch_url = "https://raw.githubusercontent.com/ansible/ansible/devel"
+        branch_url = (
+            "https://raw.githubusercontent.com/ansible/ansible-documentation/devel"
+        )
 
         query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
         async with aio_session.get(query_url) as response:
