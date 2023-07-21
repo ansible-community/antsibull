@@ -17,7 +17,7 @@ easy. More information on the Ansible `website <https://ansible.com/>`_.
 This is the ``ansible`` community package.
 The ``ansible`` python package contains a set of
 independent Ansible collections that are curated by the community,
-and it pulls in `ansible-core <pypi.org/project/ansible-core/>`_.
+and it pulls in `ansible-core <https://pypi.org/project/ansible-core/>`_.
 The ``ansible-core`` python package contains the core runtime and CLI tools,
 such as ``ansible`` and ``ansible-playbook``,
 while the ``ansible`` package contains extra modules, plugins, and roles.
