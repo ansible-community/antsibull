@@ -376,6 +376,9 @@ def bump(session: nox.Session):
         "CHANGELOG.rst",
         "changelogs/changelog.yaml",
         "changelogs/fragments/",
+        # pyproject.toml is not committed in the last step
+        # when the release_summary fragment is created manually
+        "pyproject.toml",
         external=True,
     )
     install(session, ".")  # Smoke test
