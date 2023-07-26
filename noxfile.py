@@ -355,7 +355,7 @@ def bump(session: nox.Session):
                 f"Either {fragment_file} must already exist, "
                 "or two positional arguments must be provided."
             )
-    install(session, "antsibull-changelog", "hatch", "tomli ; python_version < '3.11'")
+    install(session, "antsibull-changelog[toml]", "hatch")
     _repl_version(session, version)
     if len(session.posargs) > 1:
         fragment = session.run(
