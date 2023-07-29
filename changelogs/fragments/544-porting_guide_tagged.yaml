@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - Use tagged ansible-core / ansible-documentation releases to retrieve core
+    porting guide
+    (https://github.com/ansible-community/antsibull/pull/544).
