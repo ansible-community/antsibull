@@ -37,19 +37,19 @@ jobs:
 
     steps:
       - name: Check out antsibull
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: antsibull
 
       - name: Check out dependent project antsibull-changelog
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ansible-community/antsibull-changelog
           path: antsibull-changelog
           ref: ${{ matrix.antsibull_changelog_ref }}
 
       - name: Check out dependent project antsibull-core
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ansible-community/antsibull-core
           path: antsibull-core
