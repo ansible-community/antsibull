@@ -75,7 +75,7 @@ jobs:
         } >> ${GITHUB_OUTPUT}
 
     - name: Check out antsibull
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: >-
         Check out ${{
@@ -83,7 +83,7 @@ jobs:
         }}@${{
           steps.build-settings.outputs.ansible-build-data-ref
         }} src from Git
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: ansible-build-data
         ref: ${{ steps.build-settings.outputs.ansible-build-data-ref }}
@@ -137,7 +137,7 @@ jobs:
         }}@${{
           steps.build-settings.outputs.ansible-core-ref
         }} src from Git
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: ansible--ansible--devel
         ref: ${{ steps.build-settings.outputs.ansible-core-ref }}
