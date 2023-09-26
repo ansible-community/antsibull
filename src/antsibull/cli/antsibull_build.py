@@ -120,15 +120,19 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
             " per line"
         )
 
+    compat_version_part = (
+        f"{args.ansible_version.major}"
+        if args.ansible_version.major > 2
+        else f"{args.ansible_version.major}.{args.ansible_version.minor}"
+    )
+
     if args.build_file is None:
         basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
-        if args.ansible_version.major > 2:
-            args.build_file = f"{basename}-{args.ansible_version.major}.build"
-        else:
-            args.build_file = (
-                f"{basename}-{args.ansible_version.major}"
-                f".{args.ansible_version.minor}.build"
-            )
+        args.build_file = f"{basename}-{compat_version_part}.build"
+
+    if args.constraints_file is None:
+        basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
+        args.constraints_file = f"{basename}-{compat_version_part}.constraints"
 
 
 def _check_release_build_directories(args: argparse.Namespace) -> None:
@@ -169,6 +173,10 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
             " It should contains one namespace.collection and range"
             " of versions per line"
         )
+
+    if args.constraints_file is None:
+        basename = os.path.basename(os.path.splitext(args.build_file)[0])
+        args.constraints_file = f"{basename}.constraints"
 
     if args.deps_file is None:
         version_suffix = f"-{compat_version_part}"
@@ -296,6 +304,14 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         " --build-data-dir.  The default is"
         " $BASENAME_OF_BUILD_FILE-X.Y.Z.deps",
     )
+    build_step_parser.add_argument(
+        "--constraints-file",
+        default=None,
+        help="File containing a list of constraints for collections"
+        " included in Ansible.  This is considered to be relative to"
+        " --build-data-dir.  The default is"
+        " $BASENAME_OF_BUILD_FILE-X.Y.constraints",
+    )
 
     feature_freeze_parser = argparse.ArgumentParser(add_help=False)
     feature_freeze_parser.add_argument(
@@ -356,6 +372,14 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Allow prereleases of collections to be included in the build" " file",
+    )
+    new_parser.add_argument(
+        "--constraints-file",
+        default=None,
+        help="File containing a list of constraints for collections"
+        " included in Ansible.  This is considered to be relative to"
+        " --build-data-dir.  The default is"
+        " $BASENAME_OF_PIECES_FILE-X.Y.constraints",
     )
 
     prepare_parser = subparsers.add_parser(

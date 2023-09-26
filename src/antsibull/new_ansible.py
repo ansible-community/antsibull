@@ -20,6 +20,7 @@ from antsibull_core.galaxy import GalaxyClient
 from packaging.version import Version as PypiVer
 
 from .changelog import ChangelogData
+from .versions import load_constraints_if_exists
 
 
 def display_exception(loop, context):  # pylint:disable=unused-argument
@@ -66,20 +67,29 @@ def version_is_compatible(
     collection: str,
     version: semver.Version,
     allow_prereleases: bool = False,
+    constraint: semver.SimpleSpec | None = None,
 ):
     # Metadata for this is not currently implemented.  So everything is rated as compatible
     # as long as it is no prerelease
     if version.prerelease and not allow_prereleases:
         return False
+    if constraint is not None and version not in constraint:
+        return False
     return True
 
 
 def find_latest_compatible(
-    ansible_core_version, raw_dependency_versions, allow_prereleases: bool = False
+    ansible_core_version,
+    raw_dependency_versions,
+    allow_prereleases: bool = False,
+    constraints: dict[str, semver.SimpleSpec] | None = None,
 ):
     # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
     # collection metadata that is present in the collection but may not be present in galaxy.
     # We'll have to figure that out once the pieces are finalized
+
+    if constraints is None:
+        constraints = {}
 
     # Order versions
     reduced_versions = {}
@@ -91,7 +101,11 @@ def find_latest_compatible(
         # Step through the versions to select the latest one which is compatible
         for version in versions:
             if version_is_compatible(
-                ansible_core_version, dep, version, allow_prereleases=allow_prereleases
+                ansible_core_version,
+                dep,
+                version,
+                allow_prereleases=allow_prereleases,
+                constraint=constraints.get(dep),
             ):
                 reduced_versions[dep] = version
                 break
@@ -113,11 +127,17 @@ def new_ansible_command():
     ]
     ansible_core_versions.sort(reverse=True, key=lambda ver_req: ver_req[0])
 
+    constraints_filename = os.path.join(
+        app_ctx.extra["data_dir"], app_ctx.extra["constraints_file"]
+    )
+    constraints = load_constraints_if_exists(constraints_filename)
+
     ansible_core_version, python_requires = ansible_core_versions[0]
     dependencies = find_latest_compatible(
         ansible_core_version,
         dependencies,
         allow_prereleases=app_ctx.extra["allow_prereleases"],
+        constraints=constraints,
     )
 
     build_filename = os.path.join(

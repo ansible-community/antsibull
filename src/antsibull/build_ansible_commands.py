@@ -43,6 +43,7 @@ from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
 from .tagging import get_collections_tags
 from .utils.get_pkg_data import get_antsibull_data
+from .versions import feature_freeze_version, load_constraints_if_exists
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -89,6 +90,7 @@ async def get_collection_and_core_versions(
     ansible_core_version: PypiVer | None,
     galaxy_url: str,
     ansible_core_allow_prerelease: bool = False,
+    constraints: dict[str, SemVerSpec] | None = None,
 ) -> tuple[dict[str, SemVer], PypiVer | None]:
     """
     Retrieve the latest version of each collection.
@@ -101,6 +103,9 @@ async def get_collection_and_core_versions(
     :returns: Tuple consisting of a dict mapping collection name to latest version, and of the
         ansible-core version if it was provided.
     """
+    if constraints is None:
+        constraints = {}
+
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
@@ -109,7 +114,10 @@ async def get_collection_and_core_versions(
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
                     client.get_latest_matching_version(
-                        collection_name, version_spec, pre=True
+                        collection_name,
+                        version_spec,
+                        pre=True,
+                        constraint=constraints.get(collection_name),
                     )
                 )
             if ansible_core_version:
@@ -421,111 +429,6 @@ def _extract_python_requires(
     )
 
 
-class _FeatureFreezeVersion:
-    """
-    Helper for making semantic version range specification valid for feature freeze.
-    """
-
-    def __init__(self, spec: str, collection_name: str):
-        self.potential_clauses: list = []
-        self.spec = spec
-        self.collection_name = collection_name
-        self.upper_operator: str | None = None
-        self.upper_version: SemVer | None = None
-        self.min_version: SemVer | None = None
-        self.pinned = False
-
-        spec_obj = SemVerSpec(spec)
-
-        # If there is a single clause, it's available as spec_obj.clause;
-        # multiple ones are available as spec_obj.clause.clauses.
-        try:
-            clauses = spec_obj.clause.clauses
-        except AttributeError:
-            clauses = [spec_obj.clause]
-
-        self.clauses = clauses
-        for clause in clauses:
-            self._process_clause(clause)
-
-    def _process_clause(self, clause) -> None:
-        """
-        Process one clause of the version range specification.
-        """
-        if clause.operator in ("<", "<="):
-            if self.upper_operator is not None:
-                raise ValueError(
-                    f"Multiple upper version limits specified for {self.collection_name}:"
-                    f" {self.spec}"
-                )
-            self.upper_operator = clause.operator
-            self.upper_version = clause.target
-            # Omit the upper bound as we're replacing it
-            return
-
-        if clause.operator == ">=":
-            # Save the lower bound so we can write out a new compatible version
-            if self.min_version is not None:
-                raise ValueError(
-                    f"Multiple minimum versions specified for {self.collection_name}: {self.spec}"
-                )
-            self.min_version = clause.target
-
-        if clause.operator == ">":
-            raise ValueError(
-                f"Strict lower bound specified for {self.collection_name}: {self.spec}"
-            )
-
-        if clause.operator == "==":
-            self.pinned = True
-
-        self.potential_clauses.append(clause)
-
-    def compute_new_spec(self) -> str:
-        """
-        Compute a new version range specification that only allows newer patch releases that also
-        match the original range specification.
-        """
-        if self.pinned:
-            if len(self.clauses) > 1:
-                raise ValueError(
-                    f"Pin combined with other clauses for {self.collection_name}: {self.spec}"
-                )
-            return self.spec
-
-        upper_operator = self.upper_operator
-        upper_version = self.upper_version
-        if upper_operator is None or upper_version is None:
-            raise ValueError(
-                f"No upper version limit specified for {self.collection_name}: {self.spec}"
-            )
-
-        min_version = self.min_version
-        if min_version is None:
-            raise ValueError(
-                f"No minimum version specified for {self.collection_name}: {self.spec}"
-            )
-
-        if min_version.next_minor() <= upper_version:
-            upper_operator = "<"
-            upper_version = min_version.next_minor()
-
-        new_clauses = sorted(
-            str(clause)
-            for clause in self.potential_clauses
-            if clause.target < upper_version
-        )
-        new_clauses.append(f"{upper_operator}{upper_version}")
-        return ",".join(new_clauses)
-
-
-def feature_freeze_version(spec: str, collection_name: str) -> str:
-    """
-    Make semantic version range specification valid for feature freeze.
-    """
-    return _FeatureFreezeVersion(spec, collection_name).compute_new_spec()
-
-
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
 
@@ -536,6 +439,11 @@ def prepare_command() -> int:
     build_ansible_version, ansible_core_version, deps = build_file.parse()
     ansible_core_version_obj = PypiVer(ansible_core_version)
     python_requires = _extract_python_requires(ansible_core_version_obj, deps)
+
+    constraints_filename = os.path.join(
+        app_ctx.extra["data_dir"], app_ctx.extra["constraints_file"]
+    )
+    constraints = load_constraints_if_exists(constraints_filename)
 
     # If we're building a feature frozen release (betas and rcs) then we need to
     # change the upper version limit to not include new features.
@@ -550,6 +458,7 @@ def prepare_command() -> int:
             ansible_core_version_obj,
             app_ctx.galaxy_url,
             ansible_core_allow_prerelease=_is_alpha(app_ctx.extra["ansible_version"]),
+            constraints=constraints,
         )
     )
     if new_ansible_core_version:
