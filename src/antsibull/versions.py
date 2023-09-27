@@ -129,7 +129,9 @@ def feature_freeze_version(spec: str, collection_name: str) -> str:
     return _FeatureFreezeVersion(spec, collection_name).compute_new_spec()
 
 
-def load_constraints_if_exists(filename: str) -> dict[str, SemVerSpec]:
+def load_constraints_if_exists(
+    filename: str | os.PathLike[str],
+) -> dict[str, SemVerSpec]:
     """
     Load a constraints file, if it exists.
     """
