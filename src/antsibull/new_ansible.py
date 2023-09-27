@@ -99,8 +99,7 @@ def find_latest_compatible(
     # collection metadata that is present in the collection but may not be present in galaxy.
     # We'll have to figure that out once the pieces are finalized
 
-    if constraints is None:
-        constraints = {}
+    constraints = constraints or {}
 
     # Order versions
     reduced_versions = {}

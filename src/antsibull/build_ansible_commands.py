@@ -157,8 +157,7 @@ async def get_collection_and_core_versions(
     :returns: Tuple consisting of a dict mapping collection name to latest version, and of the
         ansible-core version if it was provided.
     """
-    if constraints is None:
-        constraints = {}
+    constraints = constraints or {}
 
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
