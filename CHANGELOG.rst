@@ -5,6 +5,24 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.58.0
+=======
+
+Release Summary
+---------------
+
+Feature release for the upcoming Ansible 9.0.0a1 release.
+
+Minor Changes
+-------------
+
+- Support a constraints file that allows to fix dependencies for the ``new-ansible`` and ``prepare`` subcommands (https://github.com/ansible-community/antsibull/pull/546).
+
+Bugfixes
+--------
+
+- Fix URL to ``ansible-core`` on PyPI in the ``ansible`` README (https://github.com/ansible-collections/overview/issues/228, https://github.com/ansible-community/antsibull/pull/541).
+
 v0.57.1
 =======
 

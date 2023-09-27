@@ -1,2 +1,0 @@
-bugfixes:
-  - "Fix URL to ``ansible-core`` on PyPI in the ``ansible`` README (https://github.com/ansible-collections/overview/issues/228, https://github.com/ansible-community/antsibull/pull/541)."

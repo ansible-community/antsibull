@@ -703,6 +703,20 @@ releases:
     - 0.57.1.yml
     - 540.yaml
     release_date: '2023-07-18'
+  0.58.0:
+    changes:
+      bugfixes:
+      - Fix URL to ``ansible-core`` on PyPI in the ``ansible`` README (https://github.com/ansible-collections/overview/issues/228,
+        https://github.com/ansible-community/antsibull/pull/541).
+      minor_changes:
+      - Support a constraints file that allows to fix dependencies for the ``new-ansible``
+        and ``prepare`` subcommands (https://github.com/ansible-community/antsibull/pull/546).
+      release_summary: Feature release for the upcoming Ansible 9.0.0a1 release.
+    fragments:
+    - 0.58.0.yml
+    - 541-pypi-url.yml
+    - 546-constraints.yml
+    release_date: '2023-09-27'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

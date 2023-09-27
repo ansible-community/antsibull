@@ -1,2 +1,0 @@
-minor_changes:
-  - "Support a constraints file that allows to fix dependencies for the ``new-ansible`` and ``prepare`` subcommands (https://github.com/ansible-community/antsibull/pull/546)."
