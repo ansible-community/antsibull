@@ -33,6 +33,7 @@ from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
 
 from antsibull.collection_meta import CollectionsMetadata
+from antsibull.utils.urls import get_documentation_repo_raw_url
 
 
 class ChangelogData:
@@ -155,12 +156,14 @@ def read_changelog_file(tarball_path: str, is_ansible_core=False) -> bytes | Non
     return read_file(tarball_path, matcher)
 
 
-def get_porting_guide_filename(version: PypiVer):
-    if version.major == 2 and version.minor == 10:
-        basename = "porting_guide_base"
-    else:
-        basename = "porting_guide_core"
-    return f"docs/docsite/rst/porting_guides/{basename}_{version.major}.{version.minor}.rst"
+def get_core_porting_guide_url(version: PypiVer):
+    major_minor = f"{version.major}.{version.minor}"
+    return (
+        get_documentation_repo_raw_url(version)
+        + f"/v{version}"
+        + "/docs/docsite/rst/porting_guides"
+        + f"/porting_guide_core_{major_minor}.rst"
+    )
 
 
 class CollectionChangelogCollector:
@@ -320,11 +323,7 @@ class AnsibleCoreChangelogCollector:
         self.changelog = ChangelogData.concatenate(changelogs)
 
     async def download_porting_guide(self, aio_session: aiohttp.client.ClientSession):
-        branch_url = (
-            "https://raw.githubusercontent.com/ansible/ansible-documentation/devel"
-        )
-
-        query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
+        query_url = get_core_porting_guide_url(self.latest)
         async with aio_session.get(query_url) as response:
             self.porting_guide = await response.read()
 
