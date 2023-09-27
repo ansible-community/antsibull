@@ -120,11 +120,7 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
             " per line"
         )
 
-    compat_version_part = (
-        f"{args.ansible_version.major}"
-        if args.ansible_version.major > 2
-        else f"{args.ansible_version.major}.{args.ansible_version.minor}"
-    )
+    compat_version_part = f"{args.ansible_version.major}"
 
     if args.build_file is None:
         basename = os.path.basename(os.path.splitext(args.pieces_file)[0])
@@ -157,11 +153,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
     ):
         return
 
-    compat_version_part = (
-        f"{args.ansible_version.major}"
-        if args.ansible_version.major > 2
-        else f"{args.ansible_version.major}.{args.ansible_version.minor}"
-    )
+    compat_version_part = f"{args.ansible_version.major}"
 
     if args.build_file is None:
         args.build_file = DEFAULT_FILE_BASE + f"-{compat_version_part}.build"
