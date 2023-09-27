@@ -85,6 +85,60 @@ async def get_latest_ansible_core_version(
     return max(newer_versions) if newer_versions else None
 
 
+async def get_latest_collection_version(
+    client: GalaxyClient,
+    collection: str,
+    version_spec: str,
+    pre: bool = False,
+    constraint: SemVerSpec | None = None,
+) -> SemVer:
+    """
+    Get the latest version of a collection that matches a specification.
+
+    :arg collection: Namespace.collection identifying a collection.
+    :arg version_spec: String specifying the allowable versions.
+    :kwarg pre: If True, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
+        This is **not** for excluding 0.Y.Z versions.  non-pre-releases are still
+        preferred over pre-releases (for instance, with version_spec='>2.0.0-a1,<3.0.0'
+        and pre=True, if the available versions are 2.0.0-a1 and 2.0.0-a2, then 2.0.0-a2
+        will be returned.  If the available versions are 2.0.0 and 2.1.0-b2, 2.0.0 will be
+        returned since non-pre-releases are preferred.  The default is False
+    :kwarg constraint: If provided, only consider versions that match this specification.
+    :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
+        the specification.
+
+    .. seealso:: For the format of the version_spec, see the documentation
+        of :obj:`semantic_version.SimpleSpec`
+    """
+    versions = await client.get_versions(collection)
+    sem_versions = [SemVer(v) for v in versions]
+    sem_versions.sort(reverse=True)
+
+    spec = SemVerSpec(version_spec)
+    prereleases = []
+    for version in (v for v in sem_versions if v in spec):
+        # Ignore all versions that do not match the constraints
+        if constraint is not None and version not in constraint:
+            continue
+        # If this is a pre-release, first check if there's a non-pre-release that
+        # will satisfy the version_spec.
+        if version.prerelease:
+            prereleases.append(version)
+            continue
+        return version
+
+    # We did not find a stable version that satisies the version_spec.  If we
+    # allow prereleases, return the latest of those here.
+    if pre and prereleases:
+        return prereleases[0]
+
+    # No matching versions were found
+    constraint_clause = "" if constraint is None else f" (with constraint {constraint})"
+    raise ValueError(
+        f"{version_spec}{constraint_clause} did not match with any version of {collection}."
+    )
+
+
 async def get_collection_and_core_versions(
     deps: Mapping[str, str],
     ansible_core_version: PypiVer | None,
@@ -113,7 +167,8 @@ async def get_collection_and_core_versions(
             client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
             for collection_name, version_spec in deps.items():
                 requestors[collection_name] = await pool.spawn(
-                    client.get_latest_matching_version(
+                    get_latest_collection_version(
+                        client,
                         collection_name,
                         version_spec,
                         pre=True,
