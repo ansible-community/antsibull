@@ -7,9 +7,18 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
+import typing as t
+from collections.abc import Mapping, Sequence
 
+import aiohttp
+import asyncio_pool  # type: ignore[import]
+from antsibull_core import app_context
+from antsibull_core.ansible_core import AnsibleCorePyPiClient
 from antsibull_core.dependency_files import parse_pieces_file
+from antsibull_core.galaxy import GalaxyClient
+from packaging.version import Version as PypiVer
 from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
 
@@ -142,3 +151,168 @@ def load_constraints_if_exists(filename: str) -> dict[str, SemVerSpec]:
             ) from exc
         result[collection] = constraint
     return result
+
+
+def _display_exception(loop, context):  # pylint:disable=unused-argument
+    print(context.get("exception"))
+
+
+async def get_version_info(
+    collections: Sequence[str],
+    pypi_server_url: str | None = None,
+    galaxy_url: str | None = None,
+) -> tuple[dict[str, t.Any], dict[str, list[str]]]:
+    """
+    Return the versions of all the collections and ansible-core
+    """
+    loop = asyncio.get_running_loop()
+    loop.set_exception_handler(_display_exception)
+
+    requestors = {}
+    async with aiohttp.ClientSession() as aio_session:
+        lib_ctx = app_context.lib_ctx.get()
+        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
+            pypi_client = AnsibleCorePyPiClient(
+                aio_session, pypi_server_url=pypi_server_url
+            )
+            requestors["_ansible_core"] = await pool.spawn(
+                pypi_client.get_release_info()
+            )
+
+            galaxy_client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
+            for collection in collections:
+                requestors[collection] = await pool.spawn(
+                    galaxy_client.get_versions(collection)
+                )
+
+            collections_to_versions = {}
+            responses = await asyncio.gather(*requestors.values())
+
+    ansible_core_release_infos: dict[str, t.Any] | None = None
+    for idx, collection_name in enumerate(requestors):
+        if collection_name == "_ansible_core":
+            ansible_core_release_infos = responses[idx]
+        else:
+            collections_to_versions[collection_name] = responses[idx]
+
+    if ansible_core_release_infos is None:
+        raise RuntimeError("Internal error")
+
+    return ansible_core_release_infos, collections_to_versions
+
+
+def get_latest_ansible_core_version(
+    ansible_core_versions: Sequence[str],
+    ansible_core_version: PypiVer,
+    pre: bool = False,
+) -> PypiVer | None:
+    """
+    Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
+
+    :arg ansible_core_versions: A list of ansible-core versions.
+    :arg ansible_core_version: A ansible-core version.
+    """
+    versions = [PypiVer(v) for v in ansible_core_versions]
+    next_version = PypiVer(
+        f"{ansible_core_version.major}.{ansible_core_version.minor + 1}a"
+    )
+    newer_versions = [
+        version
+        for version in versions
+        if ansible_core_version <= version < next_version
+        and (pre or not version.is_prerelease)
+    ]
+    return max(newer_versions) if newer_versions else None
+
+
+def get_latest_collection_version(
+    versions: Sequence[str],
+    collection: str,
+    version_spec: str | None = None,
+    pre: bool = False,
+    prefer_pre: bool = False,
+    constraint: SemVerSpec | None = None,
+) -> SemVer:
+    """
+    Get the latest version of a collection that matches a specification.
+
+    :arg versions:
+    :arg collection: Namespace.collection identifying a collection.
+    :arg version_spec: Optional string specifying the allowable versions.
+    :kwarg pre: If ``True``, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
+        This is **not** for excluding 0.Y.Z versions.  Non-pre-releases are still
+        preferred over pre-releases, except if ``prefer_pre=True`` (for instance, with
+        ``version_spec='>2.0.0-a1,<3.0.0'`` and ``pre=True``, if the available versions
+        are 2.0.0-a1 and 2.0.0-a2, then 2.0.0-a2 will be returned.  If the available
+        versions are 2.0.0 and 2.1.0-b2, 2.0.0 will be returned since non-pre-releases
+        are preferred.) The default is ``False``.
+    :kwarg prefer_pre: If ``True``, prefer newer pre-releases over stable releases.
+    :kwarg constraint: If provided, only consider versions that match this specification.
+    :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
+        the specification.
+
+    .. seealso:: For the format of the version_spec, see the documentation
+        of :obj:`semantic_version.SimpleSpec`
+    """
+    sem_versions = [SemVer(v) for v in versions]
+    sem_versions.sort(reverse=True)
+
+    if version_spec:
+        spec = SemVerSpec(version_spec)
+        sem_versions = [v for v in sem_versions if v in spec]
+
+    if constraint:
+        # Ignore all versions that do not match the constraints
+        sem_versions = [v for v in sem_versions if v in constraint]
+
+    prereleases = []
+    for version in sem_versions:
+        # If this is a pre-release, first check if there's a non-pre-release that
+        # will satisfy the version_spec.
+        if version.prerelease:
+            # If we prefer prereleases, take this one.
+            if pre and prefer_pre:
+                return version
+            prereleases.append(version)
+            continue
+        return version
+
+    # We did not find a stable version that satisies the version_spec.  If we
+    # allow prereleases, return the latest of those here.
+    if pre and prereleases:
+        return prereleases[0]
+
+    # No matching versions were found
+    constraint_clause = "" if constraint is None else f" (with constraint {constraint})"
+    raise ValueError(
+        f"{version_spec}{constraint_clause} did not match with any version of {collection}."
+    )
+
+
+def find_latest_compatible(
+    ansible_core_version: PypiVer,  # pylint: disable=unused-argument
+    collections_to_versions: Mapping[str, Sequence[str]],
+    pre: bool = False,
+    prefer_pre: bool = False,
+    version_specs: Mapping[str, str] | None = None,
+    constraints: Mapping[str, SemVerSpec] | None = None,
+) -> dict[str, SemVer]:
+    # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
+    # collection metadata that is present in the collection but may not be present in Galaxy.
+    # We'll have to figure that out once the pieces are finalized
+
+    version_specs = version_specs or {}
+    constraints = constraints or {}
+
+    reduced_versions = {}
+    for dep, versions in collections_to_versions.items():
+        reduced_versions[dep] = get_latest_collection_version(
+            versions,
+            dep,
+            version_spec=version_specs.get(dep),
+            pre=pre,
+            prefer_pre=prefer_pre,
+            constraint=constraints.get(dep),
+        )
+
+    return reduced_versions
