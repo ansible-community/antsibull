@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+import typing as t
+from collections.abc import Mapping, Sequence
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
@@ -27,7 +29,9 @@ def display_exception(loop, context):  # pylint:disable=unused-argument
     print(context.get("exception"))
 
 
-async def get_version_info(collections, pypi_server_url):
+async def get_version_info(
+    collections: Sequence[str], pypi_server_url: str
+) -> tuple[dict[str, t.Any], dict[str, list[str]]]:
     """
     Return the versions of all the collections and ansible-core
     """
@@ -54,21 +58,28 @@ async def get_version_info(collections, pypi_server_url):
             collection_versions = {}
             responses = await asyncio.gather(*requestors.values())
 
+    ansible_core_release_infos: dict[str, t.Any] | None = None
     for idx, collection_name in enumerate(requestors):
-        collection_versions[collection_name] = responses[idx]
+        if collection_name == "_ansible_core":
+            ansible_core_release_infos = responses[idx]
+        else:
+            collection_versions[collection_name] = responses[idx]
 
-    return collection_versions
+    if ansible_core_release_infos is None:
+        raise RuntimeError("Internal error")
+
+    return ansible_core_release_infos, collection_versions
 
 
 def version_is_compatible(
     # pylint:disable-next=unused-argument
-    ansible_core_version,
+    ansible_core_version: PypiVer,
     # pylint:disable-next=unused-argument
     collection: str,
     version: semver.Version,
     allow_prereleases: bool = False,
     constraint: semver.SimpleSpec | None = None,
-):
+) -> bool:
     # Metadata for this is not currently implemented.  So everything is rated as compatible
     # as long as it is no prerelease
     if version.prerelease and not allow_prereleases:
@@ -79,11 +90,11 @@ def version_is_compatible(
 
 
 def find_latest_compatible(
-    ansible_core_version,
-    raw_dependency_versions,
+    ansible_core_version: PypiVer,
+    raw_dependency_versions: Mapping[str, Sequence[str]],
     allow_prereleases: bool = False,
-    constraints: dict[str, semver.SimpleSpec] | None = None,
-):
+    constraints: Mapping[str, semver.SimpleSpec] | None = None,
+) -> dict[str, semver.Version]:
     # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
     # collection metadata that is present in the collection but may not be present in galaxy.
     # We'll have to figure that out once the pieces are finalized
@@ -110,17 +121,20 @@ def find_latest_compatible(
                 reduced_versions[dep] = version
                 break
 
+        if dep not in reduced_versions:
+            raise ValueError(f"Cannot find matching version for {dep}")
+
     return reduced_versions
 
 
-def new_ansible_command():
+def new_ansible_command() -> int:
     app_ctx = app_context.app_ctx.get()
     collections = parse_pieces_file(
         os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["pieces_file"])
     )
-    dependencies = asyncio.run(get_version_info(collections, app_ctx.pypi_url))
-
-    ansible_core_release_infos = dependencies.pop("_ansible_core")
+    ansible_core_release_infos, dependencies = asyncio.run(
+        get_version_info(collections, app_ctx.pypi_url)
+    )
     ansible_core_versions = [
         (PypiVer(version), data[0]["requires_python"])
         for version, data in ansible_core_release_infos.items()
@@ -146,7 +160,7 @@ def new_ansible_command():
     build_file = BuildFile(build_filename)
     build_file.write(
         app_ctx.extra["ansible_version"],
-        ansible_core_version,
+        str(ansible_core_version),
         dependencies,
         python_requires=python_requires,
     )
