@@ -1,2 +1,2 @@
-bugfixes:
+trivial:
   - "Remove code for Ansible 2.10 in a few left-over places (https://github.com/ansible-community/antsibull/pull/549)."
