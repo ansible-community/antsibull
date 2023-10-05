@@ -156,11 +156,7 @@ def read_changelog_file(tarball_path: str, is_ansible_core=False) -> bytes | Non
 
 
 def get_porting_guide_filename(version: PypiVer):
-    if version.major == 2 and version.minor == 10:
-        basename = "porting_guide_base"
-    else:
-        basename = "porting_guide_core"
-    return f"docs/docsite/rst/porting_guides/{basename}_{version.major}.{version.minor}.rst"
+    return f"docs/docsite/rst/porting_guides/porting_guide_core_{version.major}.{version.minor}.rst"
 
 
 class CollectionChangelogCollector:
