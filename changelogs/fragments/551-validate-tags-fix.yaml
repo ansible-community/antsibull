@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - Fix regression in ``validate-tags`` subcommand argument validation that
+    caused a traceback
+    (https://github.com/ansible-community/antsibull/pull/51).

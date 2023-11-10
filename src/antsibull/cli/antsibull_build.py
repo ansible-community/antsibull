@@ -148,7 +148,6 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         "prepare",
         "single",
         "rebuild-single",
-        "validate-tags",
         "generate-package-files",
     ):
         return
