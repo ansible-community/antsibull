@@ -4,8 +4,10 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+from antsibull_core.yaml import load_yaml_file
 
 from antsibull.cli.antsibull_build import run
 
@@ -203,3 +205,26 @@ def test_validate_tags_file_ignore_file(
     assert ran == ret
     out, err = capsys.readouterr()
     assert sorted(err.splitlines()) == sorted(expected)
+
+
+def test_validate_tags(test_data_path: Path, tmp_path: Path):
+    ignores_file = test_data_path / "validate-tags-ignores"
+    name = "ansible-7.4.0-tags.yaml"
+    expected_data_path = test_data_path / name
+    expected_data = load_yaml_file(expected_data_path)
+    output_data_path = tmp_path / name
+    with patch("antsibull.tagging.get_collections_tags", return_value=expected_data):
+        ran = run(
+            [
+                "antsibull-build",
+                "validate-tags",
+                f"--data-dir={test_data_path}",
+                f"--ignores-file={ignores_file}",
+                f"--output={output_data_path}",
+                "--error-on-useless-ignores",
+                "7.4.0",
+            ]
+        )
+    assert ran == 0
+    output_data = load_yaml_file(output_data_path)
+    assert expected_data == output_data
