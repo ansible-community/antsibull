@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - build-release role - add a test to ensure that Python files in the
+    ansible package successfully compile
+    (https://github.com/ansible-community/antsibull/pull/552).
