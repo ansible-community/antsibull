@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - build-release role - directly install the wheel when running tests
+    (https://github.com/ansible-community/antsibull/pull/553).
