@@ -1,0 +1,32 @@
+# Copyright (C) 2023 Maxwell G <maxwell@gtmx.me>
+# SPDX-License-Identifier: GPL-3.0-or-later
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Run tests in a tempdir
+  block:
+    - name: Create tempdir
+      register: _tempdir
+      ansible.builtin.tempfile:
+        state: directory
+    - name: Unpack wheel
+      ansible.builtin.command:
+        argv:
+          - "unzip"
+          - "-d{{ _tempdir.path }}"
+          - "-q"
+          - "{{ _release_wheel }}"
+    - name: Run bytecompile
+      ansible.builtin.command:
+        argv:
+          - "{{ _current_python }}"
+          - "-m"
+          - "compileall"
+          - "-q"
+          - "-j{{ antsibull_test_bytecompile_jobs | string }}"
+          - "{{ _tempdir.path }}/ansible_collections"
+  always:
+    - name: Clean tempdir
+      ansible.builtin.file:
+        dest: "{{ _tempdir.path }}"
+        state: absent

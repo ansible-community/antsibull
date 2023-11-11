@@ -59,6 +59,17 @@ antsibull_tags_enforce_policy: false
 # File containing a newline separated list of collections to ignore
 antsibull_tags_ignores_file: "{{ antsibull_data_dir }}/validate-tags-ignores"
 
+
+#####
+# These variables relate to testing byte-compilation of the Python code in the
+# package.
+# None of them apply if antsibull_test_bytecompile is false.
+antsibull_test_bytecompile: true
+antsibull_test_bytecompile_pythons:
+  - "{{ ansible_python_executable | default(ansible_playbook_python) }}"
+# Default to using all CPUs
+antsibull_test_bytecompile_jobs: 0
+
 # TODO:
 # --dest-data-dir (Directory to write .build and .deps files to, as well as changelog and porting guide if applicable. Defaults to --data-dir)
 # --collection-cache (Directory of cached collection tarballs. Will be used if a collection tarball to be downloaded exists in here, and will be populated when downloading new tarballs.)

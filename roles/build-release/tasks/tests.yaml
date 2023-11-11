@@ -126,3 +126,10 @@
           -e antsibull_ansible_venv="{{ antsibull_ansible_venv }}"
           -e _python_version="{{ _python_version }}"
           {{ playbook_dir }}/nested-ansible-tests.yaml
+
+- name: Byte-compile python modules
+  when: antsibull_test_bytecompile
+  loop: "{{ antsibull_test_bytecompile_pythons }}"
+  loop_control:
+    loop_var: _current_python
+  ansible.builtin.include_tasks: "test_bytecompile.yaml"
