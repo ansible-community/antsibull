@@ -14,7 +14,7 @@ import os
 import re
 import sys
 from collections.abc import AsyncGenerator, Collection
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO, TypedDict
 
 import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
@@ -23,6 +23,9 @@ from antsibull_core.logging import log
 from antsibull_core.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.collection_meta import CollectionMetadata, CollectionsMetadata
+
+if TYPE_CHECKING:
+    from typing_extensions import NotRequired
 
 TAG_MATCHER: re.Pattern[str] = re.compile(r"^.*refs/tags/(.*)$")
 TAG_VERSION_REGEX: re.Pattern[str] = re.compile(r"^v?(.*)$")
@@ -68,7 +71,7 @@ def validate_tags_command() -> int:
 
 
 def _print_validation_errors(
-    tag_data: dict[str, dict[str, str | None]],
+    tag_data: dict[str, CollectionTagData],
     ignores: Collection[str] = (),
     error_on_useless_ignores: bool = True,
 ) -> int:
@@ -100,7 +103,7 @@ def _get_ignores(ignores: Collection[str], ignore_fp: TextIO | None) -> set[str]
 
 
 def validate_tags(
-    tag_data: dict[str, dict[str, str | None]],
+    tag_data: dict[str, CollectionTagData],
     ignores: Collection[str] = (),
     error_on_useless_ignores: bool = True,
 ) -> list[str]:
@@ -136,9 +139,16 @@ def validate_tags(
     return errors
 
 
+class CollectionTagData(TypedDict):
+    version: str
+    repository: str | None
+    tag: str | None
+    collection_directory: NotRequired[str]
+
+
 async def get_collections_tags(
     data_dir: str, deps_filename: str
-) -> dict[str, dict[str, str | None]]:
+) -> dict[str, CollectionTagData]:
     """
     Iterate over the collections in a CollectionsMetadata file,
     retrieve their tags, and return a dictionary
@@ -164,10 +174,10 @@ async def get_collections_tags(
 
 async def _get_collection_tags(
     version: str, meta_data: CollectionMetadata, name: str
-) -> dict[str, str | None]:
+) -> CollectionTagData:
     flog = mlog.fields(func="_get_collection_tags")
     repository = meta_data.repository
-    data: dict[str, str | None] = {
+    data: CollectionTagData = {
         "version": version,
         "repository": repository,
         "tag": None,
