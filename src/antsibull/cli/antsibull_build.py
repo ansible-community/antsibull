@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import os.path
 import sys
+from pathlib import Path
 
 import twiggy  # type: ignore[import]
 from antsibull_core.logging import initialize_app_logging, log
@@ -40,6 +41,7 @@ from ..build_ansible_commands import (  # noqa: E402
 from ..build_changelog import build_changelog  # noqa: E402
 from ..constants import MINIMUM_ANSIBLE_VERSION  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
+from ..from_source import verify_upstream_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 from ..tagging import validate_tags_command, validate_tags_file_command  # noqa: E402
 
@@ -61,6 +63,7 @@ ARGS_MAP = {
     "validate-tags": validate_tags_command,
     "validate-tags-file": validate_tags_file_command,
     "generate-package-files": generate_package_files_command,
+    "verify-upstreams": verify_upstream_command,
 }
 
 
@@ -73,7 +76,12 @@ def _normalize_commands(
 
 
 def _normalize_build_options(args: argparse.Namespace) -> None:
-    if args.command in ("validate-deps", "validate-tags-file"):
+    if args.command in (
+        "validate-deps",
+        "validate-tags-file",
+        "verify-upstreams",
+        "sanity-tests",
+    ):
         return
 
     if args.ansible_version < MINIMUM_ANSIBLE_VERSION:
@@ -219,7 +227,7 @@ def _normalize_validate_tags_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_validate_tags_file_options(args: argparse.Namespace) -> None:
-    if args.command not in ("validate-tags-file",):
+    if args.command not in ("validate-tags-file", "validate-upstreams"):
         return
     if not os.path.exists(args.tags_file):
         raise InvalidArgumentError(f"{args.tags_file} does not exist!")
@@ -236,6 +244,18 @@ def _normalize_generate_package_files_options(args: argparse.Namespace) -> None:
     )
     if not os.path.isdir(args.collections_dir):
         raise InvalidArgumentError(f"{args.collections_dir} does not exist!")
+
+
+def _normalize_verify_upstream_options(args: argparse.Namespace) -> None:
+    if args.command not in ("verify-upstreams",):
+        return
+    if all((args.tree_dir, args.checkouts_dir)):
+        tree_dir: Path = args.tree_dir
+        checkouts_dir: Path = args.checkouts_dir
+        if tree_dir.resolve() == checkouts_dir.resolve():
+            raise InvalidArgumentError(
+                "--tree-dir and --checkouts-dir must be unique values"
+            )
 
 
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
@@ -555,6 +575,56 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         "-c", "--collections-dir", help="Defaults to {PACKAGE_DIR}/ansible_collections"
     )
 
+    verify_upstream_parser = subparsers.add_parser(
+        "verify-upstreams",
+        parents=[
+            cache_parser,
+        ],
+        description=verify_upstream_command.__doc__,
+    )
+    verify_upstream_parser.add_argument("tags_file")
+    verify_upstream_parser.add_argument(
+        "-g",
+        "--glob",
+        dest="globs",
+        action="append",
+        help="Only check collections that match the glob(s)",
+    )
+    verify_upstream_parser.add_argument(
+        "--allow-missing",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Whether to allow files to be present in the collection artifact"
+        " but not in the git repository."
+        " Default: %(default)s",
+    )
+    verify_upstream_parser.add_argument(
+        "--print-errors",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Whether to print errors to stdout",
+    )
+    verify_upstream_parser.add_argument(
+        "-O",
+        "--error-output",
+        type=Path,
+        help="Path to a file to output errors",
+    )
+    verify_upstream_parser.add_argument(
+        "--tree-dir",
+        type=Path,
+        help="Directory in which to create a collection tree",
+    )
+    verify_upstream_parser.add_argument(
+        "--checkouts-dir",
+        type=Path,
+        help="Directory in which to clone collection repositories",
+    )
+    # Private argument to use a special download directory
+    verify_upstream_parser.add_argument(
+        "--download-dir", help=argparse.SUPPRESS, type=Path
+    )
+
     parsed_args: argparse.Namespace = parser.parse_args(args)
 
     # Validation and coercion
@@ -568,6 +638,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_release_rebuild_options(parsed_args)
     _normalize_validate_tags_file_options(parsed_args)
     _normalize_generate_package_files_options(parsed_args)
+    _normalize_verify_upstream_options(parsed_args)
 
     return parsed_args
 

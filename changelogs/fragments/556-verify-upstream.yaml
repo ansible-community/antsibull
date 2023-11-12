@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - Add a ``verify-upstreams`` subcommand to ensure that files in a
+    collections' Galaxy collection artifact match its upstream repository
+    (https://github.com/ansible-community/antsibull/pull/556).
