@@ -71,7 +71,7 @@ async def download_collections(
     download_dir: str,
     galaxy_context: GalaxyContext,
     collection_cache: str | None = None,
-) -> None:
+) -> dict[str, str]:
     requestors = {}
     async with aiohttp.ClientSession() as aio_session:
         lib_ctx = app_context.lib_ctx.get()
@@ -87,7 +87,8 @@ async def download_collections(
                     downloader.download(collection_name, version)
                 )
 
-            await asyncio.gather(*requestors.values())
+            values = await asyncio.gather(*requestors.values())
+    return dict(zip(versions.keys(), values))
 
 
 async def _get_ansible_core_path(
