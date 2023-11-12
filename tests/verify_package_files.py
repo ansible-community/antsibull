@@ -27,6 +27,7 @@ from packaging.version import Version as PypiVer
 import antsibull.build_ansible_commands
 from antsibull.cli import antsibull_build
 from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
+from antsibull.utils.paths import temp_or_dir
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -175,17 +176,6 @@ def generate_package_files(
 
 
 @contextlib.contextmanager
-def tmp_or_dir(build_dir: Path | None = None) -> Iterator[Path]:
-    if build_dir:
-        if not build_dir.is_dir():
-            raise ValueError(f"{build_dir} is not a directory!")
-        yield build_dir
-    else:
-        with tempfile.TemporaryDirectory() as tmp:
-            yield Path(tmp)
-
-
-@contextlib.contextmanager
 def patch_dict(mapping: MutableMapping, key: Any, value: Any) -> Iterator[None]:
     old = mapping[key]
     try:
@@ -208,7 +198,7 @@ def patch_object(object: Any, attr: str, new_value: Any) -> Iterator[None]:
 def write_file_list(
     version: str, source_dir: Path, build_dir: Path | None = None
 ) -> DIST_TUPLE:
-    with tmp_or_dir(build_dir) as build_dir:
+    with temp_or_dir(build_dir) as build_dir:
         run(
             [
                 sys.executable,
@@ -245,7 +235,7 @@ def check_command(
     package_dir = package_dir / version
     cached_dist = AnsibleSdist(version, cache_dir)
 
-    with tmp_or_dir() as extract_dir:
+    with temp_or_dir() as extract_dir:
         generate_package_files(
             version, cached_dist, extract_dir, data_dir, force_generate_setup_cfg
         )
