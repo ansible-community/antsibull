@@ -69,6 +69,8 @@
   when: antsibull_tags_validate
   # ignore_errors creates conspicuous error messages without failing the playbook
   ignore_errors: "{{ not antsibull_tags_enforce_policy }}"
+  # This command never changes anything
+  changed_when: false
   ansible.builtin.command: >-
     {{ antsibull_build_command }} validate-tags-file
     {{ antsibull_data_dir }}/ansible-{{ antsibull_ansible_version }}-tags.yaml

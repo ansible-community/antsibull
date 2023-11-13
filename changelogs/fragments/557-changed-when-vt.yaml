@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "build-release role - add ``changed_when: false`` to validate-tags task
+    (https://github.com/ansible-community/antsibulll/pull/557)."
