@@ -17,9 +17,9 @@
   ansible.builtin.set_fact:
     _python_version: "python{{ ansible_python.version.major }}.{{ ansible_python.version.minor }}"
 
-- name: Install the release tarball in a virtualenv so we can test it
+- name: Install the release wheel in a virtualenv so we can test it
   ansible.builtin.pip:
-    name: "file://{{ _release_archive }}"
+    name: "file://{{ _release_wheel }}"
     state: present
     virtualenv: "{{ antsibull_ansible_venv }}"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
