@@ -149,7 +149,12 @@ def generate_package_files(
         if force_generate_setup_cfg
         else contextlib.nullcontext()
     )
-    with cm:
+    cm2 = (
+        patch_dict(MINIMUM_ANSIBLE_VERSIONS, "BUILD_META_NEW_URLS", PypiVer(version))
+        if force_generate_setup_cfg
+        else contextlib.nullcontext()
+    )
+    with cm, cm2:
         if r := antsibull_build.run(
             [
                 "antsibull-build",

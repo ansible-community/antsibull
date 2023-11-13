@@ -25,6 +25,8 @@ from jinja2 import Template
 from packaging.version import Version as PypiVer
 
 from .constants import (
+    ANSIBLE_FORUM_URL,
+    BUILD_DATA_URL,
     COLLECTION_EXCLUDE_DIRS,
     DOCSITE_BASE_URL,
     DOCSITE_COMMUNITY_URL,
@@ -65,6 +67,28 @@ class IniList(IniType, list):
 
 INI_TYPES = Union[IniType, str, bool]
 
+OLD_URLS = IniDict(
+    {
+        "Bug Tracker": "https://github.com/ansible/ansible/issues",
+        "Code of Conduct": DOCSITE_COMMUNITY_URL + "/code_of_conduct.html",
+        "Documentation": DOCSITE_BASE_URL,
+        "Mailing lists": DOCSITE_COMMUNITY_URL
+        + "/communication.html#mailing-list-information",
+        "Source Code": "https://github.com/ansible/ansible",
+    }
+)
+
+NEW_URLS = IniDict(
+    {
+        "Build Data": BUILD_DATA_URL,
+        "Code of Conduct": DOCSITE_COMMUNITY_URL + "/code_of_conduct.html",
+        "Documentation": DOCSITE_BASE_URL,
+        "Forum": ANSIBLE_FORUM_URL,
+        "Mailing lists": DOCSITE_COMMUNITY_URL
+        + "/communication.html#mailing-list-information",
+    }
+)
+
 DEFAULT_METADATA: dict[str, INI_TYPES] = {
     "name": "ansible",
     "description": "Radically simple IT automation",
@@ -73,19 +97,6 @@ DEFAULT_METADATA: dict[str, INI_TYPES] = {
     "author": "Ansible, Inc.",
     "author_email": "info@ansible.com",
     "url": "https://ansible.com/",
-    "project_urls": IniDict(
-        {
-            # XXX: Should we replace Bug Tracker and Source Code with something
-            # else that's not copied from ansible-core?
-            # Should we use ansible_core_repo_url from LibContext instead?
-            "Bug Tracker": "https://github.com/ansible/ansible/issues",
-            "Code of Conduct": DOCSITE_COMMUNITY_URL + "/code_of_conduct.html",
-            "Documentation": DOCSITE_BASE_URL,
-            "Mailing lists": DOCSITE_COMMUNITY_URL
-            + "/communication.html#mailing-list-information",
-            "Source Code": "https://github.com/ansible/ansible",
-        }
-    ),
     "license": "GPL-3.0-or-later",
     "classifiers": IniList(
         [
@@ -271,6 +282,12 @@ class BuildMetaMaker:
         self["metadata"]["version"] = self.ansible_version
         self["metadata"].setdefault("classifiers", IniList()).extend(
             self.core_python_classifiers
+        )
+        self["metadata"].setdefault(
+            "project_urls",
+            NEW_URLS
+            if self.ansible_version >= MINIMUM_ANSIBLE_VERSIONS["BUILD_META_NEW_URLS"]
+            else OLD_URLS,
         )
         self["options"].setdefault("install_requires", IniList()).append(
             f"ansible-core ~= {self.ansible_core_version}"

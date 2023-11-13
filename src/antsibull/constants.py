@@ -16,9 +16,12 @@ MINIMUM_ANSIBLE_VERSIONS = {
     "PACKAGE_DATA_NEW_METHOD": PypiVer("8.0.0a1"),
     # Whether to store setuptools config in setup.cfg
     "BUILD_META_MAKER": PypiVer("9.0.0.dev0"),
+    "BUILD_META_NEW_URLS": PypiVer("9.0.0rc1"),
 }
 
 DOCSITE_BASE_URL = "https://docs.ansible.com/ansible"
 DOCSITE_COMMUNITY_URL = "https://docs.ansible.com/ansible/latest/community"
+BUILD_DATA_URL = "https://github.com/ansible-community/ansible-build-data"
+ANSIBLE_FORUM_URL = "https://forum.ansible.com"
 
 COLLECTION_EXCLUDE_DIRS = ("docs", "tests")
