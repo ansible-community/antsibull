@@ -717,6 +717,28 @@ releases:
     - 541-pypi-url.yml
     - 546-constraints.yml
     release_date: '2023-09-27'
+  0.59.0:
+    changes:
+      bugfixes:
+      - Fix regression in ``validate-tags`` subcommand argument validation that caused
+        a traceback (https://github.com/ansible-community/antsibull/pull/51).
+      minor_changes:
+      - '``ansible`` python metadata - remove links specific to ``ansible-core`` and
+        add links to the Ansible forum and the ``ansible-build-data`` repository (https://github.com/ansible-community/antsibull/pull/558).'
+      - 'build-release role - add ``changed_when: false`` to validate-tags task (https://github.com/ansible-community/antsibulll/pull/557).'
+      - build-release role - add a test to ensure that Python files in the ansible
+        package successfully compile (https://github.com/ansible-community/antsibull/pull/552).
+      - build-release role - directly install the wheel when running tests (https://github.com/ansible-community/antsibull/pull/553).
+      release_summary: Feature release for the upcoming Ansible 9.0.0rc1 release.
+    fragments:
+    - 0.59.0.yml
+    - 549-2.10-removal.yml
+    - 551-validate-tags-fix.yaml
+    - 552-compileall.yaml
+    - 553-release-wheel-test.yaml
+    - 557-changed-when-vt.yaml
+    - 558-classifiers2.yaml
+    release_date: '2023-11-14'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:

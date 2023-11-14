@@ -5,6 +5,27 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.59.0
+=======
+
+Release Summary
+---------------
+
+Feature release for the upcoming Ansible 9.0.0rc1 release.
+
+Minor Changes
+-------------
+
+- ``ansible`` python metadata - remove links specific to ``ansible-core`` and add links to the Ansible forum and the ``ansible-build-data`` repository (https://github.com/ansible-community/antsibull/pull/558).
+- build-release role - add ``changed_when: false`` to validate-tags task (https://github.com/ansible-community/antsibulll/pull/557).
+- build-release role - add a test to ensure that Python files in the ansible package successfully compile (https://github.com/ansible-community/antsibull/pull/552).
+- build-release role - directly install the wheel when running tests (https://github.com/ansible-community/antsibull/pull/553).
+
+Bugfixes
+--------
+
+- Fix regression in ``validate-tags`` subcommand argument validation that caused a traceback (https://github.com/ansible-community/antsibull/pull/51).
+
 v0.58.0
 =======
 
