@@ -22,6 +22,7 @@ from antsibull_core.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.tagging import CollectionTagData
 from antsibull.types import CollectionName
+from antsibull.utils.paths import copytree_and_symlinks
 
 from .exceptions import CloneError
 
@@ -122,11 +123,9 @@ class NormalizedCheckout:
             await aiofiles.os.symlink(self.collection_directory.absolute(), dest)
         else:
             await asyncio.to_thread(
-                shutil.copytree,
+                copytree_and_symlinks,
                 self.clone_directory / self.collection_subdir,
                 dest,
-                symlinks=True,
-                ignore_dangling_symlinks=True,
             )
         return dest
 

@@ -18,16 +18,22 @@ from typing import TYPE_CHECKING
 import aiofiles.ospath
 import aiofiles.tempfile
 
+from antsibull._vendor.shutil import copytree_and_symlinks
+
 if TYPE_CHECKING:
     from _typeshed import StrPath
+
+
+def _is_dir(directory: Path) -> None:
+    if not directory.is_dir():
+        raise ValueError(f"{directory} is not a directory!")
 
 
 @contextlib.contextmanager
 def temp_or_dir(directory: StrPath | None = None, /) -> Iterator[Path]:
     if directory:
         directory = Path(directory)
-        if not directory.is_dir():
-            raise ValueError(f"{directory} is not a directory!")
+        _is_dir(directory)
         yield directory
     else:
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,12 +44,11 @@ def temp_or_dir(directory: StrPath | None = None, /) -> Iterator[Path]:
 async def atemp_or_dir(directory: StrPath | None = None, /) -> AsyncIterator[Path]:
     if directory:
         directory = Path(directory)
-        if not await aiofiles.ospath.isdir(directory):
-            raise ValueError(f"{directory} is not a directory!")
+        _is_dir(directory)
         yield directory
     else:
         async with aiofiles.tempfile.TemporaryDirectory() as tmp:
             yield Path(tmp)
 
 
-__all__ = ("temp_or_dir", "atemp_or_dir")
+__all__ = ("temp_or_dir", "atemp_or_dir", "copytree_and_symlinks")

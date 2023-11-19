@@ -12,7 +12,7 @@ dynamic = [
     "version",
 ]
 description = "Tools for building the Ansible Distribution"
-license = "GPL-3.0-or-later"
+license = "GPL-3.0-or-later AND Python-2.0.1"
 license-files = {globs=["LICENSES/*.txt"]}
 readme = "README.md"
 classifiers = [

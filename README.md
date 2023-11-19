@@ -20,10 +20,18 @@ Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-ch
 
 You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
 
-Unless otherwise noted in the code, it is licensed under the terms of the GNU
-General Public License v3 or, at your option, later.
-
 antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
+
+## Licensing
+
+This repository abides by the [REUSE specification](https://reuse.software).
+See the copyright headers in each file for the exact license and copyright.
+Summarily:
+
+- The default license is the GNU Public License v3+
+  ([`GPL-3.0-or-later`](LICENSES/GPL-3.0-or-later.txt)).
+- `src/antsibull/_vendor/shutil.py` includes code derived from CPython, licensed
+  under the Python 2.0 License ([`Python-2.0.1`](LICENSES/Python-2.0.1.txt)).
 
 ## Versioning and compatibility
 

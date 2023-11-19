@@ -3,3 +3,6 @@ minor_changes:
   - Add a ``verify-upstreams`` subcommand to ensure that files in a
     collections' Galaxy collection artifact match its upstream repository
     (https://github.com/ansible-community/antsibull/pull/556).
+  - Change the license from ``GPL-3.0-or-later`` to ``GPL-3.0-or-later AND Python-2.0.1``.
+    Antsibull now contains a small amount of code derived from CPython
+    (https://github.com/ansible-community/antsibull/pull/556).
