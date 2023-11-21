@@ -25,3 +25,10 @@ BUILD_DATA_URL = "https://github.com/ansible-community/ansible-build-data"
 ANSIBLE_FORUM_URL = "https://forum.ansible.com"
 
 COLLECTION_EXCLUDE_DIRS = ("docs", "tests")
+
+SANITY_TESTS_DEFAULT: tuple[str, ...] = (
+    "ansible-doc",
+    "compile",
+    "validate-modules",
+    "yamllint",
+)

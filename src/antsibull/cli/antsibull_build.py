@@ -39,10 +39,11 @@ from ..build_ansible_commands import (  # noqa: E402
     rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
-from ..constants import MINIMUM_ANSIBLE_VERSION  # noqa: E402
+from ..constants import MINIMUM_ANSIBLE_VERSION, SANITY_TESTS_DEFAULT  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..from_source import verify_upstream_command  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
+from ..sanity_tests import sanity_tests_command  # noqa: E402
 from ..tagging import validate_tags_command, validate_tags_file_command  # noqa: E402
 
 # pylint: enable=wrong-import-position
@@ -64,6 +65,7 @@ ARGS_MAP = {
     "validate-tags-file": validate_tags_file_command,
     "generate-package-files": generate_package_files_command,
     "verify-upstreams": verify_upstream_command,
+    "sanity-tests": sanity_tests_command,
 }
 
 
@@ -624,6 +626,40 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     verify_upstream_parser.add_argument(
         "--download-dir", help=argparse.SUPPRESS, type=Path
     )
+
+    sanity_test_parser = subparsers.add_parser(
+        "sanity-tests",
+        help=sanity_tests_command.__doc__,
+    )
+    sanity_test_parser.add_argument("collection_paths", type=Path, nargs="+")
+    sanity_test_parser.add_argument(
+        "-O",
+        "--error-output",
+        type=Path,
+        help="Path to a YAML file to output errors",
+        required=True,
+    )
+    sanity_test_parser.add_argument(
+        "-t",
+        "--test",
+        action="append",
+        help=f"Sanity tests to run. Default: {SANITY_TESTS_DEFAULT}",
+        dest="tests",
+    )
+    sanity_test_parser.add_argument(
+        "--clean",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Whether to clean collections' test output directories."
+        " Default: %(default)s",
+    )
+    sanity_test_parser.add_argument(
+        "--quiet",
+        action=BooleanOptionalAction,
+        default=False,
+        help="Whether to show sanity test output as it runs. Default: %(default)s",
+    )
+    sanity_test_parser.add_argument("--ansible-test-bin", default="ansible-test")
 
     parsed_args: argparse.Namespace = parser.parse_args(args)
 

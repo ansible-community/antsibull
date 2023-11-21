@@ -9,10 +9,13 @@ Types used in the antsibull codebase
 
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import yaml
 from antsibull_core.yaml import load_yaml_file
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
 
 _T = TypeVar("_T")
 
@@ -52,6 +55,21 @@ class CollectionName(str):
         Returns a tuple of (self.namespace, self.name)
         """
         return self.namespace, self.name
+
+    @classmethod
+    def from_pair(cls, namespace: str, name: str) -> CollectionName:
+        """
+        Construct a `CollectionName` object from a `namespace` and `name`
+        """
+        return cls(".".join((namespace, name)))
+
+    @classmethod
+    def from_galaxy_yml(cls, path: StrPath) -> CollectionName:
+        """
+        Construct a `CollectionName` object from a `galaxy.yml` file
+        """
+        data = load_yaml_file(path)
+        return cls.from_pair(data["namespace"], data["name"])
 
     def __hash__(self) -> int:
         return hash(type(self)) + super().__hash__()

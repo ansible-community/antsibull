@@ -6,3 +6,6 @@ minor_changes:
   - Change the license from ``GPL-3.0-or-later`` to ``GPL-3.0-or-later AND Python-2.0.1``.
     Antsibull now contains a small amount of code derived from CPython
     (https://github.com/ansible-community/antsibull/pull/556).
+  - Add a ``sanity-tests`` subcommand to run sanity tests accross the
+    collection tree created by ``verify-upstreams`` and display the results
+    (https://github.com/ansible-community/antsibull/pull/556).
