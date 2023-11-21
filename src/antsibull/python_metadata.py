@@ -293,7 +293,7 @@ class BuildMetaMaker:
             f"ansible-core ~= {self.ansible_core_version}"
         )
 
-        self["options"]["requires_python"] = (
+        self["options"]["python_requires"] = (
             self.python_requires or self.core_python_requires
         )
 
@@ -363,7 +363,7 @@ class LegacyBuildMetaMaker:
             # pylint: disable-next=protected-access
             collection_directories=self.maker._collection_directories,
             #
-            python_requires=self.maker["options"]["requires_python"],
+            python_requires=self.maker["options"]["python_requires"],
             PypiVer=PypiVer,
         )
         file.write_text(setup_contents, encoding="utf-8")
