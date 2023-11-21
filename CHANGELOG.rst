@@ -5,6 +5,19 @@ antsibull -- Ansible Build Scripts Release Notes
 .. contents:: Topics
 
 
+v0.59.1
+=======
+
+Release Summary
+---------------
+
+Hottfix for the ansible 9.0.1 release to fix setup.cfg metadata
+
+Bugfixes
+--------
+
+- Use the correct directive in ``setup.cfg`` for Ansible 9+ for requiring a Python version, i.e. use ``python_requires`` instead of ``requires_python`` (https://github.com/ansible-community/antsibull/pull/559).
+
 v0.59.0
 =======
 

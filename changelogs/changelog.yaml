@@ -739,6 +739,17 @@ releases:
     - 557-changed-when-vt.yaml
     - 558-classifiers2.yaml
     release_date: '2023-11-14'
+  0.59.1:
+    changes:
+      bugfixes:
+      - Use the correct directive in ``setup.cfg`` for Ansible 9+ for requiring a
+        Python version, i.e. use ``python_requires`` instead of ``requires_python``
+        (https://github.com/ansible-community/antsibull/pull/559).
+      release_summary: Hottfix for the ansible 9.0.1 release to fix setup.cfg metadata
+    fragments:
+    - 0.59.1.yml
+    - 559-python_requires.yml
+    release_date: '2023-11-21'
   0.6.0:
     release_date: '2020-06-03'
   0.7.0:
