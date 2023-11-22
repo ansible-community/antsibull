@@ -39,7 +39,7 @@ WHEEL_PATH = f"{PYPI_PATH}/py3/a/ansible/ansible-{{version}}-py3-none-any.whl"
 SDIST_PATH = f"{PYPI_PATH}/source/a/ansible/ansible-{{version}}.tar.gz"
 
 ANTSIBULL_BUILD = os.environ.get("ANTSIBULL_BUILD", "antsibull-build")
-PLACEHOLDER_ANTSIBULL_VERSION = "0.59.1"
+PLACEHOLDER_ANTSIBULL_VERSION = "(ANTSIBULL_VERSION)"
 
 
 @dataclasses.dataclass
