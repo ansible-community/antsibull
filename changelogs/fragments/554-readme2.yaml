@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "``ansible`` package README - add a link to the ``ansible-build-data`` issue tracker
+    (https://github.com/ansible-community/antsibull/pull/554)."

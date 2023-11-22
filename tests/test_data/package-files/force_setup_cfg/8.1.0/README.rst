@@ -56,6 +56,10 @@ Issues with plugins and modules in the Ansible package should be reported
 on the individual collection's issue tracker.
 Issues with ``ansible-core`` should be reported on
 the `ansible-core issue tracker <https://github.com/ansible/ansible/issues/>`_.
+Issues with the ``ansible`` package build process or serious bugs or
+vulnerabilities in a collection that are not addressed after opening an issue
+in the collection's issue tracker should be reported on
+`ansible-build-data's issue tracker <https://github.com/ansible-community/ansible-build-data#issue-tracker>`_.
 
 Refer to the `Communication page
 <https://docs.ansible.com/ansible/latest/community/communication.html>`_ for a
