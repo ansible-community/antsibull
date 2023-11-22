@@ -34,22 +34,22 @@ jobs:
             packages: ""
 
           - session: "check_package_files(8.1.0)"
-            python-versions: "3.12"
+            python-versions: "3.11"
             codecov: true
             packages: ""
 
           - session: "check_package_files(7.5.0)"
-            python-versions: "3.12"
+            python-versions: "3.11"
             codecov: true
             packages: ""
 
           - session: "check_package_files(8.1.0_setup_cfg)"
-            python-versions: "3.12"
+            python-versions: "3.11"
             codecov: true
             packages: ""
 
           - session: lint
-            python-versions: "3.12"
+            python-versions: "3.11"
             codecov: false
             packages: ""
     name: "Run nox ${{ matrix.session }} session"
