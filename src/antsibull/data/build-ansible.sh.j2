@@ -15,7 +15,7 @@ MAJOR="{{ version.major }}"
 # For idempotency, remove build data or built output first
 rm -rf ansible-build-data built
 
-pip3 install --user --upgrade antsibull
+pip3 install --user --upgrade "antsibull=={{ antsibull_version }}"
 git clone https://github.com/ansible-community/ansible-build-data.git
 mkdir -p built collection-cache
 
