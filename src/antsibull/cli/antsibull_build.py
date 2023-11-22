@@ -323,10 +323,14 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         " is $BASENAME_OF_BUILD_FILE-X.Y.Z.yaml",
     )
 
+    # Delay import to avoid potential import loops
+    from antsibull import __version__ as _ver  # pylint: disable=import-outside-toplevel
+
     parser = get_toplevel_parser(
         prog=program_name,
         package="antsibull",
         description="Script to manage building Ansible",
+        package_version=_ver,
     )
 
     subparsers = parser.add_subparsers(
