@@ -8,7 +8,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "antsibull"
-version = "0.59.1.post0"
+dynamic = [
+    "version",
+]
 description = "Tools for building the Ansible Distribution"
 license = "GPL-3.0-or-later"
 license-files = {globs=["LICENSES/*.txt"]}
@@ -100,6 +102,9 @@ dev = [
     # misc
     "nox",
 ]
+
+[tool.hatch.version]
+path = "src/antsibull/__init__.py"
 
 [tool.isort]
 profile = "black"

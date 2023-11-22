@@ -289,17 +289,6 @@ def check_package_files(
         )
 
 
-def _repl_version(session: nox.Session, new_version: str):
-    with open("pyproject.toml", "r+") as fp:
-        lines = tuple(fp)
-        fp.seek(0)
-        for line in lines:
-            if line.startswith("version = "):
-                line = f'version = "{new_version}"\n'
-            fp.write(line)
-        fp.truncate()
-
-
 def check_no_modifications(session: nox.Session) -> None:
     modified = session.run(
         "git",
@@ -356,7 +345,7 @@ def bump(session: nox.Session):
                 "or two positional arguments must be provided."
             )
     install(session, "antsibull-changelog[toml]", "hatch")
-    _repl_version(session, version)
+    session.run("hatch", "version", version)
     if len(session.posargs) > 1:
         fragment = session.run(
             "python",
@@ -367,18 +356,20 @@ def bump(session: nox.Session):
         )
         with open(fragment_file, "w") as fp:
             print(fragment, file=fp)
-        session.run("git", "add", "pyproject.toml", str(fragment_file), external=True)
+        session.run(
+            "git", "add", "src/antsibull/__init__.py", str(fragment_file), external=True
+        )
         session.run("git", "commit", "-m", f"Prepare {version}.", external=True)
-    session.run("antsibull-changelog", "release")
+    session.run("antsibull-changelog", "release", "--version", version)
     session.run(
         "git",
         "add",
         "CHANGELOG.rst",
         "changelogs/changelog.yaml",
         "changelogs/fragments/",
-        # pyproject.toml is not committed in the last step
+        # src/antsibull/__init__.py is not committed in the last step
         # when the release_summary fragment is created manually
-        "pyproject.toml",
+        "src/antsibull/__init__.py",
         external=True,
     )
     install(session, ".")  # Smoke test
@@ -403,8 +394,7 @@ def publish(session: nox.Session):
     check_no_modifications(session)
     install(session, "hatch")
     session.run("hatch", "publish", *session.posargs)
-    version = session.run("hatch", "version", silent=True).strip()
-    _repl_version(session, f"{version}.post0")
+    session.run("hatch", "version", "post")
     session.run("git", "add", "pyproject.toml", external=True)
     session.run("git", "commit", "-m", "Post-release version bump.", external=True)
 
