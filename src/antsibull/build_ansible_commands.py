@@ -38,6 +38,7 @@ from semantic_version import Version as SemVer
 from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
 from antsibull.python_metadata import BuildMetaMaker, LegacyBuildMetaMaker
 
+from . import __version__ as antsibull_version
 from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
@@ -394,7 +395,9 @@ def write_build_script(
         get_antsibull_data("build-ansible.sh.j2").decode("utf-8")
     )
     build_ansible_contents = build_ansible_tmpl.render(
-        version=ansible_version, ansible_core_version=ansible_core_version
+        version=ansible_version,
+        ansible_core_version=ansible_core_version,
+        antsibull_version=antsibull_version,
     )
 
     with open(build_ansible_filename, "w", encoding="utf-8") as f:

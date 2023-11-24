@@ -24,6 +24,7 @@ import aiofiles
 import aiohttp
 from packaging.version import Version as PypiVer
 
+import antsibull.build_ansible_commands
 from antsibull.cli import antsibull_build
 from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
 
@@ -38,6 +39,7 @@ WHEEL_PATH = f"{PYPI_PATH}/py3/a/ansible/ansible-{{version}}-py3-none-any.whl"
 SDIST_PATH = f"{PYPI_PATH}/source/a/ansible/ansible-{{version}}.tar.gz"
 
 ANTSIBULL_BUILD = os.environ.get("ANTSIBULL_BUILD", "antsibull-build")
+PLACEHOLDER_ANTSIBULL_VERSION = "(ANTSIBULL_VERSION)"
 
 
 @dataclasses.dataclass
@@ -154,7 +156,11 @@ def generate_package_files(
         if force_generate_setup_cfg
         else contextlib.nullcontext()
     )
-    with cm, cm2:
+    with cm, cm2, patch_object(
+        antsibull.build_ansible_commands,
+        "antsibull_version",
+        PLACEHOLDER_ANTSIBULL_VERSION,
+    ):
         if r := antsibull_build.run(
             [
                 "antsibull-build",
@@ -187,6 +193,16 @@ def patch_dict(mapping: MutableMapping, key: Any, value: Any) -> Iterator[None]:
         yield
     finally:
         mapping[key] = old
+
+
+@contextlib.contextmanager
+def patch_object(object: Any, attr: str, new_value: Any) -> Iterator[None]:
+    old_value = getattr(object, attr)
+    try:
+        setattr(object, attr, new_value)
+        yield
+    finally:
+        setattr(object, attr, old_value)
 
 
 def write_file_list(
