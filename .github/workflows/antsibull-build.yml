@@ -24,14 +24,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: Ansible 8 with default settings
-            options: '-e antsibull_ansible_version=8.99.0 -e antsibull_ansible_git_version=stable-2.15'
+          - name: Ansible 8
+            options: '-e antsibull_ansible_version=8.99.0'
             python: '3.9'
             antsibull_changelog_ref: 0.14.0
             antsibull_core_ref: main
-          - name: Ansible 9 with ansible-core devel
-            options: '-e antsibull_ansible_version=9.99.0 -e antsibull_ansible_git_version=devel'
+          - name: Ansible 9
+            options: '-e antsibull_ansible_version=9.99.0'
             python: '3.11'
+            antsibull_changelog_ref: main
+            antsibull_core_ref: main
+          - name: Ansible 10
+            options: '-e antsibull_ansible_version=10.99.0'
+            python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
 
