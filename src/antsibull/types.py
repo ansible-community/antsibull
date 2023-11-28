@@ -9,7 +9,8 @@ Types used in the antsibull codebase
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import yaml
 from antsibull_core.yaml import load_yaml_file
@@ -75,18 +76,26 @@ class CollectionName(str):
         return hash(type(self)) + super().__hash__()
 
 
-try:
-    cdumper = yaml.CSafeDumper
-except AttributeError:
-    pass
-else:
-    cdumper.add_representer(
-        CollectionName,
-        lambda rep, obj: yaml.representer.SafeRepresenter.represent_str(rep, str(obj)),
-    )
-yaml.SafeDumper.add_representer(
-    CollectionName, yaml.representer.SafeRepresenter.represent_str
-)
+def add_string_yaml_type(typ: type[_T], converter: Callable[[_T], str] = str) -> None:
+    """
+    Add a type to the YAML serializer. Defaults to serializing as a string.
+    """
+    dumpers: list[type[Any]] = [yaml.SafeDumper]
+    try:
+        cdumper = yaml.CSafeDumper
+    except AttributeError:
+        pass
+    else:
+        dumpers.append(cdumper)
+
+    def representer(rep: Any, obj: Any) -> Any:
+        return yaml.representer.SafeRepresenter.represent_str(rep, converter(obj))
+
+    for dumper in dumpers:
+        dumper.add_representer(typ, representer)
+
+
+add_string_yaml_type(CollectionName)
 
 
 def make_collection_mapping(mapping: dict[str, _T]) -> dict[CollectionName, _T]:

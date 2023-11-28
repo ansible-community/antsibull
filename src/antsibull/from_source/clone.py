@@ -25,11 +25,12 @@ from antsibull.types import CollectionName
 from antsibull.utils.paths import copytree_and_symlinks
 
 from .exceptions import CloneError
+from .verify import FileError, FileErrorOutput
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
-mlog = log.fields(mlog=__name__)
+mlog = log.fields(mod=__name__)
 
 
 async def clone_collection(
@@ -95,7 +96,7 @@ class NormalizedCheckout:
     normalized_data: dict[str, Any]
     data_changed: bool
     collection_directory: Path | None
-    errors: list[str] = dataclasses.field(default_factory=list)
+    errors: list[FileErrorOutput] = dataclasses.field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.collection_directory = self._guess_collection_directory()
@@ -158,6 +159,7 @@ async def normalize_clone(
             A tag dictionary. See `antsibull.tagging.get_collections_tags()`.
     """
     flog = mlog.fields(func="normalize_clone", collection=collection)
+    errors: list[FileErrorOutput] = []
 
     collection_directory = checkout_dir / tag_data.get("collection_directory", "./")
     galaxy_path = collection_directory / "galaxy.yml"
@@ -175,6 +177,13 @@ async def normalize_clone(
             f" and galaxy metadata says {gotten_collection!r}"
         )
         flog.warning(msg)
+        errors.append(
+            {
+                "file": "galaxy.yml",
+                "error": FileError.WRONG_GALAXY_YML_NAME,
+                "message": f"`{gotten_collection}` != `{collection}`",
+            }
+        )
 
     # Some collections set version to nil and change it dynamically...
     # Others don't set version at all, hence the .get()
@@ -192,7 +201,7 @@ async def normalize_clone(
     if changed := galaxy_data != new_data:
         store_yaml_file(galaxy_path, new_data)
     return NormalizedCheckout(
-        collection, tag_data, checkout_dir, new_data, changed, None
+        collection, tag_data, checkout_dir, new_data, changed, None, errors
     )
 
 

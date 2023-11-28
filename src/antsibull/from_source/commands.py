@@ -11,19 +11,14 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator, Iterable
+from collections.abc import Collection, Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import aiofiles
-import aiofiles.os
-import aiofiles.ospath
 import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
 from antsibull_core.subprocess_util import async_log_run
-from antsibull_core.utils.hashing import verify_hash
-from antsibull_core.yaml import _SafeDumper, load_yaml_file
-from yaml import dump as dump_yaml_str
+from antsibull_core.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.build_ansible_commands import download_collections
 from antsibull.tagging import CollectionTagData
@@ -33,48 +28,10 @@ from antsibull.utils.paths import atemp_or_dir
 
 from ._utils import filter_tag_data, tag_data_as_version_mapping
 from .clone import NormalizedCheckout, clone_collection, normalize_clone
+from .verify import FileError, verify_files
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
-
-
-async def verify_files(
-    collection: str,
-    collection_dir: Path,
-    files_data: list[dict[str, Any]],
-    allow_missing=True,
-) -> AsyncIterator[str]:
-    """
-    Ensure that files in a collection git repository checkout match the
-    artifact's FILES.json metadata
-
-    Args:
-        checkout_dir:
-            Directory containing a collection checkout
-        files_data:
-            The `files` list from a collection artifact's FILES.json metadata
-        allow_missing:
-            Whether to allow files in the collection artifact that are missing
-            from FILES.json.
-            We'd prefer that they didn't, but some collections may include
-            generated files in collection artifacts, so this is allowed for now.
-
-    Yields:
-        Files whose checksums diverge between the checkout_dir and FILES.json metadata
-    """
-    del collection  # Not used for now. This shuts up the linter.
-    for file in files_data:
-        path = collection_dir / file["name"]
-        is_dir = file["ftype"] == "dir"
-        okay: bool = True
-        if not await aiofiles.ospath.exists(path):
-            okay = allow_missing
-        elif is_dir:
-            okay = await aiofiles.ospath.isdir(path)
-        else:
-            okay = await verify_hash(path, file["chksum_sha256"], "sha256")
-        if not okay:
-            yield file["name"]
 
 
 async def _extract_files_data(collection: StrPath) -> list[dict[str, Any]]:
@@ -105,19 +62,20 @@ async def _handle_collection(
     tag_data: CollectionTagData,
     artifact: Path,
     checkout: Path,
-    allow_missing: bool,
+    ignore_errors: Collection[FileError] | None,
 ) -> NormalizedCheckout:
     norm = await normalize_clone(collection, checkout, tag_data)
-    missing_files = [
-        f
-        async for f in verify_files(
-            collection,
-            checkout / norm.collection_subdir,
-            (await _extract_files_data(artifact)),
-            allow_missing=allow_missing,
-        )
-    ]
-    norm.errors.extend([f"{f} does not match" for f in missing_files])
+    norm.errors.extend(
+        [
+            output
+            async for output in verify_files(
+                collection,
+                checkout / norm.collection_subdir,
+                (await _extract_files_data(artifact)),
+                ignore_errors,
+            )
+        ]
+    )
     return norm
 
 
@@ -125,7 +83,7 @@ async def _handle_collections(
     tag_data: dict[CollectionName, CollectionTagData],
     artifacts: dict[CollectionName, str],
     checkouts: dict[CollectionName, Path],
-    allow_missing: bool = True,
+    ignore_errors: Collection[FileError] | None,
 ) -> list[NormalizedCheckout]:
     lib_ctx = app_context.lib_ctx.get()
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
@@ -136,7 +94,7 @@ async def _handle_collections(
                     tag_data[collection],
                     Path(artifacts[collection]),
                     checkouts[collection],
-                    allow_missing,
+                    ignore_errors,
                 )
             )
             for collection in tag_data
@@ -173,20 +131,27 @@ def verify_upstream_command() -> int:
 
 async def _verify_upstream_command() -> int:
     app_ctx = app_context.app_ctx.get()
+    tags_file: Path = app_ctx.extra["tags_file"]
+    globs: list[str] | None = app_ctx.extra["globs"]
+    download_dir: Path | None = app_ctx.extra["download_dir"]
+    checkouts_dir_: Path | None = app_ctx.extra["checkouts_dir"]
+    tree_dir: Path | None = app_ctx.extra["tree_dir"]
+    ignores: Collection[FileError] = app_ctx.extra["ignores"]
+    error_output: Path = app_ctx.extra["error_output"]
+
     tags_data: dict[CollectionName, CollectionTagData] = make_collection_mapping(
-        load_yaml_file(app_ctx.extra["tags_file"])
+        load_yaml_file(tags_file)
     )
-    tags_data = filter_tag_data(tags_data, app_ctx.extra["globs"])
+    tags_data = filter_tag_data(tags_data, globs)
     versions = tag_data_as_version_mapping(tags_data)
-    async with atemp_or_dir(app_ctx.extra["download_dir"]) as download_dir:
+    async with atemp_or_dir(download_dir) as download_dir:
         artifacts_dir = download_dir / "collection_artifacts"
         artifacts_dir.mkdir(parents=True)
         checkouts_dir = Path(
-            (app_ctx.extra["checkouts_dir"] or (download_dir / "checkouts")),
+            (checkouts_dir_ or (download_dir / "checkouts")),
             "ansible_collections",
         )
         checkouts_dir.mkdir(parents=True)
-        tree_dir: Path | None = app_ctx.extra["tree_dir"]
         if tree_dir:
             tree_dir /= "ansible_collections"
             tree_dir.mkdir(parents=True)
@@ -202,7 +167,7 @@ async def _verify_upstream_command() -> int:
         checkouts = await _clone_collections(tags_data, checkouts_dir)
 
         normed_collections = await _handle_collections(
-            tags_data, artifacts, checkouts, app_ctx.extra["allow_missing"]
+            tags_data, artifacts, checkouts, ignores
         )
         error_blob = {
             "collections": {
@@ -212,18 +177,13 @@ async def _verify_upstream_command() -> int:
             }
         }
 
-        error_yaml = dump_yaml_str(error_blob, Dumper=_SafeDumper)
-        if app_ctx.extra["print_errors"]:
-            print(error_yaml)
-        error_output: Path | None = app_ctx.extra["error_output"]
-        if error_output:
-            error_output.write_text(error_yaml, "utf-8")
+        store_yaml_file(error_output, error_blob)
 
         if tree_dir:
             # Create symlinks to collections in checkouts_dir instead of
             # copying if checkouts_dir is explicitly passed by the user as
             # opposed to being a temporary download directory.
-            allow_symlink = bool(app_ctx.extra["checkouts_dir"])
+            allow_symlink = bool(checkouts_dir_)
             #
             await _symlink_tree(normed_collections, tree_dir, allow_symlink)
     return bool(error_blob)

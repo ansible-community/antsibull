@@ -42,6 +42,7 @@ from ..build_changelog import build_changelog  # noqa: E402
 from ..constants import MINIMUM_ANSIBLE_VERSION, SANITY_TESTS_DEFAULT  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..from_source import verify_upstream_command  # noqa: E402
+from ..from_source.verify import LENIENT_FILE_ERROR_IGNORES, FileError  # noqa: E402
 from ..new_ansible import new_ansible_command  # noqa: E402
 from ..sanity_tests import sanity_tests_command  # noqa: E402
 from ..tagging import validate_tags_command, validate_tags_file_command  # noqa: E402
@@ -67,6 +68,7 @@ ARGS_MAP = {
     "verify-upstreams": verify_upstream_command,
     "sanity-tests": sanity_tests_command,
 }
+DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL = "NONE"
 
 
 def _normalize_commands(
@@ -258,6 +260,18 @@ def _normalize_verify_upstream_options(args: argparse.Namespace) -> None:
             raise InvalidArgumentError(
                 "--tree-dir and --checkouts-dir must be unique values"
             )
+    for arg, value in {
+        "--tree-dir": args.tree_dir,
+        "--checkouts-dir": args.checkouts_dir,
+    }.items():
+        if not value:
+            continue
+        if (directory := value / "ansible_collections").exists():
+            raise InvalidArgumentError(f"{arg}: {directory} must not exist")
+    if DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL in (args.ignores or set()):
+        args.ignore = []
+    if args.ignores is None:
+        args.ignores = LENIENT_FILE_ERROR_IGNORES
 
 
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
@@ -592,25 +606,22 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         action="append",
         help="Only check collections that match the glob(s)",
     )
+    _choices = [v.name for v in FileError] + [DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL]
     verify_upstream_parser.add_argument(
-        "--allow-missing",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Whether to allow files to be present in the collection artifact"
-        " but not in the git repository."
-        " Default: %(default)s",
-    )
-    verify_upstream_parser.add_argument(
-        "--print-errors",
-        action=BooleanOptionalAction,
-        default=True,
-        help="Whether to print errors to stdout",
+        "-I",
+        "--ignore",
+        action="append",
+        dest="ignores",
+        type=FileError,
+        help=f"List of upstream verification errors to ignore. Choices: {_choices}."
+        f" Default: {[v.name for v in LENIENT_FILE_ERROR_IGNORES]}.",
     )
     verify_upstream_parser.add_argument(
         "-O",
         "--error-output",
         type=Path,
         help="Path to a file to output errors",
+        required=True,
     )
     verify_upstream_parser.add_argument(
         "--tree-dir",
