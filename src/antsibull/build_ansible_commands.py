@@ -513,7 +513,7 @@ def prepare_command() -> int:
         get_collection_and_core_versions(
             deps,
             ansible_core_version_obj,
-            app_ctx.galaxy_url,
+            str(app_ctx.galaxy_url),
             ansible_core_allow_prerelease=_is_alpha(app_ctx.extra["ansible_version"]),
             constraints=constraints,
         )
@@ -613,7 +613,7 @@ def rebuild_single_command() -> int:
         asyncio.run(
             download_collections(
                 included_versions,
-                app_ctx.galaxy_url,
+                str(app_ctx.galaxy_url),
                 download_dir,
                 app_ctx.collection_cache,
             )

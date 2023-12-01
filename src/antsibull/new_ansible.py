@@ -132,7 +132,7 @@ def new_ansible_command() -> int:
         os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["pieces_file"])
     )
     ansible_core_release_infos, dependencies = asyncio.run(
-        get_version_info(collections, app_ctx.pypi_url)
+        get_version_info(collections, str(app_ctx.pypi_url))
     )
     ansible_core_versions = [
         (PypiVer(version), data[0]["requires_python"])
