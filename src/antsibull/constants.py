@@ -32,3 +32,20 @@ SANITY_TESTS_DEFAULT: tuple[str, ...] = (
     "validate-modules",
     "yamllint",
 )
+SANITY_TESTS_BANNED_IGNORES = frozenset(
+    {
+        "validate-modules!skip",
+        "validate-modules:doc-choices-do-not-match-spec",
+        "validate-modules:doc-default-does-not-match-spec",
+        "validate-modules:doc-missing-type",
+        "validate-modules:doc-required-mismatch",
+        "validate-modules:mutually_exclusive-unknown",
+        "validate-modules:no-log-needed",
+        "validate-modules:nonexistent-parameter-documented",
+        "validate-modules:parameter-list-no-elements",
+        "validate-modules:parameter-type-not-in-doc",
+        # Don't enforce this for now. Modules may have private parameters that
+        # are only used by a corresponding action plugin.
+        # "validate-modules:undocumented-parameter",
+    }
+)

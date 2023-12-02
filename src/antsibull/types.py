@@ -9,7 +9,9 @@ Types used in the antsibull codebase
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Callable
+from functools import partial
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import yaml
@@ -76,7 +78,11 @@ class CollectionName(str):
         return hash(type(self)) + super().__hash__()
 
 
-def add_string_yaml_type(typ: type[_T], converter: Callable[[_T], str] = str) -> None:
+def add_yaml_type(
+    typ: type[_T],
+    converter: Callable[[_T], Any] = str,
+    representer_parent: Callable = yaml.representer.SafeRepresenter.represent_str,
+) -> None:
     """
     Add a type to the YAML serializer. Defaults to serializing as a string.
     """
@@ -89,13 +95,22 @@ def add_string_yaml_type(typ: type[_T], converter: Callable[[_T], str] = str) ->
         dumpers.append(cdumper)
 
     def representer(rep: Any, obj: Any) -> Any:
-        return yaml.representer.SafeRepresenter.represent_str(rep, converter(obj))
+        return representer_parent(rep, converter(obj))
 
     for dumper in dumpers:
         dumper.add_representer(typ, representer)
 
 
-add_string_yaml_type(CollectionName)
+add_dataclass_yaml_type = partial(
+    add_yaml_type,
+    converter=dataclasses.asdict,
+    representer_parent=lambda dumper, data: yaml.representer.SafeRepresenter.represent_mapping(
+        dumper, "tag:yaml.org,2002:map", data
+    ),
+)
+
+
+add_yaml_type(CollectionName)
 
 
 def make_collection_mapping(mapping: dict[str, _T]) -> dict[CollectionName, _T]:

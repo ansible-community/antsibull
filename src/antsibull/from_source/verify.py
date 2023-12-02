@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, TypedDict
 import aiofiles.ospath
 from antsibull_core.utils.hashing import verify_hash
 
-from antsibull.types import add_string_yaml_type
+from antsibull.types import add_yaml_type
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired
@@ -44,7 +44,7 @@ class FileError(str, Enum):
 LENIENT_FILE_ERROR_IGNORES = frozenset({FileError.MISSING_FILE})
 
 
-add_string_yaml_type(FileError)
+add_yaml_type(FileError)
 
 
 class FileErrorOutput(TypedDict):
