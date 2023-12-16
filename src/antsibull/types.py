@@ -118,3 +118,11 @@ def make_collection_mapping(mapping: dict[str, _T]) -> dict[CollectionName, _T]:
     Convert `str` keys in a mapping to `CollectionName` objects
     """
     return {CollectionName(collection): value for collection, value in mapping.items()}
+
+
+__all__ = (
+    "CollectionName",
+    "add_yaml_type",
+    "add_dataclass_yaml_type",
+    "make_collection_mapping",
+)
