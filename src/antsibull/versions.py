@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import sys
 import typing as t
 from collections.abc import Mapping, Sequence
 
@@ -297,6 +298,14 @@ def find_latest_compatible(
     version_specs: Mapping[str, str] | None = None,
     constraints: Mapping[str, SemVerSpec] | None = None,
 ) -> dict[str, SemVer]:
+    """
+    Finds the latest compatible version of every collection from ``collections_to_versions``
+    that matches the given ``vresion_specs`` and ``constraints``.
+
+    ``pre`` and ``prefer_pre`` control whether pre-releases are acceptable (``pre=True``),
+    and in case both matching pre-releases and releases are found, which ones to prefer
+    (``prefer_pre=True`` prefers pre-releases over regular releases).
+    """
     # Note: ansible-core compatibility is not currently implemented.  It will be a piece of
     # collection metadata that is present in the collection but may not be present in Galaxy.
     # We'll have to figure that out once the pieces are finalized
