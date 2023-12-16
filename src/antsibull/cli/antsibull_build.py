@@ -599,6 +599,8 @@ def run(args: list[str]) -> int:
 
     context_data = app_context.create_contexts(args=parsed_args, cfg=cfg)
     with app_context.app_and_lib_context(context_data) as (app_ctx, dummy_):
+        # TODO: Call `model_dump()` instead of deprecated `dict()`
+        # once support for pydantic v1/antsibull-core v2 is dropped
         twiggy.dict_config(app_ctx.logging_cfg.dict())
         flog.debug("Set logging config")
 
