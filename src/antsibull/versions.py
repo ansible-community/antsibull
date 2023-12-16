@@ -154,7 +154,7 @@ def load_constraints_if_exists(filename: str) -> dict[str, SemVerSpec]:
 
 
 def _display_exception(loop, context):  # pylint:disable=unused-argument
-    print(context.get("exception"))
+    print(context.get("exception"), file=sys.stderr)
 
 
 async def get_version_info(
@@ -169,24 +169,24 @@ async def get_version_info(
     loop.set_exception_handler(_display_exception)
 
     requestors = {}
-    async with aiohttp.ClientSession() as aio_session:
-        lib_ctx = app_context.lib_ctx.get()
-        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            pypi_client = AnsibleCorePyPiClient(
-                aio_session, pypi_server_url=pypi_server_url
-            )
-            requestors["_ansible_core"] = await pool.spawn(
-                pypi_client.get_release_info()
+    lib_ctx = app_context.lib_ctx.get()
+    async with (
+        aiohttp.ClientSession() as aio_session,
+        asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool,
+    ):
+        pypi_client = AnsibleCorePyPiClient(
+            aio_session, pypi_server_url=pypi_server_url
+        )
+        requestors["_ansible_core"] = await pool.spawn(pypi_client.get_release_info())
+
+        galaxy_client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
+        for collection in collections:
+            requestors[collection] = await pool.spawn(
+                galaxy_client.get_versions(collection)
             )
 
-            galaxy_client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
-            for collection in collections:
-                requestors[collection] = await pool.spawn(
-                    galaxy_client.get_versions(collection)
-                )
-
-            collections_to_versions = {}
-            responses = await asyncio.gather(*requestors.values())
+        collections_to_versions = {}
+        responses = await asyncio.gather(*requestors.values())
 
     ansible_core_release_infos: dict[str, t.Any] | None = None
     for idx, collection_name in enumerate(requestors):
@@ -236,7 +236,7 @@ def get_latest_collection_version(
     """
     Get the latest version of a collection that matches a specification.
 
-    :arg versions:
+    :arg versions: Sequence of collection versions
     :arg collection: Namespace.collection identifying a collection.
     :arg version_spec: Optional string specifying the allowable versions.
     :kwarg pre: If ``True``, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
