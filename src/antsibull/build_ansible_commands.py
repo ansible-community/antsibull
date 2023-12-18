@@ -19,20 +19,15 @@ from typing import TYPE_CHECKING
 import aiohttp
 import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
-from antsibull_core.ansible_core import (
-    AnsibleCorePyPiClient,
-    get_ansible_core,
-    get_ansible_core_package_name,
-)
+from antsibull_core.ansible_core import get_ansible_core, get_ansible_core_package_name
 from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
-from antsibull_core.galaxy import CollectionDownloader, GalaxyClient
+from antsibull_core.galaxy import CollectionDownloader
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import async_log_run, log_run
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 from jinja2 import Template
 from packaging.version import Version as PypiVer
-from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
 
 from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
@@ -44,7 +39,13 @@ from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
 from .tagging import get_collections_tags
 from .utils.get_pkg_data import get_antsibull_data
-from .versions import feature_freeze_version, load_constraints_if_exists
+from .versions import (
+    feature_freeze_version,
+    find_latest_compatible,
+    get_latest_ansible_core_version,
+    get_version_info,
+    load_constraints_if_exists,
+)
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -62,141 +63,6 @@ TAG_FILE_MESSAGE = """\
 #
 # Common code
 #
-
-
-async def get_latest_ansible_core_version(
-    ansible_core_version: PypiVer, client: AnsibleCorePyPiClient, pre: bool = False
-) -> PypiVer | None:
-    """
-    Retrieve the latest ansible-core bugfix release's version for the given ansible-core version.
-
-    :arg ansible_core_version: The ansible-core version.
-    :arg client: A AnsibleCorePyPiClient instance.
-    """
-    all_versions = await client.get_versions()
-    next_version = PypiVer(
-        f"{ansible_core_version.major}.{ansible_core_version.minor + 1}a"
-    )
-    newer_versions = [
-        version
-        for version in all_versions
-        if ansible_core_version <= version < next_version
-        and (pre or not version.is_prerelease)
-    ]
-    return max(newer_versions) if newer_versions else None
-
-
-async def get_latest_collection_version(
-    client: GalaxyClient,
-    collection: str,
-    version_spec: str,
-    pre: bool = False,
-    constraint: SemVerSpec | None = None,
-) -> SemVer:
-    """
-    Get the latest version of a collection that matches a specification.
-
-    :arg collection: Namespace.collection identifying a collection.
-    :arg version_spec: String specifying the allowable versions.
-    :kwarg pre: If True, allow prereleases (versions which have the form X.Y.Z.SOMETHING).
-        This is **not** for excluding 0.Y.Z versions.  non-pre-releases are still
-        preferred over pre-releases (for instance, with version_spec='>2.0.0-a1,<3.0.0'
-        and pre=True, if the available versions are 2.0.0-a1 and 2.0.0-a2, then 2.0.0-a2
-        will be returned.  If the available versions are 2.0.0 and 2.1.0-b2, 2.0.0 will be
-        returned since non-pre-releases are preferred.  The default is False
-    :kwarg constraint: If provided, only consider versions that match this specification.
-    :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
-        the specification.
-
-    .. seealso:: For the format of the version_spec, see the documentation
-        of :obj:`semantic_version.SimpleSpec`
-    """
-    versions = await client.get_versions(collection)
-    sem_versions = [SemVer(v) for v in versions]
-    sem_versions.sort(reverse=True)
-
-    spec = SemVerSpec(version_spec)
-    prereleases = []
-    for version in (v for v in sem_versions if v in spec):
-        # Ignore all versions that do not match the constraints
-        if constraint is not None and version not in constraint:
-            continue
-        # If this is a pre-release, first check if there's a non-pre-release that
-        # will satisfy the version_spec.
-        if version.prerelease:
-            prereleases.append(version)
-            continue
-        return version
-
-    # We did not find a stable version that satisies the version_spec.  If we
-    # allow prereleases, return the latest of those here.
-    if pre and prereleases:
-        return prereleases[0]
-
-    # No matching versions were found
-    constraint_clause = "" if constraint is None else f" (with constraint {constraint})"
-    raise ValueError(
-        f"{version_spec}{constraint_clause} did not match with any version of {collection}."
-    )
-
-
-async def get_collection_and_core_versions(
-    deps: Mapping[str, str],
-    ansible_core_version: PypiVer | None,
-    galaxy_url: str,
-    ansible_core_allow_prerelease: bool = False,
-    constraints: dict[str, SemVerSpec] | None = None,
-) -> tuple[dict[str, SemVer], PypiVer | None]:
-    """
-    Retrieve the latest version of each collection.
-
-    :arg deps: Mapping of collection name to a version specification.
-    :arg ansible_core_version: Optional ansible-core version. Will search for the latest bugfix
-        release.
-    :arg galaxy_url: The url for the galaxy server to use.
-    :arg ansible_core_allow_prerelease: Whether to allow prereleases for ansible-core
-    :returns: Tuple consisting of a dict mapping collection name to latest version, and of the
-        ansible-core version if it was provided.
-    """
-    constraints = constraints or {}
-
-    requestors = {}
-    async with aiohttp.ClientSession() as aio_session:
-        lib_ctx = app_context.lib_ctx.get()
-        async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
-            client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
-            for collection_name, version_spec in deps.items():
-                requestors[collection_name] = await pool.spawn(
-                    get_latest_collection_version(
-                        client,
-                        collection_name,
-                        version_spec,
-                        pre=True,
-                        constraint=constraints.get(collection_name),
-                    )
-                )
-            if ansible_core_version:
-                requestors["_ansible_core"] = await pool.spawn(
-                    get_latest_ansible_core_version(
-                        ansible_core_version,
-                        AnsibleCorePyPiClient(aio_session),
-                        pre=ansible_core_allow_prerelease,
-                    )
-                )
-
-            responses = await asyncio.gather(*requestors.values())
-
-    # Note: Python dicts have a stable sort order and since we haven't modified the dict since we
-    # used requestors.values() to generate responses, requestors and responses therefore have
-    # a matching order.
-    included_versions: dict[str, SemVer] = {}
-    for collection_name, version in zip(requestors, responses):
-        if collection_name == "_ansible_core":
-            ansible_core_version = version
-        else:
-            included_versions[collection_name] = version
-
-    return included_versions, ansible_core_version
 
 
 async def download_collections(
@@ -509,17 +375,30 @@ def prepare_command() -> int:
         for collection_name, spec in old_deps.items():
             deps[collection_name] = feature_freeze_version(spec, collection_name)
 
-    included_versions, new_ansible_core_version = asyncio.run(
-        get_collection_and_core_versions(
-            deps,
-            ansible_core_version_obj,
-            str(app_ctx.galaxy_url),
-            ansible_core_allow_prerelease=_is_alpha(app_ctx.extra["ansible_version"]),
-            constraints=constraints,
+    ansible_core_release_infos, collections_to_versions = asyncio.run(
+        get_version_info(
+            list(deps),
+            pypi_server_url=app_ctx.pypi_url,
+            galaxy_url=str(app_ctx.galaxy_url),
         )
+    )
+
+    new_ansible_core_version = get_latest_ansible_core_version(
+        list(ansible_core_release_infos),
+        ansible_core_version_obj,
+        pre=_is_alpha(app_ctx.extra["ansible_version"]),
     )
     if new_ansible_core_version:
         ansible_core_version_obj = new_ansible_core_version
+
+    included_versions = find_latest_compatible(
+        ansible_core_version_obj,
+        collections_to_versions,
+        version_specs=deps,
+        pre=True,
+        prefer_pre=False,
+        constraints=constraints,
+    )
 
     if not str(app_ctx.extra["ansible_version"]).startswith(build_ansible_version):
         print(
