@@ -247,7 +247,8 @@ def get_latest_collection_version(
         are 2.0.0-a1 and 2.0.0-a2, then 2.0.0-a2 will be returned.  If the available
         versions are 2.0.0 and 2.1.0-b2, 2.0.0 will be returned since non-pre-releases
         are preferred.) The default is ``False``.
-    :kwarg prefer_pre: If ``True``, prefer newer pre-releases over stable releases.
+    :kwarg prefer_pre: If ``True``, prefer newer pre-releases over stable releases. Is only
+        used when ``pre=True``.
     :kwarg constraint: If provided, only consider versions that match this specification.
     :returns: :obj:`semantic_version.Version` of the latest collection version that satisfied
         the specification.
