@@ -378,7 +378,7 @@ def prepare_command() -> int:
     ansible_core_release_infos, collections_to_versions = asyncio.run(
         get_version_info(
             list(deps),
-            pypi_server_url=app_ctx.pypi_url,
+            pypi_server_url=str(app_ctx.pypi_url),
             galaxy_url=str(app_ctx.galaxy_url),
         )
     )
