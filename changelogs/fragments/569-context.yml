@@ -1,0 +1,2 @@
+bugfixes:
+  - "Use certain fields from library context instead of app context that are deprecated in the app context and are removed from antsibull-core 3.0.0 (https://github.com/ansible-community/antsibull/pull/569)."

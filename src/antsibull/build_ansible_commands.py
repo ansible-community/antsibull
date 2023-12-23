@@ -354,6 +354,7 @@ def _extract_python_requires(
 
 def prepare_command() -> int:
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
 
     build_filename = os.path.join(
         app_ctx.extra["data_dir"], app_ctx.extra["build_file"]
@@ -378,8 +379,8 @@ def prepare_command() -> int:
     ansible_core_release_infos, collections_to_versions = asyncio.run(
         get_version_info(
             list(deps),
-            pypi_server_url=str(app_ctx.pypi_url),
-            galaxy_url=str(app_ctx.galaxy_url),
+            pypi_server_url=str(lib_ctx.pypi_url),
+            galaxy_url=str(lib_ctx.galaxy_url),
         )
     )
 
@@ -465,6 +466,7 @@ def prepare_command() -> int:
 
 def rebuild_single_command() -> int:
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
 
     deps_filename = os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
     deps_file = DepsFile(deps_filename)
@@ -492,9 +494,9 @@ def rebuild_single_command() -> int:
         asyncio.run(
             download_collections(
                 included_versions,
-                str(app_ctx.galaxy_url),
+                str(lib_ctx.galaxy_url),
                 download_dir,
-                app_ctx.collection_cache,
+                lib_ctx.collection_cache,
             )
         )
 
@@ -508,7 +510,7 @@ def rebuild_single_command() -> int:
             app_ctx.extra["ansible_version"],
             deps_dir=app_ctx.extra["data_dir"],
             deps_data=[dependency_data],
-            collection_cache=app_ctx.collection_cache,
+            collection_cache=lib_ctx.collection_cache,
             ansible_changelog=ansible_changelog,
         )
 
