@@ -24,11 +24,12 @@ from .versions import (
 
 def new_ansible_command() -> int:
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
     collections = parse_pieces_file(
         os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["pieces_file"])
     )
     ansible_core_release_infos, collections_to_versions = asyncio.run(
-        get_version_info(collections, str(app_ctx.pypi_url))
+        get_version_info(collections, str(lib_ctx.pypi_url))
     )
     ansible_core_versions = [
         (PypiVer(version), data[0]["requires_python"])

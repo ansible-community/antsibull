@@ -697,11 +697,12 @@ class ReleaseNotes:
 def build_changelog() -> int:
     """Create changelog and porting guide CLI command."""
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
 
     ansible_version: PypiVer = app_ctx.extra["ansible_version"]
     data_dir: str = app_ctx.extra["data_dir"]
     dest_data_dir: str = app_ctx.extra["dest_data_dir"]
-    collection_cache: str | None = app_ctx.collection_cache
+    collection_cache: str | None = lib_ctx.collection_cache
 
     changelog = get_changelog(
         ansible_version, deps_dir=data_dir, collection_cache=collection_cache
