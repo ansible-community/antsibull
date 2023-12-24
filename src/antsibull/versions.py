@@ -18,7 +18,7 @@ import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
 from antsibull_core.ansible_core import AnsibleCorePyPiClient
 from antsibull_core.dependency_files import parse_pieces_file
-from antsibull_core.galaxy import GalaxyClient
+from antsibull_core.galaxy import GalaxyClient, GalaxyContext
 from packaging.version import Version as PypiVer
 from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
@@ -161,7 +161,8 @@ def _display_exception(loop, context):  # pylint:disable=unused-argument
 async def get_version_info(
     collections: Sequence[str],
     pypi_server_url: str | None = None,
-    galaxy_url: str | None = None,
+    *,
+    galaxy_context: GalaxyContext,
 ) -> tuple[dict[str, t.Any], dict[str, list[str]]]:
     """
     Return the versions of all the collections and ansible-core
@@ -180,7 +181,7 @@ async def get_version_info(
         )
         requestors["_ansible_core"] = await pool.spawn(pypi_client.get_release_info())
 
-        galaxy_client = GalaxyClient(aio_session, galaxy_server=galaxy_url)
+        galaxy_client = GalaxyClient(aio_session, context=galaxy_context)
         for collection in collections:
             requestors[collection] = await pool.spawn(
                 galaxy_client.get_versions(collection)

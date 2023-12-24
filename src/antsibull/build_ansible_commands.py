@@ -22,7 +22,7 @@ from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core, get_ansible_core_package_name
 from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
-from antsibull_core.galaxy import CollectionDownloader
+from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import async_log_run, log_run
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
@@ -38,6 +38,7 @@ from .build_changelog import ReleaseNotes
 from .changelog import ChangelogData, get_changelog
 from .dep_closure import check_collection_dependencies
 from .tagging import get_collections_tags
+from .utils.galaxy import create_galaxy_context
 from .utils.get_pkg_data import get_antsibull_data
 from .versions import (
     feature_freeze_version,
@@ -67,8 +68,8 @@ TAG_FILE_MESSAGE = """\
 
 async def download_collections(
     versions: Mapping[str, SemVer],
-    galaxy_url: str,
     download_dir: str,
+    galaxy_context: GalaxyContext,
     collection_cache: str | None = None,
 ) -> None:
     requestors = {}
@@ -79,7 +80,7 @@ async def download_collections(
                 aio_session,
                 download_dir,
                 collection_cache=collection_cache,
-                galaxy_server=galaxy_url,
+                context=galaxy_context,
             )
             for collection_name, version in versions.items():
                 requestors[collection_name] = await pool.spawn(
@@ -376,11 +377,12 @@ def prepare_command() -> int:
         for collection_name, spec in old_deps.items():
             deps[collection_name] = feature_freeze_version(spec, collection_name)
 
+    galaxy_context = asyncio.run(create_galaxy_context())
     ansible_core_release_infos, collections_to_versions = asyncio.run(
         get_version_info(
             list(deps),
             pypi_server_url=str(lib_ctx.pypi_url),
-            galaxy_url=str(lib_ctx.galaxy_url),
+            galaxy_context=galaxy_context,
         )
     )
 
@@ -486,6 +488,8 @@ def rebuild_single_command() -> int:
         for collection, version in dependency_data.deps.items()
     }
 
+    galaxy_context = asyncio.run(create_galaxy_context())
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         download_dir = os.path.join(tmp_dir, "collections")
         os.mkdir(download_dir, mode=0o700)
@@ -494,9 +498,9 @@ def rebuild_single_command() -> int:
         asyncio.run(
             download_collections(
                 included_versions,
-                str(lib_ctx.galaxy_url),
-                download_dir,
-                lib_ctx.collection_cache,
+                download_dir=download_dir,
+                galaxy_context=galaxy_context,
+                collection_cache=lib_ctx.collection_cache,
             )
         )
 
@@ -512,6 +516,7 @@ def rebuild_single_command() -> int:
             deps_data=[dependency_data],
             collection_cache=lib_ctx.collection_cache,
             ansible_changelog=ansible_changelog,
+            galaxy_context=galaxy_context,
         )
 
         # Create package and collections directories

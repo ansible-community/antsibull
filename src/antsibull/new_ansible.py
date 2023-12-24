@@ -15,6 +15,7 @@ from antsibull_core.dependency_files import BuildFile, parse_pieces_file
 from packaging.version import Version as PypiVer
 
 from .changelog import ChangelogData
+from .utils.galaxy import create_galaxy_context
 from .versions import (
     find_latest_compatible,
     get_version_info,
@@ -28,8 +29,11 @@ def new_ansible_command() -> int:
     collections = parse_pieces_file(
         os.path.join(app_ctx.extra["data_dir"], app_ctx.extra["pieces_file"])
     )
+    galaxy_context = asyncio.run(create_galaxy_context())
     ansible_core_release_infos, collections_to_versions = asyncio.run(
-        get_version_info(collections, str(lib_ctx.pypi_url))
+        get_version_info(
+            collections, str(lib_ctx.pypi_url), galaxy_context=galaxy_context
+        )
     )
     ansible_core_versions = [
         (PypiVer(version), data[0]["requires_python"])

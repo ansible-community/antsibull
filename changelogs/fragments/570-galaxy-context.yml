@@ -1,0 +1,2 @@
+minor_changes:
+  - "Explicitly set up Galaxy context instead of relying on deprecated functionality from antsibull-core (https://github.com/ansible-community/antsibull/pull/570)."

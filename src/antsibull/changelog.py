@@ -27,7 +27,7 @@ from antsibull_changelog.utils import collect_versions
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
 from antsibull_core.dependency_files import DependencyFileData, DepsFile
-from antsibull_core.galaxy import CollectionDownloader
+from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
 from antsibull_core.yaml import load_yaml_bytes
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
@@ -329,13 +329,19 @@ async def collect_changelogs(
     collectors: list[CollectionChangelogCollector],
     core_collector: AnsibleCoreChangelogCollector,
     collection_cache: str | None,
+    galaxy_context: GalaxyContext | None = None,
 ):
     lib_ctx = app_context.lib_ctx.get()
     with tempfile.TemporaryDirectory() as tmp_dir:
         async with aiohttp.ClientSession() as aio_session:
+            if galaxy_context is None:
+                galaxy_context = await GalaxyContext.create(aio_session)
             async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
                 downloader = CollectionDownloader(
-                    aio_session, tmp_dir, collection_cache=collection_cache
+                    aio_session,
+                    tmp_dir,
+                    context=galaxy_context,
+                    collection_cache=collection_cache,
                 )
 
                 async def core_downloader(version):
@@ -482,6 +488,7 @@ def get_changelog(
     deps_data: list[DependencyFileData] | None = None,
     collection_cache: str | None = None,
     ansible_changelog: ChangelogData | None = None,
+    galaxy_context: GalaxyContext | None = None,
 ) -> Changelog:
     dependencies: dict[str, DependencyFileData] = {}
 
@@ -527,7 +534,9 @@ def get_changelog(
         )
         for collection in sorted(versions_per_collection.keys())
     ]
-    asyncio.run(collect_changelogs(collectors, core_collector, collection_cache))
+    asyncio.run(
+        collect_changelogs(collectors, core_collector, collection_cache, galaxy_context)
+    )
 
     changelog = []
 
