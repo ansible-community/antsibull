@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import os.path
 import typing as t
@@ -23,6 +24,7 @@ from packaging.version import Version as PypiVer
 
 from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
 from .collection_meta import CollectionsMetadata
+from .utils.galaxy import create_galaxy_context
 
 #
 # Changelog
@@ -704,8 +706,12 @@ def build_changelog() -> int:
     dest_data_dir: str = app_ctx.extra["dest_data_dir"]
     collection_cache: str | None = lib_ctx.collection_cache
 
+    galaxy_context = asyncio.run(create_galaxy_context())
     changelog = get_changelog(
-        ansible_version, deps_dir=data_dir, collection_cache=collection_cache
+        ansible_version,
+        galaxy_context=galaxy_context,
+        deps_dir=data_dir,
+        collection_cache=collection_cache,
     )
 
     release_notes = ReleaseNotes.build(changelog)
