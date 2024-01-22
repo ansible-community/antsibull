@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 import aiohttp
 import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
-from antsibull_core.ansible_core import get_ansible_core, get_ansible_core_package_name
+from antsibull_core.ansible_core import get_ansible_core
 from antsibull_core.collections import install_together
 from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
@@ -195,13 +195,14 @@ def write_python_build_files(
 
 
 def write_debian_directory(
-    ansible_version: PypiVer, ansible_core_version: PypiVer, package_dir: StrPath
+    ansible_version: PypiVer,
+    ansible_core_version: PypiVer,  # pylint: disable=unused-argument
+    package_dir: StrPath,
 ) -> None:
     debian_dir = os.path.join(package_dir, "debian")
     if not os.path.isdir(debian_dir):
         os.mkdir(debian_dir, mode=0o700)
     debian_files = ("changelog.j2", "control.j2", "copyright", "rules")
-    ansible_core_package_name = get_ansible_core_package_name(ansible_core_version)
     for filename in debian_files:
         # Don't use os.path.join here, the get_data docs say it should be
         # slash-separated.
@@ -216,7 +217,7 @@ def write_debian_directory(
             data = tmpl.render(
                 version=str(ansible_version),
                 date=datetime.datetime.utcnow().strftime("%a, %d %b %Y %T +0000"),
-                ansible_core_package_name=ansible_core_package_name,
+                ansible_core_package_name="ansible-core",
             )
 
         with open(os.path.join(debian_dir, filename), "w", encoding="utf-8") as f:

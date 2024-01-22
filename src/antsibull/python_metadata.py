@@ -19,7 +19,6 @@ from email.message import Message
 from pathlib import Path
 from typing import Any, Union
 
-from antsibull_core.ansible_core import get_ansible_core_package_name
 from antsibull_core.dependency_files import DependencyFileData
 from jinja2 import Template
 from packaging.version import Version as PypiVer
@@ -351,9 +350,7 @@ class LegacyBuildMetaMaker:
         setup_tmpl = Template(get_antsibull_data("ansible-setup_py.j2").decode("utf-8"))
         setup_contents = setup_tmpl.render(
             version=self.maker.ansible_version,
-            ansible_core_package_name=get_ansible_core_package_name(
-                self.maker.ansible_core_version
-            ),
+            ansible_core_package_name="ansible-core",
             ansible_core_version=self.maker.ansible_core_version,
             collection_deps="",
             # not PACKAGE_DATA_NEW_METHOD
