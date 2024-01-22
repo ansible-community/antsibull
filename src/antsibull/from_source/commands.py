@@ -131,6 +131,7 @@ def verify_upstream_command() -> int:
 
 async def _verify_upstream_command() -> int:
     app_ctx = app_context.app_ctx.get()
+    lib_ctx = app_context.lib_ctx.get()
     tags_file: Path = app_ctx.extra["tags_file"]
     globs: list[str] | None = app_ctx.extra["globs"]
     download_dir: Path | None = app_ctx.extra["download_dir"]
@@ -161,7 +162,7 @@ async def _verify_upstream_command() -> int:
                 versions,  # type: ignore[arg-type]
                 str(artifacts_dir),
                 await create_galaxy_context(),
-                app_ctx.collection_cache,
+                lib_ctx.collection_cache,
             )
         )
         checkouts = await _clone_collections(tags_data, checkouts_dir)
