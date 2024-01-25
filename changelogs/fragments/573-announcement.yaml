@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "Add new ``antsibull-build announcements`` command to generate release announcement text
+    (https://github.com/ansible-community/antsibull/pull/573)."

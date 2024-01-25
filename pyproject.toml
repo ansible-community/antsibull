@@ -36,6 +36,8 @@ dependencies = [
     "aiofiles",
     "aiohttp >= 3.0.0",
     "twiggy",
+    # We rely on deprecated features to maintain compat btw. pydantic v1 and v2
+    "pydantic < 3",
 ]
 
 [[project.authors]]
