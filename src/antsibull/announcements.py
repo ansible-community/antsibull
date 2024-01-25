@@ -97,7 +97,7 @@ def write_announcements(
     for name, template in announcements.items():
         output = jinja_env.get_template(template).render(**ctx)
         path = output_dir.joinpath(name)
-        path.write_text(output)
+        path.write_text(output + "\n")
         yield path
 
 
