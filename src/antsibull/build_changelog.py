@@ -191,9 +191,9 @@ def append_changelog_changes_ansible(
 
     release_entries = changelog.generator.collect(
         squash=True,
-        after_version=str(changelog_entry.prev_version)
-        if changelog_entry.prev_version
-        else None,
+        after_version=(
+            str(changelog_entry.prev_version) if changelog_entry.prev_version else None
+        ),
         until_version=changelog_entry.version_str,
     )
 

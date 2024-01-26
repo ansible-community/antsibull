@@ -73,7 +73,7 @@ codeqa = [
     "reuse",
 ]
 formatters = [
-    "black",
+    "black>=24",
     "isort",
 ]
 test = [

@@ -157,10 +157,14 @@ def generate_package_files(
         if force_generate_setup_cfg
         else contextlib.nullcontext()
     )
-    with cm, cm2, patch_object(
-        antsibull.build_ansible_commands,
-        "antsibull_version",
-        PLACEHOLDER_ANTSIBULL_VERSION,
+    with (
+        cm,
+        cm2,
+        patch_object(
+            antsibull.build_ansible_commands,
+            "antsibull_version",
+            PLACEHOLDER_ANTSIBULL_VERSION,
+        ),
     ):
         if r := antsibull_build.run(
             [
