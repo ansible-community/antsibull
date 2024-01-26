@@ -68,7 +68,7 @@ jobs:
           python-versions: "${{ matrix.python-versions }}"
       - name: "Run nox -e ${{ matrix.session }}"
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}"
+          OTHER_ANTSIBULL_MODE=git nox -e "${{ matrix.session }}"
       - name: Report coverage
         if: ${{ matrix.codecov }}
         run: |
