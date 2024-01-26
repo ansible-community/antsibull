@@ -106,12 +106,15 @@ def announcements_command() -> int:
     ansible_version: str = app_ctx.extra["ansible_version"]
     output_dir: Path = app_ctx.extra["output_dir"]
     dist_dir: Path | None = app_ctx.extra["dist_dir"]
+    send: bool = app_ctx.extra["send"]
 
     deps_filename = Path(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
     deps_file = DepsFile(deps_filename)
     dependency_data = deps_file.parse()
     return asyncio.run(
-        _announcements_command(ansible_version, output_dir, dist_dir, dependency_data)
+        _announcements_command(
+            ansible_version, output_dir, dist_dir, dependency_data, send
+        )
     )
 
 
@@ -177,6 +180,7 @@ async def _announcements_command(
     output_dir: Path,
     dist_dir: Path | None,
     dependency_data: DependencyFileData,
+    send: bool,
 ) -> int:
     if not (ctx := await get_data(ansible_version, dist_dir, dependency_data)):
         return 1
@@ -186,6 +190,8 @@ async def _announcements_command(
     info_path = output_dir / "announcements.json"
     write_announcements_json(data, info_path)
     print("Wrote:", info_path)
+    if send and (rc := _send_announcements_command(output_dir, set(ACTIONS), True)):
+        return rc
     return 0
 
 
@@ -284,6 +290,12 @@ def send_announcements_command() -> int:
     actions: set[str] = set(app_ctx.extra["send_actions"])
     clipboard: bool = app_ctx.extra["clipboard"]
 
+    return _send_announcements_command(announcements_dir, actions, clipboard)
+
+
+def _send_announcements_command(
+    announcements_dir: Path, actions: set[str], clipboard: bool
+) -> int:
     info = load_announcements_json(announcements_dir / "announcements.json")
     send_ctx = SendCtx(clipboard)
     # Loop over ACTIONS this way to make sure that order is preserved.

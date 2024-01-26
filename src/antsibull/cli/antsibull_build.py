@@ -718,6 +718,12 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         help="Directory containing dists to match against those uploaded to PyPI",
         type=Path,
     )
+    announcements_parser.add_argument(
+        "--send",
+        action="store_true",
+        help="Interactively send announcements using send-announcements command"
+        " (with default options) after generating them",
+    )
 
     send_announcements_parser = subparsers.add_parser(
         "send-announcements", description=send_announcements_command.__doc__
