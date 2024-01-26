@@ -262,9 +262,9 @@ class BuildMetaMaker:
                     f"ansible_collections.{collection}.docs.*",
                 )
             )
-            data = self["options.package_data"][
-                f"ansible_collections.{collection}"
-            ] = IniList()
+            data = self["options.package_data"][f"ansible_collections.{collection}"] = (
+                IniList()
+            )
 
             data.append("*")
             for directory in collection_directories[collection]:
@@ -284,9 +284,12 @@ class BuildMetaMaker:
         )
         self["metadata"].setdefault(
             "project_urls",
-            NEW_URLS
-            if self.ansible_version >= MINIMUM_ANSIBLE_VERSIONS["BUILD_META_NEW_URLS"]
-            else OLD_URLS,
+            (
+                NEW_URLS
+                if self.ansible_version
+                >= MINIMUM_ANSIBLE_VERSIONS["BUILD_META_NEW_URLS"]
+                else OLD_URLS
+            ),
         )
         self["options"].setdefault("install_requires", IniList()).append(
             f"ansible-core ~= {self.ansible_core_version}"
