@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from functools import lru_cache, partial
 from pathlib import Path
 from textwrap import dedent
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 from urllib.parse import quote as url_quote
 from urllib.parse import urlencode, urljoin
 
@@ -29,6 +29,7 @@ from antsibull_core import app_context
 from antsibull_core.dependency_files import DependencyFileData, DepsFile
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 from packaging.version import Version as PypiVer
+from typing_extensions import TypedDict
 
 from antsibull.constants import ANSIBLE_FORUM_URL, BUILD_DATA_URL
 from antsibull.pypi import PyPIClient, SdistAndWheelPair, UrlInfo
