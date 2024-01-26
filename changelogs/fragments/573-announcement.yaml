@@ -2,3 +2,6 @@
 minor_changes:
   - "Add new ``antsibull-build announcements`` command to generate release announcement text
     (https://github.com/ansible-community/antsibull/pull/573)."
+  - "Add new ``antsibull-build send-announcements`` command to interactively
+    send release announcements
+    (https://github.com/ansible-community/antsibull/pull/573)."

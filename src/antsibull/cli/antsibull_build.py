@@ -32,7 +32,11 @@ from antsibull_core.vendored._argparse_booleanoptionalaction import (  # noqa: E
     BooleanOptionalAction,
 )
 
-from ..announcements import announcements_command  # noqa: E402
+from ..announcements import ACTIONS as ALLOWED_SEND_ACTIONS  # noqa: E402
+from ..announcements import (  # noqa: E402
+    announcements_command,
+    send_announcements_command,
+)
 from ..build_ansible_commands import (  # noqa: E402
     build_single_command,
     generate_package_files_command,
@@ -69,8 +73,10 @@ ARGS_MAP = {
     "verify-upstreams": verify_upstream_command,
     "sanity-tests": sanity_tests_command,
     "announcements": announcements_command,
+    "send-announcements": send_announcements_command,
 }
 DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL = "NONE"
+DEFAULT_ANNOUNCEMENTS_DIR = Path("build/announce")
 
 
 def _normalize_commands(
@@ -87,6 +93,7 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
         "validate-tags-file",
         "verify-upstreams",
         "sanity-tests",
+        "send-announcements",
     ):
         return
 
@@ -286,6 +293,18 @@ def _normalize_announcements_options(args: argparse.Namespace) -> None:
         return
     directory: Path = args.output_dir
     directory.mkdir(parents=True, exist_ok=True)
+
+
+def _normalize_send_announcements_options(args: argparse.Namespace) -> None:
+    if args.command not in ("send-announcements",):
+        return
+    directory: Path = args.announcements_dir
+    if not args.announcements_dir / "announcements.json":
+        raise InvalidArgumentError(
+            f"'announcements.json' does not exist in directory {directory}!"
+        )
+    if args.send_actions is None:
+        args.send_actions = set(ALLOWED_SEND_ACTIONS)
 
 
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
@@ -692,12 +711,36 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         description=announcements_command.__doc__,
     )
     announcements_parser.add_argument(
-        "-O", "--output-dir", type=Path, default=Path("build/announce")
+        "-O", "--output-dir", type=Path, default=DEFAULT_ANNOUNCEMENTS_DIR
     )
     announcements_parser.add_argument(
         "--dist-dir",
         help="Directory containing dists to match against those uploaded to PyPI",
         type=Path,
+    )
+
+    send_announcements_parser = subparsers.add_parser(
+        "send-announcements", description=send_announcements_command.__doc__
+    )
+    send_announcements_parser.add_argument(
+        "--announcements-dir", type=Path, default=DEFAULT_ANNOUNCEMENTS_DIR
+    )
+    send_announcements_parser.add_argument(
+        "--clipboard",
+        default=True,
+        action=BooleanOptionalAction,
+        help="Whether to allow the command to write to the system clipboard."
+        " Default: %(default)s",
+    )
+    send_announcements_parser.add_argument(
+        "-A",
+        "--action",
+        action="append",
+        choices=list(ALLOWED_SEND_ACTIONS),
+        help="Which actions to perform."
+        " --action can be specified multiple times."
+        " Defaults to performing all actions.",
+        dest="send_actions",
     )
 
     parsed_args: argparse.Namespace = parser.parse_args(args)
@@ -715,6 +758,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_generate_package_files_options(parsed_args)
     _normalize_verify_upstream_options(parsed_args)
     _normalize_announcements_options(parsed_args)
+    _normalize_send_announcements_options(parsed_args)
 
     return parsed_args
 
