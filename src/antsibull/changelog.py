@@ -20,9 +20,12 @@ from collections import defaultdict
 
 import aiohttp
 import asyncio_pool  # type: ignore[import]
-from antsibull_changelog.changelog_generator import ChangelogGenerator
+from antsibull_changelog.changelog_generator import (
+    ChangelogGenerator as LegacyChangelogGenerator,
+)
 from antsibull_changelog.changes import ChangesData, add_release
 from antsibull_changelog.config import ChangelogConfig, CollectionDetails, PathsConfig
+from antsibull_changelog.rendering.changelog import ChangelogGenerator
 from antsibull_changelog.utils import collect_versions
 from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
@@ -43,6 +46,7 @@ class ChangelogData:
     paths: PathsConfig
     config: ChangelogConfig
     changes: ChangesData
+    legacy_generator: LegacyChangelogGenerator
     generator: ChangelogGenerator
     generator_flatmap: bool
 
@@ -57,6 +61,9 @@ class ChangelogData:
         self.config = config
         self.changes = changes
         self.generator_flatmap = flatmap
+        self.legacy_generator = LegacyChangelogGenerator(
+            self.config, self.changes, plugins=None, fragments=None, flatmap=flatmap
+        )
         self.generator = ChangelogGenerator(
             self.config, self.changes, plugins=None, fragments=None, flatmap=flatmap
         )
