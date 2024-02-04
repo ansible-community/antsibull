@@ -33,11 +33,14 @@ from antsibull_changelog.rendering.document import (
 )
 from antsibull_changelog.rendering.rst_document import RSTDocumentRenderer
 from antsibull_core import app_context
+from antsibull_core.logging import log
 from packaging.version import Version as PypiVer
 
 from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
 from .collection_meta import CollectionsMetadata
 from .utils.galaxy import create_galaxy_context
+
+mlog = log.fields(mod=__name__)
 
 
 class SectionAdder:
@@ -595,6 +598,8 @@ def append_changelog(
 
 
 def _compose_changelog(changelog: Changelog, text_format: TextFormat) -> str:
+    flog = mlog.fields(func="_compose_changelog")
+
     renderer = create_document_renderer(text_format)
     version = f"{changelog.ansible_version.major}"
     renderer.set_title(f"Ansible {version} Release Notes")
@@ -618,7 +623,10 @@ def _compose_changelog(changelog: Changelog, text_format: TextFormat) -> str:
             text_format=text_format,
         )
 
-    return renderer.render()
+    text = renderer.render()
+    for warning in renderer.get_warnings():
+        flog.warning(warning)
+    return text
 
 
 #
@@ -781,6 +789,8 @@ class ReleaseNotes:
 
     @staticmethod
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
+        flog = mlog.fields(func="ReleaseNotes._get_porting_guide_bytes")
+
         version = f"{changelog.ansible_version.major}"
         core_version_obj = changelog.core_collector.latest
         core_version = f"{core_version_obj.major}.{core_version_obj.minor}"
@@ -847,7 +857,11 @@ class ReleaseNotes:
             if not porting_guide_entry.is_ancestor:
                 append_porting_guide(document, porting_guide_entry)
 
-        return document.render().encode("utf-8")
+        text = document.render()
+        for warning in document.get_warnings():
+            flog.warning(warning)
+
+        return text.encode("utf-8")
 
     @classmethod
     def build(cls, changelog: Changelog) -> "ReleaseNotes":
