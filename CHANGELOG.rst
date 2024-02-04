@@ -4,7 +4,6 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
-
 v0.59.1
 =======
 
@@ -612,7 +611,6 @@ Release Summary
 * Fixes an incompatibility with antsibull-lint with Python 3.9.8.
 * Improves and extends the Ansible build role and its tests.
 
-
 v0.39.1
 =======
 
@@ -621,7 +619,6 @@ Release Summary
 
 * Fixes ``M(...)`` when used in HTML blobs.
 * Improve wait on HTTP retries.
-
 
 v0.39.0
 =======
@@ -636,7 +633,6 @@ Docs generation:
 * Add alternating background colors to option and return value tables
 
 Also improves the Ansible release playbook/role.
-
 
 v0.38.2
 =======
