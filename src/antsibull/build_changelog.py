@@ -17,9 +17,6 @@ from dataclasses import dataclass
 from antsibull_changelog.changelog_generator import (
     ChangelogEntry as ChangelogGeneratorEntry,
 )
-from antsibull_changelog.changelog_generator import (
-    ChangelogGenerator as LegacyChangelogGenerator,
-)
 from antsibull_changelog.config import DEFAULT_SECTIONS, TextFormat
 from antsibull_changelog.rendering.changelog import (
     ChangelogGenerator,
@@ -78,7 +75,6 @@ PluginDataT = t.List[
     t.Tuple[
         str,
         str,
-        LegacyChangelogGenerator,
         ChangelogGenerator,
         t.Optional[ChangelogGeneratorEntry],
     ]
@@ -263,7 +259,6 @@ def append_changelog_changes_collections(
                         (
                             collector.collection,
                             f"{collector.collection}.",
-                            changelog.legacy_generator,
                             changelog.generator,
                             optimize_release_entry(release_entries[0]),
                         )
@@ -318,7 +313,7 @@ def append_changelog_changes_ansible(
     if release_entry.empty:
         return []
 
-    return [("", "", changelog.legacy_generator, changelog.generator, release_entry)]
+    return [("", "", changelog.generator, release_entry)]
 
 
 def append_changelog_changes_core(
@@ -387,7 +382,6 @@ def append_changelog_changes_core(
             (
                 "Ansible-core",
                 "ansible.builtin.",
-                changelog.legacy_generator,
                 changelog.generator,
                 release_entry,
             )
@@ -443,7 +437,7 @@ def dump_items(renderer: AbstractRenderer, items: PluginDumpT) -> None:
 
 def add_plugins(renderer: AbstractRenderer, data: PluginDataT) -> None:
     plugins: PluginDumpT = []
-    for _, prefix, dummy, dummy2, release_entry in data:
+    for _, prefix, dummy, release_entry in data:
         if release_entry:
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
@@ -460,7 +454,7 @@ def add_plugins(renderer: AbstractRenderer, data: PluginDataT) -> None:
 
 def add_objects(renderer: AbstractRenderer, data: PluginDataT) -> None:
     objects: PluginDumpT = []
-    for _, prefix, dummy, dummy2, release_entry in data:
+    for _, prefix, dummy, release_entry in data:
         if release_entry:
             for object_type, object_datas in release_entry.objects.items():
                 for object_data in object_datas:
@@ -476,7 +470,7 @@ def add_objects(renderer: AbstractRenderer, data: PluginDataT) -> None:
 
 def add_modules(renderer: AbstractRenderer, data: PluginDataT) -> None:
     modules: PluginDumpT = []
-    for name, prefix, dummy, dummy2, release_entry in data:
+    for name, prefix, dummy, release_entry in data:
         if release_entry:
             for module in release_entry.modules:
                 namespace = module.get("namespace") or ""
@@ -569,7 +563,7 @@ def append_changelog(
     # Adds all changes
     for section_name, section_title in DEFAULT_SECTIONS:
         section_renderer = SectionAdder(section, section_title)
-        for name, dummy, dummy2, dummy3, release_entry in data:
+        for name, dummy, dummy2, release_entry in data:
             if not release_entry or release_entry.has_no_changes([section_name]):
                 continue
 
