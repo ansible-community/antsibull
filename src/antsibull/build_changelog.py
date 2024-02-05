@@ -818,7 +818,7 @@ class ReleaseNotes:
                 "\n"
                 f"We suggest you read this page along with the `Ansible {version} Changelog"
                 f" <https://github.com/ansible-community/ansible-build-data/blob/main/{version}/"
-                f"CHANGELOG-v{version}.rst>`_ to understand what updates you may need to make."
+                f"CHANGELOG-v{version}.md>`_ to understand what updates you may need to make."
                 "\n",
                 text_format=TextFormat.RESTRUCTURED_TEXT,
             )
@@ -838,7 +838,7 @@ class ReleaseNotes:
                 "\n\n"
                 f"We suggest you read this page along with the `Ansible {version} Changelog"
                 f" <https://github.com/ansible-community/ansible-build-data/blob/main/{version}/"
-                f"CHANGELOG-v{version}.rst>`_ to understand what updates you may need to make."
+                f"CHANGELOG-v{version}.md>`_ to understand what updates you may need to make."
                 "\n",
                 text_format=TextFormat.RESTRUCTURED_TEXT,
             )
