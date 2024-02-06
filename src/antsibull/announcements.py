@@ -68,6 +68,9 @@ jinja_env = Environment(
 def email_heading(content):
     """
     Given a string, convert it into an email heading
+
+    Args:
+        content: filter content
     """
     return content + "\n" + "-" * len(content)
 
@@ -120,6 +123,16 @@ def announcements_command() -> int:
 
 
 async def verify_dists(dists: SdistAndWheelPair, dist_dir: Path) -> str | None:
+    """
+    Verify an SdistAndWheelPair to ensure it matches files on the local filesystem
+
+    Args:
+        dists: `SdistAndWheelPair` object
+        dist_dir: Directory with appropriately named dist files to validate
+
+    Returns:
+        Returns an error message as a `str` or `None` if no errors were found
+    """
     for dist in dists:
         dist_path = dist_dir / dist.filename
         if not await asyncio.to_thread(dist_path.is_file):
@@ -132,6 +145,20 @@ async def verify_dists(dists: SdistAndWheelPair, dist_dir: Path) -> str | None:
 def write_announcements(
     announcements: dict[str, str], ctx: TemplateVars, output_dir: Path
 ) -> Iterator[Path]:
+    """
+    Write out announcement templates to `output_dir`
+
+    Args:
+        announcements:
+            Mapping of output filename to the filename of the Jinja2 template file
+        ctx:
+            A `TemplateVars` dictionary
+        output_dir:
+            Directory in which to output the template files
+
+    Yields:
+        `pathlib.Path` objects of the output files
+    """
     for name, template in announcements.items():
         output = jinja_env.get_template(template).render(**ctx)
         path = output_dir.joinpath(name)
@@ -142,6 +169,18 @@ def write_announcements(
 async def get_data(
     ansible_version: str, dist_dir: Path | None, dependency_data: DependencyFileData
 ) -> TemplateVars | None:
+    """
+    Retrieve package data from PyPI and return a `TemplateVars` dictionary
+
+    Args:
+        ansible_version:
+            Version of the `ansible` package to validate
+        dist_dir:
+            See `verify_dists()`. Set to `None` to disable validation of local
+            dist files.
+        dependency_data:
+            `DependencyFileData` object
+    """
     async with ClientSession() as aio_session:
         client = PyPIClient(aio_session)
         try:
@@ -197,6 +236,13 @@ async def _announcements_command(
 
 
 def write_announcements_json(info: AnnouncementsInfo, file: StrOrBytesPath) -> None:
+    """
+    Write the announcements.json data file to the filesystem
+
+    Args:
+        info: `AnnouncementsInfo` object
+        file: Output JSON filename
+    """
     with open(file, "w", encoding="utf-8") as fp:
         # pyre and pylint don't understand pydantic's __getattr__ magic
         # pyre-ignore[16] pylint: disable-next=no-member
@@ -204,6 +250,12 @@ def write_announcements_json(info: AnnouncementsInfo, file: StrOrBytesPath) -> N
 
 
 def load_announcements_json(file: StrOrBytesPath) -> AnnouncementsInfo:
+    """
+    Load the announcement.json data file as an AnnouncementsInfo object
+
+    Args:
+        file: JSON filename
+    """
     with open(file, "r", encoding="utf-8") as fp:
         data = json.load(fp)
     return AnnouncementsInfo(**data)
@@ -211,6 +263,13 @@ def load_announcements_json(file: StrOrBytesPath) -> AnnouncementsInfo:
 
 @lru_cache
 def get_body(directory: Path, name: str) -> str:
+    """
+    Memoized function to retrieve a text file named `name` from `directory`.
+
+    Args:
+        directory: directory in which the file resides
+        name: basename of the file
+    """
     return (directory / name).read_text()
 
 
@@ -219,6 +278,9 @@ def forum_announcement_webbrowser(
     info: AnnouncementsInfo,
     ctx: SendCtx,  # pylint: disable=unused-argument
 ) -> None:
+    """
+    Open a pre-filled Ansible Forum post in a browser
+    """
     subject = SUBJECT.format(info.template_vars["version"])
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict = FORUM_PARAMS | {"title": subject, "body": body}
@@ -232,6 +294,10 @@ def email_announcement_webbrowser(
     info: AnnouncementsInfo,
     ctx: SendCtx,  # pylint: disable=unused-argument
 ) -> None:
+    """
+    Construct a pre-filled mailto link with the appropriate subject, body,
+    and recipients and open it an a browser
+    """
     subject = SUBJECT.format(info.template_vars["version"])
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict: dict[str, str] = {"subject": subject, "body": body}
@@ -245,6 +311,9 @@ def matrix_announcement(
     info: AnnouncementsInfo,  # pylint: disable=unused-argument
     ctx: SendCtx,
 ) -> None:
+    """
+    Prompt user to send a Matrix release announcement
+    """
     body = get_body(directory, "ansible-matrix-announcement.md")
     try:
         forum_url = input("Enter the URL to the forum post: ")
@@ -278,6 +347,10 @@ ACTIONS: dict[str, Callable[[Path, AnnouncementsInfo, SendCtx], None]] = {
 
 @dataclass
 class SendCtx:
+    """
+    Context with options to be used by the `*_announcement_*` functions
+    """
+
     # Whether actions can write to the clipboard
     clipboard: bool
 
