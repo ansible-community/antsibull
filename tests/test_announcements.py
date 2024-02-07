@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 import filecmp
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -15,6 +17,9 @@ from antsibull.cli.antsibull_build import run
 ANNOUNCEMENT_TESTS = [
     ("7.4.0", "announce-7.4.0"),
 ]
+
+COLOR_BOLD = "\x1B[0;97m\x1B[1m"
+COLOR_NORMAL = "\x1B[0m"
 
 
 @pytest.mark.parametrize("version, directory", ANNOUNCEMENT_TESTS)
@@ -35,12 +40,43 @@ def test_announcements_command(
         ]
     )
     assert ret == 0
+
     expected = test_data_path / directory
+
     expected_files = set()
+    failures = False
     for file in expected.iterdir():
-        assert filecmp.cmp(file, result_path / file.name)
+        resulting_file = result_path / file.name
+        if not resulting_file.exists():
+            failures = True
+            print(
+                f"❌  {COLOR_BOLD}{file.name}{COLOR_NORMAL}: {resulting_file} does not exist",
+                file=sys.stderr,
+            )
+        elif not filecmp.cmp(file, resulting_file):
+            failures = True
+            print(
+                f"❌  {COLOR_BOLD}{file.name}{COLOR_NORMAL}: {resulting_file} does differ from {file}",
+                file=sys.stderr,
+            )
+            subprocess.call(
+                ["diff", "--unified", "--color=always", str(file), str(resulting_file)]
+            )
         expected_files.add(file.name)
     for file in result_path.iterdir():
-        assert (
-            file.name in expected_files
-        ), f"{file.name} should not have been generated"
+        if file.name not in expected_files:
+            failures = True
+            print(
+                f"❌  {COLOR_BOLD}{file.name}{COLOR_NORMAL} should not have been generated",
+                file=sys.stderr,
+            )
+
+    if failures:
+        print(
+            "⚠️  If you updated the announcement messages and the tests are now failing, "
+            f"you can run {COLOR_BOLD}cp {result_path}/* {expected}/{COLOR_NORMAL} to copy the generated files "
+            "to the test fixtures. Then you can use `git diff` to see the differences.",
+            file=sys.stderr,
+        )
+
+    assert not failures
