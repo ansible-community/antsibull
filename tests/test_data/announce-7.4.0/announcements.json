@@ -40,7 +40,9 @@
       "url": "https://files.pythonhosted.org/packages/0d/34/1b50f134f3136eeddf87f1b50253c1dece059407f5de57044963c82d07c0/ansible-7.4.0-py3-none-any.whl",
       "yanked": false,
       "yanked_reason": null
-    }
+    },
+    "is_major_release": false,
+    "is_prerelease": false
   },
   "outputs": [
     "ansible-email-announcement.txt",

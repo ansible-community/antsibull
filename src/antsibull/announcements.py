@@ -96,6 +96,8 @@ class TemplateVars(TypedDict):
     build_data_path: str
     release_tarball: UrlInfo
     release_wheel: UrlInfo
+    is_major_release: bool
+    is_prerelease: bool
 
 
 # pyre-ignore[13]: BaseModel initializes attributes when data is loaded
@@ -204,7 +206,8 @@ async def get_data(
             return None
 
         version = dependency_data.ansible_version
-        major_version = PypiVer(dependency_data.ansible_version).major
+        pypi_ver = PypiVer(dependency_data.ansible_version)
+        major_version = pypi_ver.major
         core_version = dependency_data.ansible_core_version
         core_version_obj = PypiVer(dependency_data.ansible_core_version)
         core_major_version = f"{core_version_obj.major}.{core_version_obj.minor}"
@@ -217,6 +220,8 @@ async def get_data(
             build_data_path=build_data_path,
             release_tarball=dists.sdist,
             release_wheel=dists.wheel,
+            is_major_release=pypi_ver.minor == 0 and pypi_ver.micro == 0,
+            is_prerelease=pypi_ver.pre is not None,
         )
         return ctx
 
