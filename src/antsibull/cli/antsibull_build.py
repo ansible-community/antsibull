@@ -32,6 +32,11 @@ from antsibull_core.vendored._argparse_booleanoptionalaction import (  # noqa: E
     BooleanOptionalAction,
 )
 
+from ..announcements import ACTIONS as ALLOWED_SEND_ACTIONS  # noqa: E402
+from ..announcements import (  # noqa: E402
+    announcements_command,
+    send_announcements_command,
+)
 from ..build_ansible_commands import (  # noqa: E402
     build_single_command,
     generate_package_files_command,
@@ -67,8 +72,11 @@ ARGS_MAP = {
     "generate-package-files": generate_package_files_command,
     "verify-upstreams": verify_upstream_command,
     "sanity-tests": sanity_tests_command,
+    "announcements": announcements_command,
+    "send-announcements": send_announcements_command,
 }
 DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL = "NONE"
+DEFAULT_ANNOUNCEMENTS_DIR = Path("build/announce")
 
 
 def _normalize_commands(
@@ -85,6 +93,7 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
         "validate-tags-file",
         "verify-upstreams",
         "sanity-tests",
+        "send-announcements",
     ):
         return
 
@@ -155,12 +164,14 @@ def _check_release_build_directories(args: argparse.Namespace) -> None:
             raise InvalidArgumentError(f"{args.sdist_src_dir} must not exist")
 
 
-def _normalize_release_build_options(args: argparse.Namespace) -> None:
+def _normalize_release_build_options(args: argparse.Namespace) -> None:  # noqa: C901
+    deps_file_only: tuple[str, ...] = ("announcements",)
     if args.command not in (
         "prepare",
         "single",
         "rebuild-single",
         "generate-package-files",
+        *deps_file_only,
     ):
         return
 
@@ -170,7 +181,7 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
         args.build_file = DEFAULT_FILE_BASE + f"-{compat_version_part}.build"
 
     build_filename = os.path.join(args.data_dir, args.build_file)
-    if not os.path.isfile(build_filename):
+    if args.command not in deps_file_only and not os.path.isfile(build_filename):
         raise InvalidArgumentError(
             f"The build file, {build_filename} must already exist."
             " It should contains one namespace.collection and range"
@@ -188,6 +199,9 @@ def _normalize_release_build_options(args: argparse.Namespace) -> None:
             basename = basename[: -len(version_suffix)]
 
         args.deps_file = f"{basename}-{args.ansible_version}.deps"
+
+    if args.command in deps_file_only:
+        return
 
     if args.tags_file:
         _check_tags_file(args)
@@ -272,6 +286,25 @@ def _normalize_verify_upstream_options(args: argparse.Namespace) -> None:
         args.ignore = []
     if args.ignores is None:
         args.ignores = LENIENT_FILE_ERROR_IGNORES
+
+
+def _normalize_announcements_options(args: argparse.Namespace) -> None:
+    if args.command not in ("announcements",):
+        return
+    directory: Path = args.output_dir
+    directory.mkdir(parents=True, exist_ok=True)
+
+
+def _normalize_send_announcements_options(args: argparse.Namespace) -> None:
+    if args.command not in ("send-announcements",):
+        return
+    directory: Path = args.announcements_dir
+    if not args.announcements_dir / "announcements.json":
+        raise InvalidArgumentError(
+            f"'announcements.json' does not exist in directory {directory}!"
+        )
+    if args.send_actions is None:
+        args.send_actions = set(ALLOWED_SEND_ACTIONS)
 
 
 def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
@@ -672,6 +705,50 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     )
     sanity_test_parser.add_argument("--ansible-test-bin", default="ansible-test")
 
+    announcements_parser = subparsers.add_parser(
+        "announcements",
+        parents=[build_parser, build_step_parser],
+        description=announcements_command.__doc__,
+    )
+    announcements_parser.add_argument(
+        "-O", "--output-dir", type=Path, default=DEFAULT_ANNOUNCEMENTS_DIR
+    )
+    announcements_parser.add_argument(
+        "--dist-dir",
+        help="Directory containing dists to match against those uploaded to PyPI",
+        type=Path,
+    )
+    announcements_parser.add_argument(
+        "--send",
+        action="store_true",
+        help="Interactively send announcements using send-announcements command"
+        " (with default options) after generating them",
+    )
+
+    send_announcements_parser = subparsers.add_parser(
+        "send-announcements", description=send_announcements_command.__doc__
+    )
+    send_announcements_parser.add_argument(
+        "--announcements-dir", type=Path, default=DEFAULT_ANNOUNCEMENTS_DIR
+    )
+    send_announcements_parser.add_argument(
+        "--clipboard",
+        default=True,
+        action=BooleanOptionalAction,
+        help="Whether to allow the command to write to the system clipboard."
+        " Default: %(default)s",
+    )
+    send_announcements_parser.add_argument(
+        "-A",
+        "--action",
+        action="append",
+        choices=list(ALLOWED_SEND_ACTIONS),
+        help="Which actions to perform."
+        " --action can be specified multiple times."
+        " Defaults to performing all actions.",
+        dest="send_actions",
+    )
+
     parsed_args: argparse.Namespace = parser.parse_args(args)
 
     # Validation and coercion
@@ -686,6 +763,8 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_validate_tags_file_options(parsed_args)
     _normalize_generate_package_files_options(parsed_args)
     _normalize_verify_upstream_options(parsed_args)
+    _normalize_announcements_options(parsed_args)
+    _normalize_send_announcements_options(parsed_args)
 
     return parsed_args
 

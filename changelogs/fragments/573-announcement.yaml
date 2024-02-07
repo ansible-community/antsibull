@@ -1,0 +1,9 @@
+---
+minor_changes:
+  - "Add new ``antsibull-build announcements`` command to generate release announcement text
+    (https://github.com/ansible-community/antsibull/pull/573)."
+  - "Add new ``antsibull-build send-announcements`` command to interactively
+    send release announcements.
+    Make sure to install ``pyperclip`` with ``pip install antsibull[clipboard]``
+    to fully take advantage of its functionality
+    (https://github.com/ansible-community/antsibull/pull/573)."

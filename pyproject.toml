@@ -36,6 +36,12 @@ dependencies = [
     "aiofiles",
     "aiohttp >= 3.0.0",
     "twiggy",
+    # We rely on deprecated features to maintain compat btw. pydantic v1 and v2
+    "pydantic < 3",
+    # pydantic already pulls it in, but we use it for TypedDict
+    "typing_extensions",
+    # Used for sending announcements
+    "pyperclip",
 ]
 
 [[project.authors]]
@@ -64,6 +70,15 @@ email = "maxwell@gtmx.me"
 antsibull-build = "antsibull.cli.antsibull_build:main"
 
 [project.optional-dependencies]
+# User-facing extras
+clipboard = [
+    "pyperclip",
+]
+all = [
+    "antsibull[clipboard]",
+]
+
+# Dev extras
 coverage = [
     "coverage[toml]",
 ]
@@ -100,6 +115,7 @@ dev = [
     "antsibull[test]",
     "antsibull[typing]",
     # misc
+    "antsibull[all]",
     "nox",
 ]
 
