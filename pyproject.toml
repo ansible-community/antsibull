@@ -75,7 +75,7 @@ clipboard = [
     "pyperclip",
 ]
 all = [
-    "antsibull[clipbaord]",
+    "antsibull[clipboard]",
 ]
 
 # Dev extras
