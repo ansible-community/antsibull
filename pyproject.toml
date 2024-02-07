@@ -70,6 +70,15 @@ email = "maxwell@gtmx.me"
 antsibull-build = "antsibull.cli.antsibull_build:main"
 
 [project.optional-dependencies]
+# User-facing extras
+clipboard = [
+    "pyperclip",
+]
+all = [
+    "antsibull[clipbaord]",
+]
+
+# Dev extras
 coverage = [
     "coverage[toml]",
 ]
@@ -106,6 +115,7 @@ dev = [
     "antsibull[test]",
     "antsibull[typing]",
     # misc
+    "antsibull[all]",
     "nox",
 ]
 

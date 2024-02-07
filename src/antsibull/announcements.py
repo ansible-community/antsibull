@@ -23,7 +23,6 @@ from urllib.parse import quote as url_quote
 from urllib.parse import urlencode, urljoin
 
 import pydantic.json
-import pyperclip  # type: ignore[import]
 from aiohttp import ClientResponseError, ClientSession
 from antsibull_core import app_context
 from antsibull_core.dependency_files import DependencyFileData, DepsFile
@@ -33,6 +32,13 @@ from typing_extensions import TypedDict
 
 from antsibull.constants import ANSIBLE_FORUM_URL, BUILD_DATA_URL
 from antsibull.pypi import PyPIClient, SdistAndWheelPair, UrlInfo
+
+try:
+    import pyperclip  # type: ignore[import]
+except ImportError:
+    HAS_PYPERCLIP = False
+else:
+    HAS_PYPERCLIP = True
 
 if TYPE_CHECKING:
     from _typeshed import StrOrBytesPath
@@ -364,6 +370,12 @@ def send_announcements_command() -> int:
     actions: set[str] = set(app_ctx.extra["send_actions"])
     clipboard: bool = app_ctx.extra["clipboard"]
 
+    if clipboard and not HAS_PYPERCLIP:
+        eprint(
+            "The pyperclip library is not installed."
+            " Install it with 'pip install antsibull[clipboard]' or use '--no-clipboard'."
+        )
+        return 1
     return _send_announcements_command(announcements_dir, actions, clipboard)
 
 
