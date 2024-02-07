@@ -40,8 +40,6 @@ dependencies = [
     "pydantic < 3",
     # pydantic already pulls it in, but we use it for TypedDict
     "typing_extensions",
-    # Used for sending announcements
-    "pyperclip",
 ]
 
 [[project.authors]]
