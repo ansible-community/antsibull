@@ -1,0 +1,51 @@
+{
+  "template_vars": {
+    "version": "7.0.0b1",
+    "major_version": 7,
+    "core_version": "2.14.0",
+    "core_major_version": "2.14",
+    "build_data_path": "https://github.com/ansible-community/ansible-build-data/blob/7.0.0b1/7",
+    "release_tarball": {
+      "comment_text": "",
+      "digests": {
+        "blake2b_256": "0bb3198b439cd7360c74bd91767e995e588ab0c4a65c17cd7bba340c3b0995b1",
+        "md5": "96c7dba562d369a766a71171705bd4ec",
+        "sha256": "f665e35f381f4e1cd600e2ad70d7a7bb3949340114030940460fc4e249f9b0e7"
+      },
+      "filename": "ansible-7.0.0b1.tar.gz",
+      "md5_digest": "96c7dba562d369a766a71171705bd4ec",
+      "packagetype": "sdist",
+      "python_version": "source",
+      "requires_python": ">=3.9",
+      "size": 35499454,
+      "upload_time": "2022-11-08T16:58:47",
+      "url": "https://files.pythonhosted.org/packages/0b/b3/198b439cd7360c74bd91767e995e588ab0c4a65c17cd7bba340c3b0995b1/ansible-7.0.0b1.tar.gz",
+      "yanked": false,
+      "yanked_reason": null
+    },
+    "release_wheel": {
+      "comment_text": "",
+      "digests": {
+        "blake2b_256": "bc85ade95555a7602c3a8d813d718ece7e91d61599f31d72ceda9c12b19a43a8",
+        "md5": "2be31cd9b9712437198766838ed14f36",
+        "sha256": "11f812a1c46a7ab4e298ceed25cc2c47d0ed23b6b972a9f6f3e2661b6d762f85"
+      },
+      "filename": "ansible-7.0.0b1-py3-none-any.whl",
+      "md5_digest": "2be31cd9b9712437198766838ed14f36",
+      "packagetype": "bdist_wheel",
+      "python_version": "py3",
+      "requires_python": ">=3.9",
+      "size": 41785200,
+      "upload_time": "2022-11-08T16:58:21",
+      "url": "https://files.pythonhosted.org/packages/bc/85/ade95555a7602c3a8d813d718ece7e91d61599f31d72ceda9c12b19a43a8/ansible-7.0.0b1-py3-none-any.whl",
+      "yanked": false,
+      "yanked_reason": null
+    },
+    "is_major_release": true,
+    "is_prerelease": true
+  },
+  "outputs": [
+    "ansible-email-announcement.txt",
+    "ansible-matrix-announcement.md"
+  ]
+}

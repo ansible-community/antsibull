@@ -15,6 +15,8 @@ import pytest
 from antsibull.cli.antsibull_build import run
 
 ANNOUNCEMENT_TESTS = [
+    ("7.0.0b1", "announce-7.0.0b1"),
+    ("7.0.0", "announce-7.0.0"),
     ("7.4.0", "announce-7.4.0"),
 ]
 

@@ -7,15 +7,15 @@
 #}
 Hello everyone,
 
-We're happy to announce the release of the Ansible {{ version }} package!
+We're happy to announce the release of the Ansible {{ version }} package{% if is_prerelease %} pre-release{% endif %}!
 
-Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.
+Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release %} This is a{% if is_prerelease %} pre-release for a{% endif %} major release of Ansible.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
 
 ansible-core is a required dependency, not contained within the ansible package. Pip install installs the dependency, but it can also be installed independently of the ansible package.
 
 {{ "How to get it" | email_heading }}
 
-This release is available on PyPI and can be installed with pip:
+This {% if is_prerelease %}pre-{% endif %}release is available on PyPI and can be installed with pip:
 
 ```
 python3 -m pip install ansible=={{ version }} --user

@@ -47,7 +47,10 @@ ANNOUNCEMENTS = {
     "ansible-email-announcement.txt": "ansible-email-announcement.j2",
     "ansible-matrix-announcement.md": "ansible-matrix-announcement.j2",
 }
-SUBJECT = "Release announcement: Ansible community package {}"
+SUBJECT = "Release announcement: Ansible community package {version}"
+SUBJECT_PRE_RELEASE = (
+    "Release announcement: Ansible community package {version} (Pre-Release)"
+)
 MAIL_RECIPIENTS = (
     "ansible-devel@googlegroups.com",
     "ansible-project@googlegroups.com",
@@ -284,6 +287,11 @@ def get_body(directory: Path, name: str) -> str:
     return (directory / name).read_text()
 
 
+def get_subject(info: AnnouncementsInfo) -> str:
+    template = SUBJECT_PRE_RELEASE if info.template_vars["is_prerelease"] else SUBJECT
+    return template.format(version=info.template_vars["version"])
+
+
 def forum_announcement_webbrowser(
     directory: Path,
     info: AnnouncementsInfo,
@@ -292,7 +300,7 @@ def forum_announcement_webbrowser(
     """
     Open a pre-filled Ansible Forum post in a browser
     """
-    subject = SUBJECT.format(info.template_vars["version"])
+    subject = get_subject(info)
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict = FORUM_PARAMS | {"title": subject, "body": body}
     params = "?" + urlencode(params_dict, quote_via=url_quote)
@@ -309,7 +317,7 @@ def email_announcement_webbrowser(
     Construct a pre-filled mailto link with the appropriate subject, body,
     and recipients and open it an a browser
     """
-    subject = SUBJECT.format(info.template_vars["version"])
+    subject = get_subject(info)
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict: dict[str, str] = {"subject": subject, "body": body}
     params = "?" + urlencode(params_dict, quote_via=url_quote)
