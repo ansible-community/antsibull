@@ -17,7 +17,7 @@ ansible-core is a required dependency, not contained within the ansible package.
 
 This {% if is_prerelease %}pre-{% endif %}release is available on PyPI and can be installed with pip:
 
-```
+```console
 python3 -m pip install ansible=={{ version }} --user
 ```
 
@@ -92,13 +92,13 @@ https://docs.ansible.com/ansible/devel/porting_guides/porting_guide_{{ major_ver
 
 Ansible {{ major_version }} depends on ansible-core {{ core_major_version }}. Depending on your needs, you can get collection updates as they ship in the Ansible "batteries included" package while continuing to use older versions of ansible-core.
 
-An ansible-galaxy requirements file based on the collections from Ansible {{ major_version }} has been made available for this use case:
+See the ansible-galaxy requirements file based on the collections from Ansible {{ major_version }} for this use case:
 
 {{ build_data_path }}/galaxy-requirements.yaml
 
-After you download the requirements file, the collections can be installed by running this command:
+After you download the requirements file, you can install the collections by running the following command:
 
-```
+```console
 ansible-galaxy collection install -r galaxy-requirements.yaml
 ```
 

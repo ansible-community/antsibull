@@ -10,7 +10,7 @@ How to get it
 
 This release is available on PyPI and can be installed with pip:
 
-```
+```console
 python3 -m pip install ansible==7.0.0 --user
 ```
 
@@ -89,13 +89,13 @@ Getting collection updates from Ansible 7 with older releases of ansible-core
 
 Ansible 7 depends on ansible-core 2.14. Depending on your needs, you can get collection updates as they ship in the Ansible "batteries included" package while continuing to use older versions of ansible-core.
 
-An ansible-galaxy requirements file based on the collections from Ansible 7 has been made available for this use case:
+See the ansible-galaxy requirements file based on the collections from Ansible 7 for this use case:
 
 https://github.com/ansible-community/ansible-build-data/blob/7.0.0/7/galaxy-requirements.yaml
 
-After you download the requirements file, the collections can be installed by running this command:
+After you download the requirements file, you can install the collections by running the following command:
 
-```
+```console
 ansible-galaxy collection install -r galaxy-requirements.yaml
 ```
 
