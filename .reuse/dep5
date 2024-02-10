@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
-Files: changelogs/fragments/* .git-blame-ignore-revs tests/test_data/package-files/* tests/test_data/announce-7.0.0/* tests/test_data/announce-7.0.0b1/* tests/test_data/announce-7.4.0/*
+Files: changelogs/fragments/* .git-blame-ignore-revs tests/test_data/package-files/* tests/test_data/announce-*/*
 Copyright: Ansible Project
 License: GPL-3.0-or-later

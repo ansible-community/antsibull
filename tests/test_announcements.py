@@ -58,7 +58,7 @@ def test_announcements_command(
         elif not filecmp.cmp(file, resulting_file):
             failures = True
             print(
-                f"❌  {COLOR_BOLD}{file.name}{COLOR_NORMAL}: {resulting_file} does differ from {file}",
+                f"❌  {COLOR_BOLD}{file.name}{COLOR_NORMAL}: {resulting_file} differs from {file}",
                 file=sys.stderr,
             )
             subprocess.call(

@@ -48,9 +48,7 @@ ANNOUNCEMENTS = {
     "ansible-matrix-announcement.md": "ansible-matrix-announcement.j2",
 }
 SUBJECT = "Release announcement: Ansible community package {version}"
-SUBJECT_PRE_RELEASE = (
-    "Release announcement: Ansible community package {version} (Pre-Release)"
-)
+SUBJECT_PRE_RELEASE = SUBJECT + " (Pre-Release)"
 MAIL_RECIPIENTS = (
     "ansible-devel@googlegroups.com",
     "ansible-project@googlegroups.com",
