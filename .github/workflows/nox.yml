@@ -79,3 +79,5 @@ jobs:
         with:
           directory: antsibull
           name: "${{ matrix.session }}"
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
