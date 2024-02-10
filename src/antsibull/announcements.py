@@ -207,8 +207,8 @@ async def get_data(
             return None
 
         version = dependency_data.ansible_version
-        pypi_ver = PypiVer(dependency_data.ansible_version)
-        major_version = pypi_ver.major
+        version_obj = PypiVer(version)
+        major_version = version_obj.major
         core_version = dependency_data.ansible_core_version
         core_version_obj = PypiVer(dependency_data.ansible_core_version)
         core_major_version = f"{core_version_obj.major}.{core_version_obj.minor}"
@@ -221,8 +221,8 @@ async def get_data(
             build_data_path=build_data_path,
             release_tarball=dists.sdist,
             release_wheel=dists.wheel,
-            is_major_release=pypi_ver.minor == 0 and pypi_ver.micro == 0,
-            is_prerelease=pypi_ver.pre is not None,
+            is_major_release=version_obj.minor == 0 and version_obj.micro == 0,
+            is_prerelease=version_obj.pre is not None,
         )
         return ctx
 
