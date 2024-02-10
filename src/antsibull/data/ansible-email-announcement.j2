@@ -9,7 +9,7 @@ Hello everyone,
 
 We're happy to announce the release of the Ansible {{ version }} package{% if is_prerelease %} pre-release{% endif %}!
 
-Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release %} This is a{% if is_prerelease %} pre-release for a{% endif %} major release of Ansible.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
+Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release and is_prerelease %} This is a pre-release of Ansible {{ major_version }}.{% elif is_major_release %} This is the first stable release of Ansible {{ major_version }}.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
 
 {{ "How to get it" | email_heading }}
 
@@ -66,7 +66,7 @@ The next release roadmap can be found at
 
 https://docs.ansible.com/ansible/devel/roadmap/ansible_roadmap_index.html
 
-The Ansible community package release schedule follows the Ansible Core release schedule, including (for example) delays for holidays. This means Ansible releases happen every four weeks through most of the year, but release dates may be delayed when Ansible Core releases are.
+The Ansible community package release schedule follows the Ansible Core release schedule, including, for example, delays for holidays. This means Ansible releases happen every four weeks through most of the year, but release dates may be delayed when Ansible Core releases are.
 
 Subscribe to the Bullhorn for all future release dates, announcements, and Ansible contributor community news.
 
@@ -76,7 +76,7 @@ You can find all past Bullhorn issues on the Ansible Community Forum at:
 
 https://forum.ansible.com/c/news/bullhorn/17
 
-Join our new Ansible Community Forum to follow along and participate in all the project and release related discussions and announcements. Feel free to share your thoughts, feedback, ideas and concerns there.
+Join the new Ansible Community Forum to follow along and participate in all the project and release related discussions and announcements. Feel free to share your thoughts, feedback, ideas and concerns there.
 
 Register here to join the Ansible Forum:
 
