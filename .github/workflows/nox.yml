@@ -75,7 +75,7 @@ jobs:
           nox -v -e coverage
       - name: Upload coverage
         if: ${{ matrix.codecov }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: antsibull
           name: "${{ matrix.session }}"
