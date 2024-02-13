@@ -70,13 +70,7 @@ class SectionAdder:
 
 CHANGELOG_FORMATS = [TextFormat.RESTRUCTURED_TEXT, TextFormat.MARKDOWN]
 
-PluginDataT = t.List[
-    t.Tuple[
-        str,
-        str,
-        t.Optional[ChangelogGeneratorEntry],
-    ]
-]
+PluginDataT = t.List[t.Tuple[str, str, t.Optional[ChangelogGeneratorEntry]]]
 
 
 def _cleanup_plugins(entries: list[t.Any]) -> list[t.Any]:
@@ -195,13 +189,14 @@ def render_table(
     cells: list[list[str]],
     text_format: TextFormat,
 ) -> None:
-    if text_format == TextFormat.RESTRUCTURED_TEXT:
-        renderer.add_text(render_rst_table(headings, cells), text_format=text_format)
-        return
-    if text_format == TextFormat.MARKDOWN:
-        renderer.add_text(render_md_table(headings, cells), text_format=text_format)
-        return
-    raise ValueError(f"Unknown format {text_format}")
+    table_renderers = {
+        TextFormat.RESTRUCTURED_TEXT: render_rst_table,
+        TextFormat.MARKDOWN: render_md_table,
+    }
+    table_renderer = table_renderers.get(text_format)
+    if table_renderer is None:
+        raise ValueError(f"Unknown format {text_format}")
+    renderer.add_text(table_renderer(headings, cells), text_format=text_format)
 
 
 def append_changelog_changes_collections(
