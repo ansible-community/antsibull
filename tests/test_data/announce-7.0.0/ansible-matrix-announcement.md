@@ -6,4 +6,4 @@
 python3 -m pip install ansible==7.0.0 --user
 ```
 
-➡️ Check [Release Notes📦️🗒️](https://github.com/ansible-community/ansible-build-data/blob/7.0.0/7/CHANGELOG-v7.rst) and [Ansible 7 Porting Guide](https://docs.ansible.com/ansible/devel/porting_guides/porting_guide_7.html) for more details!
+➡️ Check [Release Notes📦️🗒️](https://github.com/ansible-community/ansible-build-data/blob/7.0.0/7/CHANGELOG-v7.md) and [Ansible 7 Porting Guide](https://docs.ansible.com/ansible/devel/porting_guides/porting_guide_7.html) for more details!
