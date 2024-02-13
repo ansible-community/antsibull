@@ -5,17 +5,17 @@
 # GNU General Public License v3.0+
 # (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 #}
-Hello everyone
+Hello everyone,
 
-We're happy to announce the release of the Ansible {{ version }} package!
+We're happy to announce the release of the Ansible {{ version }} package{% if is_prerelease %} pre-release{% endif %}!
 
-Ansible {{ version }} includes ansible-core {{ core_version }} as well as a curated set of Ansible collections that provide a vast number of modules and plugins.
+Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release and is_prerelease %} This is a pre-release of Ansible {{ major_version }}.{% elif is_major_release %} This is the first stable release of Ansible {{ major_version }}.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
 
 {{ "How to get it" | email_heading }}
 
-This release is available on PyPI and can be installed with pip:
+This {% if is_prerelease %}pre-{% endif %}release is available on PyPI and can be installed with pip:
 
-```
+```console
 python3 -m pip install ansible=={{ version }} --user
 ```
 
@@ -40,6 +40,8 @@ SHA256:
 
 {{ "Some important details" | email_heading }}
 
+ansible-core is a separate package on which ansible depends. `pip install ansible` installs `ansible-core`, but it can also be installed independently of the ansible package.
+
 Collections that have opted to join the Ansible {{ major_version }} unified changelog will have an entry on this page:
 
 {{ build_data_path }}/CHANGELOG-v{{ major_version }}.md
@@ -52,7 +54,7 @@ or on the collection source repository. For example, the community.crypto collec
 
 https://docs.ansible.com/ansible/latest/collections/community/crypto/index.html
 
-and you can find a link to the source repository under the "Repository(Sources)" button.
+and you can find a link to the source repository under the “Repository (Sources)” button.
 
 The changelog for ansible-core {{ core_major_version }} installed by this release of Ansible {{ major_version }} can be found here:
 
@@ -64,7 +66,7 @@ The next release roadmap can be found at
 
 https://docs.ansible.com/ansible/devel/roadmap/ansible_roadmap_index.html
 
-From now on, the Ansible community package release schedule will follow the Ansible Core release schedule, including (for example) delays for holidays. This means Ansible releases happen every four weeks through most of the year, but release dates may be delayed when Ansible Core release is.
+The Ansible community package release schedule follows the Ansible Core release schedule, including, for example, delays for holidays. This means Ansible releases happen every four weeks through most of the year, but release dates may be delayed when Ansible Core releases are.
 
 Subscribe to the Bullhorn for all future release dates, announcements, and Ansible contributor community news.
 
@@ -88,15 +90,15 @@ https://docs.ansible.com/ansible/devel/porting_guides/porting_guide_{{ major_ver
 
 {{ ("Getting collection updates from Ansible " ~ major_version ~ " with older releases of ansible-core") | email_heading }}
 
-Ansible {{ major_version }} includes ansible-core {{ core_major_version }}. Depending on your needs, you can get collection updates as they ship in the Ansible "batteries included" package while continuing to use older versions of ansible-core.
+Ansible {{ major_version }} depends on ansible-core {{ core_major_version }}. Depending on your needs, you can get collection updates as they ship in the Ansible “batteries included” package while continuing to use older versions of ansible-core.
 
-An ansible-galaxy requirements file based on the collections from Ansible {{ major_version }} has been made available for this use case:
+See the ansible-galaxy requirements file based on the collections from Ansible {{ major_version }} for this use case:
 
 {{ build_data_path }}/galaxy-requirements.yaml
 
-After you download the requirements file, the collections can be installed by running this command:
+After you download the requirements file, you can install the collections by running the following command:
 
-```
+```console
 ansible-galaxy collection install -r galaxy-requirements.yaml
 ```
 

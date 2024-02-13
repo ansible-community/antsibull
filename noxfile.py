@@ -90,7 +90,6 @@ def test(session: nox.Session):
         "term-missing",
         *more_args,
         *session.posargs,
-        "tests",
         env={"COVERAGE_FILE": f"{covfile}", **session.env},
     )
 

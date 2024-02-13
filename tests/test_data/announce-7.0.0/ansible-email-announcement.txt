@@ -1,34 +1,34 @@
 Hello everyone,
 
-We're happy to announce the release of the Ansible 7.4.0 package!
+We're happy to announce the release of the Ansible 7.0.0 package!
 
-Ansible 7.4.0 depends on ansible-core 2.14.4 and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.
+Ansible 7.0.0 depends on ansible-core 2.14.0 and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles. This is the first stable release of Ansible 7.
 How to get it
 -------------
 
 This release is available on PyPI and can be installed with pip:
 
 ```console
-python3 -m pip install ansible==7.4.0 --user
+python3 -m pip install ansible==7.0.0 --user
 ```
 
 The sources for this release can be found here:
 
 Release tarball:
 
-https://files.pythonhosted.org/packages/45/4b/2087a0fe8265828df067e57d7d156426cdc8f7cd94ad3178c6510d81e2c0/ansible-7.4.0.tar.gz
+https://files.pythonhosted.org/packages/18/fd/963a3328d6f72e54d17dfbb40af6e9d6827333a5f1745c79c6d81b30dc85/ansible-7.0.0.tar.gz
 
 SHA256:
 
-0964d6ec7b363d2d559f245c39b01798c720a85b207672ec2c9d83cf61564b90
+73144e7e602715fab623005d2e71e503dddae86185e061fed861b2449c5618ea
 
 Wheel package:
 
-https://files.pythonhosted.org/packages/0d/34/1b50f134f3136eeddf87f1b50253c1dece059407f5de57044963c82d07c0/ansible-7.4.0-py3-none-any.whl
+https://files.pythonhosted.org/packages/f7/62/4b3ee9140dd95b49ae43a0321e2a517fd6101797e620bbed7095a3ecd46e/ansible-7.0.0-py3-none-any.whl
 
 SHA256:
 
-c9b5cae2ff8168b3dc859fff12275338cd7c84ef37f62889076f82846bb4beb5
+2e9f519441780595ab173ac017210efc94c58633c9bc6e55917745d214cb4332
 
 
 Some important details
@@ -38,7 +38,7 @@ ansible-core is a separate package on which ansible depends. `pip install ansibl
 
 Collections that have opted to join the Ansible 7 unified changelog will have an entry on this page:
 
-https://github.com/ansible-community/ansible-build-data/blob/7.4.0/7/CHANGELOG-v7.md
+https://github.com/ansible-community/ansible-build-data/blob/7.0.0/7/CHANGELOG-v7.md
 
 For collections which have not opted-in to the unified changelog, you may find more information on
 
@@ -54,7 +54,7 @@ The changelog for ansible-core 2.14 installed by this release of Ansible 7 can b
 
 https://github.com/ansible/ansible/blob/v2.14/changelogs/CHANGELOG-v2.14.rst
 
-What's the schedule for new Ansible releases after 7.4.0?
+What's the schedule for new Ansible releases after 7.0.0?
 ---------------------------------------------------------
 
 The next release roadmap can be found at
@@ -91,7 +91,7 @@ Ansible 7 depends on ansible-core 2.14. Depending on your needs, you can get col
 
 See the ansible-galaxy requirements file based on the collections from Ansible 7 for this use case:
 
-https://github.com/ansible-community/ansible-build-data/blob/7.4.0/7/galaxy-requirements.yaml
+https://github.com/ansible-community/ansible-build-data/blob/7.0.0/7/galaxy-requirements.yaml
 
 After you download the requirements file, you can install the collections by running the following command:
 

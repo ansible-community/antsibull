@@ -47,7 +47,8 @@ ANNOUNCEMENTS = {
     "ansible-email-announcement.txt": "ansible-email-announcement.j2",
     "ansible-matrix-announcement.md": "ansible-matrix-announcement.j2",
 }
-SUBJECT = "Release announcement: Ansible community package {}"
+SUBJECT = "Release announcement: Ansible community package {version}"
+SUBJECT_PRE_RELEASE = SUBJECT + " (Pre-Release)"
 MAIL_RECIPIENTS = (
     "ansible-devel@googlegroups.com",
     "ansible-project@googlegroups.com",
@@ -96,6 +97,8 @@ class TemplateVars(TypedDict):
     build_data_path: str
     release_tarball: UrlInfo
     release_wheel: UrlInfo
+    is_major_release: bool
+    is_prerelease: bool
 
 
 # pyre-ignore[13]: BaseModel initializes attributes when data is loaded
@@ -204,7 +207,8 @@ async def get_data(
             return None
 
         version = dependency_data.ansible_version
-        major_version = PypiVer(dependency_data.ansible_version).major
+        version_obj = PypiVer(version)
+        major_version = version_obj.major
         core_version = dependency_data.ansible_core_version
         core_version_obj = PypiVer(dependency_data.ansible_core_version)
         core_major_version = f"{core_version_obj.major}.{core_version_obj.minor}"
@@ -217,6 +221,8 @@ async def get_data(
             build_data_path=build_data_path,
             release_tarball=dists.sdist,
             release_wheel=dists.wheel,
+            is_major_release=version_obj.minor == 0 and version_obj.micro == 0,
+            is_prerelease=version_obj.pre is not None,
         )
         return ctx
 
@@ -279,6 +285,11 @@ def get_body(directory: Path, name: str) -> str:
     return (directory / name).read_text()
 
 
+def get_subject(info: AnnouncementsInfo) -> str:
+    template = SUBJECT_PRE_RELEASE if info.template_vars["is_prerelease"] else SUBJECT
+    return template.format(version=info.template_vars["version"])
+
+
 def forum_announcement_webbrowser(
     directory: Path,
     info: AnnouncementsInfo,
@@ -287,7 +298,7 @@ def forum_announcement_webbrowser(
     """
     Open a pre-filled Ansible Forum post in a browser
     """
-    subject = SUBJECT.format(info.template_vars["version"])
+    subject = get_subject(info)
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict = FORUM_PARAMS | {"title": subject, "body": body}
     params = "?" + urlencode(params_dict, quote_via=url_quote)
@@ -304,7 +315,7 @@ def email_announcement_webbrowser(
     Construct a pre-filled mailto link with the appropriate subject, body,
     and recipients and open it an a browser
     """
-    subject = SUBJECT.format(info.template_vars["version"])
+    subject = get_subject(info)
     body = get_body(directory, "ansible-email-announcement.txt")
     params_dict: dict[str, str] = {"subject": subject, "body": body}
     params = "?" + urlencode(params_dict, quote_via=url_quote)
