@@ -343,7 +343,8 @@ def bump(session: nox.Session):
                 f"Either {fragment_file} must already exist, "
                 "or two positional arguments must be provided."
             )
-    install(session, "antsibull-changelog[toml]", "hatch")
+    # Needs newer antsibull-changelog for hatch version auto-detection support
+    install(session, "antsibull-changelog[toml] >= 0.24.0", "hatch")
     session.run("hatch", "version", version)
     if len(session.posargs) > 1:
         fragment = session.run(
@@ -359,7 +360,7 @@ def bump(session: nox.Session):
             "git", "add", "src/antsibull/__init__.py", str(fragment_file), external=True
         )
         session.run("git", "commit", "-m", f"Prepare {version}.", external=True)
-    session.run("antsibull-changelog", "release", "--version", version)
+    session.run("antsibull-changelog", "release")
     session.run(
         "git",
         "add",
