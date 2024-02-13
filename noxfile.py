@@ -365,6 +365,7 @@ def bump(session: nox.Session):
         "git",
         "add",
         "CHANGELOG.rst",
+        "CHANGELOG.md",
         "changelogs/changelog.yaml",
         "changelogs/fragments/",
         # src/antsibull/__init__.py is not committed in the last step
