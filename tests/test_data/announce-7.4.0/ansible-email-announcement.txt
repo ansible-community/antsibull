@@ -34,7 +34,7 @@ c9b5cae2ff8168b3dc859fff12275338cd7c84ef37f62889076f82846bb4beb5
 Some important details
 ----------------------
 
-ansible-core is a required dependency, not contained within the ansible package. Pip install installs the dependency, but it can also be installed independently of the ansible package.
+ansible-core is a separate package on which ansible depends. `pip install ansible` installs `ansible-core`, but it can also be installed independently of the ansible package.
 
 Collections that have opted to join the Ansible 7 unified changelog will have an entry on this page:
 

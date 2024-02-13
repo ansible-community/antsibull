@@ -40,7 +40,7 @@ SHA256:
 
 {{ "Some important details" | email_heading }}
 
-ansible-core is a required dependency, not contained within the ansible package. Pip install installs the dependency, but it can also be installed independently of the ansible package.
+ansible-core is a separate package on which ansible depends. `pip install ansible` installs `ansible-core`, but it can also be installed independently of the ansible package.
 
 Collections that have opted to join the Ansible {{ major_version }} unified changelog will have an entry on this page:
 
