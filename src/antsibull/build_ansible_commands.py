@@ -139,8 +139,9 @@ def write_manifest(
         f.write("include README.rst\n")
         f.write("include build-ansible.sh\n")
         if release_notes:
-            f.write(f"include {release_notes.changelog_filename}\n")
-            f.write(f"include {release_notes.porting_guide_filename}\n")
+            for changelog in release_notes.changelogs:
+                f.write(f"include {changelog.filename}\n")
+            f.write(f"include {release_notes.porting_guide.filename}\n")
         if debian:
             f.write("include debian/*\n")
         if tags_file:

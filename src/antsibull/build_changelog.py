@@ -12,28 +12,65 @@ import asyncio
 import os
 import os.path
 import typing as t
+from dataclasses import dataclass
 
 from antsibull_changelog.changelog_generator import (
     ChangelogEntry as ChangelogGeneratorEntry,
 )
-from antsibull_changelog.changelog_generator import ChangelogGenerator
-from antsibull_changelog.config import DEFAULT_SECTIONS
-from antsibull_changelog.rst import RstBuilder
+from antsibull_changelog.config import DEFAULT_SECTIONS, TextFormat
+from antsibull_changelog.rendering.changelog import (
+    add_section_content,
+    create_document_renderer,
+)
+from antsibull_changelog.rendering.document import (
+    AbstractRenderer,
+    DocumentRenderer,
+    SectionRenderer,
+)
+from antsibull_changelog.rendering.rst_document import RSTDocumentRenderer
 from antsibull_core import app_context
+from antsibull_core.logging import log
 from packaging.version import Version as PypiVer
 
 from .changelog import Changelog, ChangelogData, ChangelogEntry, get_changelog
 from .collection_meta import CollectionsMetadata
 from .utils.galaxy import create_galaxy_context
 
+mlog = log.fields(mod=__name__)
+
+
+class SectionAdder:
+    parent: SectionAdder | AbstractRenderer
+    section_name: str
+    section: SectionRenderer | None
+
+    def __init__(self, parent: SectionAdder | AbstractRenderer, section_name: str):
+        self.parent = parent
+        self.section_name = section_name
+        self.section = None
+
+    def get_section(self) -> SectionRenderer:
+        if self.section is None:
+            parent: AbstractRenderer
+            if isinstance(self.parent, SectionAdder):
+                parent = self.parent.get_section()
+            else:
+                parent = t.cast(AbstractRenderer, self.parent)
+            self.section = parent.add_section(self.section_name)
+        return self.section
+
+    def close(self) -> None:
+        if self.section is not None:
+            self.section.close()
+
+
 #
 # Changelog
 #
 
+CHANGELOG_FORMATS = [TextFormat.RESTRUCTURED_TEXT, TextFormat.MARKDOWN]
 
-PluginDataT = t.List[
-    t.Tuple[str, str, ChangelogGenerator, t.Optional[ChangelogGeneratorEntry]]
-]
+PluginDataT = t.List[t.Tuple[str, str, t.Optional[ChangelogGeneratorEntry]]]
 
 
 def _cleanup_plugins(entries: list[t.Any]) -> list[t.Any]:
@@ -69,31 +106,43 @@ def optimize_release_entry(entry: ChangelogGeneratorEntry) -> ChangelogGenerator
     return entry
 
 
-def _add_rst_table_row(builder: RstBuilder, column_widths: list[int], row: list[str]):
-    lines = [[""] * len(column_widths)]
+def _add_table_row(
+    lines: list[str], column_widths: list[int], row: list[str], sep: str
+):
+    row_lines = [[""] * len(column_widths)]
     for i, value in enumerate(row):
         for j, line in enumerate(value.splitlines()):
-            if j >= len(lines):
-                lines.append([""] * len(column_widths))
-            lines[j][i] = line
-    for cells in lines:
-        parts = ["|"]
+            if j >= len(row_lines):
+                row_lines.append([""] * len(column_widths))
+            row_lines[j][i] = line
+    for cells in row_lines:
+        parts = [sep]
         for j, cell in enumerate(cells):
-            parts.append(" " + cell + " " * (1 + column_widths[j] - len(cell)) + "|")
-        builder.add_raw_rst("".join(parts))
+            parts.append(" ")
+            parts.append(cell)
+            parts.append(" " * (1 + column_widths[j] - len(cell)))
+            parts.append(sep)
+        lines.append("".join(parts))
 
 
-def _add_rst_table_line(builder: RstBuilder, column_widths: list[int], sep: str):
-    parts = ["+"]
+def _add_table_line(
+    lines: list[str],
+    column_widths: list[int],
+    start_sep: str,
+    mid_sep: str,
+    end_sep: str,
+    corner: str,
+):
+    parts = [corner]
     for w in column_widths:
-        parts.append(sep * (w + 2) + "+")
-    builder.add_raw_rst("".join(parts))
+        parts.append(start_sep)
+        parts.append(mid_sep * w)
+        parts.append(end_sep)
+        parts.append(corner)
+    lines.append("".join(parts))
 
 
-def render_rst_table(
-    builder: RstBuilder, headings: list[str], cells: list[list[str]]
-) -> None:
-    # Determine column widths
+def compute_column_widths(headings: list[str], cells: list[list[str]]) -> list[int]:
     column_widths: list[int] = []
     for row in [headings] + cells:
         while len(row) > len(column_widths):
@@ -101,32 +150,74 @@ def render_rst_table(
         for i, value in enumerate(row):
             for line in value.splitlines():
                 column_widths[i] = max(column_widths[i], len(line))
+    return column_widths
 
-    # Add rows
-    _add_rst_table_line(builder, column_widths, "-")
-    _add_rst_table_row(builder, column_widths, headings)
-    _add_rst_table_line(builder, column_widths, "=")
+
+def render_rst_table(headings: list[str], cells: list[list[str]]) -> str:
+    column_widths = compute_column_widths(headings, cells)
+    lines: list[str] = []
+    _add_table_line(lines, column_widths, "-", "-", "-", "+")
+    _add_table_row(lines, column_widths, headings, "|")
+    _add_table_line(lines, column_widths, "=", "=", "=", "+")
     for row in cells:
-        _add_rst_table_row(builder, column_widths, row)
-        _add_rst_table_line(builder, column_widths, "-")
+        _add_table_row(lines, column_widths, row, "|")
+        _add_table_line(lines, column_widths, "-", "-", "-", "+")
+    return "\n".join(lines)
+
+
+def render_md_table(headings: list[str], cells: list[list[str]]) -> str:
+    column_widths = compute_column_widths(headings, cells)
+    lines: list[str] = []
+    _add_table_row(lines, column_widths, headings, "|")
+    _add_table_line(lines, column_widths, " ", "-", " ", "|")
+    for row in cells:
+        _add_table_row(lines, column_widths, row, "|")
+    return "\n".join(lines)
+
+
+def format_link(title: str, url: str, text_format: TextFormat) -> str:
+    if text_format == TextFormat.RESTRUCTURED_TEXT:
+        return f"`{title} <{url}>`_"
+    if text_format == TextFormat.MARKDOWN:
+        return f"`[{title}]({url})"
+    raise ValueError(f"Unknown format {format}")
+
+
+def render_table(
+    renderer: AbstractRenderer,
+    headings: list[str],
+    cells: list[list[str]],
+    text_format: TextFormat,
+) -> None:
+    table_renderers = {
+        TextFormat.RESTRUCTURED_TEXT: render_rst_table,
+        TextFormat.MARKDOWN: render_md_table,
+    }
+    table_renderer = table_renderers.get(text_format)
+    if table_renderer is None:
+        raise ValueError(f"Unknown format {text_format}")
+    renderer.add_text(table_renderer(headings, cells), text_format=text_format)
 
 
 def append_changelog_changes_collections(
-    builder: RstBuilder,
+    renderer: AbstractRenderer,
     collection_metadata: CollectionsMetadata,
     changelog_entry: ChangelogEntry,
     is_last: bool,
+    text_format: TextFormat,
 ) -> PluginDataT:
     result: PluginDataT = []
 
     if changelog_entry.changed_collections:
-        builder.add_section(
-            "Included Collections" if is_last else "Changed Collections", 1
+        section = renderer.add_section(
+            "Included Collections" if is_last else "Changed Collections"
         )
-        builder.add_raw_rst(
+        section.add_text(
             "If not mentioned explicitly, the changes are reported in the combined changelog"
-            " below.\n"
+            " below.",
+            text_format=TextFormat.RESTRUCTURED_TEXT,
         )
+        section.ensure_paragraph_break()
         headings = [
             "Collection",
             f"Ansible {changelog_entry.prev_version}",
@@ -161,31 +252,32 @@ def append_changelog_changes_collections(
                         (
                             collector.collection,
                             f"{collector.collection}.",
-                            changelog.generator,
                             optimize_release_entry(release_entries[0]),
                         )
                     )
             else:
                 metadata = collection_metadata.get_meta(collector.collection)
                 if metadata.changelog_url is not None:
-                    row[-1] = (
-                        "You can find the collection's changelog at"
-                        f" `{metadata.changelog_url} <{metadata.changelog_url}>`_."
+                    link = format_link(
+                        metadata.changelog_url,
+                        metadata.changelog_url,
+                        text_format=text_format,
                     )
+                    row[-1] = f"You can find the collection's changelog at {link}."
                 else:
                     row[-1] = (
                         "Unfortunately, this collection does not provide changelog data in a"
                         " format that can be processed by the changelog generator."
                     )
             cells.append(row)
-        render_rst_table(builder, headings, cells)
-        builder.add_raw_rst("")
+        render_table(section, headings, cells, text_format)
+        section.close()
 
     return result
 
 
 def append_changelog_changes_ansible(
-    builder: RstBuilder, changelog_entry: ChangelogEntry
+    renderer: AbstractRenderer, changelog_entry: ChangelogEntry
 ) -> PluginDataT:
     changelog = changelog_entry.ansible_changelog
 
@@ -204,64 +296,89 @@ def append_changelog_changes_ansible(
 
     release_summary = release_entry.changes.pop("release_summary", None)
     if release_summary:
-        builder.add_section("Release Summary", 1)
-        builder.add_raw_rst(t.cast(str, release_summary))
-        builder.add_raw_rst("")
+        section = renderer.add_section("Release Summary")
+        section.add_text(
+            t.cast(str, release_summary), text_format=TextFormat.RESTRUCTURED_TEXT
+        )
+        section.close()
 
     if release_entry.empty:
         return []
 
-    return [("", "", changelog.generator, release_entry)]
+    return [("", "", release_entry)]
 
 
 def append_changelog_changes_core(
-    builder: RstBuilder, changelog_entry: ChangelogEntry
+    renderer: AbstractRenderer, changelog_entry: ChangelogEntry
 ) -> PluginDataT:
-    builder.add_section("Ansible-core", 1)
+    section = renderer.add_section("Ansible-core")
+    try:
+        section.add_text(
+            f"Ansible {changelog_entry.version} contains ansible-core "
+            f"version {changelog_entry.ansible_core_version}.",
+            text_format=TextFormat.RESTRUCTURED_TEXT,
+        )
+        if changelog_entry.prev_ansible_core_version:
+            if (
+                changelog_entry.prev_ansible_core_version
+                == changelog_entry.ansible_core_version
+            ):
+                section.add_text(
+                    "This is the same version of ansible-core as in "
+                    "the previous Ansible release.",
+                    text_format=TextFormat.RESTRUCTURED_TEXT,
+                )
+                return []
 
-    builder.add_raw_rst(
-        f"Ansible {changelog_entry.version} contains ansible-core "
-        f"version {changelog_entry.ansible_core_version}."
-    )
-    if changelog_entry.prev_ansible_core_version:
-        if (
-            changelog_entry.prev_ansible_core_version
-            == changelog_entry.ansible_core_version
-        ):
-            builder.add_raw_rst(
-                "This is the same version of ansible-core as in "
-                "the previous Ansible release.\n"
+            section.add_text(
+                f"This is a newer version than version "
+                f"{changelog_entry.prev_ansible_core_version} contained in the "
+                f"previous Ansible release.",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
+            )
+
+        changelog = changelog_entry.core_collector.changelog
+        if not changelog:
+            return []
+
+        section.ensure_paragraph_break()
+
+        release_entries = changelog.generator.collect(
+            squash=True,
+            after_version=changelog_entry.prev_ansible_core_version,
+            until_version=changelog_entry.ansible_core_version,
+        )
+
+        if not release_entries:
+            section.add_text(
+                "Ansible-core did not have a changelog in this version.",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
             return []
 
-        builder.add_raw_rst(
-            f"This is a newer version than version "
-            f"{changelog_entry.prev_ansible_core_version} contained in the "
-            f"previous Ansible release.\n"
+        release_entry = release_entries[0]
+
+        if release_entry.empty:
+            section.add_text(
+                "There are no changes recorded in the changelog.",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
+            )
+            return []
+
+        section.add_text(
+            "The changes are reported in the combined changelog below.",
+            text_format=TextFormat.RESTRUCTURED_TEXT,
         )
 
-    changelog = changelog_entry.core_collector.changelog
-    if not changelog:
-        return []
-
-    release_entries = changelog.generator.collect(
-        squash=True,
-        after_version=changelog_entry.prev_ansible_core_version,
-        until_version=changelog_entry.ansible_core_version,
-    )
-
-    if not release_entries:
-        builder.add_raw_rst("Ansible-core did not have a changelog in this version.")
-        return []
-
-    release_entry = release_entries[0]
-
-    if release_entry.empty:
-        builder.add_raw_rst("There are no changes recorded in the changelog.")
-        return []
-
-    builder.add_raw_rst("The changes are reported in the combined changelog below.")
-    return [("Ansible-core", "ansible.builtin.", changelog.generator, release_entry)]
+        return [
+            (
+                "Ansible-core",
+                "ansible.builtin.",
+                release_entry,
+            )
+        ]
+    finally:
+        section.close()
 
 
 def common_start(a: list[t.Any], b: list[t.Any]) -> int:
@@ -279,24 +396,39 @@ def common_start(a: list[t.Any], b: list[t.Any]) -> int:
 PluginDumpT = t.List[t.Tuple[t.List[str], str, str]]
 
 
-def dump_items(builder: RstBuilder, items: PluginDumpT) -> None:
+def _get_last_renderer(
+    sections: list[SectionRenderer], renderer: AbstractRenderer
+) -> AbstractRenderer:
+    if sections:
+        return sections[-1]
+    return renderer
+
+
+def dump_items(renderer: AbstractRenderer, items: PluginDumpT) -> None:
     last_title: list[str] = []
+    sections: list[SectionRenderer] = []
     for title, name, description in sorted(items):
         if title != last_title:
-            if last_title:
-                builder.add_raw_rst("")
-            for i in range(common_start(last_title, title), len(title)):
-                builder.add_section(title[i], i + 1)
+            common = common_start(last_title, title)
+            while len(sections) > common:
+                sections.pop().close()
+            while len(sections) < len(title):
+                section = _get_last_renderer(sections, renderer).add_section(
+                    title[len(sections)]
+                )
+                sections.append(section)
             last_title = title
-        builder.add_list_item(f"{name} - {description}")
+        _get_last_renderer(sections, renderer).add_fragment(
+            f"{name} - {description}", text_format=TextFormat.RESTRUCTURED_TEXT
+        )
 
-    if last_title:
-        builder.add_raw_rst("")
+    while sections:
+        sections.pop().close()
 
 
-def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
+def add_plugins(renderer: AbstractRenderer, data: PluginDataT) -> None:
     plugins: PluginDumpT = []
-    for _, prefix, dummy, release_entry in data:
+    for _, prefix, release_entry in data:
         if release_entry:
             for plugin_type, plugin_datas in release_entry.plugins.items():
                 for plugin_data in plugin_datas:
@@ -308,12 +440,12 @@ def add_plugins(builder: RstBuilder, data: PluginDataT) -> None:
                             plugin_data["description"],
                         )
                     )
-    dump_items(builder, plugins)
+    dump_items(renderer, plugins)
 
 
-def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
+def add_objects(renderer: AbstractRenderer, data: PluginDataT) -> None:
     objects: PluginDumpT = []
-    for _, prefix, dummy, release_entry in data:
+    for _, prefix, release_entry in data:
         if release_entry:
             for object_type, object_datas in release_entry.objects.items():
                 for object_data in object_datas:
@@ -324,12 +456,12 @@ def add_objects(builder: RstBuilder, data: PluginDataT) -> None:
                             object_data["description"],
                         )
                     )
-    dump_items(builder, objects)
+    dump_items(renderer, objects)
 
 
-def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
+def add_modules(renderer: AbstractRenderer, data: PluginDataT) -> None:
     modules: PluginDumpT = []
-    for name, prefix, dummy, release_entry in data:
+    for name, prefix, release_entry in data:
         if release_entry:
             for module in release_entry.modules:
                 namespace = module.get("namespace") or ""
@@ -346,104 +478,140 @@ def add_modules(builder: RstBuilder, data: PluginDataT) -> None:
                         module["description"],
                     )
                 )
-    dump_items(builder, modules)
-
-
-def create_title_adder(
-    builder: RstBuilder, title: str, level: int
-) -> t.Generator[None, None, None]:
-    builder.add_section(title, level)
-    while True:
-        yield
+    dump_items(renderer, modules)
 
 
 def append_removed_collections(
-    builder: RstBuilder, changelog_entry: ChangelogEntry
+    renderer: AbstractRenderer, changelog_entry: ChangelogEntry
 ) -> None:
     if changelog_entry.removed_collections:
-        builder.add_section("Removed Collections", 1)
+        section = renderer.add_section("Removed Collections")
         for collector, collection_version in changelog_entry.removed_collections:
-            builder.add_list_item(
+            section.add_fragment(
                 f"{collector.collection} "
-                f"(previously included version: {collection_version})"
+                f"(previously included version: {collection_version})",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-        builder.add_raw_rst("")
+        section.close()
 
 
 def append_added_collections(
-    builder: RstBuilder, changelog_entry: ChangelogEntry
+    renderer: AbstractRenderer, changelog_entry: ChangelogEntry
 ) -> None:
     if changelog_entry.added_collections:
-        builder.add_section("Added Collections", 1)
+        section = renderer.add_section("Added Collections")
         for collector, collection_version in changelog_entry.added_collections:
-            builder.add_list_item(
-                f"{collector.collection} (version {collection_version})"
+            section.add_fragment(
+                f"{collector.collection} (version {collection_version})",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-        builder.add_raw_rst("")
+        section.close()
 
 
 def append_unchanged_collections(
-    builder: RstBuilder, changelog_entry: ChangelogEntry
+    renderer: AbstractRenderer, changelog_entry: ChangelogEntry
 ) -> None:
     if changelog_entry.unchanged_collections:
-        builder.add_section("Unchanged Collections", 1)
+        section = renderer.add_section("Unchanged Collections")
         for collector, collection_version in changelog_entry.unchanged_collections:
-            builder.add_list_item(
-                f"{collector.collection} (still version {collection_version})"
+            section.add_fragment(
+                f"{collector.collection} (still version {collection_version})",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-        builder.add_raw_rst("")
+        section.close()
 
 
 def append_changelog(
-    builder: RstBuilder,
+    renderer: AbstractRenderer,
     collection_metadata: CollectionsMetadata,
     changelog_entry: ChangelogEntry,
     is_last: bool,
+    text_format: TextFormat,
 ) -> None:
-    builder.add_section(f"v{changelog_entry.version_str}", 0)
-
-    builder.add_raw_rst(".. contents::")
-    builder.add_raw_rst("  :local:")
-    builder.add_raw_rst("  :depth: 2\n")
+    section = renderer.add_section(f"v{changelog_entry.version_str}")
+    section.add_toc(max_depth=2)
 
     # Add release summary for Ansible
-    data = append_changelog_changes_ansible(builder, changelog_entry)
+    data = append_changelog_changes_ansible(section, changelog_entry)
 
-    append_removed_collections(builder, changelog_entry)
-    append_added_collections(builder, changelog_entry)
+    append_removed_collections(section, changelog_entry)
+    append_added_collections(section, changelog_entry)
 
     # Adds Ansible-core section
-    data.extend(append_changelog_changes_core(builder, changelog_entry))
-    builder.add_raw_rst("")
+    data.extend(append_changelog_changes_core(section, changelog_entry))
 
     # Adds list of changed collections
     data.extend(
         append_changelog_changes_collections(
-            builder, collection_metadata, changelog_entry, is_last=is_last
+            section,
+            collection_metadata,
+            changelog_entry,
+            is_last=is_last,
+            text_format=text_format,
         )
     )
 
     # Adds all changes
-    for section, section_title in DEFAULT_SECTIONS:
-        maybe_add_section_title = create_title_adder(builder, section_title, 1)
-
-        for name, dummy, dummy2, release_entry in data:
-            if not release_entry or release_entry.has_no_changes([section]):
+    for section_name, section_title in DEFAULT_SECTIONS:
+        section_renderer = SectionAdder(section, section_title)
+        for name, _, release_entry in data:
+            if not release_entry or release_entry.has_no_changes([section_name]):
                 continue
 
-            next(maybe_add_section_title)
+            subsection_renderer = None
             if name:
-                builder.add_section(name, 2)
-            release_entry.add_section_content(builder, section)
-            builder.add_raw_rst("")
+                subsection_renderer = section_renderer.get_section().add_section(name)
+            add_section_content(
+                release_entry,
+                subsection_renderer or section_renderer.get_section(),
+                section_name,
+            )
+            if subsection_renderer:
+                subsection_renderer.close()
+
+        section_renderer.close()
 
     # Adds new plugins and modules
-    add_plugins(builder, data)
-    add_modules(builder, data)
-    add_objects(builder, data)
+    add_plugins(section, data)
+    add_modules(section, data)
+    add_objects(section, data)
 
     # Adds list of unchanged collections
-    append_unchanged_collections(builder, changelog_entry)
+    append_unchanged_collections(section, changelog_entry)
+
+    section.close()
+
+
+def _compose_changelog(changelog: Changelog, text_format: TextFormat) -> str:
+    flog = mlog.fields(func="_compose_changelog")
+
+    renderer = create_document_renderer(text_format)
+    version = f"{changelog.ansible_version.major}"
+    renderer.set_title(f"Ansible {version} Release Notes")
+
+    if changelog.ansible_ancestor_version:
+        renderer.add_text(
+            f"This changelog describes changes since"
+            f" Ansible {changelog.ansible_ancestor_version}.",
+            text_format=TextFormat.RESTRUCTURED_TEXT,
+        )
+
+    renderer.add_toc(max_depth=2)
+
+    entries = [entry for entry in changelog.entries if not entry.is_ancestor]
+    for index, changelog_entry in enumerate(entries):
+        append_changelog(
+            renderer,
+            changelog.collection_metadata,
+            changelog_entry,
+            is_last=index + 1 == len(entries),
+            text_format=text_format,
+        )
+
+    text = renderer.render()
+    for warning in renderer.get_warnings():
+        flog.warning(warning)
+    return text
 
 
 #
@@ -452,13 +620,12 @@ def append_changelog(
 
 
 def append_porting_guide_section(
-    builder: RstBuilder,
     changelog_entry: ChangelogEntry,
-    maybe_add_title: t.Generator[None, None, None],
+    maybe_add_title: SectionAdder,
     section: str,
 ) -> None:
-    maybe_add_section_title = create_title_adder(
-        builder, section.replace("_", " ").title(), 1
+    maybe_add_section_title = SectionAdder(
+        maybe_add_title, section.replace("_", " ").title()
     )
 
     def check_changelog(
@@ -474,12 +641,15 @@ def append_porting_guide_section(
         )
         if not entries or entries[0].has_no_changes([section]):
             return
-        next(maybe_add_title)
-        next(maybe_add_section_title)
+        subsection = maybe_add_section_title.get_section()
+        subsubsection = None
         if name:
-            builder.add_section(name, 2)
-        optimize_release_entry(entries[0]).add_section_content(builder, section)
-        builder.add_raw_rst("")
+            subsubsection = subsection.add_section(name)
+        add_section_content(
+            optimize_release_entry(entries[0]), subsubsection or subsection, section
+        )
+        if subsubsection:
+            subsubsection.close()
 
     check_changelog(
         "",
@@ -508,31 +678,36 @@ def append_porting_guide_section(
             prev_collection_version,
         )
 
+    maybe_add_section_title.close()
 
-def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -> None:
-    maybe_add_title = create_title_adder(
-        builder, f"Porting Guide for v{changelog_entry.version_str}", 0
+
+def append_porting_guide(
+    document: DocumentRenderer, changelog_entry: ChangelogEntry
+) -> None:
+    maybe_add_title = SectionAdder(
+        document, f"Porting Guide for v{changelog_entry.version_str}"
     )
 
     if changelog_entry.added_collections:
-        next(maybe_add_title)
-        append_added_collections(builder, changelog_entry)
+        append_added_collections(maybe_add_title.get_section(), changelog_entry)
 
-    for section in ["known_issues", "breaking_changes", "major_changes"]:
-        append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
+    for section_name in ["known_issues", "breaking_changes", "major_changes"]:
+        append_porting_guide_section(changelog_entry, maybe_add_title, section_name)
 
     if changelog_entry.removed_collections:
-        next(maybe_add_title)
-        builder.add_section("Removed Collections", 1)
+        section = maybe_add_title.get_section().add_section("Removed Collections")
         for collector, collection_version in changelog_entry.removed_collections:
-            builder.add_list_item(
+            section.add_fragment(
                 f"{collector.collection} "
-                f"(previously included version: {collection_version})"
+                f"(previously included version: {collection_version})",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-        builder.add_raw_rst("")
+        section.close()
 
-    for section in ["removed_features", "deprecated_features"]:
-        append_porting_guide_section(builder, changelog_entry, maybe_add_title, section)
+    for section_name in ["removed_features", "deprecated_features"]:
+        append_porting_guide_section(changelog_entry, maybe_add_title, section_name)
+
+    maybe_add_title.close()
 
 
 #
@@ -540,54 +715,38 @@ def append_porting_guide(builder: RstBuilder, changelog_entry: ChangelogEntry) -
 #
 
 
-class ReleaseNotes:
-    changelog_filename: str
-    changelog_bytes: bytes
+@dataclass
+class FileWithContent:
+    filename: str
+    content: bytes
 
-    porting_guide_filename: str
-    porting_guide_bytes: bytes
+    def write_to(self, dest_dir: str) -> None:
+        path = os.path.join(dest_dir, self.filename)
+        with open(path, "wb") as fd:
+            fd.write(self.content)
+
+
+class ReleaseNotes:
+    changelogs: list[FileWithContent]
+    porting_guide: FileWithContent
 
     def __init__(
         self,
-        changelog_filename: str,
-        changelog_bytes: bytes,
-        porting_guide_filename: str,
-        porting_guide_bytes: bytes,
+        changelogs: list[FileWithContent],
+        porting_guide: FileWithContent,
     ):
-        self.changelog_filename = changelog_filename
-        self.changelog_bytes = changelog_bytes
+        self.changelogs = changelogs
 
-        self.porting_guide_filename = porting_guide_filename
-        self.porting_guide_bytes = porting_guide_bytes
+        self.porting_guide = porting_guide
 
     @staticmethod
-    def _get_changelog_bytes(changelog: Changelog) -> bytes:
-        builder = RstBuilder()
-        version = f"{changelog.ansible_version.major}"
-        builder.set_title(f"Ansible {version} Release Notes")
-
-        if changelog.ansible_ancestor_version:
-            builder.add_raw_rst(
-                f"This changelog describes changes since"
-                f" Ansible {changelog.ansible_ancestor_version}.\n"
-            )
-
-        builder.add_raw_rst(".. contents::\n  :local:\n  :depth: 2\n")
-
-        entries = [entry for entry in changelog.entries if not entry.is_ancestor]
-        for index, changelog_entry in enumerate(entries):
-            append_changelog(
-                builder,
-                changelog.collection_metadata,
-                changelog_entry,
-                is_last=index + 1 == len(entries),
-            )
-
-        return builder.generate().encode("utf-8")
+    def _get_changelog_bytes(changelog: Changelog, text_format: TextFormat) -> bytes:
+        text = _compose_changelog(changelog, text_format)
+        return text.encode("utf-8")
 
     @staticmethod
     def _append_core_porting_guide_bytes(
-        builder: RstBuilder, changelog: Changelog
+        renderer: AbstractRenderer, changelog: Changelog
     ) -> None:
         core_porting_guide = changelog.core_collector.porting_guide
         if core_porting_guide:
@@ -595,6 +754,7 @@ class ReleaseNotes:
             lines.append("")
             found_topics = False
             found_empty = False
+            append_lines = []
             for line in lines:
                 if not found_topics:
                     if line.startswith(".. contents::"):
@@ -604,24 +764,32 @@ class ReleaseNotes:
                     if line == "":
                         found_empty = True
                     continue
-                builder.add_raw_rst(line)
+                append_lines.append(line)
             if not found_empty:
                 print("WARNING: cannot find TOC of ansible-core porting guide!")
+            if append_lines:
+                renderer.add_text(
+                    "\n".join(append_lines), text_format=TextFormat.RESTRUCTURED_TEXT
+                )
 
     @staticmethod
     def _get_porting_guide_bytes(changelog: Changelog) -> bytes:
+        flog = mlog.fields(func="ReleaseNotes._get_porting_guide_bytes")
+
         version = f"{changelog.ansible_version.major}"
         core_version_obj = changelog.core_collector.latest
         core_version = f"{core_version_obj.major}.{core_version_obj.minor}"
-        builder = RstBuilder()
-        builder.add_raw_rst(
-            f"..\n"
+
+        document = RSTDocumentRenderer()
+        document.set_raw_preamble(
+            "..\n"
             f"   THIS DOCUMENT IS AUTOMATICALLY GENERATED BY ANTSIBULL! PLEASE DO NOT EDIT"
-            f" MANUALLY! (YOU PROBABLY WANT TO EDIT porting_guide_core_{core_version}.rst)\n"
+            f" MANUALLY! (YOU PROBABLY WANT TO EDIT porting_guide_core_{core_version}.rst)"
+            "\n"
         )
-        builder.add_raw_rst(f".. _porting_{version}_guide:\n")
-        builder.set_title(f"Ansible {version} Porting Guide")
-        builder.add_raw_rst(".. contents::\n  :local:\n  :depth: 2\n")
+        document.set_document_label(f"porting_{version}_guide")
+        document.set_title(f"Ansible {version} Porting Guide")
+        document.add_toc(max_depth=2)
 
         # Determine ansible-core version in previous major release
         prev_core_version = ""
@@ -635,26 +803,26 @@ class ReleaseNotes:
 
         # Determine whether to include ansible-core porting guide or not
         if core_version != prev_core_version:
-            builder.add_raw_rst(
+            document.add_text(
                 # noqa: E501
-                "\n"
-                f"Ansible {version} is based on Ansible-core {core_version}."
-                "\n"
+                "\n" f"Ansible {version} is based on Ansible-core {core_version}." "\n",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-            builder.add_raw_rst(
+            document.add_text(
                 # noqa: E501
                 "\n"
                 f"We suggest you read this page along with the `Ansible {version} Changelog"
                 f" <https://github.com/ansible-community/ansible-build-data/blob/main/{version}/"
-                f"CHANGELOG-v{version}.rst>`_ to understand what updates you may need to make."
-                "\n"
+                f"CHANGELOG-v{version}.md>`_ to understand what updates you may need to make."
+                "\n",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
-            ReleaseNotes._append_core_porting_guide_bytes(builder, changelog)
+            ReleaseNotes._append_core_porting_guide_bytes(document, changelog)
         else:
             # Generic message if we again have two consecutive versions with the same ansible-core
             prev_version = changelog.ansible_version.major - 1
             prev_prev_version = changelog.ansible_version.major - 2
-            builder.add_raw_rst(
+            document.add_text(
                 # noqa: E501
                 "\n"
                 f"Ansible {version} is based on Ansible-core {core_version}, which is the same"
@@ -665,35 +833,45 @@ class ReleaseNotes:
                 "\n\n"
                 f"We suggest you read this page along with the `Ansible {version} Changelog"
                 f" <https://github.com/ansible-community/ansible-build-data/blob/main/{version}/"
-                f"CHANGELOG-v{version}.rst>`_ to understand what updates you may need to make."
-                "\n"
+                f"CHANGELOG-v{version}.md>`_ to understand what updates you may need to make."
+                "\n",
+                text_format=TextFormat.RESTRUCTURED_TEXT,
             )
 
         for porting_guide_entry in changelog.entries:
             if not porting_guide_entry.is_ancestor:
-                append_porting_guide(builder, porting_guide_entry)
+                append_porting_guide(document, porting_guide_entry)
 
-        return builder.generate().encode("utf-8")
+        text = document.render()
+        for warning in document.get_warnings():
+            flog.warning(warning)
+
+        return text.encode("utf-8")
 
     @classmethod
     def build(cls, changelog: Changelog) -> "ReleaseNotes":
         version = f"{changelog.ansible_version.major}"
+        changelogs: list[FileWithContent] = []
+        for text_format in CHANGELOG_FORMATS:
+            changelogs.append(
+                FileWithContent(
+                    f"CHANGELOG-v{version}.{text_format.to_extension()}",
+                    cls._get_changelog_bytes(changelog, text_format),
+                )
+            )
         return cls(
-            f"CHANGELOG-v{version}.rst",
-            cls._get_changelog_bytes(changelog),
-            f"porting_guide_{version}.rst",
-            cls._get_porting_guide_bytes(changelog),
+            changelogs,
+            FileWithContent(
+                f"porting_guide_{version}.rst", cls._get_porting_guide_bytes(changelog)
+            ),
         )
 
     def write_changelog_to(self, dest_dir: str) -> None:
-        path = os.path.join(dest_dir, self.changelog_filename)
-        with open(path, "wb") as changelog_fd:
-            changelog_fd.write(self.changelog_bytes)
+        for changelog in self.changelogs:
+            changelog.write_to(dest_dir)
 
     def write_porting_guide_to(self, dest_dir: str) -> None:
-        path = os.path.join(dest_dir, self.porting_guide_filename)
-        with open(path, "wb") as porting_guide_fd:
-            porting_guide_fd.write(self.porting_guide_bytes)
+        self.porting_guide.write_to(dest_dir)
 
 
 def build_changelog() -> int:
