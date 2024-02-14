@@ -343,27 +343,29 @@ def bump(session: nox.Session):
                 f"Either {fragment_file} must already exist, "
                 "or two positional arguments must be provided."
             )
-    install(session, "antsibull-changelog[toml]", "hatch")
+    # Needs newer antsibull-changelog for hatch version auto-detection support
+    install(session, "antsibull-changelog[toml] >= 0.24.0", "hatch")
     session.run("hatch", "version", version)
     if len(session.posargs) > 1:
         fragment = session.run(
             "python",
             "-c",
-            "import yaml ; "
-            f"print(yaml.dump(dict(release_summary={repr(session.posargs[1])})))",
+            "import sys, yaml ; "
+            f"yaml.dump(dict(release_summary={repr(session.posargs[1])}), sys.stdout)",
             silent=True,
         )
         with open(fragment_file, "w") as fp:
-            print(fragment, file=fp)
+            fp.write(fragment)
         session.run(
             "git", "add", "src/antsibull/__init__.py", str(fragment_file), external=True
         )
         session.run("git", "commit", "-m", f"Prepare {version}.", external=True)
-    session.run("antsibull-changelog", "release", "--version", version)
+    session.run("antsibull-changelog", "release")
     session.run(
         "git",
         "add",
         "CHANGELOG.rst",
+        "CHANGELOG.md",
         "changelogs/changelog.yaml",
         "changelogs/fragments/",
         # src/antsibull/__init__.py is not committed in the last step
