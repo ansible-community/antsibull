@@ -14,11 +14,11 @@ Tooling for building various things related to Ansible
 
 Scripts that are here:
 
-* antsibull-build - Builds Ansible-2.10+ from component collections ([docs](docs/build-ansible.rst))
+* antsibull-build - Builds Ansible-2.10+ from component collections ([docs](https://github.com/ansible-community/antsibull-docs/blob/main/docs/build-ansible.rst))
 
 Related projects are [antsibull-changelog](https://pypi.org/project/antsibull-changelog/) and [antsibull-docs](https://pypi.org/project/antsibull-docs/), which are in their own repositories ([antsibull-changelog repository](https://github.com/ansible-community/antsibull-changelog/), [antsibull-docs repository](https://github.com/ansible-community/antsibull-docs/)). Currently antsibull-changelog is a dependency of antsibull. Therefore, the scripts contained in it will be available as well when installing antsibull.
 
-You can find a list of changes in [the Antsibull changelog](./CHANGELOG.rst).
+You can find a list of changes in [the Antsibull changelog](https://github.com/ansible-community/antsibull-docs/blob/main/CHANGELOG.md).
 
 antsibull is covered by the [Ansible Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html).
 
