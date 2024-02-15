@@ -82,6 +82,6 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          directory: antsibull
+          working-directory: antsibull
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
