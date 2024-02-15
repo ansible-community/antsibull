@@ -58,11 +58,11 @@ email = "felix@fontein.de"
 name = "Maxwell G"
 email = "maxwell@gtmx.me"
 
-
 [project.urls]
 "Source code" = "https://github.com/ansible-community/antsibull"
 "Code of Conduct" = "https://docs.ansible.com/ansible/latest/community/code_of_conduct.html"
 "Bug tracker" = "https://github.com/ansible-community/antsibull/issues"
+"Changelog" = "https://github.com/ansible-community/antsibull/tree/main/CHANGELOG.md"
 
 [project.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
