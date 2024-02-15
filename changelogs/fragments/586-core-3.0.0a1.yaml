@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "Add support for the latest antsibull-core v3 pre-release, ``3.0.0a1``
+    (https://github.com/ansible-community/antsibull/pull/586)."
