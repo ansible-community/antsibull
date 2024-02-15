@@ -1,3 +1,0 @@
-minor_changes:
-  - "Adjust the ``pip install antsibull`` call in the ``build-ansible.sh`` script added to the ``ansible`` source distribution
-     to use the version of antsibull used to build the ansible release (https://github.com/ansible-community/antsibull/pull/563)."

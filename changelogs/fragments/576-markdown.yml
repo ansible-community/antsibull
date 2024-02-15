@@ -1,3 +1,0 @@
-minor_changes:
-  - "The Ansible changelog is now generated both in MarkDown and ReStructuredText (https://github.com/ansible-community/antsibull/pull/576)."
-  - "The dependency on antsibull-changelog has been bumped to 0.24.0 or later (https://github.com/ansible-community/antsibull/pull/576)."

@@ -4,6 +4,34 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.60.0
+=======
+
+Release Summary
+---------------
+
+Bugfix and feature release
+
+Minor Changes
+-------------
+
+- Add a ``sanity-tests`` subcommand to run sanity tests accross the collection tree created by ``verify-upstreams`` and display the results (https://github.com/ansible-community/antsibull/pull/556).
+- Add a ``verify-upstreams`` subcommand to ensure that files in a collections' Galaxy collection artifact match its upstream repository (https://github.com/ansible-community/antsibull/pull/556).
+- Add new ``antsibull-build announcements`` command to generate release announcement text (https://github.com/ansible-community/antsibull/pull/573).
+- Add new ``antsibull-build send-announcements`` command to interactively send release announcements. Make sure to install ``pyperclip`` with ``pip install antsibull[clipboard]`` to fully take advantage of its functionality (https://github.com/ansible-community/antsibull/pull/573).
+- Add support for the latest antsibull-core v3 pre-release, ``3.0.0a1`` (https://github.com/ansible-community/antsibull/pull/586).
+- Adjust the ``pip install antsibull`` call in the ``build-ansible.sh`` script added to the ``ansible`` source distribution to use the version of antsibull used to build the ansible release (https://github.com/ansible-community/antsibull/pull/563).
+- Change the license from ``GPL-3.0-or-later`` to ``GPL-3.0-or-later AND Python-2.0.1``. Antsibull now contains a small amount of code derived from CPython (https://github.com/ansible-community/antsibull/pull/556).
+- Explicitly set up Galaxy context instead of relying on deprecated functionality from antsibull-core (https://github.com/ansible-community/antsibull/pull/570).
+- The Ansible changelog is now generated both in MarkDown and ReStructuredText (https://github.com/ansible-community/antsibull/pull/576).
+- The dependency on antsibull-changelog has been bumped to 0.24.0 or later (https://github.com/ansible-community/antsibull/pull/576).
+- ``ansible`` package README - add a link to the ``ansible-build-data`` issue tracker (https://github.com/ansible-community/antsibull/pull/554).
+
+Bugfixes
+--------
+
+- Use certain fields from library context instead of app context that are deprecated in the app context and are removed from antsibull-core 3.0.0 (https://github.com/ansible-community/antsibull/pull/569).
+
 v0.59.1
 =======
 
