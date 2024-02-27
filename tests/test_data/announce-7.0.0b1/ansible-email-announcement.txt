@@ -3,6 +3,7 @@ Hello everyone,
 We're happy to announce the release of the Ansible 7.0.0b1 package pre-release!
 
 Ansible 7.0.0b1 depends on ansible-core 2.14.0 and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles. This is a pre-release of Ansible 7.
+
 How to get it
 -------------
 
