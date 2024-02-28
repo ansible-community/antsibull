@@ -3,6 +3,7 @@ Hello everyone,
 We're happy to announce the release of the Ansible 7.4.0 package!
 
 Ansible 7.4.0 depends on ansible-core 2.14.4 and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.
+
 How to get it
 -------------
 

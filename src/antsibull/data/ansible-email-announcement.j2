@@ -11,6 +11,7 @@ We're happy to announce the release of the Ansible {{ version }} package{% if is
 
 Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release and is_prerelease %} This is a pre-release of Ansible {{ major_version }}.{% elif is_major_release %} This is the first stable release of Ansible {{ major_version }}.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
 
+
 {{ "How to get it" | email_heading }}
 
 This {% if is_prerelease %}pre-{% endif %}release is available on PyPI and can be installed with pip:
