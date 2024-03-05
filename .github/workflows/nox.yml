@@ -63,7 +63,7 @@ jobs:
         run: |
           sudo apt-get install -y ${{ matrix.packages }}
       - name: Setup nox
-        uses: wntrblm/nox@2023.04.22
+        uses: wntrblm/nox@2024.03.02
         with:
           python-versions: "${{ matrix.python-versions }}"
       - name: "Run nox -e ${{ matrix.session }}"
