@@ -66,13 +66,16 @@ jobs:
         uses: wntrblm/nox@2024.03.02
         with:
           python-versions: "${{ matrix.python-versions }}"
+      - name: Set up nox environments
+        run: |
+          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}" ${{ matrix.codecov && 'coverage' || '' }} --install-only
       - name: "Run nox -e ${{ matrix.session }}"
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -e "${{ matrix.session }}"
+          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}" --reuse-existing-virtualenvs --no-install
       - name: Report coverage
         if: ${{ matrix.codecov }}
         run: |
-          nox -v -e coverage
+          nox -v -e coverage --reuse-existing-virtualenvs --no-install
       - name: Upload coverage
         if: ${{ matrix.codecov }}
         uses: codecov/codecov-action@v3

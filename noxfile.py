@@ -205,17 +205,23 @@ def typing(session: nox.Session):
         if isinstance(path, Path):
             additional_libraries.extend(("--search-path", str(path / "src")))
 
-    purelib = session.run(
-        "python",
-        "-c",
-        "import sysconfig; print(sysconfig.get_path('purelib'))",
-        silent=True,
+    purelib = (
+        session.run(
+            "python",
+            "-c",
+            "import sysconfig; print(sysconfig.get_path('purelib'))",
+            silent=True,
+        )
+        or ""
     ).strip()
-    platlib = session.run(
-        "python",
-        "-c",
-        "import sysconfig; print(sysconfig.get_path('platlib'))",
-        silent=True,
+    platlib = (
+        session.run(
+            "python",
+            "-c",
+            "import sysconfig; print(sysconfig.get_path('platlib'))",
+            silent=True,
+        )
+        or ""
     ).strip()
     session.run(
         "pyre",
