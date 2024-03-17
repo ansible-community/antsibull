@@ -792,6 +792,18 @@ releases:
     - 576-markdown.yml
     - 586-core-3.0.0a1.yaml
     release_date: '2024-02-14'
+  0.61.0:
+    changes:
+      bugfixes:
+      - announcements - add missing newline before heading in email template (https://github.com/ansible-community/antsibull/pull/589).
+      minor_changes:
+      - Add support for the antsibull-core v3 (https://github.com/ansible-community/antsibull/pull/593).
+      release_summary: Maintenance and bugfix release.
+    fragments:
+    - 0.61.0.yml
+    - 589-announcement-fix2.yaml
+    - core-v3.yml
+    release_date: '2024-03-17'
   0.7.0:
     release_date: '2020-06-04'
   0.8.0:

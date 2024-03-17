@@ -4,6 +4,24 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.61.0
+=======
+
+Release Summary
+---------------
+
+Maintenance and bugfix release.
+
+Minor Changes
+-------------
+
+- Add support for the antsibull-core v3 (https://github.com/ansible-community/antsibull/pull/593).
+
+Bugfixes
+--------
+
+- announcements - add missing newline before heading in email template (https://github.com/ansible-community/antsibull/pull/589).
+
 v0.60.0
 =======
 

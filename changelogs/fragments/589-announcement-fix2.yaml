@@ -1,4 +1,0 @@
----
-bugfixes:
-  - "announcements - add missing newline before heading in email template
-    (https://github.com/ansible-community/antsibull/pull/589)."
