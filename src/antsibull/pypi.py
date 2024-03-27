@@ -68,10 +68,10 @@ class ReleaseInfo(p.BaseModel):
     description_content_type: str
     docs_url: Optional[str]
     home_page: str
-    keywords: str
+    keywords: Optional[str]
     license: str
-    maintainer: str
-    maintainer_email: str
+    maintainer: Optional[str]
+    maintainer_email: Optional[str]
     name: str
     package_url: str
     platform: Optional[str]
