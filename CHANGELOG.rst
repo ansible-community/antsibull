@@ -4,6 +4,19 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.61.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- The PyPI API model used during the release announcement generation has been updated to accept ``null`` for ``keywords``, ``maintainer``, and ``maintainer_email`` (https://github.com/ansible-community/antsibull/pull/594).
+
 v0.61.0
 =======
 

@@ -1,2 +1,0 @@
-bugfixes:
-  - "The PyPI API model used during the release announcement generation has been updated to accept ``null`` for ``keywords``, ``maintainer``, and ``maintainer_email`` (https://github.com/ansible-community/antsibull/pull/594)."
