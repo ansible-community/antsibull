@@ -1,0 +1,2 @@
+minor_changes:
+  - "Use feature freeze for all betas from ``b2`` on, and all release candidates in the release role (https://github.com/ansible-community/antsibull/pull/598)."
