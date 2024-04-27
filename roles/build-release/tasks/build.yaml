@@ -55,6 +55,7 @@
       --data-dir {{ antsibull_data_dir }}
       {{ _feature_freeze | default('') }}
       {{ '--tags-file' if antsibull_tags_validate else '' }}
+      {{ '--preserve-deps' if antsibull_preserve_deps else '' }}
   # Minimal failure tolerance to galaxy collection download errors
   retries: 3
   delay: 5
