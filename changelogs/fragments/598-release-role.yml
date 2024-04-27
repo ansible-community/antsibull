@@ -1,2 +1,3 @@
 minor_changes:
   - "Use feature freeze for all betas from ``b2`` on, and all release candidates in the release role (https://github.com/ansible-community/antsibull/pull/598)."
+  - "Allow the release role to skip the ``prepare`` step by setting ``antsibull_skip_prepare=true`` if the deps and tags file already exists (https://github.com/ansible-community/antsibull/pull/598)."

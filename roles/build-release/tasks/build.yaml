@@ -44,6 +44,11 @@
     _feature_freeze: "--feature-frozen"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(b[2-9]|rc\d+)$")
 
+- name: Check whether the ansible deps file exists
+  ansible.builtin.stat:
+    path: '{{ _deps_file }}'
+  register: _antsibull_deps_file_stat
+
 - name: Prepare a release with new dependencies
   ansible.builtin.command: >-
     {{ antsibull_build_command }} prepare {{ antsibull_ansible_version }}
@@ -58,6 +63,9 @@
   args:
     chdir: "{{ playbook_dir | dirname }}"
     creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
+  when: >-
+    not antsibull_skip_prepare
+    or not _antsibull_deps_file_stat.stat.exists
 
 - name: Find ignores file
   when: antsibull_tags_validate
