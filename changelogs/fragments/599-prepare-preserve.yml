@@ -1,0 +1,6 @@
+minor_changes:
+  - "Add option ``--preserve-deps`` to the ``prepare`` subcommand that allows to preserve the
+     dependencies if a ``.deps`` file for that version already exists. The versions from that
+     ``.deps`` file are validated against the build requirements and constraints, and the
+     remainder of the release preparation process remains unchanged
+     (https://github.com/ansible-community/antsibull/pull/599)."
