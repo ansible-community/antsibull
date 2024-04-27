@@ -108,11 +108,13 @@ argument_specs:
             This file will be ignored if it doesn't exist.
         type: path
         default: "{{ antsibull_data_dir }}/validate-tags-ignores"
+
       antsibull_test_bytecompile:
         description:
           - Whether to run a test byte-compiliation of the Python code in the ansible package
         type: bool
         default: true
+
       antsibull_test_bytecompile_pythons:
         description:
           - Which Python interpreters to use for the test byte-compilation
@@ -120,6 +122,7 @@ argument_specs:
         elements: str
         default:
           - "{{ ansible_python_executable | default(ansible_playbook_python) }}"
+
       antsibull_test_bytecompile_jobs:
         description:
           - How many threads to use to byte-compile the Python code in the ansible package
