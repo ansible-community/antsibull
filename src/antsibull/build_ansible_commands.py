@@ -431,6 +431,7 @@ def prepare_command() -> int:
         f"Release Date: {date}"
         f"\n\n"
         f"`Porting Guide <https://docs.ansible.com/ansible/devel/porting_guides.html>`_",
+        overwrite_release_summary=False,
     )
     ansible_changelog.changes.save()
 

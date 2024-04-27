@@ -116,7 +116,11 @@ class ChangelogData:
         )
 
     def add_ansible_release(
-        self, version: str, date: datetime.date, release_summary: str
+        self,
+        version: str,
+        date: datetime.date,
+        release_summary: str,
+        overwrite_release_summary: bool = True,
     ) -> None:
         add_release(
             self.config,
@@ -132,7 +136,11 @@ class ChangelogData:
         release_date = self.changes.releases[version]
         if "changes" not in release_date:
             release_date["changes"] = {}
-        release_date["changes"]["release_summary"] = release_summary
+        if (
+            "release_summary" not in release_date["changes"]
+            or overwrite_release_summary
+        ):
+            release_date["changes"]["release_summary"] = release_summary
 
 
 def read_file(tarball_path: str, matcher: t.Callable[[str], bool]) -> bytes | None:
