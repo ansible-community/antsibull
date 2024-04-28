@@ -1,0 +1,2 @@
+minor_changes:
+  - "The ``prepare`` subcommand will no longer overwrite an existing release summary in the ``changelog.yaml`` file (https://github.com/ansible-community/antsibull/pull/597)."
