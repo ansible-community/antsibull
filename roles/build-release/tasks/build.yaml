@@ -46,7 +46,7 @@
 
 - name: Check whether the ansible deps file exists
   ansible.builtin.stat:
-    path: '{{ _deps_file }}'
+    path: "{{ antsibull_data_dir }}/{{ _deps_file }}"
   register: _antsibull_deps_file_stat
 
 - name: Prepare a release with new dependencies
@@ -62,7 +62,6 @@
   until: _build.rc == 0
   args:
     chdir: "{{ playbook_dir | dirname }}"
-    creates: "{{ antsibull_data_dir }}/{{ _deps_file }}"
   when: >-
     not antsibull_skip_prepare
     or not _antsibull_deps_file_stat.stat.exists
