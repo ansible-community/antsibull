@@ -815,6 +815,32 @@ releases:
     - 0.61.1.yml
     - 594-announcements.yml
     release_date: '2024-04-17'
+  0.62.0:
+    changes:
+      breaking_changes:
+      - The release role no longer automatically skips the ``prepare`` step when the
+        ``.deps`` file already exists. If you need this behavior, set ``antsibull_skip_prepare=true``
+        (https://github.com/ansible-community/antsibull/pull/598).
+      minor_changes:
+      - Add option ``--preserve-deps`` to the ``prepare`` subcommand that allows to
+        preserve the dependencies if a ``.deps`` file for that version already exists.
+        The versions from that ``.deps`` file are validated against the build requirements
+        and constraints, and the remainder of the release preparation process remains
+        unchanged. The release role allows to pass this flag when ``antsibull_preserve_deps=true``
+        (https://github.com/ansible-community/antsibull/pull/599).
+      - Allow the release role to skip the ``prepare`` step by setting ``antsibull_skip_prepare=true``
+        if the ``.deps`` file already exists (https://github.com/ansible-community/antsibull/pull/598).
+      - The ``prepare`` subcommand will no longer overwrite an existing release summary
+        in the ``changelog.yaml`` file (https://github.com/ansible-community/antsibull/pull/597).
+      - Use feature freeze for all betas from ``b2`` on, and all release candidates
+        in the release role (https://github.com/ansible-community/antsibull/pull/598).
+      release_summary: Feature release for improving the automatic release workflow.
+    fragments:
+    - 0.62.0.yml
+    - 597-release_summary-overwrite.yml
+    - 598-release-role.yml
+    - 599-prepare-preserve.yml
+    release_date: '2024-05-13'
   0.7.0:
     release_date: '2020-06-04'
   0.8.0:

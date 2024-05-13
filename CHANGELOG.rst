@@ -4,6 +4,27 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.62.0
+=======
+
+Release Summary
+---------------
+
+Feature release for improving the automatic release workflow.
+
+Minor Changes
+-------------
+
+- Add option ``--preserve-deps`` to the ``prepare`` subcommand that allows to preserve the dependencies if a ``.deps`` file for that version already exists. The versions from that ``.deps`` file are validated against the build requirements and constraints, and the remainder of the release preparation process remains unchanged. The release role allows to pass this flag when ``antsibull_preserve_deps=true`` (https://github.com/ansible-community/antsibull/pull/599).
+- Allow the release role to skip the ``prepare`` step by setting ``antsibull_skip_prepare=true`` if the ``.deps`` file already exists (https://github.com/ansible-community/antsibull/pull/598).
+- The ``prepare`` subcommand will no longer overwrite an existing release summary in the ``changelog.yaml`` file (https://github.com/ansible-community/antsibull/pull/597).
+- Use feature freeze for all betas from ``b2`` on, and all release candidates in the release role (https://github.com/ansible-community/antsibull/pull/598).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- The release role no longer automatically skips the ``prepare`` step when the ``.deps`` file already exists. If you need this behavior, set ``antsibull_skip_prepare=true`` (https://github.com/ansible-community/antsibull/pull/598).
+
 v0.61.1
 =======
 
