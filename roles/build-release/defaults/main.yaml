@@ -41,11 +41,15 @@ antsibull_ansible_major_version: "{{ (antsibull_ansible_version | default('')).s
 # Where the Ansible release tarball will be installed for test purposes
 antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
 
-# Whether or not to start from scratch with a new venv if one exists
-antsibull_venv_cleanup: true
+# Whether to forcefully reset the ansible-X.build file for alpha and beta-1 releases
+# ex: set to false if there are manual changes that should not be overwritten
+antsibull_build_reset: "{{ antsibull_data_reset }}"
 
 # Whether to preserve existing .deps files during the prepare step
 antsibull_preserve_deps: false
+
+# Whether or not to start from scratch with a new venv if one exists
+antsibull_venv_cleanup: true
 
 
 #####
