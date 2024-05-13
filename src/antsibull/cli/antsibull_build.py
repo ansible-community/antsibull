@@ -392,6 +392,14 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         " is $BASENAME_OF_BUILD_FILE-X.Y.Z.yaml",
     )
 
+    preserve_deps_parser = argparse.ArgumentParser(add_help=False)
+    preserve_deps_parser.add_argument(
+        "--preserve-deps",
+        action="store_true",
+        help="If this is given and the deps file already exists, use it"
+        " instead of creating a new one.",
+    )
+
     # Delay import to avoid potential import loops
     from antsibull import __version__ as _ver  # pylint: disable=import-outside-toplevel
 
@@ -453,6 +461,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
             build_step_parser,
             feature_freeze_parser,
             galaxy_file_parser,
+            preserve_deps_parser,
         ],
         description="Collect dependencies for an Ansible release",
     )
@@ -474,6 +483,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
             build_step_parser,
             feature_freeze_parser,
             galaxy_file_parser,
+            preserve_deps_parser,
         ],
         description="Build a single-file Ansible" " [deprecated]",
     )

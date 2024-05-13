@@ -136,3 +136,11 @@ argument_specs:
           - Defaults to 0 (all available CPUs)
         type: int
         default: 0
+
+      antsibull_preserve_deps:
+        description:
+          - If set to V(true), will preserve existing C(.deps) files during the preparation
+            process and validate their contents against the build requirements and constraints.
+        type: bool
+        default: false
+        version_added: 0.62.0

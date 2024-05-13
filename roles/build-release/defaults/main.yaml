@@ -44,6 +44,9 @@ antsibull_ansible_venv: "{{ antsibull_sdist_dir }}/venv"
 # Whether or not to start from scratch with a new venv if one exists
 antsibull_venv_cleanup: true
 
+# Whether to preserve existing .deps files during the prepare step
+antsibull_preserve_deps: false
+
 
 #####
 # These variables relate to verifying that collections properly tag their

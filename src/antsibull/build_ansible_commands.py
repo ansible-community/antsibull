@@ -28,6 +28,7 @@ from antsibull_core.subprocess_util import async_log_run, log_run
 from antsibull_core.yaml import store_yaml_file, store_yaml_stream
 from jinja2 import Template
 from packaging.version import Version as PypiVer
+from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
 
 from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
@@ -356,34 +357,21 @@ def _extract_python_requires(
     )
 
 
-def prepare_command() -> int:
-    app_ctx = app_context.app_ctx.get()
+def prepare_deps(
+    ansible_version: PypiVer,
+    ansible_core_version_obj: PypiVer,
+    build_deps: dict[str, str],
+    constraints: dict[str, SemVerSpec],
+) -> DependencyFileData:
+    """
+    Collect ansible-core and collection versions for a new release.
+    """
     lib_ctx = app_context.lib_ctx.get()
-
-    build_filename = os.path.join(
-        app_ctx.extra["data_dir"], app_ctx.extra["build_file"]
-    )
-    build_file = BuildFile(build_filename)
-    build_ansible_version, ansible_core_version, deps = build_file.parse()
-    ansible_core_version_obj = PypiVer(ansible_core_version)
-    python_requires = _extract_python_requires(ansible_core_version_obj, deps)
-
-    constraints_filename = os.path.join(
-        app_ctx.extra["data_dir"], app_ctx.extra["constraints_file"]
-    )
-    constraints = load_constraints_if_exists(constraints_filename)
-
-    # If we're building a feature frozen release (betas and rcs) then we need to
-    # change the upper version limit to not include new features.
-    if app_ctx.extra["feature_frozen"]:
-        old_deps, deps = deps, {}
-        for collection_name, spec in old_deps.items():
-            deps[collection_name] = feature_freeze_version(spec, collection_name)
 
     galaxy_context = asyncio.run(create_galaxy_context())
     ansible_core_release_infos, collections_to_versions = asyncio.run(
         get_version_info(
-            list(deps),
+            list(build_deps),
             pypi_server_url=str(lib_ctx.pypi_url),
             galaxy_context=galaxy_context,
         )
@@ -392,7 +380,7 @@ def prepare_command() -> int:
     new_ansible_core_version = get_latest_ansible_core_version(
         list(ansible_core_release_infos),
         ansible_core_version_obj,
-        pre=_is_alpha(app_ctx.extra["ansible_version"]),
+        pre=_is_alpha(ansible_version),
     )
     if new_ansible_core_version:
         ansible_core_version_obj = new_ansible_core_version
@@ -400,11 +388,56 @@ def prepare_command() -> int:
     included_versions = find_latest_compatible(
         ansible_core_version_obj,
         collections_to_versions,
-        version_specs=deps,
+        version_specs=build_deps,
         pre=True,
         prefer_pre=False,
         constraints=constraints,
     )
+
+    return DependencyFileData(
+        str(ansible_version),
+        str(ansible_core_version_obj),
+        {collection: str(version) for collection, version in included_versions.items()},
+    )
+
+
+def validate_deps_data(
+    deps: dict[str, str],
+    build_deps: dict[str, str],
+    constraints: dict[str, SemVerSpec],
+) -> None:
+    """
+    Validate dependencies against constraints and build deps.
+
+    Raise ``ValueError`` in case of inconsistencies.
+    """
+    for dependency, version in sorted(deps.items()):
+        version_obj = SemVer(version)
+        if dependency in build_deps:
+            spec = SemVerSpec(build_deps[dependency])
+            if version_obj not in spec:
+                raise ValueError(
+                    f"The build dependencies for {dependency} require"
+                    f" {version} to be in {spec}"
+                )
+        if dependency in constraints:
+            if version_obj not in constraints[dependency]:
+                raise ValueError(
+                    f"The constraints for {dependency} require"
+                    f" {version} to be in {constraints[dependency]}"
+                )
+
+
+def prepare_command() -> int:
+    app_ctx = app_context.app_ctx.get()
+
+    build_filename = os.path.join(
+        app_ctx.extra["data_dir"], app_ctx.extra["build_file"]
+    )
+    build_file = BuildFile(build_filename)
+    build_ansible_version, ansible_core_version, build_deps = build_file.parse()
+    ansible_core_version_obj = PypiVer(ansible_core_version)
+    python_requires = _extract_python_requires(ansible_core_version_obj, build_deps)
 
     if not str(app_ctx.extra["ansible_version"]).startswith(build_ansible_version):
         print(
@@ -414,11 +447,42 @@ def prepare_command() -> int:
         )
         return 1
 
-    dependency_data = DependencyFileData(
-        str(app_ctx.extra["ansible_version"]),
-        str(ansible_core_version_obj),
-        {collection: str(version) for collection, version in included_versions.items()},
+    constraints_filename = os.path.join(
+        app_ctx.extra["data_dir"], app_ctx.extra["constraints_file"]
     )
+    constraints = load_constraints_if_exists(constraints_filename)
+
+    # If we're building a feature frozen release (betas and rcs) then we need to
+    # change the upper version limit to not include new features.
+    if app_ctx.extra["feature_frozen"]:
+        build_deps = {
+            collection_name: feature_freeze_version(spec, collection_name)
+            for collection_name, spec in build_deps.items()
+        }
+
+    deps_filename = os.path.join(
+        app_ctx.extra["dest_data_dir"], app_ctx.extra["deps_file"]
+    )
+    deps_file = DepsFile(deps_filename)
+
+    if app_ctx.extra["preserve_deps"] and os.path.exists(deps_filename):
+        dependency_data = deps_file.parse()
+    else:
+        dependency_data = prepare_deps(
+            app_ctx.extra["ansible_version"],
+            ansible_core_version_obj,
+            build_deps,
+            constraints,
+        )
+
+    try:
+        validate_deps_data(dependency_data.deps, build_deps, constraints)
+    except ValueError as exc:
+        print(
+            "Error while validating existing dependencies against"
+            f" build version ranges and constraints: {exc}"
+        )
+        return 1
 
     # Get Ansible changelog, add new release
     ansible_changelog = ChangelogData.ansible(
@@ -436,10 +500,6 @@ def prepare_command() -> int:
     ansible_changelog.changes.save()
 
     # Write dependency file
-    deps_filename = os.path.join(
-        app_ctx.extra["dest_data_dir"], app_ctx.extra["deps_file"]
-    )
-    deps_file = DepsFile(deps_filename)
     deps_file.write(
         dependency_data.ansible_version,
         dependency_data.ansible_core_version,
