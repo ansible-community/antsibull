@@ -363,6 +363,9 @@ def prepare_deps(
     build_deps: dict[str, str],
     constraints: dict[str, SemVerSpec],
 ) -> DependencyFileData:
+    """
+    Collect ansible-core and collection versions for a new release.
+    """
     lib_ctx = app_context.lib_ctx.get()
 
     galaxy_context = asyncio.run(create_galaxy_context())
@@ -402,7 +405,12 @@ def validate_deps_data(
     deps: dict[str, str],
     build_deps: dict[str, str],
     constraints: dict[str, SemVerSpec],
-):
+) -> None:
+    """
+    Validate dependencies against constraints and build deps.
+
+    Raise ``ValueError`` in case of inconsistencies.
+    """
     for dependency, version in sorted(deps.items()):
         version_obj = SemVer(version)
         if dependency in build_deps:
