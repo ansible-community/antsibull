@@ -12,6 +12,9 @@ antsibull_sdist_dir: "{{ playbook_dir | dirname }}/build"
 # The build file
 antsibull_build_file: "ansible-{{ antsibull_ansible_major_version }}.build"
 
+# Skip the prepare step if a `.deps` file already exists for the release
+antsibull_skip_prepare: false
+
 # Force a rebuild by deleting an existing release tarball and python wheel, if they exist
 antsibull_force_rebuild: false
 

@@ -29,6 +29,13 @@ argument_specs:
         type: path
         default: ansible-<major_version>.build
 
+      antsibull_skip_prepare:
+        description:
+          - Skip the prepare step if a C(.deps) file already exists for the release.
+        type: bool
+        default: false
+        version_added: 0.62.0
+
       antsibull_force_rebuild:
         description:
           - Force a rebuild by deleting an existing release tarball and python wheel, if they exist.
@@ -108,11 +115,13 @@ argument_specs:
             This file will be ignored if it doesn't exist.
         type: path
         default: "{{ antsibull_data_dir }}/validate-tags-ignores"
+
       antsibull_test_bytecompile:
         description:
           - Whether to run a test byte-compiliation of the Python code in the ansible package
         type: bool
         default: true
+
       antsibull_test_bytecompile_pythons:
         description:
           - Which Python interpreters to use for the test byte-compilation
@@ -120,6 +129,7 @@ argument_specs:
         elements: str
         default:
           - "{{ ansible_python_executable | default(ansible_playbook_python) }}"
+
       antsibull_test_bytecompile_jobs:
         description:
           - How many threads to use to byte-compile the Python code in the ansible package
