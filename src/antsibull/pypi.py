@@ -28,7 +28,6 @@ class SdistAndWheelPair(NamedTuple):
     wheel: "UrlInfo"
 
 
-# pyre-ignore[13]: BaseModel initializes attributes when data is loaded
 class Release(p.BaseModel):
     """
     Model representing the response from the PyPI API releases endpoint.
@@ -59,7 +58,6 @@ class Release(p.BaseModel):
         return SdistAndWheelPair(sdist, wheel)
 
 
-# pyre-ignore[13]: BaseModel initializes attributes when data is loaded
 class ReleaseInfo(p.BaseModel):
     author: str
     author_email: str
@@ -86,7 +84,6 @@ class ReleaseInfo(p.BaseModel):
     yanked_reason: Optional[str]
 
 
-# pyre-ignore[13]: BaseModel initializes attributes when data is loaded
 class UrlInfo(p.BaseModel):
     comment_text: str
     digests: dict[str, str]
