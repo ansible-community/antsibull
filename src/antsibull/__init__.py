@@ -9,4 +9,4 @@ Tools for building the Ansible Distribution
 
 from __future__ import annotations
 
-__version__ = "0.63.0.post0"
+__version__ = "0.63.1"
