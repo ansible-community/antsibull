@@ -2,148 +2,151 @@
 
 **Topics**
 
-- <a href="#v0-62-0">v0\.62\.0</a>
+- <a href="#v0-63-0">v0\.63\.0</a>
     - <a href="#release-summary">Release Summary</a>
     - <a href="#minor-changes">Minor Changes</a>
+- <a href="#v0-62-0">v0\.62\.0</a>
+    - <a href="#release-summary-1">Release Summary</a>
+    - <a href="#minor-changes-1">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide">Breaking Changes / Porting Guide</a>
 - <a href="#v0-61-1">v0\.61\.1</a>
-    - <a href="#release-summary-1">Release Summary</a>
+    - <a href="#release-summary-2">Release Summary</a>
     - <a href="#bugfixes">Bugfixes</a>
 - <a href="#v0-61-0">v0\.61\.0</a>
-    - <a href="#release-summary-2">Release Summary</a>
-    - <a href="#minor-changes-1">Minor Changes</a>
-    - <a href="#bugfixes-1">Bugfixes</a>
-- <a href="#v0-60-0">v0\.60\.0</a>
     - <a href="#release-summary-3">Release Summary</a>
     - <a href="#minor-changes-2">Minor Changes</a>
+    - <a href="#bugfixes-1">Bugfixes</a>
+- <a href="#v0-60-0">v0\.60\.0</a>
+    - <a href="#release-summary-4">Release Summary</a>
+    - <a href="#minor-changes-3">Minor Changes</a>
     - <a href="#bugfixes-2">Bugfixes</a>
 - <a href="#v0-59-1">v0\.59\.1</a>
-    - <a href="#release-summary-4">Release Summary</a>
+    - <a href="#release-summary-5">Release Summary</a>
     - <a href="#bugfixes-3">Bugfixes</a>
 - <a href="#v0-59-0">v0\.59\.0</a>
-    - <a href="#release-summary-5">Release Summary</a>
-    - <a href="#minor-changes-3">Minor Changes</a>
-    - <a href="#bugfixes-4">Bugfixes</a>
-- <a href="#v0-58-0">v0\.58\.0</a>
     - <a href="#release-summary-6">Release Summary</a>
     - <a href="#minor-changes-4">Minor Changes</a>
+    - <a href="#bugfixes-4">Bugfixes</a>
+- <a href="#v0-58-0">v0\.58\.0</a>
+    - <a href="#release-summary-7">Release Summary</a>
+    - <a href="#minor-changes-5">Minor Changes</a>
     - <a href="#bugfixes-5">Bugfixes</a>
 - <a href="#v0-57-1">v0\.57\.1</a>
-    - <a href="#release-summary-7">Release Summary</a>
+    - <a href="#release-summary-8">Release Summary</a>
     - <a href="#bugfixes-6">Bugfixes</a>
 - <a href="#v0-57-0">v0\.57\.0</a>
-    - <a href="#release-summary-8">Release Summary</a>
-    - <a href="#minor-changes-5">Minor Changes</a>
+    - <a href="#release-summary-9">Release Summary</a>
+    - <a href="#minor-changes-6">Minor Changes</a>
     - <a href="#removed-features-previously-deprecated">Removed Features \(previously deprecated\)</a>
     - <a href="#bugfixes-7">Bugfixes</a>
 - <a href="#v0-56-1">v0\.56\.1</a>
-    - <a href="#release-summary-9">Release Summary</a>
+    - <a href="#release-summary-10">Release Summary</a>
     - <a href="#bugfixes-8">Bugfixes</a>
 - <a href="#v0-56-0">v0\.56\.0</a>
-    - <a href="#release-summary-10">Release Summary</a>
-    - <a href="#minor-changes-6">Minor Changes</a>
+    - <a href="#release-summary-11">Release Summary</a>
+    - <a href="#minor-changes-7">Minor Changes</a>
     - <a href="#deprecated-features">Deprecated Features</a>
 - <a href="#v0-55-0">v0\.55\.0</a>
-    - <a href="#release-summary-11">Release Summary</a>
+    - <a href="#release-summary-12">Release Summary</a>
     - <a href="#major-changes">Major Changes</a>
-    - <a href="#minor-changes-7">Minor Changes</a>
+    - <a href="#minor-changes-8">Minor Changes</a>
     - <a href="#deprecated-features-1">Deprecated Features</a>
 - <a href="#v0-54-0">v0\.54\.0</a>
-    - <a href="#release-summary-12">Release Summary</a>
+    - <a href="#release-summary-13">Release Summary</a>
     - <a href="#breaking-changes--porting-guide-1">Breaking Changes / Porting Guide</a>
     - <a href="#removed-features-previously-deprecated-1">Removed Features \(previously deprecated\)</a>
     - <a href="#bugfixes-9">Bugfixes</a>
 - <a href="#v0-53-0">v0\.53\.0</a>
-    - <a href="#release-summary-13">Release Summary</a>
-    - <a href="#minor-changes-8">Minor Changes</a>
-    - <a href="#bugfixes-10">Bugfixes</a>
-- <a href="#v0-52-0">v0\.52\.0</a>
     - <a href="#release-summary-14">Release Summary</a>
     - <a href="#minor-changes-9">Minor Changes</a>
+    - <a href="#bugfixes-10">Bugfixes</a>
+- <a href="#v0-52-0">v0\.52\.0</a>
+    - <a href="#release-summary-15">Release Summary</a>
+    - <a href="#minor-changes-10">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-2">Breaking Changes / Porting Guide</a>
     - <a href="#removed-features-previously-deprecated-2">Removed Features \(previously deprecated\)</a>
 - <a href="#v0-51-2">v0\.51\.2</a>
-    - <a href="#release-summary-15">Release Summary</a>
+    - <a href="#release-summary-16">Release Summary</a>
     - <a href="#bugfixes-11">Bugfixes</a>
 - <a href="#v0-51-1">v0\.51\.1</a>
-    - <a href="#release-summary-16">Release Summary</a>
+    - <a href="#release-summary-17">Release Summary</a>
     - <a href="#bugfixes-12">Bugfixes</a>
 - <a href="#v0-51-0">v0\.51\.0</a>
-    - <a href="#release-summary-17">Release Summary</a>
-    - <a href="#minor-changes-10">Minor Changes</a>
-- <a href="#v0-50-0">v0\.50\.0</a>
     - <a href="#release-summary-18">Release Summary</a>
     - <a href="#minor-changes-11">Minor Changes</a>
-    - <a href="#bugfixes-13">Bugfixes</a>
-- <a href="#v0-49-0">v0\.49\.0</a>
+- <a href="#v0-50-0">v0\.50\.0</a>
     - <a href="#release-summary-19">Release Summary</a>
     - <a href="#minor-changes-12">Minor Changes</a>
+    - <a href="#bugfixes-13">Bugfixes</a>
+- <a href="#v0-49-0">v0\.49\.0</a>
+    - <a href="#release-summary-20">Release Summary</a>
+    - <a href="#minor-changes-13">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-3">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-14">Bugfixes</a>
 - <a href="#v0-48-0">v0\.48\.0</a>
-    - <a href="#release-summary-20">Release Summary</a>
-    - <a href="#minor-changes-13">Minor Changes</a>
+    - <a href="#release-summary-21">Release Summary</a>
+    - <a href="#minor-changes-14">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-4">Breaking Changes / Porting Guide</a>
     - <a href="#bugfixes-15">Bugfixes</a>
 - <a href="#v0-47-0">v0\.47\.0</a>
-    - <a href="#release-summary-21">Release Summary</a>
-    - <a href="#minor-changes-14">Minor Changes</a>
-- <a href="#v0-46-0">v0\.46\.0</a>
     - <a href="#release-summary-22">Release Summary</a>
     - <a href="#minor-changes-15">Minor Changes</a>
+- <a href="#v0-46-0">v0\.46\.0</a>
+    - <a href="#release-summary-23">Release Summary</a>
+    - <a href="#minor-changes-16">Minor Changes</a>
     - <a href="#bugfixes-16">Bugfixes</a>
 - <a href="#v0-45-1">v0\.45\.1</a>
-    - <a href="#release-summary-23">Release Summary</a>
+    - <a href="#release-summary-24">Release Summary</a>
     - <a href="#bugfixes-17">Bugfixes</a>
 - <a href="#v0-45-0">v0\.45\.0</a>
-    - <a href="#release-summary-24">Release Summary</a>
-    - <a href="#minor-changes-16">Minor Changes</a>
+    - <a href="#release-summary-25">Release Summary</a>
+    - <a href="#minor-changes-17">Minor Changes</a>
     - <a href="#breaking-changes--porting-guide-5">Breaking Changes / Porting Guide</a>
 - <a href="#v0-44-0">v0\.44\.0</a>
-    - <a href="#release-summary-25">Release Summary</a>
+    - <a href="#release-summary-26">Release Summary</a>
     - <a href="#major-changes-1">Major Changes</a>
     - <a href="#deprecated-features-2">Deprecated Features</a>
     - <a href="#known-issues">Known Issues</a>
 - <a href="#v0-43-0">v0\.43\.0</a>
-    - <a href="#release-summary-26">Release Summary</a>
-    - <a href="#minor-changes-17">Minor Changes</a>
+    - <a href="#release-summary-27">Release Summary</a>
+    - <a href="#minor-changes-18">Minor Changes</a>
     - <a href="#bugfixes-18">Bugfixes</a>
 - <a href="#v0-42-1">v0\.42\.1</a>
-    - <a href="#release-summary-27">Release Summary</a>
+    - <a href="#release-summary-28">Release Summary</a>
     - <a href="#bugfixes-19">Bugfixes</a>
 - <a href="#v0-42-0">v0\.42\.0</a>
-    - <a href="#release-summary-28">Release Summary</a>
+    - <a href="#release-summary-29">Release Summary</a>
     - <a href="#major-changes-2">Major Changes</a>
-    - <a href="#minor-changes-18">Minor Changes</a>
+    - <a href="#minor-changes-19">Minor Changes</a>
     - <a href="#bugfixes-20">Bugfixes</a>
 - <a href="#v0-41-0">v0\.41\.0</a>
-    - <a href="#release-summary-29">Release Summary</a>
-    - <a href="#minor-changes-19">Minor Changes</a>
+    - <a href="#release-summary-30">Release Summary</a>
+    - <a href="#minor-changes-20">Minor Changes</a>
     - <a href="#bugfixes-21">Bugfixes</a>
 - <a href="#v0-40-2">v0\.40\.2</a>
-    - <a href="#release-summary-30">Release Summary</a>
+    - <a href="#release-summary-31">Release Summary</a>
     - <a href="#bugfixes-22">Bugfixes</a>
 - <a href="#v0-40-1">v0\.40\.1</a>
-    - <a href="#release-summary-31">Release Summary</a>
+    - <a href="#release-summary-32">Release Summary</a>
     - <a href="#bugfixes-23">Bugfixes</a>
 - <a href="#v0-40-0">v0\.40\.0</a>
-    - <a href="#release-summary-32">Release Summary</a>
+    - <a href="#release-summary-33">Release Summary</a>
     - <a href="#major-changes-3">Major Changes</a>
-    - <a href="#minor-changes-20">Minor Changes</a>
+    - <a href="#minor-changes-21">Minor Changes</a>
     - <a href="#deprecated-features-3">Deprecated Features</a>
     - <a href="#bugfixes-24">Bugfixes</a>
 - <a href="#v0-39-2">v0\.39\.2</a>
-    - <a href="#release-summary-33">Release Summary</a>
-- <a href="#v0-39-1">v0\.39\.1</a>
     - <a href="#release-summary-34">Release Summary</a>
-- <a href="#v0-39-0">v0\.39\.0</a>
+- <a href="#v0-39-1">v0\.39\.1</a>
     - <a href="#release-summary-35">Release Summary</a>
-- <a href="#v0-38-2">v0\.38\.2</a>
+- <a href="#v0-39-0">v0\.39\.0</a>
     - <a href="#release-summary-36">Release Summary</a>
-- <a href="#v0-38-1">v0\.38\.1</a>
+- <a href="#v0-38-2">v0\.38\.2</a>
     - <a href="#release-summary-37">Release Summary</a>
-- <a href="#v0-38-0">v0\.38\.0</a>
+- <a href="#v0-38-1">v0\.38\.1</a>
     - <a href="#release-summary-38">Release Summary</a>
+- <a href="#v0-38-0">v0\.38\.0</a>
+    - <a href="#release-summary-39">Release Summary</a>
 - <a href="#v0-37-0">v0\.37\.0</a>
 - <a href="#v0-36-0">v0\.36\.0</a>
 - <a href="#v0-35-0">v0\.35\.0</a>
@@ -181,10 +184,10 @@
 - <a href="#v0-3-0">v0\.3\.0</a>
 - <a href="#v0-2-0">v0\.2\.0</a>
 - <a href="#v0-1-0">v0\.1\.0</a>
-    - <a href="#release-summary-39">Release Summary</a>
+    - <a href="#release-summary-40">Release Summary</a>
 
-<a id="v0-62-0"></a>
-## v0\.62\.0
+<a id="v0-63-0"></a>
+## v0\.63\.0
 
 <a id="release-summary"></a>
 ### Release Summary
@@ -192,6 +195,19 @@
 Feature release for improving the automatic release workflow\.
 
 <a id="minor-changes"></a>
+### Minor Changes
+
+* The release role now has a <code>antsibull\_build\_reset</code> option\, which defaults to the value of <code>antsibull\_data\_reset</code>\, that allows to control whether <code>\.build</code> files are reset during alpha and beta\-1 releases \([https\://github\.com/ansible\-community/antsibull/pull/601](https\://github\.com/ansible\-community/antsibull/pull/601)\)\.
+
+<a id="v0-62-0"></a>
+## v0\.62\.0
+
+<a id="release-summary-1"></a>
+### Release Summary
+
+Feature release for improving the automatic release workflow\.
+
+<a id="minor-changes-1"></a>
 ### Minor Changes
 
 * Add option <code>\-\-preserve\-deps</code> to the <code>prepare</code> subcommand that allows to preserve the dependencies if a <code>\.deps</code> file for that version already exists\. The versions from that <code>\.deps</code> file are validated against the build requirements and constraints\, and the remainder of the release preparation process remains unchanged\. The release role allows to pass this flag when <code>antsibull\_preserve\_deps\=true</code> \([https\://github\.com/ansible\-community/antsibull/pull/599](https\://github\.com/ansible\-community/antsibull/pull/599)\)\.
@@ -207,7 +223,7 @@ Feature release for improving the automatic release workflow\.
 <a id="v0-61-1"></a>
 ## v0\.61\.1
 
-<a id="release-summary-1"></a>
+<a id="release-summary-2"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -220,12 +236,12 @@ Bugfix release\.
 <a id="v0-61-0"></a>
 ## v0\.61\.0
 
-<a id="release-summary-2"></a>
+<a id="release-summary-3"></a>
 ### Release Summary
 
 Maintenance and bugfix release\.
 
-<a id="minor-changes-1"></a>
+<a id="minor-changes-2"></a>
 ### Minor Changes
 
 * Add support for the antsibull\-core v3 \([https\://github\.com/ansible\-community/antsibull/pull/593](https\://github\.com/ansible\-community/antsibull/pull/593)\)\.
@@ -238,12 +254,12 @@ Maintenance and bugfix release\.
 <a id="v0-60-0"></a>
 ## v0\.60\.0
 
-<a id="release-summary-3"></a>
+<a id="release-summary-4"></a>
 ### Release Summary
 
 Bugfix and feature release
 
-<a id="minor-changes-2"></a>
+<a id="minor-changes-3"></a>
 ### Minor Changes
 
 * Add a <code>sanity\-tests</code> subcommand to run sanity tests accross the collection tree created by <code>verify\-upstreams</code> and display the results \([https\://github\.com/ansible\-community/antsibull/pull/556](https\://github\.com/ansible\-community/antsibull/pull/556)\)\.
@@ -266,7 +282,7 @@ Bugfix and feature release
 <a id="v0-59-1"></a>
 ## v0\.59\.1
 
-<a id="release-summary-4"></a>
+<a id="release-summary-5"></a>
 ### Release Summary
 
 Hottfix for the ansible 9\.0\.1 release to fix setup\.cfg metadata
@@ -279,12 +295,12 @@ Hottfix for the ansible 9\.0\.1 release to fix setup\.cfg metadata
 <a id="v0-59-0"></a>
 ## v0\.59\.0
 
-<a id="release-summary-5"></a>
+<a id="release-summary-6"></a>
 ### Release Summary
 
 Feature release for the upcoming Ansible 9\.0\.0rc1 release\.
 
-<a id="minor-changes-3"></a>
+<a id="minor-changes-4"></a>
 ### Minor Changes
 
 * <code>ansible</code> python metadata \- remove links specific to <code>ansible\-core</code> and add links to the Ansible forum and the <code>ansible\-build\-data</code> repository \([https\://github\.com/ansible\-community/antsibull/pull/558](https\://github\.com/ansible\-community/antsibull/pull/558)\)\.
@@ -300,12 +316,12 @@ Feature release for the upcoming Ansible 9\.0\.0rc1 release\.
 <a id="v0-58-0"></a>
 ## v0\.58\.0
 
-<a id="release-summary-6"></a>
+<a id="release-summary-7"></a>
 ### Release Summary
 
 Feature release for the upcoming Ansible 9\.0\.0a1 release\.
 
-<a id="minor-changes-4"></a>
+<a id="minor-changes-5"></a>
 ### Minor Changes
 
 * Support a constraints file that allows to fix dependencies for the <code>new\-ansible</code> and <code>prepare</code> subcommands \([https\://github\.com/ansible\-community/antsibull/pull/546](https\://github\.com/ansible\-community/antsibull/pull/546)\)\.
@@ -318,7 +334,7 @@ Feature release for the upcoming Ansible 9\.0\.0a1 release\.
 <a id="v0-57-1"></a>
 ## v0\.57\.1
 
-<a id="release-summary-7"></a>
+<a id="release-summary-8"></a>
 ### Release Summary
 
 This bugfix release fixes the retrieval of ansible\-core Porting Guides\.
@@ -331,12 +347,12 @@ This bugfix release fixes the retrieval of ansible\-core Porting Guides\.
 <a id="v0-57-0"></a>
 ## v0\.57\.0
 
-<a id="release-summary-8"></a>
+<a id="release-summary-9"></a>
 ### Release Summary
 
 This release adds a couple new features and drops support for older ansible versions\.
 
-<a id="minor-changes-5"></a>
+<a id="minor-changes-6"></a>
 ### Minor Changes
 
 * Antsibull now no longer depends directly on <code>sh</code> \([https\://github\.com/ansible\-community/antsibull/pull/514](https\://github\.com/ansible\-community/antsibull/pull/514)\)\.
@@ -360,7 +376,7 @@ This release adds a couple new features and drops support for older ansible vers
 <a id="v0-56-1"></a>
 ## v0\.56\.1
 
-<a id="release-summary-9"></a>
+<a id="release-summary-10"></a>
 ### Release Summary
 
 Hotfix release to fix compatibility with older setuptools versions
@@ -373,12 +389,12 @@ Hotfix release to fix compatibility with older setuptools versions
 <a id="v0-56-0"></a>
 ## v0\.56\.0
 
-<a id="release-summary-10"></a>
+<a id="release-summary-11"></a>
 ### Release Summary
 
 Maintenance release\.
 
-<a id="minor-changes-6"></a>
+<a id="minor-changes-7"></a>
 ### Minor Changes
 
 * Remove now broken self\-test from release role \([https\://github\.com/ansible\-community/antsibull/pull/512](https\://github\.com/ansible\-community/antsibull/pull/512)\)\.
@@ -392,7 +408,7 @@ Maintenance release\.
 <a id="v0-55-0"></a>
 ## v0\.55\.0
 
-<a id="release-summary-11"></a>
+<a id="release-summary-12"></a>
 ### Release Summary
 
 Release with new features\, other improvements\, a new build system\, and a deprecation
@@ -402,7 +418,7 @@ Release with new features\, other improvements\, a new build system\, and a depr
 
 * Change pyproject build backend from <code>poetry\-core</code> to <code>hatchling</code>\. <code>pip install antsibull</code> works exactly the same as before\, but some users may be affected depending on how they build/install the project \([https\://github\.com/ansible\-community/antsibull/pull/490](https\://github\.com/ansible\-community/antsibull/pull/490)\)\.
 
-<a id="minor-changes-7"></a>
+<a id="minor-changes-8"></a>
 ### Minor Changes
 
 * Add a <code>\-I</code> / <code>\-\-ignore</code> and a <code>\-\-ignores\-file</code> flag to the <code>antsibull\-build validate\-tags</code> and <code>antsibull\-build validate\-tags\-file</code> subcommands to ignore errors for certain collections \([https\://github\.com/ansible\-community/antsibull/pull/491](https\://github\.com/ansible\-community/antsibull/pull/491)\)\.
@@ -417,7 +433,7 @@ Release with new features\, other improvements\, a new build system\, and a depr
 <a id="v0-54-0"></a>
 ## v0\.54\.0
 
-<a id="release-summary-12"></a>
+<a id="release-summary-13"></a>
 ### Release Summary
 
 New release with features\, bugfixes\, and breaking changes\.
@@ -441,12 +457,12 @@ New release with features\, bugfixes\, and breaking changes\.
 <a id="v0-53-0"></a>
 ## v0\.53\.0
 
-<a id="release-summary-13"></a>
+<a id="release-summary-14"></a>
 ### Release Summary
 
 Feature and bugfix release\.
 
-<a id="minor-changes-8"></a>
+<a id="minor-changes-9"></a>
 ### Minor Changes
 
 * Add <code>\-\-tags\-file</code> option to the <code>single</code>\, <code>rebuild\-single</code>\, and <code>prepare</code> subcommands\. This allows including a collection git tags data file in ansible\-build\-data and the ansible sdist \([https\://github\.com/ansible\-community/antsibull/pull/476/](https\://github\.com/ansible\-community/antsibull/pull/476/)\)\.
@@ -463,12 +479,12 @@ Feature and bugfix release\.
 <a id="v0-52-0"></a>
 ## v0\.52\.0
 
-<a id="release-summary-14"></a>
+<a id="release-summary-15"></a>
 ### Release Summary
 
 Major feature and bugfix release with breaking changes\.
 
-<a id="minor-changes-9"></a>
+<a id="minor-changes-10"></a>
 ### Minor Changes
 
 * Add a <code>validate\-tags</code> subcommand to ensure that collection versions in an Ansible release are tagged in collections\' respective git repositories \([https\://github\.com/ansible\-community/antsibull/pull/456](https\://github\.com/ansible\-community/antsibull/pull/456)\)\.
@@ -492,7 +508,7 @@ Major feature and bugfix release with breaking changes\.
 <a id="v0-51-2"></a>
 ## v0\.51\.2
 
-<a id="release-summary-15"></a>
+<a id="release-summary-16"></a>
 ### Release Summary
 
 Bugfix release\. The next minor release will no longer support Python 3\.6 and 3\.7\.
@@ -506,7 +522,7 @@ Bugfix release\. The next minor release will no longer support Python 3\.6 and 3
 <a id="v0-51-1"></a>
 ## v0\.51\.1
 
-<a id="release-summary-16"></a>
+<a id="release-summary-17"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -519,12 +535,12 @@ Bugfix release\.
 <a id="v0-51-0"></a>
 ## v0\.51\.0
 
-<a id="release-summary-17"></a>
+<a id="release-summary-18"></a>
 ### Release Summary
 
 Feature release for Ansible 7\.
 
-<a id="minor-changes-10"></a>
+<a id="minor-changes-11"></a>
 ### Minor Changes
 
 * Now requires antsibull\-core \>\= 1\.3\.0 \([https\://github\.com/ansible\-community/antsibull/pull/449](https\://github\.com/ansible\-community/antsibull/pull/449)\)\.
@@ -533,12 +549,12 @@ Feature release for Ansible 7\.
 <a id="v0-50-0"></a>
 ## v0\.50\.0
 
-<a id="release-summary-18"></a>
+<a id="release-summary-19"></a>
 ### Release Summary
 
 Feature and bugfix release\.
 
-<a id="minor-changes-11"></a>
+<a id="minor-changes-12"></a>
 ### Minor Changes
 
 * Added galaxy <code>requirements\.yml</code> file as <code>build\-release</code> role depends on <code>community\.general</code> collection \([https\://github\.com/ansible\-community/antsibull/pull/432](https\://github\.com/ansible\-community/antsibull/pull/432)\)
@@ -555,12 +571,12 @@ Feature and bugfix release\.
 <a id="v0-49-0"></a>
 ## v0\.49\.0
 
-<a id="release-summary-19"></a>
+<a id="release-summary-20"></a>
 ### Release Summary
 
 Bugfix and feature release containing breaking changes in the release role\.
 
-<a id="minor-changes-12"></a>
+<a id="minor-changes-13"></a>
 ### Minor Changes
 
 * Allow to copy the files used to create the source distribution and wheels to a new directory during <code>antsibull\-build rebuild\-single</code> \([https\://github\.com/ansible\-community/antsibull/pull/435](https\://github\.com/ansible\-community/antsibull/pull/435)\)\.
@@ -582,12 +598,12 @@ Bugfix and feature release containing breaking changes in the release role\.
 <a id="v0-48-0"></a>
 ## v0\.48\.0
 
-<a id="release-summary-20"></a>
+<a id="release-summary-21"></a>
 ### Release Summary
 
 Bugfix and feature release containing some breaking changes in the release role\.
 
-<a id="minor-changes-13"></a>
+<a id="minor-changes-14"></a>
 ### Minor Changes
 
 * In the release role\, automatically set <code>antsibull\_build\_file</code> and <code>antsibull\_data\_dir</code> based on <code>antsibull\_ansible\_version</code> \([https\://github\.com/ansible\-community/antsibull/pull/430](https\://github\.com/ansible\-community/antsibull/pull/430)\)\.
@@ -606,12 +622,12 @@ Bugfix and feature release containing some breaking changes in the release role\
 <a id="v0-47-0"></a>
 ## v0\.47\.0
 
-<a id="release-summary-21"></a>
+<a id="release-summary-22"></a>
 ### Release Summary
 
 Feature release for Ansible 6\.0\.0rc1\.
 
-<a id="minor-changes-14"></a>
+<a id="minor-changes-15"></a>
 ### Minor Changes
 
 * Include <code>ansible\-community</code> CLI program with <code>\-\-version</code> parameter from Ansible 6\.0\.0rc1 on \([https\://github\.com/ansible\-community/antsibull/pull/429](https\://github\.com/ansible\-community/antsibull/pull/429)\)\.
@@ -619,12 +635,12 @@ Feature release for Ansible 6\.0\.0rc1\.
 <a id="v0-46-0"></a>
 ## v0\.46\.0
 
-<a id="release-summary-22"></a>
+<a id="release-summary-23"></a>
 ### Release Summary
 
 Feature and bugfix release with improvements for the release role\, release building\, and changelog generation\.
 
-<a id="minor-changes-15"></a>
+<a id="minor-changes-16"></a>
 ### Minor Changes
 
 * Avoid including the complete condensed changelog of collections added to Ansible to that Ansible release\'s changelog and porting guide entries \([https\://github\.com/ansible\-community/antsibull/pull/428](https\://github\.com/ansible\-community/antsibull/pull/428)\)\.
@@ -640,7 +656,7 @@ Feature and bugfix release with improvements for the release role\, release buil
 <a id="v0-45-1"></a>
 ## v0\.45\.1
 
-<a id="release-summary-23"></a>
+<a id="release-summary-24"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -653,12 +669,12 @@ Bugfix release\.
 <a id="v0-45-0"></a>
 ## v0\.45\.0
 
-<a id="release-summary-24"></a>
+<a id="release-summary-25"></a>
 ### Release Summary
 
 New feature release with one breaking change to the <code>build\-release</code> role\.
 
-<a id="minor-changes-16"></a>
+<a id="minor-changes-17"></a>
 ### Minor Changes
 
 * Add <code>antsibull\-build</code> subcommand <code>validate\-deps</code> which validates dependencies for an <code>ansible\_collections</code> tree \([https\://github\.com/ansible\-community/antsibull/pull/416](https\://github\.com/ansible\-community/antsibull/pull/416)\)\.
@@ -675,7 +691,7 @@ New feature release with one breaking change to the <code>build\-release</code> 
 <a id="v0-44-0"></a>
 ## v0\.44\.0
 
-<a id="release-summary-25"></a>
+<a id="release-summary-26"></a>
 ### Release Summary
 
 Split up antsibull into multiple PyPi packages \(<code>antsibull\-core</code>\, <code>antsibull\-docs</code>\, and <code>antsibull</code>\)\. <strong>Note</strong> that upgrading is a bit more complicated due to the way <code>pip</code> works\! See below for details\.
@@ -698,12 +714,12 @@ Split up antsibull into multiple PyPi packages \(<code>antsibull\-core</code>\, 
 <a id="v0-43-0"></a>
 ## v0\.43\.0
 
-<a id="release-summary-26"></a>
+<a id="release-summary-27"></a>
 ### Release Summary
 
 Feature release\.
 
-<a id="minor-changes-17"></a>
+<a id="minor-changes-18"></a>
 ### Minor Changes
 
 * Add <code>lint\-collection\-docs</code> subcommand to <code>antsibull\-docs</code>\. It behaves identical to <code>antsibull\-lint collection\-docs</code> \([https\://github\.com/ansible\-community/antsibull/pull/411](https\://github\.com/ansible\-community/antsibull/pull/411)\, [https\://github\.com/ansible\-community/antsibull/issues/410](https\://github\.com/ansible\-community/antsibull/issues/410)\)\.
@@ -717,7 +733,7 @@ Feature release\.
 <a id="v0-42-1"></a>
 ## v0\.42\.1
 
-<a id="release-summary-27"></a>
+<a id="release-summary-28"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -730,7 +746,7 @@ Bugfix release\.
 <a id="v0-42-0"></a>
 ## v0\.42\.0
 
-<a id="release-summary-28"></a>
+<a id="release-summary-29"></a>
 ### Release Summary
 
 Major feature release preparing for Ansible 6\. Also adds support for the new collection links file\, and improves the attributes tables\.
@@ -743,7 +759,7 @@ Major feature release preparing for Ansible 6\. Also adds support for the new co
 * From Ansible 6 on\, improve <code>setup\.py</code> to exclude unnecessary files in the Python distribution \([https\://github\.com/ansible\-community/antsibull/pull/342](https\://github\.com/ansible\-community/antsibull/pull/342)\)\.
 * Remove Ansible 2\.9 / ansible\-base 2\.10 checks from <code>setup\.py</code> for Ansible 6 so that we can finally ship wheels\. This change is only active for Ansible 6 \([https\://github\.com/ansible\-community/antsibull/pull/394](https\://github\.com/ansible\-community/antsibull/pull/394)\)\.
 
-<a id="minor-changes-18"></a>
+<a id="minor-changes-19"></a>
 ### Minor Changes
 
 * Add a new docs parsing backend <code>ansible\-core\-2\.13</code>\, which supports ansible\-core 2\.13\+ \([https\://github\.com/ansible\-community/antsibull/pull/401](https\://github\.com/ansible\-community/antsibull/pull/401)\)\.
@@ -764,12 +780,12 @@ Major feature release preparing for Ansible 6\. Also adds support for the new co
 <a id="v0-41-0"></a>
 ## v0\.41\.0
 
-<a id="release-summary-29"></a>
+<a id="release-summary-30"></a>
 ### Release Summary
 
 Feature and bugfix release\.
 
-<a id="minor-changes-19"></a>
+<a id="minor-changes-20"></a>
 ### Minor Changes
 
 * Add <code>\-\-fail\-on\-error</code> to all antsibull\-docs subcommands for usage in CI \([https\://github\.com/ansible\-community/antsibull/pull/393](https\://github\.com/ansible\-community/antsibull/pull/393)\)\.
@@ -790,7 +806,7 @@ Feature and bugfix release\.
 <a id="v0-40-2"></a>
 ## v0\.40\.2
 
-<a id="release-summary-30"></a>
+<a id="release-summary-31"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -805,7 +821,7 @@ Bugfix release\.
 <a id="v0-40-1"></a>
 ## v0\.40\.1
 
-<a id="release-summary-31"></a>
+<a id="release-summary-32"></a>
 ### Release Summary
 
 Bugfix release\.
@@ -818,7 +834,7 @@ Bugfix release\.
 <a id="v0-40-0"></a>
 ## v0\.40\.0
 
-<a id="release-summary-32"></a>
+<a id="release-summary-33"></a>
 ### Release Summary
 
 Feature and bugfix release\.
@@ -828,7 +844,7 @@ Feature and bugfix release\.
 
 * Responsive parameter and return value tables\. Also use RST tables instead of HTML blobs \([https\://github\.com/ansible\-community/antsibull/pull/335](https\://github\.com/ansible\-community/antsibull/pull/335)\)\.
 
-<a id="minor-changes-20"></a>
+<a id="minor-changes-21"></a>
 ### Minor Changes
 
 * Add a changelog \([https\://github\.com/ansible\-community/antsibull/pull/378](https\://github\.com/ansible\-community/antsibull/pull/378)\)\.
@@ -864,7 +880,7 @@ Feature and bugfix release\.
 <a id="v0-39-2"></a>
 ## v0\.39\.2
 
-<a id="release-summary-33"></a>
+<a id="release-summary-34"></a>
 ### Release Summary
 
 - Fixes an incompatibility with antsibull\-lint with Python 3\.9\.8\.
@@ -873,7 +889,7 @@ Feature and bugfix release\.
 <a id="v0-39-1"></a>
 ## v0\.39\.1
 
-<a id="release-summary-34"></a>
+<a id="release-summary-35"></a>
 ### Release Summary
 
 - Fixes <code>M\(\.\.\.\)</code> when used in HTML blobs\.
@@ -882,7 +898,7 @@ Feature and bugfix release\.
 <a id="v0-39-0"></a>
 ## v0\.39\.0
 
-<a id="release-summary-35"></a>
+<a id="release-summary-36"></a>
 ### Release Summary
 
 Docs generation\:
@@ -896,7 +912,7 @@ Also improves the Ansible release playbook/role\.
 <a id="v0-38-2"></a>
 ## v0\.38\.2
 
-<a id="release-summary-36"></a>
+<a id="release-summary-37"></a>
 ### Release Summary
 
 Avoid creating role documentation for roles without argument spec\. Avoid naming collision with Ansible Sphinx config\'s <code>rst\_epilog</code> contents\.
@@ -904,7 +920,7 @@ Avoid creating role documentation for roles without argument spec\. Avoid naming
 <a id="v0-38-1"></a>
 ## v0\.38\.1
 
-<a id="release-summary-37"></a>
+<a id="release-summary-38"></a>
 ### Release Summary
 
 Fix for attributes support\: also allow new support value <code>N/A</code>\.
@@ -912,7 +928,7 @@ Fix for attributes support\: also allow new support value <code>N/A</code>\.
 <a id="v0-38-0"></a>
 ## v0\.38\.0
 
-<a id="release-summary-38"></a>
+<a id="release-summary-39"></a>
 ### Release Summary
 
 Support CLI options for the ansible\.builtin\.ssh connection plugin\, and support ansible\-core 2\.12 module/plugin attributes\.
@@ -1028,7 +1044,7 @@ Support CLI options for the ansible\.builtin\.ssh connection plugin\, and suppor
 <a id="v0-1-0"></a>
 ## v0\.1\.0
 
-<a id="release-summary-39"></a>
+<a id="release-summary-40"></a>
 ### Release Summary
 
 Initial release\.

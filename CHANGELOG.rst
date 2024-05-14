@@ -4,6 +4,19 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.63.0
+=======
+
+Release Summary
+---------------
+
+Feature release for improving the automatic release workflow.
+
+Minor Changes
+-------------
+
+- The release role now has a ``antsibull_build_reset`` option, which defaults to the value of ``antsibull_data_reset``, that allows to control whether ``.build`` files are reset during alpha and beta-1 releases (https://github.com/ansible-community/antsibull/pull/601).
+
 v0.62.0
 =======
 

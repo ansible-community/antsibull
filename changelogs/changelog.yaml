@@ -841,6 +841,17 @@ releases:
     - 598-release-role.yml
     - 599-prepare-preserve.yml
     release_date: '2024-05-13'
+  0.63.0:
+    changes:
+      minor_changes:
+      - The release role now has a ``antsibull_build_reset`` option, which defaults
+        to the value of ``antsibull_data_reset``, that allows to control whether ``.build``
+        files are reset during alpha and beta-1 releases (https://github.com/ansible-community/antsibull/pull/601).
+      release_summary: Feature release for improving the automatic release workflow.
+    fragments:
+    - 0.63.0.yml
+    - 601-antsibull_build_reset.yml
+    release_date: '2024-05-14'
   0.7.0:
     release_date: '2020-06-04'
   0.8.0:
