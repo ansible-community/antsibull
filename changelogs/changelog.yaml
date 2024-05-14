@@ -852,6 +852,15 @@ releases:
     - 0.63.0.yml
     - 601-antsibull_build_reset.yml
     release_date: '2024-05-14'
+  0.63.1:
+    changes:
+      bugfixes:
+      - Fix bug in ``--preserve-deps`` option handling (https://github.com/ansible-community/antsibull/pull/602).
+      release_summary: Bugfix release.
+    fragments:
+    - 0.63.1.yml
+    - 602-preserve_deps.yml
+    release_date: '2024-05-14'
   0.7.0:
     release_date: '2020-06-04'
   0.8.0:

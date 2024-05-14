@@ -4,6 +4,19 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.63.1
+=======
+
+Release Summary
+---------------
+
+Bugfix release.
+
+Bugfixes
+--------
+
+- Fix bug in ``--preserve-deps`` option handling (https://github.com/ansible-community/antsibull/pull/602).
+
 v0.63.0
 =======
 
