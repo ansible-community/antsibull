@@ -58,7 +58,7 @@ argument_specs:
       antsibull_data_reset:
         description:
           - Whether to forcefully reset the ansible-build-data repository.
-          - Set to C(false) if there are manual changes that should not be overwritten.
+          - Set to V(false) if there are manual changes that should not be overwritten.
         type: bool
         default: true
 
@@ -86,6 +86,16 @@ argument_specs:
           - Where the Ansible release tarball will be installed for test purposes.
         type: path
         default: "{{ antsibull_sdist_dir }}/venv"
+
+      antsibull_build_reset:
+        description:
+          - If set to V(true), will reset existing C(.build) files during the preparation of
+            alpha and beta-1 releases.
+          - If set to V(false), will only create C(.build) files if they do not yet exist.
+          - The default value is the one of O(antsibull_data_reset) for backwards compatibility.
+        type: bool
+        default: antsibull_data_reset
+        version_added: 0.63.0
 
       antsibull_venv_cleanup:
         description:
