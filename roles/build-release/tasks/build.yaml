@@ -30,13 +30,13 @@
     _allow_prereleases: "--allow-prereleases"
   when: antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+)$")
 
-- name: Update version ranges in the build file for alpha and beta releases
+- name: Update version ranges in the build file for alpha and beta-1 releases
   ansible.builtin.command: >-
     {{ antsibull_build_command }} new-ansible {{ antsibull_ansible_version }}
       --data-dir {{ antsibull_data_dir }}
       {{ _allow_prereleases | default('') }}
   when: >-
-    (antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$") and antsibull_build_reset)
+    (antsibull_ansible_version is regex("^\d+.\d+.\d+(a\d+|b1)$") and (antsibull_build_reset | bool))
     or not _antsibull_build_file_stat.stat.exists
 
 - name: Set up feature freeze for b2 and later betas, and release candidates
