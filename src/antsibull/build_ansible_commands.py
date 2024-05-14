@@ -407,7 +407,7 @@ def validate_deps_data(
     constraints: dict[str, SemVerSpec],
 ) -> None:
     """
-    Validate dependencies against constraints and build deps.
+    Validate collection dependencies against constraints and build deps.
 
     Raise ``ValueError`` in case of inconsistencies.
     """
@@ -467,6 +467,7 @@ def prepare_command() -> int:
 
     if app_ctx.extra["preserve_deps"] and os.path.exists(deps_filename):
         dependency_data = deps_file.parse()
+        python_requires = dependency_data.deps.pop("_python")
     else:
         dependency_data = prepare_deps(
             app_ctx.extra["ansible_version"],
