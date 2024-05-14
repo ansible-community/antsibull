@@ -1,0 +1,2 @@
+bugfixes:
+  - "Fix bug in ``--preserve-deps`` option handling (https://github.com/ansible-community/antsibull/pull/602)."
