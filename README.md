@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 [![Nox badge](https://github.com/ansible-community/antsibull/actions/workflows/nox.yml/badge.svg)](https://github.com/ansible-community/antsibull/actions/workflows/nox.yml)
 [![dumb PyPI on GH pages badge](https://github.com/ansible-community/antsibull/workflows/👷%20dumb%20PyPI%20on%20GH%20pages/badge.svg?event=push&branch=main)](https://github.com/ansible-community/antsibull/actions?query=workflow%3A%22👷+dumb+PyPI+on+GH+pages%22+branch%3Amain)
 [![Codecov badge](https://img.shields.io/codecov/c/github/ansible-community/antsibull)](https://codecov.io/gh/ansible-community/antsibull)
+[![REUSE status](https://api.reuse.software/badge/github.com/ansible-community/antsibull)](https://api.reuse.software/info/github.com/ansible-community/antsibull)
 
 Tooling for building various things related to Ansible
 
