@@ -39,6 +39,11 @@ jobs:
             python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+          - name: Ansible 11
+            options: '-e antsibull_ansible_version=11.99.0'
+            python: '3.12'
+            antsibull_changelog_ref: main
+            antsibull_core_ref: main
 
     steps:
       - name: Check out antsibull
