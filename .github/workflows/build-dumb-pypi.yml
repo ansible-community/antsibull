@@ -5,7 +5,7 @@
 
 name: 👷 dumb PyPI on GH pages
 env:
-  ANSIBLE_MAJOR_VERSION: '10'
+  ANSIBLE_MAJOR_VERSION: '11'
 on:
   push:
     branches:
