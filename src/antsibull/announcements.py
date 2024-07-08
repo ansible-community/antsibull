@@ -237,7 +237,9 @@ async def _announcements_command(
         return 1
     for path in write_announcements(ANNOUNCEMENTS, ctx, output_dir):
         print("Wrote:", path)
-    data = AnnouncementsInfo(template_vars=ctx, outputs=list(ANNOUNCEMENTS))
+    data = AnnouncementsInfo(  # pyre-ignore[20]
+        template_vars=ctx, outputs=list(ANNOUNCEMENTS)
+    )
     info_path = output_dir / "announcements.json"
     write_announcements_json(data, info_path)
     print("Wrote:", info_path)
