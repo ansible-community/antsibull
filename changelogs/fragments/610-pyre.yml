@@ -1,2 +1,2 @@
-minor_changes:
+trivial:
   - "Remove pyre from linting steps (https://github.com/ansible-community/antsibull/pull/610)."
