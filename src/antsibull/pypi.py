@@ -126,7 +126,7 @@ class PyPIClient:
 
     async def get_release(self, package: str, version: str) -> Release:
         url = urljoin(PYPI_BASE_URL, f"{package}/{version}/json")
-        async with self.aio_session.get(url) as resp:  # pyre-ignore[16]
+        async with self.aio_session.get(url) as resp:
             resp.raise_for_status()
             data = await resp.json()
         return Release(**data)
