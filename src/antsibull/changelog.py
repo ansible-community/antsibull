@@ -329,7 +329,7 @@ class AnsibleCoreChangelogCollector:
         )
 
         query_url = f"{branch_url}/{get_porting_guide_filename(self.latest)}"
-        async with aio_session.get(query_url) as response:  # pyre-ignore[16]
+        async with aio_session.get(query_url) as response:
             self.porting_guide = await response.read()
 
 

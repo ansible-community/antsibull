@@ -237,9 +237,7 @@ async def _announcements_command(
         return 1
     for path in write_announcements(ANNOUNCEMENTS, ctx, output_dir):
         print("Wrote:", path)
-    data = AnnouncementsInfo(  # pyre-ignore[20]
-        template_vars=ctx, outputs=list(ANNOUNCEMENTS)
-    )
+    data = AnnouncementsInfo(template_vars=ctx, outputs=list(ANNOUNCEMENTS))
     info_path = output_dir / "announcements.json"
     write_announcements_json(data, info_path)
     print("Wrote:", info_path)
@@ -257,8 +255,8 @@ def write_announcements_json(info: AnnouncementsInfo, file: StrOrBytesPath) -> N
         file: Output JSON filename
     """
     with open(file, "w", encoding="utf-8") as fp:
-        # pyre and pylint don't understand pydantic's __getattr__ magic
-        # pyre-ignore[16] pylint: disable-next=no-member
+        # pylint doesn't understand pydantic's __getattr__ magic
+        # pylint: disable-next=no-member
         json.dump(info, fp, default=pydantic.json.pydantic_encoder, indent=2)
 
 

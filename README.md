@@ -70,7 +70,7 @@ To run specific tests:
 2. `nox -e lint` to run all linters;
 3. `nox -e formatters` to run `isort` and `black`;
 4. `nox -e codeqa` to run `flake8`, `pylint`, `reuse lint`, and `antsibull-changelog lint`;
-5. `nox -e typing` to run `mypy` and `pyre`.
+5. `nox -e typing` to run `mypy`.
 6. `nox -e coverage_release` to build a test ansible release.
    This is expensive, so it's not run by default.
 7. `nox -e check_package_files` to run the generate-package-files integration tests.
