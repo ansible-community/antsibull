@@ -129,12 +129,6 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
-.pyre/
-
-# poetry
-poetry.lock
-
 # Output files
 *.tar.gz
 *.in
