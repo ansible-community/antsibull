@@ -880,3 +880,22 @@ releases:
       - 0.63.1.yml
       - 602-preserve_deps.yml
     release_date: '2024-05-14'
+  0.64.0:
+    changes:
+      bugfixes:
+        - Fix bug when handling ``antsibull_build_reset`` was passed in as a string
+          from CLI (https://github.com/ansible-community/antsibull/pull/602).
+      minor_changes:
+        - If you are using `argcomplete <https://pypi.org/project/argcomplete/>`__,
+          you can now tab-complete ``antsibull-build`` command lines. See `Activating
+          global completion <https://pypi.org/project/argcomplete/#activating-global-completion>`__
+          in the argcomplete README for how to enable tab completion globally. This
+          will also tab-complete Ansible commands such as ``ansible-playbook`` and
+          ``ansible-test`` (https://github.com/ansible-community/antsibull/pull/611).
+      release_summary: Bugfix and feature release.
+    fragments:
+      - 0.64.0.yml
+      - 602-antsibull_build_reset.yml
+      - 610-pyre.yml
+      - 611-argcomplete.yml
+    release_date: '2024-08-17'
