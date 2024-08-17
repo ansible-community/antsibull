@@ -1,0 +1,5 @@
+minor_changes:
+  - "If you are using `argcomplete <https://pypi.org/project/argcomplete/>`__, you can now tab-complete ``antsibull-build`` command lines.
+     See `Activating global completion <https://pypi.org/project/argcomplete/#activating-global-completion>`__ in the argcomplete README for
+     how to enable tab completion globally. This will also tab-complete Ansible commands such as ``ansible-playbook`` and ``ansible-test``
+     (https://github.com/ansible-community/antsibull/pull/611)."

@@ -3,6 +3,9 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Ansible Project, 2020
+
+# PYTHON_ARGCOMPLETE_OK
+
 """Entrypoint to the antsibull-build tool."""
 
 from __future__ import annotations
@@ -11,6 +14,13 @@ import argparse
 import os.path
 import sys
 from pathlib import Path
+
+try:
+    import argcomplete
+
+    HAS_ARGCOMPLETE = True
+except ImportError:
+    HAS_ARGCOMPLETE = False
 
 import twiggy  # type: ignore[import]
 from antsibull_core.logging import initialize_app_logging, log
@@ -758,6 +768,10 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         " Defaults to performing all actions.",
         dest="send_actions",
     )
+
+    # This must come after all parser setup
+    if HAS_ARGCOMPLETE:
+        argcomplete.autocomplete(parser)
 
     parsed_args: argparse.Namespace = parser.parse_args(args)
 
