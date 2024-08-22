@@ -29,21 +29,25 @@ jobs:
             python: '3.9'
             antsibull_changelog_ref: 0.24.0
             antsibull_core_ref: stable-2
+            antsibull_docutils_ref: 1.0.0  # isn't used by antsibull-changelog 0.24.0
           - name: Ansible 9
             options: '-e antsibull_ansible_version=9.99.0'
             python: '3.11'
             antsibull_changelog_ref: main
             antsibull_core_ref: stable-2
+            antsibull_docutils_ref: main
           - name: Ansible 10
             options: '-e antsibull_ansible_version=10.99.0'
             python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+            antsibull_docutils_ref: main
           - name: Ansible 11
             options: '-e antsibull_ansible_version=11.99.0'
             python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+            antsibull_docutils_ref: main
 
     steps:
       - name: Check out antsibull
@@ -64,6 +68,13 @@ jobs:
           repository: ansible-community/antsibull-core
           path: antsibull-core
           ref: ${{ matrix.antsibull_core_ref }}
+
+      - name: Check out dependent project antsibull-docutils
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docutils
+          path: antsibull-docutils
+          ref: ${{ matrix.antsibull_docutils_ref }}
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5

@@ -46,23 +46,26 @@ Install and run `nox` to run all tests. That's it for simple contributions!
 `nox` will create virtual environments in `.nox` inside the checked out project
 and install the requirements needed to run the tests there.
 
-
 ---
 
-antsibull depends on the sister antsibull-core and antsibull-changelog projects.
+antsibull depends on the sister antsibull-core, antsibull-changelog, and
+antsibull-docutils projects.
 By default, `nox` will install development versions of these projects from
 Github.
 If you're hacking on antsibull-core or antsibull-changelog alongside antsibull,
-nox will automatically install the projects from `../antsibull-core` and
-`../antsibull-changelog` when running tests if those paths exist.
+nox will automatically install the projects from `../antsibull-core`,
+`../antsibull-changelog`, and `../antsibull-docutils` when running tests
+if those paths exist.
 You can change this behavior through the `OTHER_ANTSIBULL_MODE` env var:
 
 - `OTHER_ANTSIBULL_MODE=auto` — the default behavior described above
-- `OTHER_ANTSIBULL_MODE=local` — install the projects from `../antsibull-core`
-  and `../antsibull-changelog`. Fail if those paths don't exist.
+- `OTHER_ANTSIBULL_MODE=local` — install the projects from `../antsibull-core`,
+  `../antsibull-changelog`, and `../antsibull-docutils`.
+  Fail if those paths don't exist.
 - `OTHER_ANTSIBULL_MODE=git` — install the projects from the Github main branch
 - `OTHER_ANTSIBULL_MODE=pypi` — install the latest version from PyPI
 
+---
 
 To run specific tests:
 
@@ -85,6 +88,7 @@ To create a more complete local development env:
 ``` console
 git clone https://github.com/ansible-community/antsibull-changelog.git
 git clone https://github.com/ansible-community/antsibull-core.git
+git clone https://github.com/ansible-community/antsibull-docutils.git
 git clone https://github.com/ansible-community/antsibull.git
 cd antsibull
 python3 -m venv venv

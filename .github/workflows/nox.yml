@@ -58,6 +58,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: antsibull
+      - name: Check out dependent project antsibull-core
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-core
+          path: antsibull-core
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
+      - name: Check out dependent project antsibull-docutils
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docutils
+          path: antsibull-docutils
       - name: Install extra packages
         if: "matrix.packages != ''"
         run: |
@@ -68,10 +83,10 @@ jobs:
           python-versions: "${{ matrix.python-versions }}"
       - name: Set up nox environments
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}" ${{ matrix.codecov && 'coverage' || '' }} --install-only
+          OTHER_ANTSIBULL_MODE=local nox -v -e "${{ matrix.session }}" ${{ matrix.codecov && 'coverage' || '' }} --install-only
       - name: "Run nox -e ${{ matrix.session }}"
         run: |
-          OTHER_ANTSIBULL_MODE=git nox -v -e "${{ matrix.session }}" --reuse-existing-virtualenvs --no-install
+          OTHER_ANTSIBULL_MODE=local nox -v -e "${{ matrix.session }}" --reuse-existing-virtualenvs --no-install
       - name: Report coverage
         if: ${{ matrix.codecov }}
         run: |
