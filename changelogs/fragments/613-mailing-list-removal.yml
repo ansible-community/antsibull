@@ -1,0 +1,3 @@
+removed_features:
+  - "The ``announcements --send`` command no longer attempts to send mails to the mailing lists, which have been sunset
+     (https://github.com/ansible-community/antsibull/pull/613)."

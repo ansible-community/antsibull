@@ -49,11 +49,6 @@ ANNOUNCEMENTS = {
 }
 SUBJECT = "Release announcement: Ansible community package {version}"
 SUBJECT_PRE_RELEASE = SUBJECT + " (Pre-Release)"
-MAIL_RECIPIENTS = (
-    "ansible-devel@googlegroups.com",
-    "ansible-project@googlegroups.com",
-    "ansible-announce@googlegroups.com",
-)
 # pylint: disable-next=line-too-long
 # https://meta.discourse.org/t/create-a-link-to-start-a-new-topic-with-pre-filled-information/28074 # noqa
 FORUM_TAGS = ("release", "distro-packaging", "release-management")
@@ -305,23 +300,6 @@ def forum_announcement_webbrowser(
     webbrowser.open(url)
 
 
-def email_announcement_webbrowser(
-    directory: Path,
-    info: AnnouncementsInfo,
-    ctx: SendCtx,  # pylint: disable=unused-argument
-) -> None:
-    """
-    Construct a pre-filled mailto link with the appropriate subject, body,
-    and recipients and open it an a browser
-    """
-    subject = get_subject(info)
-    body = get_body(directory, "ansible-email-announcement.txt")
-    params_dict: dict[str, str] = {"subject": subject, "body": body}
-    params = "?" + urlencode(params_dict, quote_via=url_quote)
-    url = "mailto:" + ",".join(MAIL_RECIPIENTS) + params
-    webbrowser.open(url)
-
-
 def matrix_announcement(
     directory: Path,
     info: AnnouncementsInfo,  # pylint: disable=unused-argument
@@ -356,7 +334,6 @@ def matrix_announcement(
 
 ACTIONS: dict[str, Callable[[Path, AnnouncementsInfo, SendCtx], None]] = {
     "forum": forum_announcement_webbrowser,
-    "email": email_announcement_webbrowser,
     "matrix": matrix_announcement,
 }
 
