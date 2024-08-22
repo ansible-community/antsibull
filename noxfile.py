@@ -43,7 +43,7 @@ def other_antsibull(
     if mode is None:
         mode = DEFAULT_MODE
     to_install: list[str | Path] = []
-    args = ("antsibull-core", "antsibull-changelog")
+    args = ("antsibull-core", "antsibull-changelog", "antsibull-docutils")
     for project in args:
         path = Path("../", project)
         path_exists = path.is_dir()
@@ -157,7 +157,7 @@ def coverage_release(session: nox.Session):
 
 @nox.session
 def coverage(session: nox.Session):
-    install(session, ".[coverage]", editable=True)
+    install(session, ".[coverage]", *other_antsibull(), editable=True)
     combined = map(str, Path().glob(".nox/*/tmp/.coverage"))
     # Combine the results into a single .coverage file in the root
     session.run("coverage", "combine", "--keep", *combined)
@@ -176,7 +176,7 @@ def lint(session: nox.Session):
 
 @nox.session
 def formatters(session: nox.Session):
-    install(session, ".[formatters]")
+    install(session, ".[formatters]", *other_antsibull())
     posargs = list(session.posargs)
     if IN_CI:
         posargs.append("--check")
