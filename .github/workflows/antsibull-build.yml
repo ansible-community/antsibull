@@ -16,6 +16,7 @@ on:
 
 env:
   FORCE_COLOR: "1"
+  OTHER_ANTSIBULL_MODE: local
 
 jobs:
   build:
@@ -87,7 +88,7 @@ jobs:
 
       - name: "Test building a release: ${{ matrix.name }}"
         run: |
-          OTHER_ANTSIBULL_MODE=local nox -e coverage_release -- ${{ matrix.options }}
+          nox -e coverage_release -- ${{ matrix.options }}
         working-directory: antsibull
 
       - name: Report coverage
