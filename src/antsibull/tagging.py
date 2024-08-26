@@ -160,11 +160,11 @@ async def get_collections_tags(
 
     deps_filename = os.path.join(data_dir, deps_filename)
     deps_data = DepsFile(deps_filename).parse()
-    meta_data = CollectionsMetadata(data_dir)
+    meta_data = CollectionsMetadata.load_from(data_dir)
 
     async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
         collection_tags = {}
-        for name, data in meta_data.data.items():
+        for name, data in meta_data.collections.items():
             collection_tags[name] = pool.spawn_n(
                 _get_collection_tags(deps_data.deps[name], data, name)
             )

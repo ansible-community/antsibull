@@ -13,50 +13,84 @@ from __future__ import annotations
 
 import os
 import typing as t
-from collections.abc import Mapping
 
+import pydantic as p
 from antsibull_fileutils.yaml import load_yaml_file
+from packaging.version import Version as PypiVer
+from pydantic.functional_validators import BeforeValidator
+from typing_extensions import Annotated
 
 
-class CollectionMetadata:
+def _convert_pypi_version(v: t.Any) -> t.Any:
+    if not isinstance(v, str):
+        raise ValueError(f"must be a string, got {v!r}")
+    if not v:
+        raise ValueError(f"must be a non-trivial string, got {v!r}")
+    version = PypiVer(v)
+    if len(version.release) != 3:
+        raise ValueError(
+            f"must be a version with three release numbers (e.g. 1.2.3, 2.3.4a1), got {v!r}"
+        )
+    return version
+
+
+PydanticPypiVersion = Annotated[PypiVer, BeforeValidator(_convert_pypi_version)]
+
+
+class RemovalInformation(p.BaseModel):
+    """
+    Stores metadata on when and why a collection will get removed.
+    """
+
+    model_config = p.ConfigDict(extra="ignore", arbitrary_types_allowed=True)
+
+    version: t.Union[int, t.Literal["TBD"]]
+    reason: t.Literal["deprecated", "considered-unmaintained", "renamed"]
+    announce_version: t.Optional[PydanticPypiVersion] = None
+    new_name: t.Optional[str] = None
+    discussion: t.Optional[p.HttpUrl] = None
+    redirect_replacement_version: t.Optional[int] = None
+
+
+class CollectionMetadata(p.BaseModel):
     """
     Stores metadata about one collection.
     """
 
-    changelog_url: str | None
-    collection_directory: str | None
-    repository: str | None
-    tag_version_regex: str | None
+    model_config = p.ConfigDict(extra="ignore")
 
-    def __init__(self, source: Mapping[str, t.Any] | None = None):
-        if source is None:
-            source = {}
-        self.changelog_url = source.get("changelog-url")
-        self.collection_directory = source.get("collection-directory")
-        self.repository = source.get("repository")
-        self.tag_version_regex = source.get("tag_version_regex")
+    changelog_url: t.Optional[str] = p.Field(alias="changelog-url", default=None)
+    collection_directory: t.Optional[str] = p.Field(
+        alias="collection-directory", default=None
+    )
+    repository: t.Optional[str] = None
+    tag_version_regex: t.Optional[str] = None
+    maintainers: list[str] = []
+    removal: t.Optional[RemovalInformation] = None
 
 
-class CollectionsMetadata:
+class CollectionsMetadata(p.BaseModel):
     """
     Stores metadata about a set of collections.
     """
 
-    data: dict[str, CollectionMetadata]
+    model_config = p.ConfigDict(extra="ignore")
 
-    def __init__(self, deps_dir: str | None):
-        self.data = {}
-        if deps_dir is not None:
-            collection_meta_path = os.path.join(deps_dir, "collection-meta.yaml")
-            if os.path.exists(collection_meta_path):
-                data = load_yaml_file(collection_meta_path)
-                if data and "collections" in data:
-                    for collection_name, collection_data in data["collections"].items():
-                        self.data[collection_name] = CollectionMetadata(collection_data)
+    collections: dict[str, CollectionMetadata]
+
+    @staticmethod
+    def load_from(deps_dir: str | None):
+        if deps_dir is None:
+            return CollectionsMetadata(collections={})
+        collection_meta_path = os.path.join(deps_dir, "collection-meta.yaml")
+        if not os.path.exists(collection_meta_path):
+            return CollectionsMetadata(collections={})
+        data = load_yaml_file(collection_meta_path)
+        return CollectionsMetadata.parse_obj(data)
 
     def get_meta(self, collection_name: str) -> CollectionMetadata:
-        result = self.data.get(collection_name)
+        result = self.collections.get(collection_name)
         if result is None:
             result = CollectionMetadata()
-            self.data[collection_name] = result
+            self.collections[collection_name] = result
         return result

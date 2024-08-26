@@ -29,14 +29,14 @@ jobs:
             options: '-e antsibull_ansible_version=8.99.0'
             python: '3.9'
             antsibull_changelog_ref: 0.24.0
-            antsibull_core_ref: stable-2
+            antsibull_core_ref: main
             antsibull_docutils_ref: 1.0.0  # isn't used by antsibull-changelog 0.24.0
             antsibull_fileutils_ref: main
           - name: Ansible 9
             options: '-e antsibull_ansible_version=9.99.0'
             python: '3.11'
             antsibull_changelog_ref: main
-            antsibull_core_ref: stable-2
+            antsibull_core_ref: main
             antsibull_docutils_ref: main
             antsibull_fileutils_ref: main
           - name: Ansible 10
