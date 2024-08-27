@@ -58,6 +58,28 @@ class _Validator:
                 f"{prefix} -> version: Must not be TBD if reason is not renamed"
             )
 
+    def _validate_reason_other(
+        self,
+        collection: str,  # pylint: disable=unused-argument
+        removal: RemovalInformation,
+        prefix: str,
+    ) -> None:
+        if removal.reason_text is None:
+            self.errors.append(
+                f"{prefix} -> reason_text: Must be provided if reason is other"
+            )
+
+    def _validate_reason_not_other(
+        self,
+        collection: str,  # pylint: disable=unused-argument
+        removal: RemovalInformation,
+        prefix: str,
+    ) -> None:
+        if removal.reason_text is not None:
+            self.errors.append(
+                f"{prefix} -> reason_text: Must not be provided if reason is not other"
+            )
+
     def _validate_removal(
         self, collection: str, removal: RemovalInformation, prefix: str
     ) -> None:
@@ -97,6 +119,11 @@ class _Validator:
             self._validate_reason_renamed(collection, removal, prefix)
         else:
             self._validate_reason_not_renamed(collection, removal, prefix)
+
+        if removal.reason == "other":
+            self._validate_reason_other(collection, removal, prefix)
+        else:
+            self._validate_reason_not_other(collection, removal, prefix)
 
     def _validate_collection(
         self, collection: str, meta: CollectionMetadata, prefix: str

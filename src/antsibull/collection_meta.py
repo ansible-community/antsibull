@@ -45,7 +45,8 @@ class RemovalInformation(p.BaseModel):
     model_config = p.ConfigDict(extra="ignore", arbitrary_types_allowed=True)
 
     version: t.Union[int, t.Literal["TBD"]]
-    reason: t.Literal["deprecated", "considered-unmaintained", "renamed"]
+    reason: t.Literal["deprecated", "considered-unmaintained", "renamed", "other"]
+    reason_text: str
     announce_version: t.Optional[PydanticPypiVersion] = None
     new_name: t.Optional[str] = None
     discussion: t.Optional[p.HttpUrl] = None
