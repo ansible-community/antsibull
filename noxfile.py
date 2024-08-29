@@ -43,7 +43,12 @@ def other_antsibull(
     if mode is None:
         mode = DEFAULT_MODE
     to_install: list[str | Path] = []
-    args = ("antsibull-core", "antsibull-changelog", "antsibull-docutils")
+    args = (
+        "antsibull-core",
+        "antsibull-changelog",
+        "antsibull-docutils",
+        "antsibull-fileutils",
+    )
     for project in args:
         path = Path("../", project)
         path_exists = path.is_dir()
