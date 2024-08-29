@@ -49,11 +49,48 @@ class RemovalInformation(p.BaseModel):
 
     version: t.Union[int, t.Literal["TBD"]]
     reason: t.Literal["deprecated", "considered-unmaintained", "renamed", "other"]
-    reason_text: str
+    reason_text: t.Optional[str] = None
     announce_version: t.Optional[PydanticPypiVersion] = None
     new_name: t.Optional[str] = None
     discussion: t.Optional[p.HttpUrl] = None
     redirect_replacement_version: t.Optional[int] = None
+
+    @p.model_validator(mode="after")
+    def check_reason_text(self) -> t.Self:
+        if self.reason == "other":
+            if self.reason_text is None:
+                raise ValueError("reason_text must be provided if reason is other")
+        else:
+            if self.reason_text is not None:
+                raise ValueError(
+                    "reason_text must not be provided if reason is not other"
+                )
+        return self
+
+    @p.model_validator(mode="after")
+    def check_reason_is_renamed(self) -> t.Self:
+        if self.reason != "renamed":
+            return self
+        if self.new_name is None:
+            raise ValueError("new_name must be provided if reason is renamed")
+        if self.redirect_replacement_version is not None and self.version != "TBD":
+            if self.redirect_replacement_version >= self.version:
+                raise ValueError("redirect_replacement_version must be smaller than version")
+        return self
+
+    @p.model_validator(mode="after")
+    def check_reason_is_not_renamed(self) -> t.Self:
+        if self.reason == "renamed":
+            return self
+        if self.new_name is not None:
+            raise ValueError("new_name must not be provided if reason is not renamed")
+        if self.redirect_replacement_version is not None:
+            raise ValueError(
+                "redirect_replacement_version must not be provided if reason is not renamed"
+            )
+        if self.version == "TBD":
+            raise ValueError("version must not be TBD if reason is not renamed")
+        return self
 
 
 class CollectionMetadata(p.BaseModel):

@@ -26,60 +26,6 @@ class _Validator:
         self.all_collections = all_collections
         self.major_release = major_release
 
-    def _validate_reason_renamed(
-        self, collection: str, removal: RemovalInformation, prefix: str
-    ) -> None:
-        if removal.new_name is None:
-            self.errors.append(
-                f"{prefix} -> new_name: Must be provided if reason is renamed"
-            )
-        elif removal.new_name == collection:
-            self.errors.append(
-                f"{prefix} -> new_name: Must not be the collection's name"
-            )
-
-    def _validate_reason_not_renamed(
-        self,
-        collection: str,  # pylint: disable=unused-argument
-        removal: RemovalInformation,
-        prefix: str,
-    ) -> None:
-        if removal.new_name is not None:
-            self.errors.append(
-                f"{prefix} -> new_name: Must not be provided if reason is not renamed"
-            )
-        if removal.redirect_replacement_version is not None:
-            self.errors.append(
-                f"{prefix} -> redirect_replacement_version: Must not be"
-                " provided if reason is not renamed"
-            )
-        if removal.version == "TBD":
-            self.errors.append(
-                f"{prefix} -> version: Must not be TBD if reason is not renamed"
-            )
-
-    def _validate_reason_other(
-        self,
-        collection: str,  # pylint: disable=unused-argument
-        removal: RemovalInformation,
-        prefix: str,
-    ) -> None:
-        if removal.reason_text is None:
-            self.errors.append(
-                f"{prefix} -> reason_text: Must be provided if reason is other"
-            )
-
-    def _validate_reason_not_other(
-        self,
-        collection: str,  # pylint: disable=unused-argument
-        removal: RemovalInformation,
-        prefix: str,
-    ) -> None:
-        if removal.reason_text is not None:
-            self.errors.append(
-                f"{prefix} -> reason_text: Must not be provided if reason is not other"
-            )
-
     def _validate_removal(
         self, collection: str, removal: RemovalInformation, prefix: str
     ) -> None:
@@ -115,15 +61,10 @@ class _Validator:
                     f" the removal major version {removal.version}"
                 )
 
-        if removal.reason == "renamed":
-            self._validate_reason_renamed(collection, removal, prefix)
-        else:
-            self._validate_reason_not_renamed(collection, removal, prefix)
-
-        if removal.reason == "other":
-            self._validate_reason_other(collection, removal, prefix)
-        else:
-            self._validate_reason_not_other(collection, removal, prefix)
+        if removal.reason == "renamed" and removal.new_name == collection:
+            self.errors.append(
+                f"{prefix} -> new_name: Must not be the collection's name"
+            )
 
     def _validate_collection(
         self, collection: str, meta: CollectionMetadata, prefix: str
