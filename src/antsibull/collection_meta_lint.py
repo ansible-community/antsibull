@@ -162,7 +162,7 @@ class _Validator:
 
         # Complain about remaining collections
         for collection in sorted(remaining_collections):
-            print(f"collections: No metadata present for {collection}")
+            self.errors.append(f"collections: No metadata present for {collection}")
 
 
 def lint_collection_meta() -> int:

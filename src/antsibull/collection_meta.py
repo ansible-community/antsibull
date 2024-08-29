@@ -20,6 +20,9 @@ from packaging.version import Version as PypiVer
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 
+if t.TYPE_CHECKING:
+    from _typeshed import StrPath
+
 
 def _convert_pypi_version(v: t.Any) -> t.Any:
     if not isinstance(v, str):
@@ -80,7 +83,7 @@ class CollectionsMetadata(p.BaseModel):
     collections: dict[str, CollectionMetadata]
 
     @staticmethod
-    def load_from(deps_dir: str | None):
+    def load_from(deps_dir: StrPath | None):
         if deps_dir is None:
             return CollectionsMetadata(collections={})
         collection_meta_path = os.path.join(deps_dir, "collection-meta.yaml")
