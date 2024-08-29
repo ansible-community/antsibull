@@ -75,7 +75,9 @@ class RemovalInformation(p.BaseModel):
             raise ValueError("new_name must be provided if reason is renamed")
         if self.redirect_replacement_version is not None and self.version != "TBD":
             if self.redirect_replacement_version >= self.version:
-                raise ValueError("redirect_replacement_version must be smaller than version")
+                raise ValueError(
+                    "redirect_replacement_version must be smaller than version"
+                )
         return self
 
     @p.model_validator(mode="after")
