@@ -37,6 +37,7 @@ dependencies = [
     "aiofiles",
     "aiohttp >= 3.0.0",
     "twiggy",
+    "pyyaml",
     # We rely on deprecated features to maintain compat btw. pydantic v1 and v2
     "pydantic < 3",
     # pydantic already pulls it in, but we use it for TypedDict
