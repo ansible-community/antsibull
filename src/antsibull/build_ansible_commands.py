@@ -25,7 +25,7 @@ from antsibull_core.dependency_files import BuildFile, DependencyFileData, DepsF
 from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import async_log_run, log_run
-from antsibull_core.yaml import store_yaml_file, store_yaml_stream
+from antsibull_fileutils.yaml import store_yaml_file, store_yaml_stream
 from jinja2 import Template
 from packaging.version import Version as PypiVer
 from semantic_version import SimpleSpec as SemVerSpec

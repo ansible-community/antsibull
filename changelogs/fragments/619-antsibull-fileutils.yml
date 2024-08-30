@@ -1,0 +1,3 @@
+minor_changes:
+  - "Add dependency on antsibull-fileutils. Some functionality from antsibull-core is moving there, so we can use it from there directly
+     (https://github.com/ansible-community/antsibull/pull/619)."
