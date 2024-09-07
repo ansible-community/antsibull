@@ -63,7 +63,7 @@ class _Validator:
 
         if removal.reason == "renamed" and removal.new_name == collection:
             self.errors.append(
-                f"{prefix} -> new_name: Must not be the collection's name"
+                f"{prefix} new_name: Must not be the collection's name"
             )
 
     def _validate_collection(
