@@ -37,11 +37,11 @@ class _Validator:
 
         if (
             removal.announce_version is not None
-            and removal.announce_version.major != self.major_release
+            and removal.announce_version.major > self.major_release
         ):
             self.errors.append(
                 f"{prefix} announce_version: Major version of {removal.announce_version}"
-                f" must be the current major version {self.major_release}"
+                f" must not be larger than the current major version {self.major_release}"
             )
 
         if removal.redirect_replacement_version is not None:
@@ -62,9 +62,7 @@ class _Validator:
                 )
 
         if removal.reason == "renamed" and removal.new_name == collection:
-            self.errors.append(
-                f"{prefix} new_name: Must not be the collection's name"
-            )
+            self.errors.append(f"{prefix} new_name: Must not be the collection's name")
 
     def _validate_collection(
         self, collection: str, meta: CollectionMetadata, prefix: str

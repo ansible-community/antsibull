@@ -18,7 +18,7 @@ import pydantic as p
 from antsibull_fileutils.yaml import load_yaml_file
 from packaging.version import Version as PypiVer
 from pydantic.functional_validators import BeforeValidator
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Self
 
 if t.TYPE_CHECKING:
     from _typeshed import StrPath
@@ -56,7 +56,7 @@ class RemovalInformation(p.BaseModel):
     redirect_replacement_version: t.Optional[int] = None
 
     @p.model_validator(mode="after")
-    def check_reason_text(self) -> t.Self:
+    def _check_reason_text(self) -> Self:
         if self.reason == "other":
             if self.reason_text is None:
                 raise ValueError("reason_text must be provided if reason is other")
@@ -68,7 +68,7 @@ class RemovalInformation(p.BaseModel):
         return self
 
     @p.model_validator(mode="after")
-    def check_reason_is_renamed(self) -> t.Self:
+    def _check_reason_is_renamed(self) -> Self:
         if self.reason != "renamed":
             return self
         if self.new_name is None:
@@ -81,7 +81,7 @@ class RemovalInformation(p.BaseModel):
         return self
 
     @p.model_validator(mode="after")
-    def check_reason_is_not_renamed(self) -> t.Self:
+    def _check_reason_is_not_renamed(self) -> Self:
         if self.reason == "renamed":
             return self
         if self.new_name is not None:
@@ -122,7 +122,7 @@ class CollectionsMetadata(p.BaseModel):
     collections: dict[str, CollectionMetadata]
 
     @staticmethod
-    def load_from(deps_dir: StrPath | None):
+    def load_from(deps_dir: StrPath | None) -> CollectionsMetadata:
         if deps_dir is None:
             return CollectionsMetadata(collections={})
         collection_meta_path = os.path.join(deps_dir, "collection-meta.yaml")
