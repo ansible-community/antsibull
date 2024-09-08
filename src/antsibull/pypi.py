@@ -14,7 +14,8 @@ from urllib.parse import urljoin
 
 import aiohttp
 import pydantic as p
-from antsibull_core.utils.hashing import verify_hash
+from antsibull_core import app_context
+from antsibull_fileutils.hashing import verify_hash
 
 PYPI_BASE_URL = "https://pypi.org/pypi/"
 
@@ -108,7 +109,8 @@ class UrlInfo(p.BaseModel):
         """
         if file.name != self.filename:
             return False
-        return await verify_hash(file, self.sha256sum)
+        lib_ctx = app_context.lib_ctx.get()
+        return await verify_hash(file, self.sha256sum, chunksize=lib_ctx.chunksize)
 
 
 # TODO pydantic v2+:

@@ -15,7 +15,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypedDict
 
 import aiofiles.ospath
-from antsibull_core.utils.hashing import verify_hash
+from antsibull_core import app_context
+from antsibull_fileutils.hashing import verify_hash
 
 from antsibull.types import add_yaml_type
 
@@ -81,6 +82,7 @@ async def verify_files(
     Yields:
         `FileErrorOutput` dicts with error data
     """
+    lib_ctx = app_context.lib_ctx.get()
     for file in files_data:
         path = collection_dir / file["name"]
         is_dir = file["ftype"] == "dir"
@@ -90,7 +92,10 @@ async def verify_files(
         elif is_dir and not await aiofiles.ospath.isdir(path):
             error = FileError.NOT_A_DIRECTORY
         elif not is_dir and not await verify_hash(
-            path, file["chksum_sha256"], "sha256"
+            path,
+            file["chksum_sha256"],
+            algorithm="sha256",
+            chunksize=lib_ctx.chunksize,
         ):
             error = FileError.WRONG_HASH
         if error is not None and error not in (ignore_errors or set()):
