@@ -25,11 +25,15 @@ if t.TYPE_CHECKING:
 
 
 def _convert_pypi_version(v: t.Any) -> t.Any:
-    if not isinstance(v, str):
-        raise ValueError(f"must be a string, got {v!r}")
-    if not v:
-        raise ValueError(f"must be a non-trivial string, got {v!r}")
-    version = PypiVer(v)
+    if isinstance(v, str):
+        if not v:
+            raise ValueError(f"must be a non-trivial string, got {v!r}")
+        version = PypiVer(v)
+    elif isinstance(v, PypiVer):
+        version = v
+    else:
+        raise ValueError(f"must be a string or PypiVer object, got {v!r}")
+
     if len(version.release) != 3:
         raise ValueError(
             f"must be a version with three release numbers (e.g. 1.2.3, 2.3.4a1), got {v!r}"
