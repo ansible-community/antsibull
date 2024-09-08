@@ -25,15 +25,11 @@ if t.TYPE_CHECKING:
 
 
 def _convert_pypi_version(v: t.Any) -> t.Any:
-    if isinstance(v, str):
-        if not v:
-            raise ValueError(f"must be a non-trivial string, got {v!r}")
-        version = PypiVer(v)
-    elif isinstance(v, PyPiVer):
-        version = v
-    else:
-        raise ValueError(f"must be a string or PypiVer object, got {v!r}")
-
+    if not isinstance(v, str):
+        raise ValueError(f"must be a string, got {v!r}")
+    if not v:
+        raise ValueError(f"must be a non-trivial string, got {v!r}")
+    version = PypiVer(v)
     if len(version.release) != 3:
         raise ValueError(
             f"must be a version with three release numbers (e.g. 1.2.3, 2.3.4a1), got {v!r}"
@@ -51,23 +47,23 @@ class RemovalInformation(p.BaseModel):
 
     model_config = p.ConfigDict(extra="ignore", arbitrary_types_allowed=True)
 
-    version: t.Union[int, t.Literal["TBD"]]
+    major_version: t.Union[int, t.Literal["TBD"]]
     reason: t.Literal["deprecated", "considered-unmaintained", "renamed", "other"]
     reason_text: t.Optional[str] = None
     announce_version: t.Optional[PydanticPypiVersion] = None
     new_name: t.Optional[str] = None
     discussion: t.Optional[p.HttpUrl] = None
-    redirect_replacement_version: t.Optional[int] = None
+    redirect_replacement_major_version: t.Optional[int] = None
 
     @p.model_validator(mode="after")
     def _check_reason_text(self) -> Self:
         if self.reason == "other":
             if self.reason_text is None:
-                raise ValueError("reason_text must be provided if reason is 'other'")
+                raise ValueError("reason_text must be provided if reason is other")
         else:
             if self.reason_text is not None:
                 raise ValueError(
-                    "reason_text must not be provided if reason is not 'other'"
+                    "reason_text must not be provided if reason is not other"
                 )
         return self
 
@@ -76,14 +72,14 @@ class RemovalInformation(p.BaseModel):
         if self.reason != "renamed":
             return self
         if self.new_name is None:
-            raise ValueError("new_name must be provided if reason is 'renamed'")
+            raise ValueError("new_name must be provided if reason is renamed")
         if (
-            self.redirect_replacement_version is not None
-            and self.version != "TBD"
-            and self.redirect_replacement_version >= self.version
+            self.redirect_replacement_major_version is not None
+            and self.major_version != "TBD"
+            and self.redirect_replacement_major_version >= self.major_version
         ):
             raise ValueError(
-                "redirect_replacement_version must be smaller than version"
+                "redirect_replacement_major_version must be smaller than major_version"
             )
         return self
 
@@ -92,13 +88,13 @@ class RemovalInformation(p.BaseModel):
         if self.reason == "renamed":
             return self
         if self.new_name is not None:
-            raise ValueError("new_name must not be provided if reason is not 'renamed'")
-        if self.redirect_replacement_version is not None:
+            raise ValueError("new_name must not be provided if reason is not renamed")
+        if self.redirect_replacement_major_version is not None:
             raise ValueError(
-                "redirect_replacement_version must not be provided if reason is not 'renamed'"
+                "redirect_replacement_major_version must not be provided if reason is not renamed"
             )
-        if self.version == "TBD":
-            raise ValueError("version must not be TBD if reason is not 'renamed'")
+        if self.major_version == "TBD":
+            raise ValueError("major_version must not be TBD if reason is not renamed")
         return self
 
 

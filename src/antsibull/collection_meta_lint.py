@@ -29,9 +29,12 @@ class _Validator:
     def _validate_removal(
         self, collection: str, removal: RemovalInformation, prefix: str
     ) -> None:
-        if removal.version != "TBD" and removal.version <= self.major_release:
+        if (
+            removal.major_version != "TBD"
+            and removal.major_version <= self.major_release
+        ):
             self.errors.append(
-                f"{prefix} version: Removal version {removal.version} must"
+                f"{prefix} major_version: Removal major version {removal.major_version} must"
                 f" be larger than current major version {self.major_release}"
             )
 
@@ -44,21 +47,21 @@ class _Validator:
                 f" must not be larger than the current major version {self.major_release}"
             )
 
-        if removal.redirect_replacement_version is not None:
-            if removal.redirect_replacement_version <= self.major_release:
+        if removal.redirect_replacement_major_version is not None:
+            if removal.redirect_replacement_major_version <= self.major_release:
                 self.errors.append(
-                    f"{prefix} redirect_replacement_version: Redirect removal version"
-                    f" {removal.redirect_replacement_version} must be larger than"
+                    f"{prefix} redirect_replacement_major_version: Redirect removal version"
+                    f" {removal.redirect_replacement_major_version} must be larger than"
                     f" current major version {self.major_release}"
                 )
             if (
-                removal.version != "TBD"
-                and removal.redirect_replacement_version >= removal.version
+                removal.major_version != "TBD"
+                and removal.redirect_replacement_major_version >= removal.major_version
             ):
                 self.errors.append(
-                    f"{prefix} redirect_replacement_version: Redirect removal version"
-                    f" {removal.redirect_replacement_version} must be smaller than"
-                    f" the removal major version {removal.version}"
+                    f"{prefix} redirect_replacement_major_version: Redirect removal major version"
+                    f" {removal.redirect_replacement_major_version} must be smaller than"
+                    f" the removal major version {removal.major_version}"
                 )
 
         if removal.reason == "renamed" and removal.new_name == collection:
