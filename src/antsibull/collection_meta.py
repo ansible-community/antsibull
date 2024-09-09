@@ -52,7 +52,13 @@ class RemovalInformation(p.BaseModel):
     model_config = p.ConfigDict(extra="ignore", arbitrary_types_allowed=True)
 
     major_version: t.Union[int, t.Literal["TBD"]]
-    reason: t.Literal["deprecated", "considered-unmaintained", "renamed", "other"]
+    reason: t.Literal[
+        "deprecated",
+        "considered-unmaintained",
+        "renamed",
+        "guidelines-violation",
+        "other",
+    ]
     reason_text: t.Optional[str] = None
     announce_version: t.Optional[PydanticPypiVersion] = None
     new_name: t.Optional[str] = None
@@ -61,13 +67,16 @@ class RemovalInformation(p.BaseModel):
 
     @p.model_validator(mode="after")
     def _check_reason_text(self) -> Self:
-        if self.reason == "other":
+        reasons_with_text = ("other", "guidelines-violation")
+        if self.reason in reasons_with_text:
             if self.reason_text is None:
-                raise ValueError("reason_text must be provided if reason is 'other'")
+                reasons = ", ".join(f"'{reason}'" for reason in reasons_with_text)
+                raise ValueError(f"reason_text must be provided if reason is {reasons}")
         else:
             if self.reason_text is not None:
+                reasons = ", ".join(f"'{reason}'" for reason in reasons_with_text)
                 raise ValueError(
-                    "reason_text must not be provided if reason is not 'other'"
+                    f"reason_text must not be provided if reason is not {reasons}"
                 )
         return self
 
