@@ -44,16 +44,11 @@ if TYPE_CHECKING:
     from _typeshed import StrOrBytesPath
 
 ANNOUNCEMENTS = {
-    "ansible-email-announcement.txt": "ansible-email-announcement.j2",
+    "ansible-forum-announcement.md": "ansible-forum-announcement.j2",
     "ansible-matrix-announcement.md": "ansible-matrix-announcement.j2",
 }
 SUBJECT = "Release announcement: Ansible community package {version}"
 SUBJECT_PRE_RELEASE = SUBJECT + " (Pre-Release)"
-MAIL_RECIPIENTS = (
-    "ansible-devel@googlegroups.com",
-    "ansible-project@googlegroups.com",
-    "ansible-announce@googlegroups.com",
-)
 # pylint: disable-next=line-too-long
 # https://meta.discourse.org/t/create-a-link-to-start-a-new-topic-with-pre-filled-information/28074 # noqa
 FORUM_TAGS = ("release", "distro-packaging", "release-management")
@@ -72,9 +67,9 @@ jinja_env = Environment(
 )
 
 
-def email_heading(content):
+def forum_heading(content):
     """
-    Given a string, convert it into an email heading
+    Given a string, convert it into an forum heading
 
     Args:
         content: filter content
@@ -82,7 +77,7 @@ def email_heading(content):
     return content + "\n" + "-" * len(content)
 
 
-jinja_env.filters["email_heading"] = email_heading
+jinja_env.filters["forum_heading"] = forum_heading
 
 
 class TemplateVars(TypedDict):
@@ -298,27 +293,10 @@ def forum_announcement_webbrowser(
     Open a pre-filled Ansible Forum post in a browser
     """
     subject = get_subject(info)
-    body = get_body(directory, "ansible-email-announcement.txt")
+    body = get_body(directory, "ansible-forum-announcement.md")
     params_dict = FORUM_PARAMS | {"title": subject, "body": body}
     params = "?" + urlencode(params_dict, quote_via=url_quote)
     url = urljoin(ANSIBLE_FORUM_URL, "new-topic") + params
-    webbrowser.open(url)
-
-
-def email_announcement_webbrowser(
-    directory: Path,
-    info: AnnouncementsInfo,
-    ctx: SendCtx,  # pylint: disable=unused-argument
-) -> None:
-    """
-    Construct a pre-filled mailto link with the appropriate subject, body,
-    and recipients and open it an a browser
-    """
-    subject = get_subject(info)
-    body = get_body(directory, "ansible-email-announcement.txt")
-    params_dict: dict[str, str] = {"subject": subject, "body": body}
-    params = "?" + urlencode(params_dict, quote_via=url_quote)
-    url = "mailto:" + ",".join(MAIL_RECIPIENTS) + params
     webbrowser.open(url)
 
 
@@ -356,7 +334,6 @@ def matrix_announcement(
 
 ACTIONS: dict[str, Callable[[Path, AnnouncementsInfo, SendCtx], None]] = {
     "forum": forum_announcement_webbrowser,
-    "email": email_announcement_webbrowser,
     "matrix": matrix_announcement,
 }
 

@@ -12,7 +12,7 @@ We're happy to announce the release of the Ansible {{ version }} package{% if is
 Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release and is_prerelease %} This is a pre-release of Ansible {{ major_version }}.{% elif is_major_release %} This is the first stable release of Ansible {{ major_version }}.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
 
 
-{{ "How to get it" | email_heading }}
+{{ "How to get it" | forum_heading }}
 
 This {% if is_prerelease %}pre-{% endif %}release is available on PyPI and can be installed with pip:
 
@@ -39,7 +39,7 @@ SHA256:
 {{ release_wheel.sha256sum }}
 
 
-{{ "Some important details" | email_heading }}
+{{ "Some important details" | forum_heading }}
 
 ansible-core is a separate package on which ansible depends. `pip install ansible` installs `ansible-core`, but it can also be installed independently of the ansible package.
 
@@ -61,7 +61,7 @@ The changelog for ansible-core {{ core_major_version }} installed by this releas
 
 https://github.com/ansible/ansible/blob/v{{ core_major_version }}/changelogs/CHANGELOG-v{{ core_major_version }}.rst
 
-{{ ("What's the schedule for new Ansible releases after " ~ version ~ "?") | email_heading }}
+{{ ("What's the schedule for new Ansible releases after " ~ version ~ "?") | forum_heading }}
 
 The next release roadmap can be found at
 
@@ -83,13 +83,13 @@ Register here to join the Ansible Forum:
 
 https://forum.ansible.com
 
-{{ "Porting Help" | email_heading }}
+{{ "Porting Help" | forum_heading }}
 
 A unified porting guide for collections that have opted in is available here:
 
 https://docs.ansible.com/ansible/devel/porting_guides/porting_guide_{{ major_version }}.html
 
-{{ ("Getting collection updates from Ansible " ~ major_version ~ " with older releases of ansible-core") | email_heading }}
+{{ ("Getting collection updates from Ansible " ~ major_version ~ " with older releases of ansible-core") | forum_heading }}
 
 Ansible {{ major_version }} depends on ansible-core {{ core_major_version }}. Depending on your needs, you can get collection updates as they ship in the Ansible “batteries included” package while continuing to use older versions of ansible-core.
 

@@ -45,7 +45,7 @@
     "is_prerelease": true
   },
   "outputs": [
-    "ansible-email-announcement.txt",
+    "ansible-forum-announcement.md",
     "ansible-matrix-announcement.md"
   ]
 }

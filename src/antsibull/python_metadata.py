@@ -83,8 +83,6 @@ NEW_URLS = IniDict(
         "Code of Conduct": DOCSITE_COMMUNITY_URL + "/code_of_conduct.html",
         "Documentation": DOCSITE_BASE_URL,
         "Forum": ANSIBLE_FORUM_URL,
-        "Mailing lists": DOCSITE_COMMUNITY_URL
-        + "/communication.html#mailing-list-information",
     }
 )
 
