@@ -15,7 +15,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import yaml
-from antsibull_core.yaml import load_yaml_file
+from antsibull_fileutils.yaml import load_yaml_file
 
 if TYPE_CHECKING:
     from _typeshed import StrPath

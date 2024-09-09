@@ -74,6 +74,11 @@ jobs:
         with:
           repository: ansible-community/antsibull-docutils
           path: antsibull-docutils
+      - name: Check out dependent project antsibull-fileutils
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-fileutils
+          path: antsibull-fileutils
       - name: Install extra packages
         if: "matrix.packages != ''"
         run: |

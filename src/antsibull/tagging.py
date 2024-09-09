@@ -20,7 +20,7 @@ import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
 from antsibull_core.dependency_files import DepsFile
 from antsibull_core.logging import log
-from antsibull_core.yaml import load_yaml_file, store_yaml_file
+from antsibull_fileutils.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.collection_meta import CollectionMetadata, CollectionsMetadata
 

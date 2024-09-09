@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 import asyncio_pool  # type: ignore[import]
 from antsibull_core import app_context
 from antsibull_core.subprocess_util import async_log_run
-from antsibull_core.yaml import load_yaml_file, store_yaml_file
+from antsibull_fileutils.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.build_ansible_commands import download_collections
 from antsibull.tagging import CollectionTagData

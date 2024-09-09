@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, TypedDict
 from antsibull_core import app_context
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import log_run
-from antsibull_core.yaml import store_yaml_file
+from antsibull_fileutils.yaml import store_yaml_file
 from packaging.version import Version
 
 from antsibull.constants import SANITY_TESTS_BANNED_IGNORES, SANITY_TESTS_DEFAULT

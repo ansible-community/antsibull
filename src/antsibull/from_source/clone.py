@@ -18,7 +18,7 @@ import aiofiles.os
 import aiofiles.ospath
 from antsibull_core.logging import log
 from antsibull_core.subprocess_util import async_log_run
-from antsibull_core.yaml import load_yaml_file, store_yaml_file
+from antsibull_fileutils.yaml import load_yaml_file, store_yaml_file
 
 from antsibull.tagging import CollectionTagData
 from antsibull.types import CollectionName

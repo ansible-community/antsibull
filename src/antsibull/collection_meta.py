@@ -15,7 +15,7 @@ import os
 import typing as t
 from collections.abc import Mapping
 
-from antsibull_core.yaml import load_yaml_file
+from antsibull_fileutils.yaml import load_yaml_file
 
 
 class CollectionMetadata:
