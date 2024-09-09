@@ -63,11 +63,11 @@ class RemovalInformation(p.BaseModel):
     def _check_reason_text(self) -> Self:
         if self.reason == "other":
             if self.reason_text is None:
-                raise ValueError("reason_text must be provided if reason is other")
+                raise ValueError("reason_text must be provided if reason is 'other'")
         else:
             if self.reason_text is not None:
                 raise ValueError(
-                    "reason_text must not be provided if reason is not other"
+                    "reason_text must not be provided if reason is not 'other'"
                 )
         return self
 
@@ -76,7 +76,7 @@ class RemovalInformation(p.BaseModel):
         if self.reason != "renamed":
             return self
         if self.new_name is None:
-            raise ValueError("new_name must be provided if reason is renamed")
+            raise ValueError("new_name must be provided if reason is 'renamed'")
         if (
             self.redirect_replacement_major_version is not None
             and self.major_version != "TBD"
@@ -92,13 +92,13 @@ class RemovalInformation(p.BaseModel):
         if self.reason == "renamed":
             return self
         if self.new_name is not None:
-            raise ValueError("new_name must not be provided if reason is not renamed")
+            raise ValueError("new_name must not be provided if reason is not 'renamed'")
         if self.redirect_replacement_major_version is not None:
             raise ValueError(
-                "redirect_replacement_major_version must not be provided if reason is not renamed"
+                "redirect_replacement_major_version must not be provided if reason is not 'renamed'"
             )
         if self.major_version == "TBD":
-            raise ValueError("major_version must not be TBD if reason is not renamed")
+            raise ValueError("major_version must not be TBD if reason is not 'renamed'")
         return self
 
 
