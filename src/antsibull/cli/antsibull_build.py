@@ -54,6 +54,7 @@ from ..build_ansible_commands import (  # noqa: E402
     rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
+from ..collection_meta_lint import lint_collection_meta  # noqa: E402
 from ..constants import MINIMUM_ANSIBLE_VERSION, SANITY_TESTS_DEFAULT  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..from_source import verify_upstream_command  # noqa: E402
@@ -84,6 +85,7 @@ ARGS_MAP = {
     "sanity-tests": sanity_tests_command,
     "announcements": announcements_command,
     "send-announcements": send_announcements_command,
+    "lint-collection-meta": lint_collection_meta,
 }
 DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL = "NONE"
 DEFAULT_ANNOUNCEMENTS_DIR = Path("build/announce")
@@ -107,7 +109,11 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
     ):
         return
 
-    if args.ansible_version < MINIMUM_ANSIBLE_VERSION:
+    if (
+        (args.ansible_version < MINIMUM_ANSIBLE_VERSION)
+        if args.command != "lint-collection-meta"
+        else (args.ansible_major_version < MINIMUM_ANSIBLE_VERSION.major)
+    ):
         raise InvalidArgumentError(
             f"Ansible < {MINIMUM_ANSIBLE_VERSION} is not supported"
             " by this antsibull version."
@@ -136,8 +142,8 @@ def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
         )
 
 
-def _normalize_new_release_options(args: argparse.Namespace) -> None:
-    if args.command != "new-ansible":
+def _normalize_pieces_file_options(args: argparse.Namespace) -> None:
+    if args.command not in ("new-ansible", "lint-collection-meta"):
         return
 
     if args.pieces_file is None:
@@ -150,6 +156,11 @@ def _normalize_new_release_options(args: argparse.Namespace) -> None:
             " exist. It should contain one namespace.collection"
             " per line"
         )
+
+
+def _normalize_new_release_options(args: argparse.Namespace) -> None:
+    if args.command != "new-ansible":
+        return
 
     compat_version_part = f"{args.ansible_version.major}"
 
@@ -769,6 +780,26 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         dest="send_actions",
     )
 
+    lint_collection_meta_parser = subparsers.add_parser(
+        "lint-collection-meta",
+        description="Lint the collection-meta.yaml file.",
+    )
+    lint_collection_meta_parser.add_argument(
+        "ansible_major_version",
+        type=int,
+        help="The X major version of Ansible that this will be for",
+    )
+    lint_collection_meta_parser.add_argument(
+        "--data-dir", default=".", help="Directory to read .build and .deps files from"
+    )
+    lint_collection_meta_parser.add_argument(
+        "--pieces-file",
+        default=None,
+        help="File containing a list of collections to include.  This is"
+        " considered to be relative to --data-dir.  The default is"
+        f" {DEFAULT_PIECES_FILE}",
+    )
+
     # This must come after all parser setup
     if HAS_ARGCOMPLETE:
         argcomplete.autocomplete(parser)
@@ -780,6 +811,7 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     _normalize_commands(parsed_args)
     _normalize_build_options(parsed_args)
     _normalize_build_write_data_options(parsed_args)
+    _normalize_pieces_file_options(parsed_args)
     _normalize_new_release_options(parsed_args)
     _normalize_release_build_options(parsed_args)
     _normalize_validate_tags_options(parsed_args)

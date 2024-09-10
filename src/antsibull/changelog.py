@@ -506,7 +506,7 @@ def get_changelog(
         PypiVer(ansible_ancestor_version_str) if ansible_ancestor_version_str else None
     )
 
-    collection_metadata = CollectionsMetadata(deps_dir)
+    collection_metadata = CollectionsMetadata.load_from(deps_dir)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, "*.deps"), recursive=False):
