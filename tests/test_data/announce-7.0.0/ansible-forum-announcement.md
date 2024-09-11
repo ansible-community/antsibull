@@ -53,7 +53,7 @@ and you can find a link to the source repository under the “Repository (Source
 
 The changelog for ansible-core 2.14 installed by this release of Ansible 7 can be found here:
 
-https://github.com/ansible/ansible/blob/v2.14/changelogs/CHANGELOG-v2.14.rst
+https://github.com/ansible/ansible/blob/v2.14.0/changelogs/CHANGELOG-v2.14.rst
 
 What's the schedule for new Ansible releases after 7.0.0?
 ---------------------------------------------------------
