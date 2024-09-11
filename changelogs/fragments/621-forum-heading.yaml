@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - announcements - fix link to ansible-core changelog in the Ansible package release announcement template
+    (https://github.com/ansible-community/antsibull/pull/621).
