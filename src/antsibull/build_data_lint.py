@@ -17,8 +17,8 @@ from antsibull_core.collection_meta import lint_collection_meta as _lint_collect
 from antsibull_core.dependency_files import parse_pieces_file
 
 
-def lint_collection_meta() -> int:
-    """Lint collection-meta.yaml."""
+def lint_build_data() -> int:
+    """Lint build data."""
     app_ctx = app_context.app_ctx.get()
 
     major_release: int = app_ctx.extra["ansible_major_version"]
@@ -26,12 +26,15 @@ def lint_collection_meta() -> int:
     pieces_file: str = app_ctx.extra["pieces_file"]
 
     all_collections = parse_pieces_file(os.path.join(data_dir, pieces_file))
+
+    # Lint collection-meta.yaml
     errors = _lint_collection_meta(
         collection_meta_path=os.path.join(data_dir, "collection-meta.yaml"),
         major_release=major_release,
         all_collections=all_collections,
     )
 
+    # Show results
     for message in errors:
         print(message)
 

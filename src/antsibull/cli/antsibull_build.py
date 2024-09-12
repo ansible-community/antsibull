@@ -54,7 +54,7 @@ from ..build_ansible_commands import (  # noqa: E402
     rebuild_single_command,
 )
 from ..build_changelog import build_changelog  # noqa: E402
-from ..collection_meta_lint import lint_collection_meta  # noqa: E402
+from ..build_data_lint import lint_build_data  # noqa: E402
 from ..constants import MINIMUM_ANSIBLE_VERSION, SANITY_TESTS_DEFAULT  # noqa: E402
 from ..dep_closure import validate_dependencies_command  # noqa: E402
 from ..from_source import verify_upstream_command  # noqa: E402
@@ -85,7 +85,7 @@ ARGS_MAP = {
     "sanity-tests": sanity_tests_command,
     "announcements": announcements_command,
     "send-announcements": send_announcements_command,
-    "lint-collection-meta": lint_collection_meta,
+    "lint-build-data": lint_build_data,
 }
 DISABLE_VERIFY_UPSTREAMS_IGNORES_SENTINEL = "NONE"
 DEFAULT_ANNOUNCEMENTS_DIR = Path("build/announce")
@@ -111,7 +111,7 @@ def _normalize_build_options(args: argparse.Namespace) -> None:
 
     if (
         (args.ansible_version < MINIMUM_ANSIBLE_VERSION)
-        if args.command != "lint-collection-meta"
+        if args.command != "lint-build-data"
         else (args.ansible_major_version < MINIMUM_ANSIBLE_VERSION.major)
     ):
         raise InvalidArgumentError(
@@ -143,7 +143,7 @@ def _normalize_build_write_data_options(args: argparse.Namespace) -> None:
 
 
 def _normalize_pieces_file_options(args: argparse.Namespace) -> None:
-    if args.command not in ("new-ansible", "lint-collection-meta"):
+    if args.command not in ("new-ansible", "lint-build-data"):
         return
 
     if args.pieces_file is None:
@@ -780,19 +780,19 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         dest="send_actions",
     )
 
-    lint_collection_meta_parser = subparsers.add_parser(
-        "lint-collection-meta",
-        description="Lint the collection-meta.yaml file.",
+    lint_build_data_parser = subparsers.add_parser(
+        "lint-build-data",
+        description="Lint the build data for a major Ansible release.",
     )
-    lint_collection_meta_parser.add_argument(
+    lint_build_data_parser.add_argument(
         "ansible_major_version",
         type=int,
         help="The X major version of Ansible that this will be for",
     )
-    lint_collection_meta_parser.add_argument(
+    lint_build_data_parser.add_argument(
         "--data-dir", default=".", help="Directory to read .build and .deps files from"
     )
-    lint_collection_meta_parser.add_argument(
+    lint_build_data_parser.add_argument(
         "--pieces-file",
         default=None,
         help="File containing a list of collections to include.  This is"
