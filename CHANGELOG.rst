@@ -4,6 +4,37 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.65.0
+=======
+
+Release Summary
+---------------
+
+Bugfix and feature release with breaking changes
+
+Minor Changes
+-------------
+
+- Add dependency on antsibull-fileutils. Some functionality from antsibull-core is moving there, so we can use it from there directly (https://github.com/ansible-community/antsibull/pull/619).
+- Add subcommand ``lint-build-data`` for linting build data in ``ansible-build-data`` (https://github.com/ansible-community/antsibull/pull/617).
+- Remove the mention of mailing lists from the Ansible README (https://github.com/ansible-community/antsibull/pull/613).
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- Antsibull now depends on antsibull-core >= 3.1.0 and pydantic >= 2.0.0 (https://github.com/ansible-community/antsibull/pull/617, https://github.com/ansible-community/antsibull/pull/620).
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- The ``announcements --send`` command no longer attempts to send mails to the mailing lists, which have been sunset (https://github.com/ansible-community/antsibull/pull/613).
+
+Bugfixes
+--------
+
+- Add explicit dependency on PyYAML, since we directly use it (https://github.com/ansible-community/antsibull/pull/619).
+- announcements - fix link to ansible-core changelog in the Ansible package release announcement template (https://github.com/ansible-community/antsibull/pull/621).
+
 v0.64.0
 =======
 
