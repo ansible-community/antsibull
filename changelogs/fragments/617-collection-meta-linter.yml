@@ -1,4 +1,4 @@
 minor_changes:
-  - "Add subcommand ``lint-collection-meta`` for linting ``collection-meta.yaml`` files in ``ansible-build-data`` (https://github.com/ansible-community/antsibull/pull/617)."
+  - "Add subcommand ``lint-build-data`` for linting build data in ``ansible-build-data`` (https://github.com/ansible-community/antsibull/pull/617)."
 breaking_changes:
   - "Antsibull now depends on antsibull-core >= 3.1.0 and pydantic >= 2.0.0 (https://github.com/ansible-community/antsibull/pull/617, https://github.com/ansible-community/antsibull/pull/620)."
