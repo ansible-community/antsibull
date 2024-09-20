@@ -538,7 +538,7 @@ def _get_removal_entry(
 
     if removal.reason == "renamed":
         sentences.append(
-            f"The collection ``{collection}`` has been renamed to ``{removal.new_name}``."
+            f"The collection ``{collection}`` was renamed to ``{removal.new_name}``."
         )
         sentences.append("For now both collections are included in Ansible.")
         if removal.redirect_replacement_major_version is not None:
@@ -563,7 +563,9 @@ def _get_removal_entry(
             sentences.append(
                 "The collection will be completely removed from Ansible eventually."
             )
-        sentences.append(f"Please update your FQCNs for ``{collection}``{link}.")
+        sentences.append(
+            f"Please update your FQCNs from ``{collection}`` to ``{removal.new_name}``{link}."
+        )
 
     if removal.reason == "guidelines-violation":
         sentences.append(
