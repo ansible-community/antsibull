@@ -37,6 +37,7 @@ from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
 from antsibull_core.schemas.collection_meta import (
     CollectionsMetadata,
     RemovalInformation,
+    RemovedRemovalInformation,
 )
 from antsibull_fileutils.yaml import load_yaml_bytes
 from packaging.version import Version as PypiVer
@@ -611,6 +612,97 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
     ), str(removal.announce_version)
 
 
+def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
+    collection: str,
+    removal: RemovedRemovalInformation,
+) -> tuple[ChangelogFragment, str] | None:
+    sentences = []
+    link = ""
+    if removal.discussion:
+        link = f" (`{removal.discussion} <{removal.discussion}>`__)"
+
+    if removal.reason == "deprecated":
+        sentences.append(
+            f"The deprecated ``{collection}`` collection has been removed{link}."
+        )
+
+    if removal.reason == "considered-unmaintained":
+        sentences.append(
+            f"The ``{collection}`` collection was considered unmaintained"
+            f" and has been removed from Ansible {removal.version.major}{link}."
+        )
+
+    if removal.reason == "renamed":
+        sentences.append(
+            f"The collection ``{collection}`` has been completely removed from Ansible."
+        )
+        sentences.append(f"It has been renamed to ``{removal.new_name}``.")
+        if removal.redirect_replacement_major_version is not None:
+            sentences.append(
+                f"``{collection}`` has been replaced by deprecated redirects to"
+                f" ``{removal.new_name}``"
+                f" in Ansible {removal.redirect_replacement_major_version}.0.0."
+            )
+        else:
+            sentences.append(
+                "The collection will be completely removed from Ansible eventually."
+            )
+        sentences.append(
+            f"Please update your FQCNs from ``{collection}`` to ``{removal.new_name}``{link}."
+        )
+
+    if removal.reason == "guidelines-violation":
+        sentences.append(
+            f"The {collection} collection has been removed from Ansible {removal.version.major}"
+            " due to violations of the Ansible inclusion requirements."
+        )
+        if removal.reason_text:
+            sentences.append(removal.reason_text)
+        sentences.append(
+            "See `Collections Removal Process for"
+            " collections not satisfying the Collection requirements"
+            " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
+            "collection_package_removal.html"
+            "#collections-not-satisfying-the-collection-requirements"
+            f">` for more details__{link}."
+        )
+
+    if removal.reason == "other":
+        sentences.append(
+            f"The {collection} collection has been removed from Ansible {removal.version.major}."
+        )
+        if removal.reason_text:
+            sentences.append(removal.reason_text)
+        if removal.discussion:
+            sentences.append(
+                f"See `the removal discussion for details <{removal.discussion}>`__."
+            )
+        else:
+            sentences.append(
+                "To discuss this, please `create a community topic"
+                " <https://docs.ansible.com/ansible/devel/community/steering/"
+                "community_steering_committee.html#creating-community-topic>`__."
+            )
+
+    if sentences and removal.reason not in ("renamed", "deprecated"):
+        sentences.append(
+            "Users can still install this collection with "
+            f"``ansible-galaxy collection install {collection}``."
+        )
+
+    if not sentences:
+        return None
+    return ChangelogFragment(
+        content={
+            "removed_features": [
+                "\n".join(sentences),
+            ],
+        },
+        path="<internal>",
+        fragment_format=TextFormat.RESTRUCTURED_TEXT,
+    ), str(removal.version)
+
+
 def _populate_ansible_changelog(
     ansible_changelog: ChangelogData, collection_metadata: CollectionsMetadata
 ) -> None:
@@ -625,6 +717,17 @@ def _populate_ansible_changelog(
                     print(
                         f"WARNING: found changelog entry for {version}, which does not yet exist"
                     )
+
+    for collection, removed_metadata in collection_metadata.removed_collections.items():
+        fragment_version = _get_removed_entry(collection, removed_metadata.removal)
+        if fragment_version:
+            fragment, version = fragment_version
+            if version in ansible_changelog.changes.releases:
+                ansible_changelog.changes.add_fragment(fragment, version)
+            else:
+                print(
+                    f"WARNING: found changelog entry for {version}, which does not yet exist"
+                )
 
 
 def get_changelog(
