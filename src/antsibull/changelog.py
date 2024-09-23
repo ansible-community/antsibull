@@ -502,8 +502,12 @@ class Changelog:
 def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
     collection: str,
     removal: RemovalInformation,
+    ansible_version: PypiVer,
 ) -> tuple[ChangelogFragment, str] | None:
-    if removal.announce_version is None:
+    if (
+        removal.announce_version is None
+        or removal.announce_version.major != ansible_version.major
+    ):
         return None
 
     sentences = []
@@ -515,13 +519,13 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
         sentences.append(f"The ``{collection}`` collection has been deprecated.")
         sentences.append(
             f"It will be removed from Ansible {removal.major_version} if no one"
-            " starts maintaining it again before Ansible {removal.major_version}."
+            f" starts maintaining it again before Ansible {removal.major_version}."
         )
         sentences.append(
             "See `Collections Removal Process for unmaintained collections"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
             "collection_package_removal.html#unmaintained-collections"
-            f">` for more details__{link}."
+            f">`__ for more details{link}."
         )
 
     if removal.reason == "considered-unmaintained":
@@ -543,10 +547,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
         )
         sentences.append("For now both collections are included in Ansible.")
         if removal.redirect_replacement_major_version is not None:
-            if (
-                removal.announce_version.major
-                < removal.redirect_replacement_major_version
-            ):
+            if ansible_version.major < removal.redirect_replacement_major_version:
                 sentences.append(
                     f"The content in ``{collection}`` will be replaced by deprecated"
                     f" redirects in Ansible {removal.redirect_replacement_major_version}.0.0."
@@ -615,7 +616,11 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
 def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
     collection: str,
     removal: RemovedRemovalInformation,
+    ansible_version: PypiVer,
 ) -> tuple[ChangelogFragment, str] | None:
+    if ansible_version.major != removal.version.major:
+        return None
+
     sentences = []
     link = ""
     if removal.discussion:
@@ -664,7 +669,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
             "collection_package_removal.html"
             "#collections-not-satisfying-the-collection-requirements"
-            f">` for more details__{link}."
+            f">`__ for more details{link}."
         )
 
     if removal.reason == "other":
@@ -704,11 +709,15 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
 
 
 def _populate_ansible_changelog(
-    ansible_changelog: ChangelogData, collection_metadata: CollectionsMetadata
+    ansible_changelog: ChangelogData,
+    collection_metadata: CollectionsMetadata,
+    ansible_version: PypiVer,
 ) -> None:
     for collection, metadata in collection_metadata.collections.items():
         if metadata.removal:
-            fragment_version = _get_removal_entry(collection, metadata.removal)
+            fragment_version = _get_removal_entry(
+                collection, metadata.removal, ansible_version
+            )
             if fragment_version:
                 fragment, version = fragment_version
                 if version in ansible_changelog.changes.releases:
@@ -719,7 +728,9 @@ def _populate_ansible_changelog(
                     )
 
     for collection, removed_metadata in collection_metadata.removed_collections.items():
-        fragment_version = _get_removed_entry(collection, removed_metadata.removal)
+        fragment_version = _get_removed_entry(
+            collection, removed_metadata.removal, ansible_version
+        )
         if fragment_version:
             fragment, version = fragment_version
             if version in ansible_changelog.changes.releases:
@@ -747,7 +758,7 @@ def get_changelog(
     )
 
     collection_metadata = CollectionsMetadata.load_from(deps_dir)
-    _populate_ansible_changelog(ansible_changelog, collection_metadata)
+    _populate_ansible_changelog(ansible_changelog, collection_metadata, ansible_version)
 
     if deps_dir is not None:
         for path in glob.glob(os.path.join(deps_dir, "*.deps"), recursive=False):
