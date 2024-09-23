@@ -498,7 +498,7 @@ class Changelog:
         self.collection_metadata = collection_metadata
 
 
-def _get_removal_entry(
+def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
     collection: str,
     removal: RemovalInformation,
 ) -> tuple[ChangelogFragment, str] | None:
@@ -517,10 +517,10 @@ def _get_removal_entry(
             " starts maintaining it again before Ansible {removal.major_version}."
         )
         sentences.append(
-            "See `the removal process for details on how this works"
+            "See `Collections Removal Process for unmaintained collections"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
-            "collection_package_removal.html#canceling-removal-of-an-unmaintained-collection"
-            f">`__{link}."
+            "collection_package_removal.html#unmaintained-collections"
+            f">` for more details__{link}."
         )
 
     if removal.reason == "considered-unmaintained":
