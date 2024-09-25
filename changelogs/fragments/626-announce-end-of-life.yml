@@ -1,0 +1,2 @@
+minor_changes:
+  - "Add ``--end-of-life`` flag to the ``announcements`` subcommand to announce the last release of a major release train (https://github.com/ansible-community/antsibull/pull/626)."

@@ -42,7 +42,8 @@
       "yanked_reason": null
     },
     "is_major_release": true,
-    "is_prerelease": false
+    "is_prerelease": false,
+    "end_of_life": false
   },
   "outputs": [
     "ansible-forum-announcement.md",
