@@ -67,7 +67,7 @@ https://github.com/ansible/ansible/blob/v{{ core_version }}/changelogs/CHANGELOG
 {{ ("What's the schedule for new Ansible releases after " ~ version ~ "?") | forum_heading }}
 
 {% if end_of_life %}
-This is the last release of Ansible version {{ major_version }}. Ansible {{ major_version }}.X.X will not receive any additional features, bugfixes, or security fixes. From now on we will only have {{ major_version + 1 }}.X.X releases.
+This is the last release of Ansible version {{ major_version }}. Ansible {{ major_version }}.X.X will not receive any additional features, bugfixes, or security fixes. From now on, only Ansible {{ major_version + 1 }}.X.X will receive updates.
 
 {% endif %}
 The next release roadmap can be found at
