@@ -250,9 +250,7 @@ def write_announcements_json(info: AnnouncementsInfo, file: StrOrBytesPath) -> N
         file: Output JSON filename
     """
     with open(file, "w", encoding="utf-8") as fp:
-        # pylint doesn't understand pydantic's __getattr__ magic
-        # pylint: disable-next=no-member
-        json.dump(info, fp, default=pydantic.json.pydantic_encoder, indent=2)
+        fp.write(info.model_dump_json(indent=2))
 
 
 def load_announcements_json(file: StrOrBytesPath) -> AnnouncementsInfo:
