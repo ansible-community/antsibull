@@ -9,7 +9,7 @@ Hello everyone,
 
 We're happy to announce the release of the Ansible {{ version }} package{% if is_prerelease %} pre-release{% endif %}!
 {% if end_of_life %}
-This is the final {{ major_version }}.X.X release.
+**This is the final {{ major_version }}.X.X release.**
 {% endif %}
 
 Ansible {{ version }} depends on ansible-core {{ core_version }} and includes a curated set of Ansible collections that provide a vast number of modules, plugins, and roles.{% if is_major_release and is_prerelease %} This is a pre-release of Ansible {{ major_version }}.{% elif is_major_release %} This is the first stable release of Ansible {{ major_version }}.{% elif is_prerelease %} This is a pre-release of Ansible.{% endif %}
