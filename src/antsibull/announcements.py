@@ -94,6 +94,7 @@ class TemplateVars(TypedDict):
     release_wheel: UrlInfo
     is_major_release: bool
     is_prerelease: bool
+    end_of_life: bool
 
 
 class AnnouncementsInfo(pydantic.BaseModel):
@@ -113,6 +114,7 @@ def announcements_command() -> int:
     ansible_version: str = app_ctx.extra["ansible_version"]
     output_dir: Path = app_ctx.extra["output_dir"]
     dist_dir: Path | None = app_ctx.extra["dist_dir"]
+    end_of_life: bool = app_ctx.extra["end_of_life"]
     send: bool = app_ctx.extra["send"]
 
     deps_filename = Path(app_ctx.extra["data_dir"], app_ctx.extra["deps_file"])
@@ -120,7 +122,7 @@ def announcements_command() -> int:
     dependency_data = deps_file.parse()
     return asyncio.run(
         _announcements_command(
-            ansible_version, output_dir, dist_dir, dependency_data, send
+            ansible_version, output_dir, dist_dir, dependency_data, end_of_life, send
         )
     )
 
@@ -170,7 +172,10 @@ def write_announcements(
 
 
 async def get_data(
-    ansible_version: str, dist_dir: Path | None, dependency_data: DependencyFileData
+    ansible_version: str,
+    dist_dir: Path | None,
+    dependency_data: DependencyFileData,
+    end_of_life: bool,
 ) -> TemplateVars | None:
     """
     Retrieve package data from PyPI and return a `TemplateVars` dictionary
@@ -183,6 +188,8 @@ async def get_data(
             dist files.
         dependency_data:
             `DependencyFileData` object
+        end_of_life:
+            Whether this is the last release for this major release train
     """
     async with ClientSession() as aio_session:
         client = PyPIClient(aio_session)
@@ -217,6 +224,7 @@ async def get_data(
             release_wheel=dists.wheel,
             is_major_release=version_obj.minor == 0 and version_obj.micro == 0,
             is_prerelease=version_obj.pre is not None,
+            end_of_life=end_of_life,
         )
         return ctx
 
@@ -226,9 +234,12 @@ async def _announcements_command(
     output_dir: Path,
     dist_dir: Path | None,
     dependency_data: DependencyFileData,
+    end_of_life: bool,
     send: bool,
 ) -> int:
-    if not (ctx := await get_data(ansible_version, dist_dir, dependency_data)):
+    if not (
+        ctx := await get_data(ansible_version, dist_dir, dependency_data, end_of_life)
+    ):
         return 1
     for path in write_announcements(ANNOUNCEMENTS, ctx, output_dir):
         print("Wrote:", path)

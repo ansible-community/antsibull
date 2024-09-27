@@ -750,6 +750,12 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
         type=Path,
     )
     announcements_parser.add_argument(
+        "--end-of-life",
+        action="store_true",
+        help="Report this version as the End of Life release for this"
+        " major release train",
+    )
+    announcements_parser.add_argument(
         "--send",
         action="store_true",
         help="Interactively send announcements using send-announcements command"
