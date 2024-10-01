@@ -7,7 +7,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "antsibull"
+name = "antsibull-build"
 dynamic = [
     "version",
 ]
@@ -61,10 +61,10 @@ name = "Maxwell G"
 email = "maxwell@gtmx.me"
 
 [project.urls]
-"Source code" = "https://github.com/ansible-community/antsibull"
+"Source code" = "https://github.com/ansible-community/antsibull-build"
 "Code of Conduct" = "https://docs.ansible.com/ansible/latest/community/code_of_conduct.html"
-"Bug tracker" = "https://github.com/ansible-community/antsibull/issues"
-"Changelog" = "https://github.com/ansible-community/antsibull/tree/main/CHANGELOG.md"
+"Bug tracker" = "https://github.com/ansible-community/antsibull-build/issues"
+"Changelog" = "https://github.com/ansible-community/antsibull-build/tree/main/CHANGELOG.md"
 
 [project.scripts]
 antsibull-build = "antsibull.cli.antsibull_build:main"
@@ -75,7 +75,7 @@ clipboard = [
     "pyperclip",
 ]
 all = [
-    "antsibull[clipboard]",
+    "antsibull-build[clipboard]",
 ]
 
 # Dev extras
@@ -108,17 +108,20 @@ typing = [
 ]
 dev = [
     # Used by nox sessions
-    "antsibull[codeqa]",
-    "antsibull[coverage]",
-    "antsibull[test]",
-    "antsibull[typing]",
+    "antsibull-build[codeqa]",
+    "antsibull-build[coverage]",
+    "antsibull-build[test]",
+    "antsibull-build[typing]",
     # misc
-    "antsibull[all]",
+    "antsibull-build[all]",
     "nox",
 ]
 
 [tool.hatch.version]
 path = "src/antsibull/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/antsibull"]
 
 [tool.isort]
 profile = "black"

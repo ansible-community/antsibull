@@ -355,7 +355,7 @@ def bump(session: nox.Session):
         "tag",
         "-a",
         "-m",
-        f"antsibull {version}",
+        f"antsibull-build {version}",
         "--edit",
         version,
         external=True,
@@ -378,7 +378,7 @@ def publish(session: nox.Session):
 @nox.session
 def install_env(session: nox.Session):
     """
-    Install antsibull and the other project in the the local environment.
+    Install antsibull-build and the other project in the the local environment.
     Invoke with `nox -e install_env --no-venv`
     """
     session.run(
