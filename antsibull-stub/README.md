@@ -8,3 +8,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 The `antsibull` project has been renamed to `antsibull-build`.
 This is an empty stub package for backwards compatibility.
+The new PyPI project is located at <https://pypi.org/project/antsibull-build>.
