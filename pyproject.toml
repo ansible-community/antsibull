@@ -28,6 +28,7 @@ requires-python = ">=3.9"
 dependencies = [
     "antsibull-changelog >= 0.24.0",
     "antsibull-core >= 3.1.0, < 4.0.0",
+    "antsibull-docs-parser >= 1.1.0, < 2.0.0",
     "antsibull-fileutils >= 1.0.0, < 2.0.0",
     "asyncio-pool",
     "build",

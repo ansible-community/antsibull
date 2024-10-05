@@ -39,6 +39,10 @@ from antsibull_core.schemas.collection_meta import (
     RemovalInformation,
     RemovedRemovalInformation,
 )
+from antsibull_docs_parser.parser import Context as _AnsibleMarkupContext
+from antsibull_docs_parser.parser import Whitespace as _AnsibleMarkupWhitespace
+from antsibull_docs_parser.parser import parse as _parse_ansible_markup
+from antsibull_docs_parser.rst import to_rst_plain as _ansible_markup_to_rst
 from antsibull_fileutils.yaml import load_yaml_bytes
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
@@ -499,6 +503,16 @@ class Changelog:
         self.collection_metadata = collection_metadata
 
 
+def _markup_to_rst(markup: str) -> str:
+    return _ansible_markup_to_rst(
+        _parse_ansible_markup(
+            markup,
+            _AnsibleMarkupContext(),
+            whitespace=_AnsibleMarkupWhitespace.KEEP_SINGLE_NEWLINES,
+        )
+    )
+
+
 def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
     collection: str,
     removal: RemovalInformation,
@@ -575,7 +589,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             " due to violations of the Ansible inclusion requirements."
         )
         if removal.reason_text:
-            sentences.append(removal.reason_text)
+            sentences.append(_markup_to_rst(removal.reason_text))
         sentences.append(
             "See `the removal process for details on how this works and can be cancelled"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
@@ -588,7 +602,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f"The {collection} collection will be removed from Ansible {removal.major_version}."
         )
         if removal.reason_text:
-            sentences.append(removal.reason_text)
+            sentences.append(_markup_to_rst(removal.reason_text))
         if removal.discussion:
             sentences.append(
                 f"See `the removal discussion for details <{removal.discussion}>`__."
@@ -662,7 +676,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             " due to violations of the Ansible inclusion requirements."
         )
         if removal.reason_text:
-            sentences.append(removal.reason_text)
+            sentences.append(_markup_to_rst(removal.reason_text))
         sentences.append(
             "See `Collections Removal Process for"
             " collections not satisfying the Collection requirements"
@@ -677,7 +691,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             f"The {collection} collection has been removed from Ansible {removal.version.major}."
         )
         if removal.reason_text:
-            sentences.append(removal.reason_text)
+            sentences.append(_markup_to_rst(removal.reason_text))
         if removal.discussion:
             sentences.append(
                 f"See `the removal discussion for details <{removal.discussion}>`__."

@@ -46,6 +46,7 @@ def other_antsibull(
     args = (
         "antsibull-core",
         "antsibull-changelog",
+        "antsibull-docs-parser",
         "antsibull-docutils",
         "antsibull-fileutils",
     )
