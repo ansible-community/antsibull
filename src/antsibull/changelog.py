@@ -549,10 +549,10 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f" if no one starts maintaining it again before Ansible {removal.major_version}."
         )
         sentences.append(
-            "See `the removal process for details on how this works"
+            "See `Collections Removal Process for unmaintained collections"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
-            "collection_package_removal.html#canceling-removal-of-an-unmaintained-collection"
-            f">`__{link}."
+            "collection_package_removal.html#unmaintained-collections"
+            f">`__ for more details, including for how this can be cancelled{link}."
         )
 
     if removal.reason == "renamed":
@@ -591,10 +591,10 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
         if removal.reason_text:
             sentences.append(_markup_to_rst(removal.reason_text))
         sentences.append(
-            "See `the removal process for details on how this works and can be cancelled"
+            "See `Collections Removal Process for collections not satisfying the collection requirements"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
             "collection_package_removal.html#collections-not-satisfying-the-collection-requirements"
-            f">`__{link}."
+            f">`__ for more details, including for how this can be cancelled{link}."
         )
 
     if removal.reason == "other":
@@ -678,11 +678,9 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
         if removal.reason_text:
             sentences.append(_markup_to_rst(removal.reason_text))
         sentences.append(
-            "See `Collections Removal Process for"
-            " collections not satisfying the Collection requirements"
+            "See `Collections Removal Process for collections not satisfying the collection requirements"
             " <https://docs.ansible.com/ansible/devel/community/collection_contributors/"
-            "collection_package_removal.html"
-            "#collections-not-satisfying-the-collection-requirements"
+            "collection_package_removal.html#collections-not-satisfying-the-collection-requirements"
             f">`__ for more details{link}."
         )
 
