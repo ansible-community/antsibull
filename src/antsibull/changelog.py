@@ -694,7 +694,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             sentences.append(_markup_to_rst(removal.reason_text))
         if removal.discussion:
             sentences.append(
-                f"See `the removal discussion for details <{removal.discussion}>`__."
+                f"See `the removal discussion <{removal.discussion}>`__ for details."
             )
         else:
             sentences.append(
