@@ -542,7 +542,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f">`__ for more details{link}."
         )
 
-    if removal.reason == "considered-unmaintained":
+    elif removal.reason == "considered-unmaintained":
         sentences.append(
             f"The ``{collection}`` collection is considered unmaintained"
             f" and will be removed from Ansible {removal.major_version}"
@@ -555,7 +555,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f">`__ for more details, including for how this can be cancelled{link}."
         )
 
-    if removal.reason == "renamed":
+    elif removal.reason == "renamed":
         sentences.append(
             f"The collection ``{collection}`` was renamed to ``{removal.new_name}``."
         )
@@ -583,7 +583,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f"Please update your FQCNs from ``{collection}`` to ``{removal.new_name}``{link}."
         )
 
-    if removal.reason == "guidelines-violation":
+    elif removal.reason == "guidelines-violation":
         sentences.append(
             f"The {collection} collection will be removed from Ansible {removal.major_version}"
             " due to violations of the Ansible inclusion requirements."
@@ -598,7 +598,7 @@ def _get_removal_entry(  # noqa: C901, pylint:disable=too-many-branches
             f">`__ for more details, including for how this can be cancelled{link}."
         )
 
-    if removal.reason == "other":
+    elif removal.reason == "other":
         sentences.append(
             f"The {collection} collection will be removed from Ansible {removal.major_version}."
         )
