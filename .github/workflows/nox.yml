@@ -69,6 +69,11 @@ jobs:
         with:
           repository: ansible-community/antsibull-changelog
           path: antsibull-changelog
+      - name: Check out dependent project antsibull-docs-parser
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docs-parser
+          path: antsibull-docs-parser
       - name: Check out dependent project antsibull-docutils
         uses: actions/checkout@v4
         with:

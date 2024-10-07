@@ -30,6 +30,7 @@ jobs:
             python: '3.9'
             antsibull_changelog_ref: 0.24.0
             antsibull_core_ref: main
+            antsibull_docs_parser_ref: 1.1.0
             antsibull_docutils_ref: 1.0.0  # isn't used by antsibull-changelog 0.24.0
             antsibull_fileutils_ref: main
           - name: Ansible 9
@@ -37,6 +38,7 @@ jobs:
             python: '3.11'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+            antsibull_docs_parser_ref: main
             antsibull_docutils_ref: main
             antsibull_fileutils_ref: main
           - name: Ansible 10
@@ -44,6 +46,7 @@ jobs:
             python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+            antsibull_docs_parser_ref: main
             antsibull_docutils_ref: main
             antsibull_fileutils_ref: main
           - name: Ansible 11
@@ -51,6 +54,7 @@ jobs:
             python: '3.12'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
+            antsibull_docs_parser_ref: main
             antsibull_docutils_ref: main
             antsibull_fileutils_ref: main
 
@@ -73,6 +77,13 @@ jobs:
           repository: ansible-community/antsibull-core
           path: antsibull-core
           ref: ${{ matrix.antsibull_core_ref }}
+
+      - name: Check out dependent project antsibull-docs-parser
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docs-parser
+          path: antsibull-docs-parser
+          ref: ${{ matrix.antsibull_docs_parser_ref }}
 
       - name: Check out dependent project antsibull-docutils
         uses: actions/checkout@v4
