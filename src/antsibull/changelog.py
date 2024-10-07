@@ -34,6 +34,7 @@ from antsibull_core import app_context
 from antsibull_core.ansible_core import get_ansible_core
 from antsibull_core.dependency_files import DependencyFileData, DepsFile
 from antsibull_core.galaxy import CollectionDownloader, GalaxyContext
+from antsibull_core.logging import log
 from antsibull_core.schemas.collection_meta import (
     CollectionsMetadata,
     RemovalInformation,
@@ -46,6 +47,8 @@ from antsibull_docs_parser.rst import to_rst_plain as _ansible_markup_to_rst
 from antsibull_fileutils.yaml import load_yaml_bytes
 from packaging.version import Version as PypiVer
 from semantic_version import Version as SemVer
+
+mlog = log.fields(mod=__name__)
 
 
 class ChangelogData:
@@ -198,6 +201,7 @@ class CollectionChangelogCollector:
     async def _get_changelog(
         self, version: SemVer, collection_downloader: CollectionDownloader
     ) -> ChangelogData | None:
+        flog = mlog.fields(func="_get_changelog")
         path = await collection_downloader.download(self.collection, version)
         changelog_bytes = read_changelog_file(path)
         if changelog_bytes is None:
@@ -208,8 +212,8 @@ class CollectionChangelogCollector:
                 self.collection, str(version), changelog_data
             )
         except Exception as exc:  # pylint: disable=broad-except
-            print(
-                f"WARNING: cannot load changelog of {self.collection} {version} due to {exc}"
+            flog.warning(
+                f"Cannot load changelog of {self.collection} {version} due to {exc}"
             )
             return None
 
@@ -727,6 +731,7 @@ def _populate_ansible_changelog(
     collection_metadata: CollectionsMetadata,
     ansible_version: PypiVer,
 ) -> None:
+    flog = mlog.fields(func="_populate_ansible_changelog")
     for collection, metadata in collection_metadata.collections.items():
         if metadata.removal:
             fragment_version = _get_removal_entry(
@@ -737,8 +742,8 @@ def _populate_ansible_changelog(
                 if version in ansible_changelog.changes.releases:
                     ansible_changelog.changes.add_fragment(fragment, version)
                 else:
-                    print(
-                        f"WARNING: found changelog entry for {version}, which does not yet exist"
+                    flog.warning(
+                        f"Found changelog entry for {version}, which does not yet exist"
                     )
 
     for collection, removed_metadata in collection_metadata.removed_collections.items():
@@ -750,8 +755,8 @@ def _populate_ansible_changelog(
             if version in ansible_changelog.changes.releases:
                 ansible_changelog.changes.add_fragment(fragment, version)
             else:
-                print(
-                    f"WARNING: found changelog entry for {version}, which does not yet exist"
+                flog.warning(
+                    f"Found changelog entry for {version}, which does not yet exist"
                 )
 
 
@@ -763,6 +768,7 @@ def get_changelog(
     ansible_changelog: ChangelogData | None = None,
     galaxy_context: GalaxyContext | None = None,
 ) -> Changelog:
+    flog = mlog.fields(func="get_changelog")
     dependencies: dict[str, DependencyFileData] = {}
 
     ansible_changelog = ansible_changelog or ChangelogData.ansible(directory=deps_dir)
@@ -781,7 +787,7 @@ def get_changelog(
             deps.deps.pop("_python", None)
             version = PypiVer(deps.ansible_version)
             if version > ansible_version:
-                print(
+                flog.info(
                     f"Ignoring {path}, since {deps.ansible_version}"
                     f" is newer than {ansible_version}"
                 )

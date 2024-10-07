@@ -748,6 +748,7 @@ class ReleaseNotes:
     def _append_core_porting_guide_bytes(
         renderer: AbstractRenderer, changelog: Changelog
     ) -> None:
+        flog = mlog.fields(func="_append_core_porting_guide_bytes")
         core_porting_guide = changelog.core_collector.porting_guide
         if core_porting_guide:
             lines = core_porting_guide.decode("utf-8").splitlines()
@@ -766,7 +767,7 @@ class ReleaseNotes:
                     continue
                 append_lines.append(line)
             if not found_empty:
-                print("WARNING: cannot find TOC of ansible-core porting guide!")
+                flog.warning("Cannot find TOC of ansible-core porting guide!")
             if append_lines:
                 renderer.add_text(
                     "\n".join(append_lines), text_format=TextFormat.RESTRUCTURED_TEXT

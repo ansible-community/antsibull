@@ -443,7 +443,8 @@ def prepare_command() -> int:
         print(
             f"{build_filename} is for version {build_ansible_version} but we need"
             f' {app_ctx.extra["ansible_version"].major}'
-            f'.{app_ctx.extra["ansible_version"].minor}'
+            f'.{app_ctx.extra["ansible_version"].minor}',
+            file=sys.stderr,
         )
         return 1
 
@@ -481,7 +482,8 @@ def prepare_command() -> int:
     except ValueError as exc:
         print(
             "Error while validating existing dependencies against"
-            f" build version ranges and constraints: {exc}"
+            f" build version ranges and constraints: {exc}",
+            file=sys.stderr,
         )
         return 1
 
@@ -649,9 +651,11 @@ def rebuild_single_command() -> int:
         if dep_errors:
             is_error = app_ctx.extra["ansible_version"] >= PypiVer("6.3.0")
             warning_error = "ERROR" if is_error else "WARNING"
-            print(f"{warning_error}: found collection dependency errors!")
+            print(
+                f"{warning_error}: found collection dependency errors!", file=sys.stderr
+            )
             for error in dep_errors:
-                print(f"{warning_error}: {error}")
+                print(f"{warning_error}: {error}", file=sys.stderr)
             if is_error:
                 return 3
 
