@@ -646,13 +646,13 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             f"The deprecated ``{collection}`` collection has been removed{link}."
         )
 
-    if removal.reason == "considered-unmaintained":
+    elif removal.reason == "considered-unmaintained":
         sentences.append(
             f"The ``{collection}`` collection was considered unmaintained"
             f" and has been removed from Ansible {removal.version.major}{link}."
         )
 
-    if removal.reason == "renamed":
+    elif removal.reason == "renamed":
         sentences.append(
             f"The collection ``{collection}`` has been completely removed from Ansible."
         )
@@ -671,7 +671,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             f"Please update your FQCNs from ``{collection}`` to ``{removal.new_name}``{link}."
         )
 
-    if removal.reason == "guidelines-violation":
+    elif removal.reason == "guidelines-violation":
         sentences.append(
             f"The {collection} collection has been removed from Ansible {removal.version.major}"
             " due to violations of the Ansible inclusion requirements."
@@ -686,7 +686,7 @@ def _get_removed_entry(  # noqa: C901, pylint:disable=too-many-branches
             f">`__ for more details{link}."
         )
 
-    if removal.reason == "other":
+    elif removal.reason == "other":
         sentences.append(
             f"The {collection} collection has been removed from Ansible {removal.version.major}."
         )
