@@ -1,0 +1,5 @@
+minor_changes:
+  - "Use Proxy configuration settings from the environment. Check out the 
+     `aiohttp documentation on Proxy support <https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support>`__
+     for information on which environment variables are supported
+     (https://github.com/ansible-community/antsibull-build/pull/631)."

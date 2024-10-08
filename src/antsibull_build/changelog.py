@@ -358,7 +358,7 @@ async def collect_changelogs(
 ):
     lib_ctx = app_context.lib_ctx.get()
     with tempfile.TemporaryDirectory() as tmp_dir:
-        async with aiohttp.ClientSession() as aio_session:
+        async with aiohttp.ClientSession(trust_env=True) as aio_session:
             if galaxy_context is None:
                 galaxy_context = await GalaxyContext.create(aio_session)
             async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
