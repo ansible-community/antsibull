@@ -1,3 +1,0 @@
-minor_changes:
-  - "Automatically generate collection deprecation and removal changelog fragments from ``collection-meta.yaml`` information (https://github.com/ansible-community/antsibull/pull/623)."
-  - "Antsibull now depends on antsibull-docs-parser 1.x.y (https://github.com/ansible-community/antsibull/pull/623)."

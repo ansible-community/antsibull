@@ -4,6 +4,22 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.66.0
+=======
+
+Release Summary
+---------------
+
+Feature release for the upcoming Ansible releases.
+
+Minor Changes
+-------------
+
+- Add ``--end-of-life`` flag to the ``announcements`` subcommand to announce the last release of a major release train (https://github.com/ansible-community/antsibull/pull/626).
+- Antsibull now depends on antsibull-docs-parser 1.x.y (https://github.com/ansible-community/antsibull/pull/623).
+- Automatically generate collection deprecation and removal changelog fragments from ``collection-meta.yaml`` information (https://github.com/ansible-community/antsibull/pull/623).
+- Prefer stderr for error messages during building Ansible and the logging facility for warnings in changelog-related code (https://github.com/ansible-community/antsibull/pull/630).
+
 v0.65.0
 =======
 

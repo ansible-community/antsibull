@@ -925,3 +925,20 @@ releases:
       - 619-antsibull-fileutils.yml
       - 621-forum-heading.yaml
     release_date: '2024-09-14'
+  0.66.0:
+    changes:
+      minor_changes:
+        - Add ``--end-of-life`` flag to the ``announcements`` subcommand to announce
+          the last release of a major release train (https://github.com/ansible-community/antsibull/pull/626).
+        - Antsibull now depends on antsibull-docs-parser 1.x.y (https://github.com/ansible-community/antsibull/pull/623).
+        - Automatically generate collection deprecation and removal changelog fragments
+          from ``collection-meta.yaml`` information (https://github.com/ansible-community/antsibull/pull/623).
+        - Prefer stderr for error messages during building Ansible and the logging
+          facility for warnings in changelog-related code (https://github.com/ansible-community/antsibull/pull/630).
+      release_summary: Feature release for the upcoming Ansible releases.
+    fragments:
+      - 0.66.0.yml
+      - 623-changelog.yaml
+      - 626-announce-end-of-life.yml
+      - 630-stderr.yml
+    release_date: '2024-10-08'
