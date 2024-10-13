@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "antsibull"
-version = "0.66.0"
+version = "0.67.0"
 description = "The antsibull project has been renamed to antsibull-build"
 license = "GPL-3.0-or-later AND Python-2.0.1"
 license-files = {globs=["LICENSES/*.txt"]}
