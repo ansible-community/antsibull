@@ -422,7 +422,8 @@ def parse_args(program_name: str, args: list[str]) -> argparse.Namespace:
     )
 
     # Delay import to avoid potential import loops
-    from antsibull import __version__ as _ver  # pylint: disable=import-outside-toplevel
+    # pylint: disable-next=import-outside-toplevel
+    from antsibull_build import __version__ as _ver
 
     parser = get_toplevel_parser(
         prog=program_name,

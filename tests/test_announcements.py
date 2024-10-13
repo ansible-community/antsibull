@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from antsibull.cli.antsibull_build import run
+from antsibull_build.cli.antsibull_build import run
 
 ANNOUNCEMENT_TESTS = [
     ("7.0.0b1", "announce-7.0.0b1"),

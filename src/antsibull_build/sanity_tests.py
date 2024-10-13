@@ -28,8 +28,8 @@ from antsibull_core.subprocess_util import log_run
 from antsibull_fileutils.yaml import store_yaml_file
 from packaging.version import Version
 
-from antsibull.constants import SANITY_TESTS_BANNED_IGNORES, SANITY_TESTS_DEFAULT
-from antsibull.types import CollectionName, add_dataclass_yaml_type
+from antsibull_build.constants import SANITY_TESTS_BANNED_IGNORES, SANITY_TESTS_DEFAULT
+from antsibull_build.types import CollectionName, add_dataclass_yaml_type
 
 if TYPE_CHECKING:
     from _typeshed import StrPath

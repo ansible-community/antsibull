@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 import aiofiles.ospath
 import aiofiles.tempfile
 
-from antsibull._vendor.shutil import copytree_and_symlinks
+from antsibull_build._vendor.shutil import copytree_and_symlinks
 
 if TYPE_CHECKING:
     from _typeshed import StrPath

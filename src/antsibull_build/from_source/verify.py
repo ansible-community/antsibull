@@ -18,7 +18,7 @@ import aiofiles.ospath
 from antsibull_core import app_context
 from antsibull_fileutils.hashing import verify_hash
 
-from antsibull.types import add_yaml_type
+from antsibull_build.types import add_yaml_type
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired

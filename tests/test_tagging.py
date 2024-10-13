@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 from antsibull_core.yaml import load_yaml_file
 
-from antsibull.cli.antsibull_build import run
+from antsibull_build.cli.antsibull_build import run
 
 
 @pytest.mark.parametrize(
@@ -213,7 +213,9 @@ def test_validate_tags(test_data_path: Path, tmp_path: Path):
     expected_data_path = test_data_path / name
     expected_data = load_yaml_file(expected_data_path)
     output_data_path = tmp_path / name
-    with patch("antsibull.tagging.get_collections_tags", return_value=expected_data):
+    with patch(
+        "antsibull_build.tagging.get_collections_tags", return_value=expected_data
+    ):
         ran = run(
             [
                 "antsibull-build",

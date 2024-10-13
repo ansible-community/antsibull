@@ -20,11 +20,11 @@ from antsibull_core import app_context
 from antsibull_core.subprocess_util import async_log_run
 from antsibull_fileutils.yaml import load_yaml_file, store_yaml_file
 
-from antsibull.build_ansible_commands import download_collections
-from antsibull.tagging import CollectionTagData
-from antsibull.types import CollectionName, make_collection_mapping
-from antsibull.utils.galaxy import create_galaxy_context
-from antsibull.utils.paths import atemp_or_dir
+from antsibull_build.build_ansible_commands import download_collections
+from antsibull_build.tagging import CollectionTagData
+from antsibull_build.types import CollectionName, make_collection_mapping
+from antsibull_build.utils.galaxy import create_galaxy_context
+from antsibull_build.utils.paths import atemp_or_dir
 
 from ._utils import filter_tag_data, tag_data_as_version_mapping
 from .clone import NormalizedCheckout, clone_collection, normalize_clone

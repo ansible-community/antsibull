@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from antsibull.types import CollectionName, make_collection_mapping
+from antsibull_build.types import CollectionName, make_collection_mapping
 
 
 def test_collection_name() -> None:

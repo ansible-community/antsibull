@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: antsibull
+        working-directory: antsibull-build
     strategy:
       fail-fast: false
       matrix:
@@ -55,10 +55,10 @@ jobs:
             packages: ""
     name: "Run nox ${{ matrix.session }} session"
     steps:
-      - name: Check out antsibull
+      - name: Check out antsibull-build
         uses: actions/checkout@v4
         with:
-          path: antsibull
+          path: antsibull-build
       - name: Check out dependent project antsibull-core
         uses: actions/checkout@v4
         with:
@@ -106,7 +106,7 @@ jobs:
         if: ${{ matrix.codecov }}
         uses: codecov/codecov-action@v4
         with:
-          working-directory: antsibull
+          working-directory: antsibull-build
           name: "${{ matrix.session }}"
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

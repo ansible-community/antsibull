@@ -30,8 +30,8 @@ from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescap
 from packaging.version import Version as PypiVer
 from typing_extensions import TypedDict
 
-from antsibull.constants import ANSIBLE_FORUM_URL, BUILD_DATA_URL
-from antsibull.pypi import PyPIClient, SdistAndWheelPair, UrlInfo
+from antsibull_build.constants import ANSIBLE_FORUM_URL, BUILD_DATA_URL
+from antsibull_build.pypi import PyPIClient, SdistAndWheelPair, UrlInfo
 
 try:
     import pyperclip  # type: ignore[import]

@@ -31,8 +31,8 @@ from packaging.version import Version as PypiVer
 from semantic_version import SimpleSpec as SemVerSpec
 from semantic_version import Version as SemVer
 
-from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
-from antsibull.python_metadata import BuildMetaMaker, LegacyBuildMetaMaker
+from antsibull_build.constants import MINIMUM_ANSIBLE_VERSIONS
+from antsibull_build.python_metadata import BuildMetaMaker, LegacyBuildMetaMaker
 
 from . import __version__ as antsibull_version
 from .build_changelog import ReleaseNotes

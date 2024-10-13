@@ -67,7 +67,7 @@ email = "maxwell@gtmx.me"
 "Changelog" = "https://github.com/ansible-community/antsibull-build/tree/main/CHANGELOG.md"
 
 [project.scripts]
-antsibull-build = "antsibull.cli.antsibull_build:main"
+antsibull-build = "antsibull_build.cli.antsibull_build:main"
 
 [project.optional-dependencies]
 # User-facing extras
@@ -118,10 +118,10 @@ dev = [
 ]
 
 [tool.hatch.version]
-path = "src/antsibull/__init__.py"
+path = "src/antsibull_build/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/antsibull"]
+packages = ["src/antsibull_build"]
 
 [tool.isort]
 profile = "black"

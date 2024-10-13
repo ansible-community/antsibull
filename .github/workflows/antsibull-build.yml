@@ -59,10 +59,10 @@ jobs:
             antsibull_fileutils_ref: main
 
     steps:
-      - name: Check out antsibull
+      - name: Check out antsibull-build
         uses: actions/checkout@v4
         with:
-          path: antsibull
+          path: antsibull-build
 
       - name: Check out dependent project antsibull-changelog
         uses: actions/checkout@v4
@@ -111,16 +111,20 @@ jobs:
       - name: "Test building a release: ${{ matrix.name }}"
         run: |
           nox -e coverage_release -- ${{ matrix.options }}
-        working-directory: antsibull
+        env:
+          # Since antsibull was renamed to antsibull-build, paths during the bytecompile test
+          # are too long and bytecompile fails with "OSError: AF_UNIX path too long".
+          COVERAGE_RELEASE_FORCE_TMPDIR: /tmp
+        working-directory: antsibull-build
 
       - name: Report coverage
         run: |
           nox -v -e coverage
-        working-directory: antsibull
+        working-directory: antsibull-build
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          working-directory: antsibull
+          working-directory: antsibull-build
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
