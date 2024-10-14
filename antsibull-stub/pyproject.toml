@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "antsibull-build>=0.66.0"
+    "antsibull-build>=0.67.0"
 ]
 
 [[project.authors]]
