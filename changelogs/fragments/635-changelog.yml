@@ -1,0 +1,2 @@
+minor_changes:
+  - "Adjust to upcoming changes in antsibull-changelog by removing superfluous parameters (https://github.com/ansible-community/antsibull-build/pull/635)."

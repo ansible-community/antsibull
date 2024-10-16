@@ -73,9 +73,7 @@ class ChangelogData:
         self.config = config
         self.changes = changes
         self.generator_flatmap = flatmap
-        self.generator = ChangelogGenerator(
-            self.config, self.changes, plugins=None, fragments=None, flatmap=flatmap
-        )
+        self.generator = ChangelogGenerator(self.config, self.changes, flatmap=flatmap)
 
     @classmethod
     def collection(
