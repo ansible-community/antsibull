@@ -4,6 +4,19 @@ antsibull -- Ansible Build Scripts Release Notes
 
 .. contents:: Topics
 
+v0.67.0
+=======
+
+Release Summary
+---------------
+
+Maintenance release due to rename of the repository and project from antsibull to antsibull-build.
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- The name of this project has been changed from ``antsibull`` to ``antsibull-build`` to reflect that it provides the ``antsibull-build`` command and disambiguate this project from the other antsibull projects. For backwards compatibility purposes, the ``antsibull`` project on PyPI has been converted to an empty stub package that requires ``antsibull-build``, but users should immediately switch to the new name. The Git repository has also been moved to https://github.com/ansible-community/antsibull-build (https://github.com/ansible-community/antsibull/issues/627, https://github.com/ansible-community/antsibull/pull/629).
+
 v0.66.0
 =======
 
