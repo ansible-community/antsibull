@@ -144,8 +144,8 @@ def coverage_release(session: nox.Session):
         env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **session.env},
     )
     tmp_env = {}
-    if os.environ.get("ANTSIBULL_COVERAGE_RELEASE_FORCE_TMPDIR"):
-        tmp_env["TMPDIR"] = os.environ["ANTSIBULL_COVERAGE_RELEASE_FORCE_TMPDIR"]
+    if tmpdir := os.environ.get("ANTSIBULL_COVERAGE_RELEASE_FORCE_TMPDIR"):
+        tmp_env["TMPDIR"] = tmpdir
     with coverage_run(session) as (build_command, cov_env):
         session.run(
             "ansible-playbook",
