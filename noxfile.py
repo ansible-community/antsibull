@@ -155,7 +155,6 @@ def coverage_release(session: nox.Session):
             "-e",
             f"antsibull_build_command={build_command!r}",
             env={
-                "TMPDIR": "/tmp",
                 "ANSIBLE_COLLECTIONS_PATH": str(collections),
                 "ANSIBLE_CALLBACK_RESULT_FORMAT": "yaml",
                 **cov_env,
