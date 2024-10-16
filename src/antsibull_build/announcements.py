@@ -191,7 +191,7 @@ async def get_data(
         end_of_life:
             Whether this is the last release for this major release train
     """
-    async with ClientSession() as aio_session:
+    async with ClientSession(trust_env=True) as aio_session:
         client = PyPIClient(aio_session)
         try:
             release = await client.get_release("ansible", ansible_version)

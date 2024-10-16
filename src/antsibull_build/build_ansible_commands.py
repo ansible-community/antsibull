@@ -74,7 +74,7 @@ async def download_collections(
     collection_cache: str | None = None,
 ) -> dict[str, str]:
     requestors = {}
-    async with aiohttp.ClientSession() as aio_session:
+    async with aiohttp.ClientSession(trust_env=True) as aio_session:
         lib_ctx = app_context.lib_ctx.get()
         async with asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool:
             downloader = CollectionDownloader(
@@ -96,7 +96,7 @@ async def _get_ansible_core_path(
     download_dir: StrPath, ansible_core_version: PypiVer | str
 ) -> Path:
     flog = mlog.fields(func="_get_ansible_core_path")
-    async with aiohttp.ClientSession() as aio_session:
+    async with aiohttp.ClientSession(trust_env=True) as aio_session:
         ansible_core_tarball = Path(
             await get_ansible_core(
                 aio_session, str(ansible_core_version), str(download_dir)

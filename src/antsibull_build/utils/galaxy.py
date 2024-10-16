@@ -15,5 +15,5 @@ async def create_galaxy_context() -> GalaxyContext:
     """
     Create a Galaxy context.
     """
-    async with aiohttp.ClientSession() as aio_session:
+    async with aiohttp.ClientSession(trust_env=True) as aio_session:
         return await GalaxyContext.create(aio_session)

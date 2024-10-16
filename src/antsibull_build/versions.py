@@ -175,7 +175,7 @@ async def get_version_info(
     requestors = {}
     lib_ctx = app_context.lib_ctx.get()
     async with (
-        aiohttp.ClientSession() as aio_session,
+        aiohttp.ClientSession(trust_env=True) as aio_session,
         asyncio_pool.AioPool(size=lib_ctx.thread_max) as pool,
     ):
         pypi_client = AnsibleCorePyPiClient(
