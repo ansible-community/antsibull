@@ -24,10 +24,10 @@ import aiofiles
 import aiohttp
 from packaging.version import Version as PypiVer
 
-import antsibull.build_ansible_commands
-from antsibull.cli import antsibull_build
-from antsibull.constants import MINIMUM_ANSIBLE_VERSIONS
-from antsibull.utils.paths import temp_or_dir
+from antsibull_build import build_ansible_commands
+from antsibull_build.cli import antsibull_build
+from antsibull_build.constants import MINIMUM_ANSIBLE_VERSIONS
+from antsibull_build.utils.paths import temp_or_dir
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -161,7 +161,7 @@ def generate_package_files(
         cm,
         cm2,
         patch_object(
-            antsibull.build_ansible_commands,
+            build_ansible_commands,
             "antsibull_version",
             PLACEHOLDER_ANTSIBULL_VERSION,
         ),

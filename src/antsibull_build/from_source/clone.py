@@ -20,9 +20,9 @@ from antsibull_core.logging import log
 from antsibull_core.subprocess_util import async_log_run
 from antsibull_fileutils.yaml import load_yaml_file, store_yaml_file
 
-from antsibull.tagging import CollectionTagData
-from antsibull.types import CollectionName
-from antsibull.utils.paths import copytree_and_symlinks
+from antsibull_build.tagging import CollectionTagData
+from antsibull_build.types import CollectionName
+from antsibull_build.utils.paths import copytree_and_symlinks
 
 from .exceptions import CloneError
 from .verify import FileError, FileErrorOutput
@@ -45,7 +45,7 @@ async def clone_collection(
 
     Args:
         tag_data:
-            A tag dictionary. See `antsibull.tagging.get_collections_tags()`.
+            A tag dictionary. See `antsibull_build.tagging.get_collections_tags()`.
     Returns:
         The path to the collection checkout
     """
@@ -156,7 +156,7 @@ async def normalize_clone(
         expected_collection:
             Expected NAMESPACE.NAME of the collection
         tag_data:
-            A tag dictionary. See `antsibull.tagging.get_collections_tags()`.
+            A tag dictionary. See `antsibull_build.tagging.get_collections_tags()`.
     """
     flog = mlog.fields(func="normalize_clone", collection=collection)
     errors: list[FileErrorOutput] = []

@@ -12,8 +12,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from antsibull._vendor.shutil import _should_symlink
-from antsibull.utils.paths import atemp_or_dir, copytree_and_symlinks, temp_or_dir
+from antsibull_build._vendor.shutil import _should_symlink
+from antsibull_build.utils.paths import atemp_or_dir, copytree_and_symlinks, temp_or_dir
 
 
 @pytest.mark.asyncio

@@ -27,4 +27,4 @@ github_checks:
   annotations: false
 
 fixes:
-  - "antsibull/::"
+  - "antsibull_build/::"

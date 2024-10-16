@@ -5,7 +5,7 @@
 # This file is here so that pytest won't complain that it cannot find tests.
 # Remove once we have actual tests.
 
-import antsibull
+import antsibull_build
 
 
 def test_dummy():

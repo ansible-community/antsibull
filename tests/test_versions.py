@@ -5,7 +5,7 @@
 
 import pytest
 
-from antsibull.build_ansible_commands import feature_freeze_version
+from antsibull_build.build_ansible_commands import feature_freeze_version
 
 
 @pytest.mark.parametrize(

@@ -15,8 +15,8 @@ from fnmatch import fnmatch
 
 from semantic_version import Version as SemVer
 
-from antsibull.tagging import CollectionTagData
-from antsibull.types import CollectionName
+from antsibull_build.tagging import CollectionTagData
+from antsibull_build.types import CollectionName
 
 
 def filter_tag_data(

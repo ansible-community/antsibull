@@ -1,0 +1,60 @@
+# Copyright (c) Ansible Project
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "antsibull"
+version = "0.67.0"
+description = "The antsibull project has been renamed to antsibull-build"
+license = "GPL-3.0-or-later AND Python-2.0.1"
+license-files = {globs=["LICENSES/*.txt"]}
+readme = "README.md"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Ansible",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Typing :: Typed",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "antsibull-build>=0.67.0"
+]
+
+[[project.authors]]
+name = "Toshio Kuratomi"
+email = "a.badger@gmail.com"
+
+[[project.authors]]
+name = "Felix Fontein"
+email = "felix@fontein.de"
+
+[[project.maintainers]]
+name = "Felix Fontein"
+email = "felix@fontein.de"
+
+[[project.maintainers]]
+name = "Maxwell G"
+email = "maxwell@gtmx.me"
+
+[project.urls]
+"New package" = "https://pypi.org/project/antsibull-build"
+
+[project.optional-dependencies]
+# User-facing extras
+clipboard = [
+    "antsibull-build[clipboard]"
+]
+all = [
+    "antsibull-build[all]",
+]
+
+[tool.hatch.build.targets.wheel]
+# This is an empty package
+bypass-selection = true

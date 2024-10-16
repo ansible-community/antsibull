@@ -91,7 +91,7 @@ def test(session: nox.Session):
     session.run(
         "pytest",
         "--cov-branch",
-        "--cov=antsibull",
+        "--cov=antsibull_build",
         "--cov-report",
         "term-missing",
         *more_args,
@@ -102,9 +102,7 @@ def test(session: nox.Session):
 
 @contextlib.contextmanager
 def coverage_run(session: nox.Session) -> Iterator[tuple[str, dict[str, str]]]:
-    build_command = (
-        "coverage run -p --branch --source antsibull -m antsibull.cli.antsibull_build"
-    )
+    build_command = "coverage run -p --branch --source antsibull_build -m antsibull_build.cli.antsibull_build"
     tmp = Path(session.create_tmp())
     covfile = tmp / ".coverage"
     cov_env = {"COVERAGE_FILE": f"{covfile}", **session.env}
@@ -145,6 +143,9 @@ def coverage_release(session: nox.Session):
         "git+https://github.com/ansible-collections/community.general",
         env={"ANSIBLE_COLLECTIONS_PATH": str(collections), **session.env},
     )
+    tmp_env = {}
+    if tmpdir := os.environ.get("ANTSIBULL_COVERAGE_RELEASE_FORCE_TMPDIR"):
+        tmp_env["TMPDIR"] = tmpdir
     with coverage_run(session) as (build_command, cov_env):
         session.run(
             "ansible-playbook",
@@ -157,6 +158,7 @@ def coverage_release(session: nox.Session):
                 "ANSIBLE_COLLECTIONS_PATH": str(collections),
                 "ANSIBLE_CALLBACK_RESULT_FORMAT": "yaml",
                 **cov_env,
+                **tmp_env,
             },
         )
 
@@ -193,8 +195,8 @@ def formatters(session: nox.Session):
 @nox.session
 def codeqa(session: nox.Session):
     install(session, ".[codeqa]", *other_antsibull(), editable=True)
-    session.run("flake8", "src/antsibull", *session.posargs)
-    session.run("pylint", "--rcfile", ".pylintrc.automated", "src/antsibull")
+    session.run("flake8", "src/antsibull_build", *session.posargs)
+    session.run("pylint", "--rcfile", ".pylintrc.automated", "src/antsibull_build")
     session.run("reuse", "lint")
     session.run("antsibull-changelog", "lint")
 
@@ -203,7 +205,7 @@ def codeqa(session: nox.Session):
 def typing(session: nox.Session):
     others = other_antsibull()
     install(session, ".[typing]", *others)
-    session.run("mypy", "src/antsibull")
+    session.run("mypy", "src/antsibull_build")
 
 
 @nox.session
@@ -252,7 +254,7 @@ def check_package_files(
             "run",
             "-p",
             "--branch",
-            "--source=antsibull",
+            "--source=antsibull_build",
             "tests/verify_package_files.py",
             "check",
             f"--data-dir={build_data / major}",
@@ -332,7 +334,11 @@ def bump(session: nox.Session):
         with open(fragment_file, "w") as fp:
             fp.write(fragment)
         session.run(
-            "git", "add", "src/antsibull/__init__.py", str(fragment_file), external=True
+            "git",
+            "add",
+            "src/antsibull_build/__init__.py",
+            str(fragment_file),
+            external=True,
         )
         session.run("git", "commit", "-m", f"Prepare {version}.", external=True)
     session.run("antsibull-changelog", "release")
@@ -345,7 +351,7 @@ def bump(session: nox.Session):
         "changelogs/fragments/",
         # src/antsibull/__init__.py is not committed in the last step
         # when the release_summary fragment is created manually
-        "src/antsibull/__init__.py",
+        "src/antsibull_build/__init__.py",
         external=True,
     )
     install(session, ".")  # Smoke test
@@ -355,7 +361,7 @@ def bump(session: nox.Session):
         "tag",
         "-a",
         "-m",
-        f"antsibull {version}",
+        f"antsibull-build {version}",
         "--edit",
         version,
         external=True,
@@ -371,14 +377,14 @@ def publish(session: nox.Session):
     install(session, "hatch")
     session.run("hatch", "publish", *session.posargs)
     session.run("hatch", "version", "post")
-    session.run("git", "add", "src/antsibull/__init__.py", external=True)
+    session.run("git", "add", "src/antsibull_build/__init__.py", external=True)
     session.run("git", "commit", "-m", "Post-release version bump.", external=True)
 
 
 @nox.session
 def install_env(session: nox.Session):
     """
-    Install antsibull and the other project in the the local environment.
+    Install antsibull-build and the other project in the the local environment.
     Invoke with `nox -e install_env --no-venv`
     """
     session.run(
