@@ -114,7 +114,7 @@ jobs:
         env:
           # Since antsibull was renamed to antsibull-build, paths during the bytecompile test
           # are too long and bytecompile fails with "OSError: AF_UNIX path too long".
-          COVERAGE_RELEASE_FORCE_TMPDIR: /tmp
+          ANTSIBULL_COVERAGE_RELEASE_FORCE_TMPDIR: /tmp
         working-directory: antsibull-build
 
       - name: Report coverage
