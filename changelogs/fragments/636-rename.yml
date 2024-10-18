@@ -1,2 +1,2 @@
 bugfixes:
-  - "Adjust the rebuild script included in Ansible releases to also install antsibull-build instead of antsibull (https://github.com/ansible-community/antsibull-build/pull/636)."
+  - "Adjust the rebuild script included in Ansible releases to install antsibull-build instead of antsibull (https://github.com/ansible-community/antsibull-build/pull/636)."
