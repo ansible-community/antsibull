@@ -76,7 +76,7 @@ def other_antsibull(
     return to_install
 
 
-@nox.session(python=["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"])
+@nox.session(python=["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"])
 def test(session: nox.Session):
     install(
         session,
