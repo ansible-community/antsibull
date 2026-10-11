@@ -34,8 +34,8 @@ jobs:
             antsibull_docutils_ref: main
             antsibull_fileutils_ref: main
           - name: Ansible 15
-            options: '-e antsibull_ansible_version=14.99.0'
-            python: '3.14'
+            options: '-e antsibull_ansible_version=15.99.0'
+            python: '3.15'
             antsibull_changelog_ref: main
             antsibull_core_ref: main
             antsibull_docs_parser_ref: main

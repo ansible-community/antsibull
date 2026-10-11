@@ -30,8 +30,8 @@ jobs:
       matrix:
         include:
           - session: test
-            python-versions: "3.10, 3.11, 3.12, 3.13, 3.14"
-            force-python: "3.10 3.11 3.12 3.13 3.14"
+            python-versions: "3.10, 3.11, 3.12, 3.13, 3.14, 3.15"
+            force-python: "3.10 3.11 3.12 3.13 3.14 3.15"
             codecov: true
             packages: ""
             image: ""
@@ -51,8 +51,8 @@ jobs:
             image: ""
 
           - session: lint
-            python-versions: "3.14"
-            force-python: "3.14"
+            python-versions: "3.15"
+            force-python: "3.15"
             codecov: false
             packages: ""
             image: ""
