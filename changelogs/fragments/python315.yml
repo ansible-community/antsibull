@@ -1,0 +1,2 @@
+bugfixes:
+  - "Declare support for Python 3.15 (https://github.com/ansible-community/antsibull-build/pull/714)."
