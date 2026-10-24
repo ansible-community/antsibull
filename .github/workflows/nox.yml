@@ -19,9 +19,12 @@ env:
   FORCE_COLOR: "1"
   OTHER_ANTSIBULL_MODE: local
 
+permissions:
+  contents: read
+
 jobs:
   nox:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.image || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -31,18 +34,21 @@ jobs:
             force-python: ""
             codecov: true
             packages: ""
+            image: ""
 
           - session: "check_package_files(12.1.0)"
             python-versions: "3.13"
             force-python: "3.13"
             codecov: true
             packages: ""
+            image: ""
 
           - session: lint
             python-versions: "3.14"
             force-python: "3.14"
             codecov: false
             packages: ""
+            image: ""
     name: "Run nox ${{ matrix.session }} session"
     steps:
       - name: Check out antsibull-build
